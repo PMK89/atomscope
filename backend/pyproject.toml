@@ -68,5 +68,9 @@ mypy_path = "src"
 
 [[tool.mypy.overrides]]
 # ASE ships no type annotations; calls into it cannot be type-checked.
-module = ["atomscope.ase_bridge.*", "atomscope.io.*"]
+module = ["atomscope.ase_bridge.*", "atomscope.io.*", "atomscope.chem.*"]
 disallow_untyped_calls = false
+
+[[tool.mypy.overrides]]
+module = ["openbabel.*", "rdkit.*"]
+ignore_missing_imports = true

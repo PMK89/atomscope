@@ -380,8 +380,9 @@ Verified against real protocols:
   `/home/pmk/cp-paw/docs/third_party_audit_report.md`. The workbench fixed this by (a) running native
   CP-PAW friction dynamics instead of ASE-BFGS and (b) `parse_protocol_report(..., require_forces=True)`
   raising when no forces are present (`backend/app/protocol.py:247-302`).
-* Additional precision trap: forces are printed with 2 decimals in mH/aBohr, i.e. a resolution of
-  0.005 mH/Bohr ≈ 2.6e-4 eV/Å; `fmax` targets below ~1e-3 eV/Å are meaningless from the protocol.
+* Additional precision trap: forces are printed with 2 decimals in mH/aBohr, i.e. in steps of
+  0.01 mH/Bohr ≈ 5e-4 eV/Å (rounding error up to 2.6e-4 eV/Å); `fmax` targets below ~1e-3 eV/Å are
+  meaningless from the protocol.
   A binary/structured force output (`case_r.tra`, `.strc_out`, or a CP-PAW option to print more digits)
   should be preferred.
 * Whether `!RDYN STOP=T FRIC=0.0 NSTEP=1` is a clean single-point-with-forces recipe is **not
@@ -480,16 +481,331 @@ from another existing conda env (`envs/ape`, pytest 7.4.0, Python 3.11.7) withou
 
 ## 5. ASE 3.25 API surface for Atomscope
 
-<!-- AGENT_A -->
+Installed: **3.25.0** (`/home/pmk/miniconda3/envs/asecppaw/lib/python3.11/site-packages/ase`). PyPI
+latest (2026-09-04): **3.29.0** (3.26.0 2025-08-12, 3.27.0 2025-12-28, 3.28.0 2026-03-17, 3.29.0
+2026-06-21). Atomscope should target `ase>=3.25` for the API below and re-verify against 3.29 before
+release; the relevant modern surfaces (`GenericFileIOCalculator`, `ase.mep`, `ase.filters`,
+`config.ini` profiles) are already present in 3.25, and the deprecated paths (`ase.neb`,
+`ASE_*_COMMAND`, `FileIOCalculator.command`) are the ones most likely to disappear.
+
+### 5.1 Calculator base classes (`ase/calculators/calculator.py`, `genericfileio.py`, `abc.py`)
+
+* `all_properties` (calculator.py:128) = `['energy','forces','stress','stresses','dipole','charges',
+  'magmom','magmoms','free_energy','energies','dielectric_tensor','born_effective_charges','polarization']`;
+  `all_changes` (145) = `['positions','numbers','cell','pbc','initial_charges','initial_magmoms']`.
+  Exceptions: `CalculatorSetupError`, `EnvironmentError`, `InputError`, `CalculationFailed`, `SCFError`,
+  `ReadError`, `PropertyNotImplementedError`, `PropertyNotPresent`.
+* `BaseCalculator(GetPropertiesMixin)` (447): `results` dict, `check_state` via `compare_atoms`,
+  `get_property(name, atoms, allow_calculation)` (492) invalidates on any change and calls `calculate`.
+* `Calculator(BaseCalculator)` (554): legacy `restart/label/atoms/directory/**kwargs`, `set()`,
+  `directory`/`label`/`prefix` properties.
+* `FileIOCalculator(Calculator)` (1055): `command` is a deprecated shim onto `self.profile.command`;
+  `_initialize_profile` resolves explicit `command` -> `ASE_<NAME>_COMMAND` (deprecated, warns) ->
+  `[name]` section of `~/.config/ase/config.ini` (`ase.config.Config`, `ASE_CONFIG_FILE`) ->
+  `_legacy_default_command` -> `EnvironmentError`. `calculate()` = `write_input` -> `execute` -> `read_results`.
+* **Recommended for Atomscope:** `ase.calculators.genericfileio.GenericFileIOCalculator(template, profile, directory, parameters)`
+  with a `CalculatorTemplate(name, implemented_properties)` implementing
+  `write_input(profile, directory, atoms, parameters, properties)`, `execute(directory, profile)`,
+  `read_results(directory) -> Mapping`, `load_profile(cfg)` (and optionally `socketio_argv`/`socketio_parameters`),
+  plus a `BaseProfile(command)` subclass with `get_calculator_command(inputfile)` and `version()`.
+  This is what `abinit`, `aims`, `espresso`, `octopus`, `orca`, `onetep`, `exciting` use in 3.25
+  (`names.templates`). Benefits: no mutable `set()` (parameters are immutable per calculator
+  instance), clean separation of input writing (usable for a "preview deck" UI without running),
+  execution (replaceable by an async job runner), and result parsing (unit-testable on stored
+  protocols), and `GetOutputsMixin` gives `get_eigenvalues/get_fermi_level/get_number_of_bands/...`
+  for free from the `results` mapping.
+* `SinglePointCalculator(atoms, **results)` / `SinglePointDFTCalculator(..., efermi, bzkpts, ibzkpts, kpts)`
+  (`singlepoint.py:16, 96`) are the right containers for **stored** results (imported protocols, DB
+  rows, trajectory frames); keys must be in `all_properties`.
+* Base-class survey: `Calculator` - emt, lj, morse, tip3p, tip4p, ff, eam, idealgas, mixing, qmmm,
+  harmonic, turbomole, cp2k (shell-driven), vasp (`GenerateVaspInput, Calculator`);
+  `GenericFileIOCalculator` - abinit, aims, espresso, octopus, orca, onetep, exciting;
+  `FileIOCalculator` - gaussian, nwchem, gamess_us, mopac, dftb, siesta, gromacs, elk, demonnano,
+  crystal, dftd3, acemolecule, qchem, amber, gulp, dmol.
+
+### 5.2 Representing results
+
+Use the `results` mapping with `all_properties` keys, all in ASE units (eV, eV/Å, eV/Å³ for stress as
+a 6-vector Voigt or 3x3, e·Å for `dipole`, e for `charges`, µB for `magmom`/`magmoms`). Extra,
+non-standard outputs (eigenvalues, occupations, k-points, Fermi level, `!>` iteration history,
+timings, CP-PAW-specific energy decomposition) go into the same mapping under their own keys and are
+served by `GetOutputsMixin` (`get_eigenvalues(kpt, spin)` expects `results['eigenvalues']` shaped
+`(nspins, nkpts, nbands)`, `results['ibz_kpoints']`, `results['kpoint_weights']`, `results['fermi_level']`,
+`results['occupations']`) - **not** the `{'k1s1': [...]}` dicts of `asecppaw`. Never return a string
+for a failed property; raise `CalculationFailed`/`PropertyNotPresent`.
+
+### 5.3 Trajectory (`ase/io/trajectory.py`)
+
+`write_atoms` (396-421) writes per frame: `pbc`, `numbers` (header), `constraints` (JSON via
+`todict()`, header), `masses`, `positions`, `cell`, and *only if present* `tags`, `momenta`,
+`initial_magmoms`, `initial_charges`; plus the calculator `results` and `atoms.info` (JSON-encodable
+values, others skipped with a warning). Verified: **custom `atoms.arrays` (e.g. `formal_charges`)
+are silently dropped by `.traj`**, `atoms.info` nested dicts/lists/ndarrays survive (tuples become
+lists). The `ase.io` `json` format (`ase.db` JSON backend) drops **both** custom arrays and `info`.
+The lossless path is `ase.io.jsonio.encode(atoms.todict())` + `Atoms.fromdict(decode(...))`, which
+preserves custom arrays, `info`, cell, pbc and constraints (verified with `FixAtoms`, `FixBondLengths`,
+`Hookean`). `extxyz` also round-trips custom per-atom arrays and `info` (as `_JSON` strings) but only
+`FixAtoms`/`FixCartesian` constraints and only when `columns=[..., 'move_mask']` is requested.
+
+### 5.4 Constraints (`ase/constraints.py`)
+
+Classes: `FixAtoms, FixBondLength, FixBondLengths, FixCartesian, FixScaled, FixInternals,
+FixLinearTriatomic, Hookean, ExternalForce, MirrorForce, MirrorTorque, FixCom, FixSubsetCom,
+FixedPlane, FixedLine, FixedMode, FixSymmetry, FixParametricRelations,
+FixCartesianParametricRelations, FixScaledParametricRelations`, helper `dict2constraint`.
+**`FixSymmetry` is importable from `ase.constraints` in 3.25**, not `ase.spacegroup.symmetrize`.
+Cell filters live in `ase.filters` (`UnitCellFilter, ExpCellFilter, StrainFilter, FrechetCellFilter`).
+All constraints tested implement `todict()` and are `@jsonable`, so `atoms.todict()`/`jsonio` round-trip
+them; `Atoms.fromdict` uses `dict2constraint`. Note `set_constraint(FixBondLength(i,j))` is stored as a
+`FixBondLengths` instance.
+
+### 5.5 Optimisers, MD, NEB
+
+* `ase.optimize`: `BFGS, LBFGS, LBFGSLineSearch, BFGSLineSearch, FIRE, FIRE2, MDMin, GPMin,
+  QuasiNewton, GoodOldQuasiNewton, ODE12r, CellAwareBFGS`; submodules `precon` (`PreconLBFGS`,
+  `PreconFIRE`), `sciopt`, `climbfixinternals`. Common signature
+  `Optimizer(atoms, restart=None, logfile='-', trajectory=None, ...)`; `run(fmax, steps)`,
+  `attach(fn, interval)`, and **`irun(fmax, steps)` generator** - the right hook for a UI that streams
+  progress per step (yield after each step, check `converged`).
+* `ase.md`: `VelocityVerlet, Langevin, Andersen, Bussi, MDLogger` at top level; `NVTBerendsen`,
+  `NPTBerendsen`, `NPT`, `NoseHooverChainNVT`, `IsotropicMTKNPT` in submodules;
+  `ase.md.velocitydistribution.MaxwellBoltzmannDistribution/Stationary/ZeroRotation`. `MolecularDynamics`
+  also has `irun`.
+* `ase.mep` (modern): `NEB, DyNEB, NEBTools, AutoNEB, interpolate, idpp_interpolate, DimerControl,
+  MinModeAtoms`. `ase.neb` still imports but is a deprecated shim.
+
+### 5.6 Other modules verified
+
+`ase.spacegroup` (`crystal`, `Spacegroup`; `get_spacegroup` needs **spglib, not installed** here),
+`ase.build` (`molecule, bulk, surface, fcc111, add_adsorbate, nanotube, graphene, make_supercell,
+cut, stack, minimize_rotation_and_translation, sort, niggli_reduce, find_optimal_cell_shape`),
+`ase.geometry` (`get_distances, get_angles, get_dihedrals, wrap_positions, cell_to_cellpar,
+cellpar_to_cell, find_mic`, `analysis.Analysis` for bond/angle/dihedral lists),
+`ase.neighborlist` (`NeighborList, natural_cutoffs, build_neighbor_list, get_connectivity_matrix` -
+the built-in route to bond *perception*), `ase.data` (`chemical_symbols, atomic_numbers,
+atomic_masses, covalent_radii, vdw_radii, reference_states, colors.jmol_colors/cpk_colors`),
+`ase.units` (`Hartree=27.211386024367243, Bohr=0.5291772105638411, Rydberg=13.605693012183622,
+Debye=0.20819433442462576, kcal/mol=0.04336410390059322, kJ/mol=0.010364269574711572,
+fs=0.09822694788464063, kB=8.617330337217213e-05, GPa=0.006241509125883258`; default
+`__codata_version__ = 2014`; `create_units('2018')` for other CODATA sets), `ase.db` (`connect`;
+backends json/sqlite/postgresql/mysql; `row.toatoms()`, `key_value_pairs`, `data`),
+`ase.visualize.view` (ase-gui, x3d, ngl, ...), `ase.visualize.plot.plot_atoms`, `ase.io.x3d` writer.
+
+### 5.7 `ase.io` formats relevant to Avogadro parity (ASE 3.25, 99 formats registered)
+
+Full dump: `/home/pmk/Projects/atomscope/.scratch/ase/out3.txt`. `single` = one structure per file.
+
+| Format (ase name) | read | write | notes |
+|---|---|---|---|
+| `xyz` | yes | yes | plain xyz |
+| `extxyz` (`.xyz`) | yes | yes | key=value header, custom per-atom columns, `info` as `_JSON` |
+| `cif` | yes | yes | no mmCIF |
+| `proteindatabank` (`.pdb`) | yes | yes | residue names/ids preserved as arrays (`residuenames`, `residuenumbers`, `atomtypes`, `bfactor`, `occupancy`) |
+| `mol` (MDL V2000) | yes | **no** | reader ignores the bond block entirely |
+| `sdf` | yes (first record only) | **no** | multi-record files return 1 molecule; bonds ignored |
+| `mol2` | **no** | **no** | Open Babel / RDKit |
+| `cml` | **no** | **no** | Open Babel |
+| `smiles` / `inchi` | **no** | **no** | Open Babel / RDKit (also 3-D embedding) |
+| `mmcif` | **no** | **no** | Open Babel / gemmi |
+| `vasp` (POSCAR/CONTCAR) | yes | yes | |
+| `vasp-out`, `vasp-xdatcar`, `vasp-xml` | yes | xdatcar yes | |
+| `cube` | yes | yes | `ase.io.cube.read_cube_data` returns (data, atoms) |
+| `gaussian-in` (`.com/.gjf`) | yes | yes | |
+| `gaussian-out` (`.log`) | yes | no | |
+| `orca-output` | yes | no | ORCA input via `ase.calculators.orca.OrcaTemplate.write_input`, not an ioformat |
+| `gamess-us-in` | **no** | yes | |
+| `gamess-us-out`, `gamess-us-punch` | yes | no | |
+| `nwchem-in` (`.nwi`) | yes | yes | |
+| `nwchem-out` (`.nwo`) | yes | no | |
+| `molden` | **absent** | **absent** | Open Babel (read only) |
+| `xsf` | yes | yes | |
+| `json` | yes | yes | ase.db JSON; drops `info` and custom arrays |
+| `db` | yes | yes | sqlite ase.db |
+| `traj` | yes | yes | see 5.3 |
+| `espresso-in` (`.pwi`) / `espresso-out` | yes / yes | yes / no | |
+| `cp2k-restart`, `cp2k-dcd` | yes | no | no `cp2k-in` |
+| `abinit-in` / `abinit-out` | yes / yes | yes / no | |
+| `aims` | yes | yes | |
+| `castep-castep`, `castep-cell`, `castep-geom`, `castep-md`, `castep-phonon` | yes | cell yes | |
+| `dftb`, `gen` | yes | yes | |
+| `lammps-data` / `lammps-dump-text` | yes / yes | yes / no | |
+| `gromacs` (`.gro`), `gromos` (`.g96`) | yes | yes | |
+| `turbomole`, `turbomole-gradient` | yes | yes / no | |
+| `res` (SHELX), `magres`, `mustem`, `xtd`, `xsd`, `dlp4`, `siesta-xv`, `struct` (WIEN2k), `crystal`, `dmol-arc/car/incoor`, `eon`, `gen`, `gpumd`, `jsv`, `onetep-in`, `prismatic`, `rmc6f`, `sys`, `v-sim` | yes | yes (siesta-xv read only) | |
+| `elk`, `gpaw-out`, `gpw`, `nomad-json`, `octopus-in`, `qbox`, `wout` | yes | no | |
+| `exciting` | no | no | template only |
+| `findsym`, `html`, `vti`, `vtu`, `x3d`, `png`, `eps`, `pov` | no | yes | export only |
+
+Where Open Babel/RDKit are required: mol2, CML, SMILES/InChI (parsing and 3-D generation), mmCIF,
+molden, **writing** MOL/SDF, multi-record SDF, and anything needing **bond orders, aromaticity,
+formal charges, hydrogens** - ASE has no bond model at all (no per-bond arrays; `mol`/`sdf` readers
+discard the bond block). Bond perception in pure ASE is only distance-based via
+`ase.neighborlist.natural_cutoffs` + `get_connectivity_matrix`.
+
+### 5.8 Zero-binary calculators (demo backends) - all instantiated and run in this env
+
+| Calculator | Module | `implemented_properties` | Notes |
+|---|---|---|---|
+| `EMT` | `ase.calculators.emt` | energy, free_energy, energies, forces, stress, magmom, magmoms | Al, Cu, Ag, Au, Ni, Pd, Pt (+ H, C, N, O as rough); ideal for metal-slab demos |
+| `LennardJones` | `ase.calculators.lj` | energy, energies, forces, free_energy, stress, stresses | parameters `epsilon, sigma, rc, ro, smooth` |
+| `MorsePotential` | `ase.calculators.morse` | energy, energies, free_energy, forces, stress | |
+| `TIP3P`, `TIP4P` | `ase.calculators.tip3p/tip4p` | energy, forces | rigid-water models; need `FixBondLengths`/`FixLinearTriatomic` and OHH ordering |
+| `HarmonicCalculator`, `SpringCalculator`, `HarmonicForceField` | `ase.calculators.harmonic` | energy, forces | |
+| `EAM` | `ase.calculators.eam` | energy, free_energy, forces, stress | needs a potential file |
+| `ForceField` | `ase.calculators.ff` | energy, forces | generic bonded FF (needs explicit terms) |
+| `IdealGas`, `SumCalculator/MixedCalculator/LinearCombinationCalculator` (`mixing`), `EIQMMM/SimpleQMMM` (`qmmm`) | | | composition helpers |
+
+External Python-package calculators: `psi4` is importable in this env; `gpaw`, `tblite`, `xtb`,
+`spglib` are not.
+
+### 5.9 Input-generation-only candidates (verified without binaries)
+
+| Code | ASE class / base | Writes input without binary? | Output readers |
+|---|---|---|---|
+| ORCA | `ase.calculators.orca.ORCA`, `OrcaTemplate` (GenericFileIO) | yes - `OrcaTemplate().write_input(None, dir, atoms, params, props)` produced `orca.inp` | `orca-output` |
+| Quantum ESPRESSO | `Espresso`, `EspressoTemplate` (GenericFileIO) | yes, needs an `EspressoProfile(command, pseudo_dir)` object (binary need not exist) | `espresso-in/out` |
+| Gaussian | `Gaussian` (FileIOCalculator) | yes - `write_input(atoms)` wrote `.com` | `gaussian-in/out` |
+| NWChem | `NWChem` (FileIOCalculator) | yes - wrote `.nwi` | `nwchem-in/out` |
+| GAMESS-US | `GAMESSUS` (FileIOCalculator) | same pattern (not executed) | `gamess-us-out/punch` |
+| VASP | `Vasp` (`GenerateVaspInput, Calculator`) | POSCAR/INCAR/KPOINTS yes; POTCAR needs `VASP_PP_PATH` | `vasp*` |
+| Abinit / Octopus / FHI-aims / exciting / ONETEP | templates (GenericFileIO) | yes with a profile object | `abinit-*`, `octopus-in`, `aims`, `onetep-in` |
+| CP2K | `CP2K` (`Calculator`, drives `cp2k_shell`) | no standalone writer | `cp2k-restart` |
+| GPAW | `gpaw` package | not importable here | `gpaw-out`, `gpw` |
+| Siesta, DFTB+, MOPAC, Turbomole | FileIOCalculator / custom | siesta/dftb/mopac write inputs; turbomole needs `define` | `siesta-xv`, `gen`, `turbomole` |
 
 ---
 
 ## 6. Mapping Atomscope's structure model <-> `ase.Atoms`
 
-<!-- SECTION6 -->
+Principle: `ase.Atoms` is the *computational* view; Atomscope's structure model is the *chemical*
+view (bonds, charges, residues, selections). Conversion must be explicit and lossless in the
+Atomscope -> Atoms -> Atomscope direction, and must never regenerate chemistry by heuristics when
+the source already had it (the workbench regenerates bonds via `infer_bonds` after every round-trip -
+that is the anti-pattern to avoid).
+
+| Atomscope field | ase.Atoms carrier | Native? | Round-trips through | Notes |
+|---|---|---|---|---|
+| element (Z) | `numbers` | yes | everything | |
+| position (Å) | `positions` | yes | everything | |
+| cell (3x3 Å), pbc | `cell`, `pbc` | yes | everything | rank-deficient cells allowed by ASE; CP-PAW needs rank 3 or `!ISOLATE` |
+| per-atom label / name (e.g. CP-PAW `O_1`) | `arrays['labels']` (`new_array`, dtype `<U16`) | custom array | `todict`/jsonio, extxyz; **not** `.traj` | also mirror in `info['cppaw']['atom_names']` for the calculator |
+| formal charge (int per atom) | `arrays['formal_charges']` (int) | custom array | `todict`/jsonio, extxyz | do **not** use `initial_charges` (float, means "starting partial charge" to calculators) |
+| partial charge (float, computed) | `calc.results['charges']` / `SinglePointCalculator(charges=...)` | native result | `.traj` (results) | Q[E] from CP-PAW |
+| total charge (int) | `info['charge']` | info scalar | `.traj`, jsonio, extxyz | CP-PAW `CHARGE[E]`; **never smear over `initial_charges`** |
+| spin multiplicity / total spin | `info['multiplicity']` (2S+1) or `info['spin']` (S) | info scalar | same | CP-PAW `SPIN[HBAR]`=S; `NSPIN=2` |
+| per-atom initial moments | `initial_magmoms` | yes | everything | µB; `!STRUCTURE!ATOM` only has `NAME, R, M, SP` (schema), so per-atom moments cannot be passed to CP-PAW - only the total `SPIN[HBAR]` (and `!STRUCTURE!STATE` overrides). Keep them for other backends. |
+| bonds (i, j, order, aromatic flag) | `info['bonds']` as `ndarray (nbonds, 3)` int or list of `[i, j, order*2]` | info | `.traj`, jsonio, extxyz (`_JSON`) | no per-bond array facility in ASE; keep indices 0-based and re-index on atom deletion |
+| residues / chains | `arrays['residuenames']`, `arrays['residuenumbers']`, `arrays['chainids']` | custom arrays (PDB reader already uses `residuenames`/`residuenumbers`/`atomtypes`/`bfactor`/`occupancy`) | `todict`/jsonio, extxyz, pdb | reuse the PDB reader's names for interoperability |
+| selections / groups | `info['selections'] = {name: [indices]}` | info | `.traj`, jsonio | or `tags` for a single active group |
+| constraints (fixed atoms, fixed distances) | `atoms.constraints` (`FixAtoms`, `FixBondLengths`, ...) | yes | `.traj`, jsonio; extxyz only FixAtoms/FixCartesian | CP-PAW `!STRUCTURE!CONSTRAINTS` has `!FREEZE ATOM=`/`GROUP=`, `!BOND`, `!ANGLE`, `!TORSION`, `!RIGID`, `!TRANSLATION`, `!ROTATION`, `!COGSEP`, `!MIDPLANE`, `!LINEAR` (schema `data/db/STRUCTURE.json`) - `FixAtoms` -> `!FREEZE`, `FixBondLengths` -> `!BOND`, `FixInternals` angles/dihedrals -> `!ANGLE`/`!TORSION`, `FixCom` -> `!TRANSLATION`; others must raise |
+| velocities | `momenta` | yes | everything | |
+| masses (isotopes) | `masses` | yes | everything | CP-PAW `!ATOM M=` / `!SPECIES M=` |
+| provenance (source file, format, timestamps) | `info['provenance']` dict | info | `.traj`, jsonio | |
+| calculator settings (CP-PAW deck) | `info['cppaw']` dict (strc/cntl text or parameter dict) | info | `.traj`, jsonio | keep the *generated* deck text for reproducibility |
+
+Serialisation rule: persist Atomscope structures with **`ase.io.jsonio.encode(atoms.todict())`**
+(plus results via `SinglePointCalculator` where relevant); use `.traj` only for optimisation/MD
+frames (positions, cell, results) and treat everything not in the `.traj` whitelist as belonging to
+the parent structure record; use `extxyz` for interchange with columns explicitly listed. Any
+`arrays[...]` key must have first dimension `len(atoms)`; when atoms are added/removed, Atomscope
+(not ASE) must re-index `info['bonds']` and `info['selections']`.
+
+Import path for chemistry-rich formats: Open Babel (`OBMol`) or RDKit -> Atomscope model (bonds,
+formal charges, total charge, multiplicity, residues) -> `Atoms` via the table above. Never go
+file -> `ase.io.read` -> heuristic bonds when the file had bonds.
 
 ---
 
 ## 7. Design recommendations for the modern CP-PAW ASE calculator
 
-<!-- SECTION7 -->
+### 7.1 Architecture
+
+* `CPPAWTemplate(CalculatorTemplate)` + `CPPAWProfile(BaseProfile)` + `CPPAW(GenericFileIOCalculator)`.
+  `implemented_properties = ['energy', 'free_energy', 'forces', 'charges', 'magmom', 'dipole']`
+  (only what CP-PAW actually prints; add `stress` only when a CP-PAW stress output is confirmed).
+  Extra outputs (`eigenvalues`, `occupations`, `ibz_kpoints`, `fermi_level`, `homo`, `lumo`, `gap`,
+  `iterations` DataFrame-like arrays, `energy_terms`, `timings`, `version_hash`) go into `results` too.
+* Profile: `command` from `~/.config/ase/config.ini` `[cppaw]` section (`command = paw_fast.x`,
+  optional `parallel_command = mpirun -np {np} ppaw_fast.x`, `pawdir = ...`) with Atomscope settings
+  as the override. No `ASE_*_COMMAND`, no `PATH` assumptions, no personal or cluster defaults in code.
+  `version()` parses the `CPPAW VERSION INFO` banner (`hash=`, `committed on=`) from a dry run or from
+  the last protocol.
+* Execution: `subprocess.run([command, 'case.cntl'], cwd=directory, stdout=open('out'), ...)` -
+  argv lists only, no `shell=True`, no background `&`, no `sed -i`. For the interactive UI wrap the
+  same template in an async job runner that streams the protocol; the ASE calculator stays
+  synchronous (`execute` blocks) so ASE optimisers/NEB work unchanged.
+* Multi-stage runs are an explicit `stages: list[Stage(cntl_params, strc_override=None, restart=bool)]`
+  parameter (start -> relax -> force); the template writes `case.cntl` per stage and runs them
+  sequentially, keeping each stage's protocol in its own file (`case.stage1.prot`) instead of
+  appending to one `case.prot`.
+
+### 7.2 Inputs
+
+* `!STRUCTURE` generated from Atoms with the schema-validated object model (port of
+  `input_files.readbranch/objecttoinput`), **including `!OCCUPATIONS CHARGE[E]=info['charge']`,
+  `SPIN[HBAR]=S`, `NSPIN`** and `EMPTY` from parameters. Refuse (raise `InputError`) rather than
+  silently ignore: unknown species, rank-deficient cell with any pbc=True, constraints that have no
+  CP-PAW representation, `initial_charges` that do not sum to `info['charge']`.
+* Constraints: render `FixAtoms` as `!CONSTRAINTS !FREEZE ATOM='O_1' !END`, `FixBondLengths` as
+  `!BOND`, `FixInternals` angle/dihedral terms as `!ANGLE`/`!TORSION`, `FixCom` as `!TRANSLATION`
+  (schema: `!STRUCTURE!CONSTRAINTS` in `data/db/STRUCTURE.json`); raise for `Hookean`, `FixedPlane`,
+  `FixSymmetry`, cell filters. Note CP-PAW enforces constraints with RATTLE/SHAKE during `!RDYN`, so
+  forces reported for frozen atoms are constrained forces - document this for optimiser users.
+* pbc: all-False -> `!ISOLATE` + a box with configurable vacuum (default 7 Å, applied for real, unlike
+  the dead `atoms.center` call); all-True -> `!KPOINTS` with a user-visible density (`R=` or `DIV=`);
+  mixed -> vacuum along non-periodic axes and a warning that CP-PAW is 3-D periodic.
+* Species: table `symbol -> !SPECIES` block, seeded from `specieslist_final.strc`/`specieslist_e0k.strc`
+  but re-generated from the current CP-PAW distribution; expose the chosen setup (ID, ZV, NPRO,
+  RCL/RCOV) in the UI.
+* `!CONTROL` from a small typed parameter set (`nstep`, `dt`, `epwpsi`, `cdual`, `dft_type`,
+  `psidyn` friction/auto, `rdyn` on/off + friction, `start`, `nwrite`, `stop`) merged into named
+  presets (start / relax-electrons / relax-atoms / single-point-forces / MD / hybrid) and rendered
+  through the schema so that every keyword is validated and documented (`data/db/CONTROL.json` help).
+* Always keep the rendered deck text in `results['input_files']` and `info['cppaw']` for reproducibility.
+
+### 7.3 Outputs and parsing (audit traps)
+
+* Parse **only the last program run**: split the protocol on `PROGRAM STARTED`, then take the last
+  `ENERGY REPORT`/`ATOMLIST REPORT` inside it. Better: write one protocol per stage.
+* Regex-anchored parsers for: `^TOTAL ENERGY\s*:\s*(-?\d+\.\d+) H`, `^T[123]\[ANGSTROM\]=`,
+  `^(\S+)\s+\(\s*(-?[\d.]+),\s*(-?[\d.]+),\s*(-?[\d.]+)\)\s+([\d.]+)\s+([\d.*]+)\s+([-\d.*]+)(?:\s+\(\s*(-?[\d.]+),\s*(-?[\d.]+),\s*(-?[\d.]+)\))?$`
+  for ATOMLIST rows (handle `********` overflow explicitly), `^!>\s+(\d+)\s+([\d.]+)\s+(\d+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)`
+  for iterations, `EIGENVALUES \[EV\] FOR K-POINT\s+(\d+) AND SPIN\s+(\d+)`, `HOMO-ENERGY`, `LUMO-ENERGY`,
+  `SMALLEST DIRECT GAP`, `PROGRAM FINISHED`, `STOP SIGNAL RECEIVED`, `ERROR`, `STOP IN`.
+* **Forces: fail loudly when absent.** If `properties` includes `forces` and the ATOMLIST rows carry
+  no force triple, raise `CalculationFailed("CP-PAW printed no forces; atom dynamics (!RDYN) was not
+  active")`. Never fill zeros (asecppaw `prot.py:485`), never let an optimiser "converge" on them
+  (PARSE-1). Treat `converged`/`STOP SIGNAL RECEIVED` as informational, not as success.
+* Force precision: protocol forces have 0.01 mH/Bohr resolution (~5e-4 eV/Å). Either read a
+  higher-precision source (`case_r.tra`/`.strc_out`/a CP-PAW print option) or document a minimum
+  `fmax` of ~1e-2 eV/Å and expose it in the UI.
+* Establish and unit-test the "single point with forces" recipe (`!GENERIC NSTEP=1 START=F`,
+  `!RDYN STOP=T FRIC=0.0` or the CP-PAW-recommended equivalent) with a check that reported positions
+  equal the input positions to 1e-5 Å; if CP-PAW moves atoms in that mode, the calculator must use
+  the *reported* positions/forces pair and warn.
+* Units: energy `Hartree -> eV` via `ase.units.Hartree`; forces `mH/aBohr -> eV/Å` via
+  `ase.units.Hartree / (1000 * ase.units.Bohr)` only when the header says `MH/ABOHR` (raise if the
+  header is unknown); positions/cell in Å directly (`LUNIT` written as `1.8897261249` Bohr = 1 Å -
+  pass ASE's `1/units.Bohr`, not a literal). `magmom` in µB = `2*S` (positive), not `S*g_e`.
+* Charges: `Q[E]` per atom -> `results['charges']`; `dipole` only if CP-PAW prints one - otherwise
+  do not fabricate a point-charge dipole (asecppaw B7).
+* Restart: `case.rstrt` handled through a `restart: bool | Path` parameter that renders `START=F`
+  (and `NEWSTRC=T` when the structure changed) in the generated CNTL - no string surgery on files.
+* Errors: non-zero exit, `ERROR`/`STOP IN` lines, missing `PROGRAM FINISHED`, or missing required
+  blocks -> `CalculationFailed` with the protocol tail attached; never return `'ERROR IN CALCULATION'`.
+* Testing: fixture protocols from `/home/pmk/ase-cp-paw/calculations/{h2o,ch3cli}` (no-force and
+  with-force cases) plus a fake `paw_fast.x` script (as in the workbench `test_ase.py`) for end-to-end
+  calculator tests without CP-PAW; a real-binary smoke test gated on `[cppaw]` being configured.
+
+### 7.4 What to port first (concrete)
+
+1. `data/db/*.json` schema + `manual_converter.py` (regenerate from the current manual).
+2. `input_files.py:1300-1500` parser/serialiser algorithm (rewrite with a tokenizer; keep the
+   `_x` deactivation semantics and 79-col wrapping), `formatFloat`, fixed `fortran_float`.
+3. `strcInputFile` (Atoms <-> `!STRUCTURE`) with the fixes in 7.2, species tables from
+   `specieslist_*.strc`.
+4. Protocol parser rebuilt from `prot.py:181-570` layout knowledge + workbench
+   `ProtocolReport.finalize(require_forces=True)`.
+5. CNTL presets from `data/defaults/*.cntl` as typed parameter sets.
+6. `readDir` conventions for importing legacy calculation folders; `readDos*/readSprot/readDprot` for
+   analysis panels; `makeDcntl/makeWcntl` for DOS/density post-processing.

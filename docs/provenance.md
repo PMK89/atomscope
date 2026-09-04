@@ -19,3 +19,4 @@ Every file or idea taken from outside this repository is recorded here.
 | Destination | Source | License | Notes |
 |---|---|---|---|
 | `LICENSE` | `/home/pmk/cp-paw/LICENSE` (verbatim GPL-3.0 text) | GPL-3.0 | standard license text |
+| `frontend/src/model/elements.ts` | generated from ASE data tables (`ase.data`, `ase.data.colors.jmol_colors`) by `scripts/gen_element_data.py` | ASE is LGPL-2.1+; the numeric data (Jmol CPK colors, Cordero covalent radii, Bondi/Alvarez vdW radii, IUPAC masses) are published scientific constants | regenerate, do not edit |
