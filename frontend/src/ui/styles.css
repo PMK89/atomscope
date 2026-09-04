@@ -1,0 +1,22 @@
+:root {
+  color-scheme: light dark;
+  --bg: #f4f5f7;
+  --panel: #ffffff;
+  --fg: #1c1e21;
+  --border: #d0d4da;
+  --accent: #2f6fdb;
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  font-size: 13px;
+}
+@media (prefers-color-scheme: dark) {
+  :root { --bg: #1e1f22; --panel: #26282c; --fg: #e6e6e6; --border: #3a3d42; --accent: #6ea0ff; }
+}
+html, body, #root { height: 100%; margin: 0; background: var(--bg); color: var(--fg); }
+.app-shell { display: grid; grid-template-rows: auto 1fr auto; height: 100%; }
+.app-menubar { padding: 4px 8px; border-bottom: 1px solid var(--border); background: var(--panel); }
+.app-main { display: grid; grid-template-columns: 260px 1fr 300px; min-height: 0; }
+.app-dock { background: var(--panel); border-color: var(--border); overflow: auto; padding: 6px; }
+.app-dock-left { border-right: 1px solid var(--border); }
+.app-dock-right { border-left: 1px solid var(--border); }
+.app-viewport { position: relative; min-width: 0; min-height: 0; background: #ffffff; }
+.app-console { height: 140px; border-top: 1px solid var(--border); background: var(--panel); font-family: ui-monospace, monospace; overflow: auto; }
