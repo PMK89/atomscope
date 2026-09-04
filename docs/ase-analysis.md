@@ -236,7 +236,72 @@ note `_X` = **atom dynamics disabled**), `case_force.cntl`, `neb_force.cntl` (fo
 
 ### 1.9 Secondary modules, tests, data, history
 
-<!-- AGENT_B -->
+**Batch/DB layer.** `db.py` defines `AseCppawDB` -> `batchDB`, `analyseDB` over `ase.db`; `batch.py`
+submits one `cppaw` per DB row (`batchDefParams`: `paw='sbatch'`, `node='2x12o_low_priority'`,
+`rstrt='T'`) and harvests results; `batch_db.py` manages test-set folders. `data/testset/*.db` are
+**plain ASE sqlite databases** (tables `systems, species, keys, text_key_values, number_key_values,
+information`): `allRef.db` (297 rows, reference atomisation energies), `g2ref.db` (184, G2 set,
+kvp `name`, `g2num`), `kepp.db` (15), `margraf.db` (152, bond-type tags such as `b_C2C`),
+`nistcccbdb.db` (1894 rows, NIST CCCBDB reference data). They are useful as benchmark reference
+data for a validation suite, not for the application core. Note that `batch_db.py:132` and
+`batch.py:206` run `rm -rf <label>` via `shell=True` string concatenation.
+
+**Import-level breakage.** `db.py`, `analyse.py`, `openbabel_integration.py`, `visualize.py`,
+`visualize_new.py`, `viewer.py`, `batch.py`, `batch_db.py` carry `# wildcard import replaced`
+comments from an automated refactor; `db.py` (lines 130, 178, 182, 189, 261, 290, 447, 533, 545,
+1180, 1185, 1838), `analyse.py` (383, 582) and `openbabel_integration.py` (141) still call
+`AseCppawInputFiles.*` **without importing it** -> `NameError` at call time. `visualize.py:22`
+`import AseColors` fails at import time (module does not exist; `visualize_new.py` uses
+`ase.data.colors.jmol_colors` instead). Commit `f42f7c6` ("pip package works, small bugs (imports)
+still present") acknowledges this.
+
+**Analysis.** `analyse.py` (`analyseStruc`, `analyseGeometry`, `calculateAE`, `analyseCalcSet`,
+`analyseAll`) compares calculated vs reference geometries/energies; `statistics.py`
+(`doStatistics`, `grubbsTest`, `standardDeviation`) is pure stdlib math and reusable as-is;
+`colors.py` is a static Jmol colour table; `jobs.py` is an empty 13-line stub.
+
+**Manual converter.** Parses the CP-PAW manual LaTeX (`\block{!CONTROL}` ... `\vdefault{}` macros),
+builds a pandas table and writes `data/db/*.json` + `sequentialdb.csv` (`manual_converter.py:278`).
+Outputs exist and are what `input_files.py` loads at import.
+
+**Open Babel integration** (`openbabel_integration.py`, 432 lines): `pybel.readstring`,
+`OBMol.ConnectTheDots/PerceiveBondOrders`, `OBMolBondIter`; functions `atoms2xyz`, `findFF`
+(gaff/mmff94/uff), `findConformer` (force-field optimisation), `perceiveBonds`/`perceiveBondsStrc`,
+`writeMoleculeSVG`, `smiles2atoms`, `inchi2atoms`, `getMultiplicity`. Works with the installed
+Open Babel 3.1.0; no error handling around OB calls; bond orders are returned as tags, not stored on
+the Atoms.
+
+**Visualisation.** `visualize*.py`: matplotlib contour / "rubber-sheet" 3-D plots of CP-PAW density
+and wave-function grids (`contourPlot`, `rubberSheet`, `plotDict`), POV-Ray renders (`simplePOV`,
+`getPovData`, `tools/povray.makePov`), `morphAtoms` and NEB image distance plots. `viewer.py`:
+`NGLDisplay`/`view_ngl()` nglview + ipywidgets viewer. `dos_plot.py`: `dosFunction`/`dosPlot`
+matplotlib DOS plots from `paw_dos.x` `.dos` files. No x3d/ipyvolume code path is exercised
+(x3d only through `ase.visualize` in notebooks). `visualize_legacy.py` is superseded.
+
+**tools/.** `tools/autore.py` is not "auto-restart": it is an **auto**matic **r**eaction-**e**quation
+generator (`makeCompDictDb`, `autoRE`, `balancedCoefficients`, `scoreReactions`, `minimizeCoeff`,
+`getReactionLaTeXStr`) for reaction/atomisation-energy benchmarking. `tools/orca.py` writes/reads
+ORCA inputs for cross-validation; `tools/povray.py` renders.
+
+**Examples/docs.** All `examples/useCase*.py` hard-code personal paths
+(`/home/pmk/paw/hiwi/new_ase_cpaw/...`, `/mnt/pmk/nuku/femoco_resting_state/...`, `uName='pmk'`);
+`examples/ir_h2o/infrared.py` and `fireneb_vc.py` import the pre-package modules `AseCppaw`,
+`AseCppawBatch`, `AseCppawInputFiles` from `/home/pkaiser/hiwi/AseCppaw`. `changes.patch` is not a
+diff but a 48-line list of file paths. `docs/doxygen` is stale (references a removed `db_old`);
+`docs/notebooks/` has `h2o`, `indole`, `neb`, `neb_reload`, `contour_plot`, `read_manual` notebooks.
+`paw_setup.sh` is an apt/`git clone`/build script that symlinks CP-PAW binaries into `/usr/local/bin`.
+
+**Packaging.** Three inconsistent metadata files: `pyproject.toml` (version 0.2.0, deps
+`ase>=3.22`, `numpy>=1.21`, `openbabel-wheel>=3.1.1.21`), `setup.cfg` (1.2.0, `openbabel>=3.1.1`),
+`setup.py` (0.1.0, `pdfplumber`, author email `pmk@example.com`). `python_requires` not pinned
+consistently. The package is editable-installed in the `asecppaw` env pointing at
+`/home/pmk/ase-cp-paw/src`.
+
+**History.** 30 commits, 2022-11-23 (`16351c3 ase-cp-paw inital commit state 14.11.22`) to
+2025-05-24 (`aaea61b neb works`), one author under three identities (`Patrick Kaiser`, `PMK89`,
+`Patrick M. Kaiser`), remote `git@github.com:cp-paw/ase-cp-paw.git`. The 2025 commits
+(`110e5c3 added unit tests`, `69713f8 made neb test`, `4ddb043 fixed read=True bug`,
+`42803cd fixed density error`) are the most recent functional work.
 
 ---
 
@@ -386,7 +451,30 @@ per-atom values.
 
 ## 4. Tests in `ase-cp-paw/tests`
 
-<!-- AGENT_B_TESTS -->
+Procedure: the repository was copied (rsync, excluding `.git` and `__pycache__`) to
+`/home/pmk/Projects/atomscope/.scratch/ase/ase-cp-paw-copy/` and pytest was run there with
+`PYTHONPATH=src`. `pytest` is **not installed** in the `asecppaw` env; it was borrowed via `PYTHONPATH`
+from another existing conda env (`envs/ape`, pytest 7.4.0, Python 3.11.7) without installing anything.
+
+* `tests/conftest.py` (14 lines) **replaces the real `ase` package with a stub module** whose `Atoms`
+  does nothing (`sys.modules['ase'] = ase`), then adds `src/` to `sys.path`. Consequently no test can
+  exercise real ASE behaviour, and any test that would import `ase.units`/`ase.io` would break.
+* `tests/test_utils.py`: 6 pure unit tests - `test_branchdict_leafdict`, `test_checkBlock`,
+  `test_fortran_float_basic`, `test_checkvalue`, `test_doStatistics`, `test_readValueList` (uses
+  `tmp_path`). None require the CP-PAW binary, the network, or personal paths. Nothing tests the
+  calculator, the protocol parser, or `strcInputFile`.
+* Result: **5 passed, 1 failed** in < 1 s, no hangs, no external process started.
+  Failure: `test_fortran_float_basic` - `fortran_float('1.234D+05')` raises
+  `ValueError: Unable to parse Fortran float from string: 1.234D+05` (`input_files.py:127-136`): the
+  function only handles lowercase `d0` (by string replacement) and the missing-`E` form
+  `0.31674-103`; uppercase `D` exponents, promised by its own docstring, are not handled.
+* Import check of every module with `PYTHONPATH=src` in the `asecppaw` env: all import except
+  `visualize.py` (`ModuleNotFoundError: No module named 'AseColors'`). Third-party imports used across
+  the package: numpy, pandas, matplotlib, ipywidgets, nglview, openbabel/pybel - all present in the env.
+* The CP-PAW binary itself is present on this machine (`/home/pmk/cp-paw/bin/fast/paw_fast.x`,
+  `PAWDIR=/home/pmk/cp-paw`) but is not used by any test. The workbench (`/home/pmk/cp-paw/backend/tests/test_ase.py`)
+  shows the better pattern: a fake `paw_fast.x` shell script that writes a canned protocol, so the
+  calculator can be tested end-to-end without CP-PAW.
 
 ---
 

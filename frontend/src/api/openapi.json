@@ -1,0 +1,1136 @@
+{
+  "components": {
+    "schemas": {
+      "Atom": {
+        "additionalProperties": false,
+        "description": "One atom. Positions are Cartesian in \u00c5.",
+        "properties": {
+          "element": {
+            "description": "chemical symbol, e.g. 'C'",
+            "title": "Element",
+            "type": "string"
+          },
+          "formal_charge": {
+            "default": 0,
+            "title": "Formal Charge",
+            "type": "integer"
+          },
+          "label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Label"
+          },
+          "position": {
+            "description": "3-vector",
+            "maxItems": 3,
+            "minItems": 3,
+            "prefixItems": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              }
+            ],
+            "title": "Position",
+            "type": "array"
+          },
+          "uid": {
+            "description": "stable id surviving re-indexing",
+            "title": "Uid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "element",
+          "position"
+        ],
+        "title": "Atom",
+        "type": "object"
+      },
+      "AtomicScalarProperty": {
+        "additionalProperties": false,
+        "description": "One float per atom (partial charges, magnetic moments, ...).",
+        "properties": {
+          "description": {
+            "default": "",
+            "title": "Description",
+            "type": "string"
+          },
+          "unit": {
+            "$ref": "#/components/schemas/Unit"
+          },
+          "values": {
+            "items": {
+              "type": "number"
+            },
+            "title": "Values",
+            "type": "array"
+          }
+        },
+        "required": [
+          "values",
+          "unit"
+        ],
+        "title": "AtomicScalarProperty",
+        "type": "object"
+      },
+      "AtomicVectorProperty": {
+        "additionalProperties": false,
+        "description": "One 3-vector per atom (forces, velocities, magnetic moment vectors, ...).",
+        "properties": {
+          "description": {
+            "default": "",
+            "title": "Description",
+            "type": "string"
+          },
+          "unit": {
+            "$ref": "#/components/schemas/Unit"
+          },
+          "values": {
+            "items": {
+              "description": "3-vector",
+              "maxItems": 3,
+              "minItems": 3,
+              "prefixItems": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                }
+              ],
+              "type": "array"
+            },
+            "title": "Values",
+            "type": "array"
+          }
+        },
+        "required": [
+          "values",
+          "unit"
+        ],
+        "title": "AtomicVectorProperty",
+        "type": "object"
+      },
+      "Bond": {
+        "additionalProperties": false,
+        "description": "A bond between two atom indices of the owning structure.",
+        "properties": {
+          "a": {
+            "minimum": 0.0,
+            "title": "A",
+            "type": "integer"
+          },
+          "aromatic": {
+            "default": false,
+            "title": "Aromatic",
+            "type": "boolean"
+          },
+          "b": {
+            "minimum": 0.0,
+            "title": "B",
+            "type": "integer"
+          },
+          "order": {
+            "default": 1,
+            "enum": [
+              1,
+              2,
+              3
+            ],
+            "title": "Order",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "a",
+          "b"
+        ],
+        "title": "Bond",
+        "type": "object"
+      },
+      "Cell": {
+        "additionalProperties": false,
+        "description": "Periodic cell: three lattice vectors (\u00c5) and periodicity flags.",
+        "properties": {
+          "pbc": {
+            "default": [
+              true,
+              true,
+              true
+            ],
+            "maxItems": 3,
+            "minItems": 3,
+            "prefixItems": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "boolean"
+              }
+            ],
+            "title": "Pbc",
+            "type": "array"
+          },
+          "vectors": {
+            "description": "3x3 matrix as three row vectors",
+            "maxItems": 3,
+            "minItems": 3,
+            "prefixItems": [
+              {
+                "description": "3-vector",
+                "maxItems": 3,
+                "minItems": 3,
+                "prefixItems": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ],
+                "type": "array"
+              },
+              {
+                "description": "3-vector",
+                "maxItems": 3,
+                "minItems": 3,
+                "prefixItems": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ],
+                "type": "array"
+              },
+              {
+                "description": "3-vector",
+                "maxItems": 3,
+                "minItems": 3,
+                "prefixItems": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ],
+                "type": "array"
+              }
+            ],
+            "title": "Vectors",
+            "type": "array"
+          }
+        },
+        "required": [
+          "vectors"
+        ],
+        "title": "Cell",
+        "type": "object"
+      },
+      "CreateProjectRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "path": {
+            "description": "absolute path of a new (empty or missing) directory",
+            "format": "path",
+            "title": "Path",
+            "type": "string"
+          }
+        },
+        "required": [
+          "path",
+          "name"
+        ],
+        "title": "CreateProjectRequest",
+        "type": "object"
+      },
+      "FixAtoms": {
+        "additionalProperties": false,
+        "properties": {
+          "indices": {
+            "items": {
+              "type": "integer"
+            },
+            "title": "Indices",
+            "type": "array"
+          },
+          "kind": {
+            "const": "fix_atoms",
+            "default": "fix_atoms",
+            "title": "Kind",
+            "type": "string"
+          }
+        },
+        "required": [
+          "indices"
+        ],
+        "title": "FixAtoms",
+        "type": "object"
+      },
+      "FixBondLength": {
+        "additionalProperties": false,
+        "properties": {
+          "a": {
+            "title": "A",
+            "type": "integer"
+          },
+          "b": {
+            "title": "B",
+            "type": "integer"
+          },
+          "kind": {
+            "const": "fix_bond_length",
+            "default": "fix_bond_length",
+            "title": "Kind",
+            "type": "string"
+          }
+        },
+        "required": [
+          "a",
+          "b"
+        ],
+        "title": "FixBondLength",
+        "type": "object"
+      },
+      "FixCartesian": {
+        "additionalProperties": false,
+        "description": "Fix selected Cartesian components (mask True = fixed) of one atom.",
+        "properties": {
+          "index": {
+            "title": "Index",
+            "type": "integer"
+          },
+          "kind": {
+            "const": "fix_cartesian",
+            "default": "fix_cartesian",
+            "title": "Kind",
+            "type": "string"
+          },
+          "mask": {
+            "default": [
+              true,
+              true,
+              true
+            ],
+            "maxItems": 3,
+            "minItems": 3,
+            "prefixItems": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "boolean"
+              }
+            ],
+            "title": "Mask",
+            "type": "array"
+          }
+        },
+        "required": [
+          "index"
+        ],
+        "title": "FixCartesian",
+        "type": "object"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "title": "Detail",
+            "type": "array"
+          }
+        },
+        "title": "HTTPValidationError",
+        "type": "object"
+      },
+      "HealthResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "ase_version": {
+            "title": "Ase Version",
+            "type": "string"
+          },
+          "status": {
+            "default": "ok",
+            "title": "Status",
+            "type": "string"
+          },
+          "version": {
+            "title": "Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "version",
+          "ase_version"
+        ],
+        "title": "HealthResponse",
+        "type": "object"
+      },
+      "OpenProjectRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "path": {
+            "description": "absolute path of an existing project directory",
+            "format": "path",
+            "title": "Path",
+            "type": "string"
+          }
+        },
+        "required": [
+          "path"
+        ],
+        "title": "OpenProjectRequest",
+        "type": "object"
+      },
+      "ProjectInfo": {
+        "additionalProperties": false,
+        "properties": {
+          "manifest": {
+            "$ref": "#/components/schemas/ProjectManifest"
+          },
+          "path": {
+            "format": "path",
+            "title": "Path",
+            "type": "string"
+          }
+        },
+        "required": [
+          "path",
+          "manifest"
+        ],
+        "title": "ProjectInfo",
+        "type": "object"
+      },
+      "ProjectManifest": {
+        "additionalProperties": false,
+        "properties": {
+          "calculation_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Calculation Ids",
+            "type": "array"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "dataset_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Dataset Ids",
+            "type": "array"
+          },
+          "format_version": {
+            "default": 1,
+            "title": "Format Version",
+            "type": "integer"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "modified_at": {
+            "format": "date-time",
+            "title": "Modified At",
+            "type": "string"
+          },
+          "name": {
+            "default": "untitled project",
+            "title": "Name",
+            "type": "string"
+          },
+          "notes": {
+            "default": "",
+            "title": "Notes",
+            "type": "string"
+          },
+          "structure_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Structure Ids",
+            "type": "array"
+          },
+          "view_settings": {
+            "additionalProperties": true,
+            "title": "View Settings",
+            "type": "object"
+          }
+        },
+        "title": "ProjectManifest",
+        "type": "object"
+      },
+      "Provenance": {
+        "additionalProperties": false,
+        "description": "Where a piece of data came from.",
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "notes": {
+            "default": "",
+            "title": "Notes",
+            "type": "string"
+          },
+          "parents": {
+            "description": "ids of parent objects",
+            "items": {
+              "type": "string"
+            },
+            "title": "Parents",
+            "type": "array"
+          },
+          "software": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "e.g. 'CP-PAW aa467ef', 'ASE 3.26'",
+            "title": "Software"
+          },
+          "source": {
+            "description": "file path, backend id, tool name or 'user'",
+            "title": "Source",
+            "type": "string"
+          }
+        },
+        "required": [
+          "source"
+        ],
+        "title": "Provenance",
+        "type": "object"
+      },
+      "Quantity": {
+        "additionalProperties": false,
+        "description": "A scalar with an explicit unit.",
+        "properties": {
+          "unit": {
+            "$ref": "#/components/schemas/Unit"
+          },
+          "value": {
+            "title": "Value",
+            "type": "number"
+          }
+        },
+        "required": [
+          "value",
+          "unit"
+        ],
+        "title": "Quantity",
+        "type": "object"
+      },
+      "Residue": {
+        "additionalProperties": false,
+        "description": "Residue/chain information for biomolecules.",
+        "properties": {
+          "atom_indices": {
+            "items": {
+              "type": "integer"
+            },
+            "title": "Atom Indices",
+            "type": "array"
+          },
+          "chain": {
+            "default": "",
+            "title": "Chain",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "number": {
+            "title": "Number",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "name",
+          "number",
+          "atom_indices"
+        ],
+        "title": "Residue",
+        "type": "object"
+      },
+      "Structure": {
+        "additionalProperties": false,
+        "description": "The central editable object: atoms, bonds, cell and attached properties.",
+        "properties": {
+          "atomic_scalars": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/AtomicScalarProperty"
+            },
+            "title": "Atomic Scalars",
+            "type": "object"
+          },
+          "atomic_vectors": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/AtomicVectorProperty"
+            },
+            "title": "Atomic Vectors",
+            "type": "object"
+          },
+          "atoms": {
+            "items": {
+              "$ref": "#/components/schemas/Atom"
+            },
+            "title": "Atoms",
+            "type": "array"
+          },
+          "bonds": {
+            "items": {
+              "$ref": "#/components/schemas/Bond"
+            },
+            "title": "Bonds",
+            "type": "array"
+          },
+          "cell": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Cell"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "charge": {
+            "default": 0.0,
+            "description": "total charge in e",
+            "title": "Charge",
+            "type": "number"
+          },
+          "constraints": {
+            "items": {
+              "discriminator": {
+                "mapping": {
+                  "fix_atoms": "#/components/schemas/FixAtoms",
+                  "fix_bond_length": "#/components/schemas/FixBondLength",
+                  "fix_cartesian": "#/components/schemas/FixCartesian"
+                },
+                "propertyName": "kind"
+              },
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/FixAtoms"
+                },
+                {
+                  "$ref": "#/components/schemas/FixCartesian"
+                },
+                {
+                  "$ref": "#/components/schemas/FixBondLength"
+                }
+              ]
+            },
+            "title": "Constraints",
+            "type": "array"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "multiplicity": {
+            "anyOf": [
+              {
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "2S+1; None = unspecified",
+            "title": "Multiplicity"
+          },
+          "name": {
+            "default": "untitled",
+            "title": "Name",
+            "type": "string"
+          },
+          "properties": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/Quantity"
+            },
+            "title": "Properties",
+            "type": "object"
+          },
+          "provenance": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Provenance"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "residues": {
+            "items": {
+              "$ref": "#/components/schemas/Residue"
+            },
+            "title": "Residues",
+            "type": "array"
+          }
+        },
+        "title": "Structure",
+        "type": "object"
+      },
+      "StructureSummary": {
+        "additionalProperties": false,
+        "properties": {
+          "formula": {
+            "title": "Formula",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "n_atoms": {
+            "title": "N Atoms",
+            "type": "integer"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "periodic": {
+            "title": "Periodic",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "formula",
+          "n_atoms",
+          "periodic"
+        ],
+        "title": "StructureSummary",
+        "type": "object"
+      },
+      "Unit": {
+        "description": "Units that can appear on quantities in the data model.",
+        "enum": [
+          "angstrom",
+          "bohr",
+          "nm",
+          "eV",
+          "hartree",
+          "kJ/mol",
+          "kcal/mol",
+          "rydberg",
+          "eV/angstrom",
+          "hartree/bohr",
+          "fs",
+          "atomic_time",
+          "ps",
+          "e",
+          "muB",
+          "K",
+          "cm^-1",
+          "debye",
+          "e*angstrom",
+          "",
+          "e/angstrom^3",
+          "e/bohr^3",
+          "V",
+          "hartree/e"
+        ],
+        "title": "Unit",
+        "type": "string"
+      },
+      "ValidationError": {
+        "properties": {
+          "ctx": {
+            "title": "Context",
+            "type": "object"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "title": "Location",
+            "type": "array"
+          },
+          "msg": {
+            "title": "Message",
+            "type": "string"
+          },
+          "type": {
+            "title": "Error Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError",
+        "type": "object"
+      }
+    }
+  },
+  "info": {
+    "title": "Atomscope API",
+    "version": "0.1.0"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/api/health": {
+      "get": {
+        "operationId": "health_api_health_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Health",
+        "tags": [
+          "system"
+        ]
+      }
+    },
+    "/api/project": {
+      "get": {
+        "operationId": "current_project_api_project_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ProjectInfo"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Response Current Project Api Project Get"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Current Project",
+        "tags": [
+          "project"
+        ]
+      }
+    },
+    "/api/project/close": {
+      "post": {
+        "operationId": "close_project_api_project_close_post",
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Close Project",
+        "tags": [
+          "project"
+        ]
+      }
+    },
+    "/api/project/create": {
+      "post": {
+        "operationId": "create_project_api_project_create_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateProjectRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectInfo"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Project",
+        "tags": [
+          "project"
+        ]
+      }
+    },
+    "/api/project/open": {
+      "post": {
+        "operationId": "open_project_api_project_open_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OpenProjectRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectInfo"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Open Project",
+        "tags": [
+          "project"
+        ]
+      }
+    },
+    "/api/structures": {
+      "get": {
+        "operationId": "list_structures_api_structures_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/StructureSummary"
+                  },
+                  "title": "Response List Structures Api Structures Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List Structures",
+        "tags": [
+          "structures"
+        ]
+      }
+    },
+    "/api/structures/{structure_id}": {
+      "delete": {
+        "operationId": "delete_structure_api_structures__structure_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "structure_id",
+            "required": true,
+            "schema": {
+              "title": "Structure Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Delete Structure",
+        "tags": [
+          "structures"
+        ]
+      },
+      "get": {
+        "operationId": "get_structure_api_structures__structure_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "structure_id",
+            "required": true,
+            "schema": {
+              "title": "Structure Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Structure"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Structure",
+        "tags": [
+          "structures"
+        ]
+      },
+      "put": {
+        "description": "Create or replace a structure. The path id must match the body id.",
+        "operationId": "put_structure_api_structures__structure_id__put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "structure_id",
+            "required": true,
+            "schema": {
+              "title": "Structure Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Structure"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StructureSummary"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Put Structure",
+        "tags": [
+          "structures"
+        ]
+      }
+    }
+  }
+}
