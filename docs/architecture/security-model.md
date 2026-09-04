@@ -1,0 +1,30 @@
+# Security model
+
+## Filesystem
+
+- The backend only writes under the project directory chosen by the user and under
+  `ATOMSCOPE_DATA_DIR` (defaults to `<repo>/app-data` in development).
+- All paths received from clients are resolved and checked with `Path.resolve()` +
+  `is_relative_to(root)`; filenames are sanitized to `[A-Za-z0-9._-]`.
+- Project files, input decks and imported structures are data. They are parsed, never executed
+  or interpolated into commands.
+
+## Subprocesses
+
+- Only `atomscope.jobs.runner` spawns processes: `subprocess.Popen(argv, shell=False, cwd=..., env=...)`.
+- Executables are discovered from an allowlist (configured paths, `PAWDIR`, `PATH` lookup for
+  known names) and validated to be regular executable files before use.
+- The environment passed to jobs is explicit (a copy of a minimal base plus documented variables).
+- Cancellation sends SIGTERM to the process group, then SIGKILL after a grace period.
+
+## Network
+
+- The API binds to 127.0.0.1 only; CORS is restricted to the development frontend origin.
+- No outbound network calls in the backend except optional, explicit "fetch structure by
+  identifier" features which are off by default.
+
+## Dependencies
+
+- Locked with `uv.lock` and `pnpm-lock.yaml`; installed only into `.venv` and `node_modules`.
+- No `curl | sh`, no global installs, no post-install scripts except explicitly approved ones
+  (`pnpm.onlyBuiltDependencies`).
