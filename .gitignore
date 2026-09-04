@@ -1,0 +1,29 @@
+# Project-local environments and caches (rule: nothing installs globally)
+.venv/
+.uv-cache/
+.pnpm-store/
+.npm-cache/
+.playwright-browsers/
+node_modules/
+.cache/
+.scratch/
+.worktrees/
+app-data/
+*.egg-info/
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+dist/
+build/
+coverage/
+.coverage
+*.pyc
+*.log
+.DS_Store
+# Editor
+.vscode/
+.idea/
+# Private material must never be committed
+*.rstrt
+*.wv
