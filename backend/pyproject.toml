@@ -65,3 +65,8 @@ python_version = "3.12"
 strict = true
 packages = ["atomscope"]
 mypy_path = "src"
+
+[[tool.mypy.overrides]]
+# ASE ships no type annotations; calls into it cannot be type-checked.
+module = ["atomscope.ase_bridge.*", "atomscope.io.*"]
+disallow_untyped_calls = false
