@@ -37,19 +37,20 @@ import { promptSaveAs, saveStructure } from './fileActions';
 import { isEditableTarget } from '../editor/ToolHost';
 import { ExportImageDialog } from './ExportImageDialog';
 import { HelpDialog, type HelpTopic } from './HelpDialog';
+import { ImportDialog } from './ImportDialog';
 import { Menu, type MenuItem } from './Menu';
 import type { StructureStyle } from '../renderer/layers/StructureLayer';
 
 export function MenuBar({ onError }: { onError: (msg: string) => void }): JSX.Element {
   const [help, setHelp] = useState<HelpTopic | null>(null);
   const [exportImage, setExportImage] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
   const store = useStructureStore();
   const view = useViewStore();
   const selection = useSelectionStore();
   const openCartesian = useToolStore((s) => s.setCartesianEditorOpen);
   const openCrystalDialog = useCrystalStore((s) => s.openDialog);
   const openBuildDialog = useBuildStore((s) => s.openDialog);
-  const fileInput = useRef<HTMLInputElement>(null);
   const trajectoryInput = useRef<HTMLInputElement>(null);
 
   const openTrajectory = async (file: File): Promise<void> => {
@@ -73,15 +74,6 @@ export function MenuBar({ onError }: { onError: (msg: string) => void }): JSX.El
       if (atoms.length === 0) onError(`No atom matches ${pattern}`);
     } catch (e) {
       onError(`SMARTS selection failed: ${(e as Error).message}`);
-    }
-  };
-
-  const openFile = async (file: File): Promise<void> => {
-    try {
-      const s = await api.io.importUpload(file);
-      store.load(normalizeStructure(s));
-    } catch (e) {
-      onError(`Import failed: ${(e as Error).message}`);
     }
   };
 
@@ -124,7 +116,7 @@ export function MenuBar({ onError }: { onError: (msg: string) => void }): JSX.El
         store.redo();
       } else if (key === 'o') {
         e.preventDefault();
-        fileInput.current?.click();
+        setImportOpen(true);
       } else if (key === 'a') {
         e.preventDefault();
         if (e.shiftKey) useSelectionStore.getState().clear();
@@ -161,7 +153,7 @@ export function MenuBar({ onError }: { onError: (msg: string) => void }): JSX.El
             label: 'New',
             action: () => store.load(normalizeStructure({ name: 'untitled', charge: 0 })),
           },
-          { label: 'Open…', shortcut: 'Ctrl+O', action: () => fileInput.current?.click() },
+          { label: 'Open…', shortcut: 'Ctrl+O', action: () => setImportOpen(true) },
           {
             label: 'Save',
             shortcut: 'Ctrl+S',
@@ -346,6 +338,7 @@ export function MenuBar({ onError }: { onError: (msg: string) => void }): JSX.El
           { label: 'About Atomscope', action: () => setHelp('about') },
         ]}
       />
+      <ImportDialog open={importOpen} onClose={() => setImportOpen(false)} onError={onError} />
       <ExportImageDialog
         open={exportImage}
         onClose={() => setExportImage(false)}
@@ -355,17 +348,6 @@ export function MenuBar({ onError }: { onError: (msg: string) => void }): JSX.El
       <CartesianEditor />
       <CrystalDialogs onError={onError} />
       <BuildDialogs onError={onError} />
-      <input
-        ref={fileInput}
-        type="file"
-        hidden
-        data-testid="file-input"
-        onChange={(e) => {
-          const f = e.target.files?.[0];
-          if (f) void openFile(f);
-          e.target.value = '';
-        }}
-      />
       <input
         ref={trajectoryInput}
         type="file"

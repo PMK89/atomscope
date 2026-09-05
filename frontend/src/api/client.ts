@@ -136,9 +136,10 @@ export const api = {
     formats: () => request<FormatDescription[]>('/api/io/formats'),
     importPath: (body: Body<'/api/io/import/path', 'post'>) =>
       request<Structure>('/api/io/import/path', json(body)),
-    importUpload: (file: File) => {
+    importUpload: (file: File, format?: string) => {
       const form = new FormData();
       form.append('file', file, file.name);
+      if (format) form.append('format', format);
       return request<Structure>('/api/io/import/upload', { method: 'POST', body: form });
     },
     importText: (body: Body<'/api/io/import/text', 'post'>) =>

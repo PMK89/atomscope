@@ -3,8 +3,9 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Annotated
 
-from fastapi import APIRouter, HTTPException, Request, UploadFile, status
+from fastapi import APIRouter, Form, HTTPException, Request, UploadFile, status
 from pydantic import Field
 
 from atomscope.api.state import AppState
@@ -97,15 +98,23 @@ def import_path(body: ImportPathRequest) -> Structure:
 
 
 @router.post("/import/upload", response_model=Structure)
-async def import_upload(file: UploadFile, request: Request) -> Structure:
-    """Read a structure from an uploaded file (browser file picker)."""
+async def import_upload(
+    file: UploadFile,
+    request: Request,
+    format: Annotated[str | None, Form()] = None,
+) -> Structure:
+    """Read a structure from an uploaded file (browser file picker).
+
+    ``format`` overrides the detection, which a file whose extension says nothing about its
+    contents needs -- a Gaussian output called ``run.txt``, say.
+    """
     state = _state(request)
     name = Path(file.filename or "upload.xyz").name
     tmp_dir = state.scratch_dir()
     target = tmp_dir / name
     target.write_bytes(await file.read())
     try:
-        return read_structure(target)
+        return read_structure(target, format or None)
     except (FormatError, ValueError) as exc:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, str(exc)) from exc
     finally:

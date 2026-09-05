@@ -24,6 +24,8 @@
 - Fixed: Ctrl+C with text selected in a panel copied the molecule instead of the text; removing
   atoms in the editor left residues and constraints pointing at the old numbering; a copied
   fragment carried no residues.
+- File > Open… is a dialog now: a path on this machine or an uploaded file, with the format
+  detection overridable and the picker filtered to the readable extensions.
 - File > Export image…: the viewport at 1x, 2x or 4x its size, as PNG (optionally with a
   transparent background) or JPEG, including the axes gizmo, with sizes the GPU cannot render
   left out of the list.

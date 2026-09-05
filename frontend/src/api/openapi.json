@@ -490,6 +490,17 @@
             "contentMediaType": "application/octet-stream",
             "title": "File",
             "type": "string"
+          },
+          "format": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Format"
           }
         },
         "required": ["file"],
@@ -9661,7 +9672,7 @@
     },
     "/api/io/import/upload": {
       "post": {
-        "description": "Read a structure from an uploaded file (browser file picker).",
+        "description": "Read a structure from an uploaded file (browser file picker).\n\n``format`` overrides the detection, which a file whose extension says nothing about its\ncontents needs -- a Gaussian output called ``run.txt``, say.",
         "operationId": "import_upload_api_io_import_upload_post",
         "requestBody": {
           "content": {

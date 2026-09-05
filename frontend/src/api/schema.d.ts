@@ -1593,6 +1593,9 @@ export interface paths {
     /**
      * Import Upload
      * @description Read a structure from an uploaded file (browser file picker).
+     *
+     *     ``format`` overrides the detection, which a file whose extension says nothing about its
+     *     contents needs -- a Gaussian output called ``run.txt``, say.
      */
     post: operations['import_upload_api_io_import_upload_post'];
     delete?: never;
@@ -2095,6 +2098,8 @@ export interface components {
     Body_import_upload_api_io_import_upload_post: {
       /** File */
       file: string;
+      /** Format */
+      format?: string | null;
     };
     /** Body_import_vibrations_upload_api_io_import_vibrations_upload_post */
     Body_import_vibrations_upload_api_io_import_vibrations_upload_post: {

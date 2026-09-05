@@ -1,4 +1,5 @@
-import { readFile } from 'node:fs/promises';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { join } from 'node:path';
 import { expect, test } from '@playwright/test';
 
 test('app renders the demo molecule into the WebGL canvas', async ({ page }) => {
@@ -303,4 +304,28 @@ test('Export image saves a PNG of the viewport at the chosen resolution', async 
   expect(width).toBe(viewport * 2);
   // an empty frame of this size compresses to a couple of kilobytes; this one has a molecule in it
   expect(bytes.length).toBeGreaterThan(20_000);
+});
+
+test('Open reads a file from this machine, with the format named', async ({ page }) => {
+  await page.goto('/');
+  const dir = test.info().outputPath('open');
+  await mkdir(dir, { recursive: true });
+  // an XYZ file whose extension says nothing: only the override makes it readable
+  const file = join(dir, 'ammonia.dat');
+  await writeFile(
+    file,
+    '4\n\nN 0 0 0.11\nH 0 0.94 -0.27\nH 0.81 -0.47 -0.27\nH -0.81 -0.47 -0.27\n',
+  );
+
+  await page.getByRole('button', { name: 'File' }).click();
+  await page.getByRole('menuitem', { name: 'Open… Ctrl+O' }).click();
+  await page.getByLabel('Path on this machine').fill(file);
+  await page.getByRole('button', { name: 'Open path' }).click();
+  // without a format the backend cannot tell what .dat is
+  await expect(page.locator('.status-error')).toContainText(/format|read/i);
+
+  await page.getByLabel('Format').selectOption('xyz');
+  await page.getByRole('button', { name: 'Open path' }).click();
+  await expect(page.locator('.app-statusbar')).toContainText('4 atoms');
+  await expect(page.locator('.app-statusbar')).toContainText('H3N'); // Hill order
 });
