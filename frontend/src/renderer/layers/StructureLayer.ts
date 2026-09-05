@@ -52,8 +52,10 @@ export class StructureLayer implements DisplayLayer {
   private readonly sphereGeometry = new SphereGeometry(1, 32, 24);
   private readonly cylinderGeometry = new CylinderGeometry(1, 1, 1, 24, 1, true);
   private readonly material = new MeshStandardMaterial({ roughness: 0.55, metalness: 0.0 });
-  private lastRevision = -1;
   private lastSettings: string = '';
+  /** Atom and bond arrays of the last update: immutable, so identity answers "did it change?". */
+  private lastAtoms: StructureDoc['atoms'] | null = null;
+  private lastBonds: StructureDoc['bonds'] | null = null;
   /** instance index -> atom index (hidden hydrogens are skipped) */
   private atomOfInstance: number[] = [];
   private instanceOfAtom: Int32Array = new Int32Array(0);
@@ -62,7 +64,6 @@ export class StructureLayer implements DisplayLayer {
   private lastOverride: Float32Array | null = null;
   private lastSelected: ReadonlySet<number> | null = null;
   private lastHovered: number | null = null;
-  private lastStructure: StructureDoc | null = null;
 
   constructor(settings: Partial<StructureLayerSettings> = {}) {
     this.settings = { ...DEFAULT_STRUCTURE_SETTINGS, ...settings };
@@ -96,29 +97,47 @@ export class StructureLayer implements DisplayLayer {
     return out;
   }
 
+  /**
+   * Whether the instanced meshes have to be rebuilt: only a changed atom count, element sequence
+   * or bond list does that. Moving atoms (drag previews, trajectory playback) does not, so those
+   * updates only rewrite instance matrices.
+   */
+  private topologyChanged(s: StructureDoc): boolean {
+    if (s.bonds !== this.lastBonds) return true;
+    const prev = this.lastAtoms;
+    if (!prev || prev.length !== s.atoms.length) return true;
+    if (prev === s.atoms) return false;
+    for (let i = 0; i < s.atoms.length; i++) {
+      if (prev[i]!.element !== s.atoms[i]!.element) return true;
+    }
+    return false;
+  }
+
   update(ctx: LayerContext): void {
+    const s = ctx.structure;
     const settingsKey = JSON.stringify(this.settings);
-    const geometryChanged = ctx.revision !== this.lastRevision || settingsKey !== this.lastSettings;
-    if (geometryChanged) {
-      this.rebuild(ctx.structure);
-      this.lastRevision = ctx.revision;
+    const rebuilt = settingsKey !== this.lastSettings || this.topologyChanged(s);
+    const moved = s.atoms !== this.lastAtoms;
+    this.lastAtoms = s.atoms;
+    this.lastBonds = s.bonds;
+    if (rebuilt) {
+      this.rebuild(s);
       this.lastSettings = settingsKey;
     }
     // display-only positions (trajectory frame): update instance matrices, keep topology
     const raw = ctx.positionsOverride ?? null;
-    const override = raw && raw.length === ctx.structure.atoms.length * 3 ? raw : null;
-    if (geometryChanged || override !== this.lastOverride) {
-      this.applyPositions(ctx.structure, override);
+    const override = raw && raw.length === s.atoms.length * 3 ? raw : null;
+    if (rebuilt || moved || override !== this.lastOverride) {
+      this.applyPositions(s, override);
       this.lastOverride = override;
     }
+    // colours depend on the element sequence (a rebuild), the selection and the hover only
     if (
-      geometryChanged ||
-      ctx.structure !== this.lastStructure ||
+      rebuilt ||
       ctx.selectedAtoms !== this.lastSelected ||
       ctx.hoveredAtom !== this.lastHovered
     ) {
       this.applyColors(ctx);
-      this.lastStructure = ctx.structure;
       this.lastSelected = ctx.selectedAtoms;
       this.lastHovered = ctx.hoveredAtom;
     }
