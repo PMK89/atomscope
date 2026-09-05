@@ -207,3 +207,28 @@ test('a pasted second water is drawn with a hydrogen bond to the first', async (
   await page.getByLabel('Cut-off distance (Å)').fill('2.0');
   await expect.poll(hbonds).toBe(0);
 });
+
+test('Save as writes a second structure and keeps editing the copy', async ({ page }) => {
+  await page.goto('/');
+  const before = await page.locator('.app-statusbar').textContent();
+  expect(before).not.toBeNull();
+
+  // an edit marks the document modified
+  await page.getByRole('button', { name: 'Build' }).click();
+  await page.getByRole('menuitem', { name: 'Insert fragment…' }).click();
+  await page.getByLabel('Search').fill('benzene');
+  await page
+    .getByRole('button', { name: /benzene/i })
+    .first()
+    .click();
+  await expect(page.locator('.status-modified')).toBeVisible();
+
+  page.once('dialog', (d) => void d.accept('water plus fragment'));
+  await page.getByRole('button', { name: 'File' }).click();
+  await page.getByRole('menuitem', { name: 'Save as… Ctrl+Shift+S' }).click();
+
+  // the copy is in the project, is the open document, and is no longer marked modified
+  await expect(page.getByRole('button', { name: /water plus fragment/ })).toBeVisible();
+  await expect(page.locator('.app-statusbar')).toContainText('water plus fragment');
+  await expect(page.locator('.status-modified')).toHaveCount(0);
+});

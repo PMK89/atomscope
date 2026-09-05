@@ -31,6 +31,24 @@ export function App(): JSX.Element {
       useStructureStore.getState().load(demoWater());
     }
   }, []);
+  // the window title carries the document and whether it has unsaved work, and leaving the page
+  // with unsaved work asks first (the browser shows its own wording)
+  const name = useStructureStore((s) => s.doc.name);
+  const revision = useStructureStore((s) => s.revision);
+  const savedRevision = useStructureStore((s) => s.savedRevision);
+  const modified = revision !== savedRevision;
+  useEffect(() => {
+    document.title = `${modified ? '• ' : ''}${name} — Atomscope`;
+  }, [name, modified]);
+  useEffect(() => {
+    if (!modified) return;
+    const onBeforeUnload = (e: BeforeUnloadEvent): void => {
+      e.preventDefault();
+      e.returnValue = '';
+    };
+    window.addEventListener('beforeunload', onBeforeUnload);
+    return () => window.removeEventListener('beforeunload', onBeforeUnload);
+  }, [modified]);
   useEffect(() => {
     if (!error) return;
     const t = setTimeout(() => setError(null), 8000);

@@ -16,6 +16,11 @@ export interface StructureState {
   revision: number;
   /** Bumped by undo/redo only, so an active gesture can notice that its base is gone. */
   historyRevision: number;
+  /** `revision` as of the last save or load; anything past it is unsaved work. */
+  savedRevision: number;
+  /** Record that the current document is what is stored. */
+  markSaved: () => void;
+  isModified: () => boolean;
   undoStack: HistoryEntry[];
   redoStack: HistoryEntry[];
   /** Document before the current preview sequence, or null when not previewing. */
@@ -45,6 +50,7 @@ export const useStructureStore = create<StructureState>((set, get) => ({
   doc: emptyStructure(),
   revision: 0,
   historyRevision: 0,
+  savedRevision: 0,
   undoStack: [],
   redoStack: [],
   previewBase: null,
@@ -52,10 +58,14 @@ export const useStructureStore = create<StructureState>((set, get) => ({
     set((s) => ({
       doc,
       revision: s.revision + 1,
+      // what was just loaded is what is stored, so it starts unmodified
+      savedRevision: s.revision + 1,
       undoStack: [],
       redoStack: [],
       previewBase: null,
     })),
+  markSaved: () => set((s) => ({ savedRevision: s.revision })),
+  isModified: () => get().revision !== get().savedRevision,
   preview: (next) =>
     set((s) => ({ doc: next, revision: s.revision + 1, previewBase: s.previewBase ?? s.doc })),
   cancelPreview: () =>

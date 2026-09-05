@@ -33,6 +33,7 @@ import {
   installClipboardEvents,
   pasteFromClipboard,
 } from './clipboardActions';
+import { promptSaveAs, saveStructure } from './fileActions';
 import { isEditableTarget } from '../editor/ToolHost';
 import { Menu, type MenuItem } from './Menu';
 import type { StructureStyle } from '../renderer/layers/StructureLayer';
@@ -124,6 +125,10 @@ export function MenuBar({ onError }: { onError: (msg: string) => void }): JSX.El
         e.preventDefault();
         if (e.shiftKey) useSelectionStore.getState().clear();
         else useSelectionStore.getState().set(store.doc.atoms.map((_, i) => i));
+      } else if (key === 's') {
+        e.preventDefault();
+        if (e.shiftKey) void promptSaveAs(onError);
+        else void saveStructure(onError);
       } else if (key === 'backspace' && !isEditableTarget(e.target)) {
         e.preventDefault();
         clearSelection();
@@ -131,7 +136,7 @@ export function MenuBar({ onError }: { onError: (msg: string) => void }): JSX.El
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [store]);
+  }, [store, onError]);
 
   // Ctrl+X/C/V arrive as clipboard events, which carry the data without asking for permission
   useEffect(() => installClipboardEvents(onError), [onError]);
@@ -153,6 +158,16 @@ export function MenuBar({ onError }: { onError: (msg: string) => void }): JSX.El
             action: () => store.load(normalizeStructure({ name: 'untitled', charge: 0 })),
           },
           { label: 'Open…', shortcut: 'Ctrl+O', action: () => fileInput.current?.click() },
+          {
+            label: 'Save',
+            shortcut: 'Ctrl+S',
+            action: () => void saveStructure(onError),
+          },
+          {
+            label: 'Save as…',
+            shortcut: 'Ctrl+Shift+S',
+            action: () => void promptSaveAs(onError),
+          },
           { label: 'Build from SMILES…', action: () => void buildSmiles() },
           { label: 'Import trajectory…', action: () => trajectoryInput.current?.click() },
           { label: 'Export XYZ', action: () => void exportText('xyz') },

@@ -198,6 +198,10 @@ button {
   opacity: 0.5;
   cursor: default;
 }
+.status-modified {
+  color: var(--accent, #c07000);
+  font-weight: 700;
+}
 .error-text {
   color: var(--error);
   font-size: 12px;

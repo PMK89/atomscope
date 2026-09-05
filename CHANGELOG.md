@@ -24,6 +24,9 @@
 - Fixed: Ctrl+C with text selected in a panel copied the molecule instead of the text; removing
   atoms in the editor left residues and constraints pointing at the old numbering; a copied
   fragment carried no residues.
+- File > Save (Ctrl+S) and Save as… (Ctrl+Shift+S): Save as writes a copy under a new id and
+  continues editing it, so an optimized or supercelled structure no longer overwrites its source.
+  Unsaved work is marked in the window title and the status bar, and leaving the page asks first.
 - Hydrogen bonds as dashed sticks, with cut-off distance and angle in the Display tab, computed
   from the displayed geometry so they follow a trajectory.
 - Protein ribbons and cartoons: a spline through the alpha carbons, oriented by the carbonyls,
