@@ -1,0 +1,45 @@
+{
+  "id": "364838572eb9",
+  "name": "CP-PAW CUBE FILE",
+  "kind": "electron_density",
+  "origin": [
+    -5.000000196227037,
+    -5.7632398955042135,
+    -5.477049747309866
+  ],
+  "axes": [
+    [
+      0.1265823638301342,
+      0.0,
+      0.0
+    ],
+    [
+      0.0,
+      0.1459047404966623,
+      0.0
+    ],
+    [
+      0.0,
+      0.0,
+      0.1341305475616168
+    ]
+  ],
+  "shape": [
+    80,
+    80,
+    80
+  ],
+  "unit": "e/bohr^3",
+  "data_ref": "datasets/364838572eb9.f32",
+  "dtype": "float32",
+  "inline_values": null,
+  "orbital": null,
+  "structure_id": "21b20fc61679",
+  "provenance": {
+    "source": "/home/pmk/Projects/atomscope/.worktrees/performance/backend/tests/fixtures/cppaw/h2o/case_total_density.cub.gz",
+    "created_at": "2026-09-05T14:07:00.119219Z",
+    "software": null,
+    "parents": [],
+    "notes": ""
+  }
+}

@@ -189,34 +189,42 @@ async function orbitFps(
 }
 
 /**
- * Re-tessellate the atom mesh in place (same class, fewer segments) and orbit again. This does
- * not change any production code: it measures what a level-of-detail sphere would buy, so the
- * report can quantify the cost of the fixed 32x24 sphere instead of guessing.
+ * Re-tessellate the atom mesh in place (same geometry class, fewer segments) and let the caller
+ * orbit again. This changes no production code: it measures what a level-of-detail sphere would
+ * buy, so the report can quantify the cost of the fixed 32x24 sphere instead of guessing.
+ * Returns a human-readable description of what was swapped.
  */
-async function retessellate(page: Page, width: number, height: number): Promise<number> {
+async function retessellate(
+  page: Page,
+  atomCount: number,
+  width: number,
+  height: number,
+): Promise<string> {
   return page.evaluate(
-    ([w, h]) => {
+    ([n, w, h]) => {
       const r = (window as unknown as PerfWindow).__atomscopeRenderer;
       if (!r) throw new Error('renderer handle missing');
-      let triangles = 0;
+      type Geom = { index: { count: number } | null; dispose(): void };
+      let info = `no InstancedMesh with ${n!.toLocaleString('en-US')} instances`;
       r.scene.traverse((o) => {
         const mesh = o as unknown as {
           isInstancedMesh?: boolean;
           count?: number;
-          geometry?: { index?: { count: number } | null; constructor: unknown; dispose(): void };
+          geometry?: Geom;
         };
-        if (!mesh.isInstancedMesh || !mesh.geometry) return;
-        const Ctor = mesh.geometry.constructor as new (...a: number[]) => object;
-        if (Ctor.name !== 'SphereGeometry') return;
-        const next = new Ctor(1, w!, h!) as typeof mesh.geometry;
+        if (!mesh.isInstancedMesh || mesh.count !== n || !mesh.geometry) return;
+        const Ctor = mesh.geometry.constructor as new (...a: number[]) => Geom;
+        const next = new Ctor(1, w!, h!);
+        const before = (mesh.geometry.index?.count ?? 0) / 3;
+        const after = (next.index?.count ?? 0) / 3;
         mesh.geometry.dispose();
         mesh.geometry = next;
-        triangles = ((next.index?.count ?? 0) / 3) * (mesh.count ?? 0);
+        info = `${before} -> ${after} triangles per sphere (${Ctor.name} 1, ${w}, ${h})`;
       });
       r.invalidate();
-      return triangles;
+      return info;
     },
-    [width, height] as const,
+    [atomCount, width, height] as const,
   );
 }
 
@@ -289,13 +297,13 @@ test.describe('@perf renderer', () => {
         unit: 'fps',
         note: `${shape}, ${orbit.frames} frames in ${(orbit.elapsed / 1000).toFixed(1)} s of continuous orbit`,
       });
-      const triangles = await retessellate(page, 8, 6);
+      const swapped = await retessellate(page, n, 8, 6);
       const lod = await orbitFps(page, ORBIT_MS);
       record({
         case: `structure.orbit_fps_lowpoly.${label}`,
         value: lod.fps,
         unit: 'fps',
-        note: `same scene with an 8x6 sphere (${triangles.toLocaleString('en-US')} sphere triangles), ${lod.frames} frames in ${(lod.elapsed / 1000).toFixed(1)} s`,
+        note: `${swapped}; ${lod.frames} frames in ${(lod.elapsed / 1000).toFixed(1)} s`,
       });
     }
     expect(errors).toEqual([]);

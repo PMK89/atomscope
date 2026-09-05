@@ -1,0 +1,16 @@
+{
+  "id": "ec511684139a",
+  "name": "e2e",
+  "format_version": 1,
+  "created_at": "2026-09-05T14:06:59.352431Z",
+  "modified_at": "2026-09-05T14:07:00.122081Z",
+  "structure_ids": [
+    "21b20fc61679"
+  ],
+  "calculation_ids": [],
+  "dataset_ids": [
+    "364838572eb9"
+  ],
+  "notes": "",
+  "view_settings": {}
+}

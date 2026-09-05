@@ -1,0 +1,319 @@
+{
+  "id": "21b20fc61679",
+  "name": "CP-PAW CUBE FILE",
+  "atoms": [
+    {
+      "element": "O",
+      "position": [
+        4.579219116297883,
+        -4.578143828206017,
+        -5.211603345769621
+      ],
+      "formal_charge": 0,
+      "label": null,
+      "uid": "cdb89d8a8cbc"
+    },
+    {
+      "element": "H",
+      "position": [
+        4.579219116297883,
+        -3.8149051872832622,
+        -5.807912506442802
+      ],
+      "formal_charge": 0,
+      "label": null,
+      "uid": "2c81a16da5be"
+    },
+    {
+      "element": "H",
+      "position": [
+        4.579219116297883,
+        -5.341382998305982,
+        -5.807912506442802
+      ],
+      "formal_charge": 0,
+      "label": null,
+      "uid": "a86122613901"
+    },
+    {
+      "element": "O",
+      "position": [
+        4.076032973608095,
+        3.7512351144854312,
+        -5.210552929006652
+      ],
+      "formal_charge": 0,
+      "label": null,
+      "uid": "4a320eef1430"
+    },
+    {
+      "element": "H",
+      "position": [
+        4.076032973608095,
+        4.514473755408186,
+        -5.806862089679832
+      ],
+      "formal_charge": 0,
+      "label": null,
+      "uid": "84cf4ae45b52"
+    },
+    {
+      "element": "H",
+      "position": [
+        4.076032973608095,
+        2.9879959443854656,
+        -5.806862089679832
+      ],
+      "formal_charge": 0,
+      "label": null,
+      "uid": "f84c9d753e83"
+    },
+    {
+      "element": "O",
+      "position": [
+        -3.9546672387196993,
+        -3.954360315937572,
+        -5.079125947813806
+      ],
+      "formal_charge": 0,
+      "label": null,
+      "uid": "d4c3488763ae"
+    },
+    {
+      "element": "H",
+      "position": [
+        -3.9546672387196993,
+        -3.1911211458376063,
+        -5.675435108486987
+      ],
+      "formal_charge": 0,
+      "label": null,
+      "uid": "784a1d6df607"
+    },
+    {
+      "element": "H",
+      "position": [
+        -3.9546672387196993,
+        -4.717598956860327,
+        -5.675435108486987
+      ],
+      "formal_charge": 0,
+      "label": null,
+      "uid": "454d4fcfb002"
+    },
+    {
+      "element": "O",
+      "position": [
+        -4.457853381409487,
+        4.375018626753876,
+        -5.078075531050836
+      ],
+      "formal_charge": 0,
+      "label": null,
+      "uid": "84237e5c1036"
+    },
+    {
+      "element": "H",
+      "position": [
+        -4.457853381409487,
+        5.138257796853841,
+        -5.674384691724017
+      ],
+      "formal_charge": 0,
+      "label": null,
+      "uid": "2524c81930b6"
+    },
+    {
+      "element": "H",
+      "position": [
+        -4.457853381409487,
+        3.611779985831121,
+        -5.674384691724017
+      ],
+      "formal_charge": 0,
+      "label": null,
+      "uid": "7e93c410abeb"
+    },
+    {
+      "element": "O",
+      "position": [
+        0.0,
+        0.0,
+        0.11926225547640457
+      ],
+      "formal_charge": 0,
+      "label": null,
+      "uid": "920d7dfcfba2"
+    },
+    {
+      "element": "H",
+      "position": [
+        0.0,
+        0.7632391700999654,
+        -0.477046905196776
+      ],
+      "formal_charge": 0,
+      "label": null,
+      "uid": "23d4236c6cd5"
+    },
+    {
+      "element": "H",
+      "position": [
+        0.0,
+        -0.7632391700999654,
+        -0.477046905196776
+      ],
+      "formal_charge": 0,
+      "label": null,
+      "uid": "bddba7823513"
+    },
+    {
+      "element": "O",
+      "position": [
+        4.457853381409487,
+        -4.375018626753876,
+        5.316599512826436
+      ],
+      "formal_charge": 0,
+      "label": null,
+      "uid": "1651994beccd"
+    },
+    {
+      "element": "H",
+      "position": [
+        4.457853381409487,
+        -3.611779985831121,
+        4.720290881330465
+      ],
+      "formal_charge": 0,
+      "label": null,
+      "uid": "6c87e6803570"
+    },
+    {
+      "element": "H",
+      "position": [
+        4.457853381409487,
+        -5.138257796853841,
+        4.720290881330465
+      ],
+      "formal_charge": 0,
+      "label": null,
+      "uid": "24ae2c85e0f9"
+    },
+    {
+      "element": "O",
+      "position": [
+        3.9546672387196993,
+        3.954360315937572,
+        5.317649929589405
+      ],
+      "formal_charge": 0,
+      "label": null,
+      "uid": "92b066ca81da"
+    },
+    {
+      "element": "H",
+      "position": [
+        3.9546672387196993,
+        4.717598956860327,
+        4.721340768916224
+      ],
+      "formal_charge": 0,
+      "label": null,
+      "uid": "9200c3b454e0"
+    },
+    {
+      "element": "H",
+      "position": [
+        3.9546672387196993,
+        3.1911211458376063,
+        4.721340768916224
+      ],
+      "formal_charge": 0,
+      "label": null,
+      "uid": "ca59adbb7e64"
+    },
+    {
+      "element": "O",
+      "position": [
+        -4.076032973608095,
+        -3.7512351144854312,
+        5.44907691078225
+      ],
+      "formal_charge": 0,
+      "label": null,
+      "uid": "b869c902f7fb"
+    },
+    {
+      "element": "H",
+      "position": [
+        -4.076032973608095,
+        -2.9879959443854656,
+        4.8527682792862805
+      ],
+      "formal_charge": 0,
+      "label": null,
+      "uid": "d89b45f4287d"
+    },
+    {
+      "element": "H",
+      "position": [
+        -4.076032973608095,
+        -4.514473755408186,
+        4.8527682792862805
+      ],
+      "formal_charge": 0,
+      "label": null,
+      "uid": "31a31287bc5c"
+    },
+    {
+      "element": "O",
+      "position": [
+        -4.579219116297883,
+        4.578143828206017,
+        5.4501273275452204
+      ],
+      "formal_charge": 0,
+      "label": null,
+      "uid": "637cd8a3e475"
+    },
+    {
+      "element": "H",
+      "position": [
+        -4.579219116297883,
+        5.341382998305982,
+        4.853818166872039
+      ],
+      "formal_charge": 0,
+      "label": null,
+      "uid": "a8af945860a7"
+    },
+    {
+      "element": "H",
+      "position": [
+        -4.579219116297883,
+        3.8149051872832622,
+        4.853818166872039
+      ],
+      "formal_charge": 0,
+      "label": null,
+      "uid": "a3e8218013e1"
+    }
+  ],
+  "bonds": [],
+  "cell": null,
+  "charge": 0.0,
+  "multiplicity": null,
+  "atomic_scalars": {},
+  "atomic_vectors": {},
+  "properties": {},
+  "constraints": [],
+  "residues": [],
+  "provenance": {
+    "source": "/home/pmk/Projects/atomscope/.worktrees/performance/backend/tests/fixtures/cppaw/h2o/case_total_density.cub.gz",
+    "created_at": "2026-09-05T14:07:00.119272Z",
+    "software": null,
+    "parents": [],
+    "notes": ""
+  }
+}
