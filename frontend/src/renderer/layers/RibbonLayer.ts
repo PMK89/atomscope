@@ -136,7 +136,8 @@ export class RibbonLayer implements DisplayLayer {
       if (colorScheme === 'chain')
         return CHAIN_COLORS[chainOrder.indexOf(r.chain) % CHAIN_COLORS.length]!;
       const palette = this.settings.residuePalette;
-      return RESIDUE_PALETTES[palette][r.name.trim().toUpperCase()] ?? PALETTE_UNKNOWN[palette];
+      const table = RESIDUE_PALETTES[palette] ?? RESIDUE_PALETTES.amino;
+      return table[r.name.trim().toUpperCase()] ?? PALETTE_UNKNOWN[palette] ?? UNKNOWN_COLOR;
     };
     const chains: GuideResidue[][] = [];
     for (const chain of this.data.chains) {

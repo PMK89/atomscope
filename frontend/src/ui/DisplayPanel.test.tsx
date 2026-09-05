@@ -163,3 +163,33 @@ test('the colour schemes that need data say so, and one colour is chosen in the 
   });
   expect(useViewStore.getState().customColor).toBe('#ff8000');
 });
+
+test('the residue palette is reachable from whichever engine is coloured by residue', () => {
+  useViewStore.setState({
+    colorScheme: 'element',
+    residuePalette: 'amino',
+    ribbonColorScheme: 'secondary',
+    showRibbon: true,
+  });
+  render(<DisplayPanel />);
+  // neither engine is on residues: nothing to choose
+  expect(screen.queryByLabelText('Residue colours')).toBeNull();
+
+  // the ribbon alone can be on residues, and the palette must be reachable there
+  fireEvent.change(screen.getByLabelText('Colour by', { selector: '#display-ribbon-colorby' }), {
+    target: { value: 'residue' },
+  });
+  fireEvent.change(
+    screen.getByLabelText('Residue colours', { selector: '#display-ribbon-palette' }),
+    { target: { value: 'shapely' } },
+  );
+  expect(useViewStore.getState().residuePalette).toBe('shapely');
+
+  // with both on residues there are two selects showing the one setting
+  fireEvent.change(screen.getByLabelText('Colour by', { selector: '#display-color-scheme' }), {
+    target: { value: 'residue' },
+  });
+  const selects = screen.getAllByLabelText('Residue colours');
+  expect(selects).toHaveLength(2);
+  expect(selects.map((s) => (s as HTMLSelectElement).value)).toEqual(['shapely', 'shapely']);
+});

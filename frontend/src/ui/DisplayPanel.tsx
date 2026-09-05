@@ -26,6 +26,32 @@ import type { StructureStyle } from '../renderer/layers/StructureLayer';
 import { useStructureStore } from '../state/structureStore';
 import { useViewStore } from '../state/viewStore';
 
+/**
+ * Avogadro's Residue Color settings: which of Jmol's three tables paints the residues. One store
+ * setting, so the atoms and the ribbon agree; it appears next to whichever of them is set to
+ * `Residue`, and the two selects show the same value when both are.
+ */
+function PaletteRow({ id }: { id: string }): JSX.Element {
+  const palette = useViewStore((s) => s.residuePalette);
+  const setPalette = useViewStore((s) => s.setResiduePalette);
+  return (
+    <div className="form-row">
+      <label htmlFor={id}>Residue colours</label>
+      <select
+        id={id}
+        value={palette}
+        onChange={(e) => setPalette(e.target.value as ResiduePalette)}
+      >
+        {PALETTE_LABELS.map((p) => (
+          <option key={p.id} value={p.id}>
+            {p.label}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+}
+
 /** The schemes that have nothing to say about a molecule without residues. */
 const RESIDUE_SCHEMES = new Set<ColorScheme>(['residue', 'chain', 'secondary']);
 
@@ -172,22 +198,7 @@ export function DisplayPanel(): JSX.Element {
           ))}
         </select>
       </div>
-      {view.colorScheme === 'residue' && (
-        <div className="form-row">
-          <label htmlFor="display-residue-palette">Residue colours</label>
-          <select
-            id="display-residue-palette"
-            value={view.residuePalette}
-            onChange={(e) => view.setResiduePalette(e.target.value as ResiduePalette)}
-          >
-            {PALETTE_LABELS.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.label}
-              </option>
-            ))}
-          </select>
-        </div>
-      )}
+      {view.colorScheme === 'residue' && <PaletteRow id="display-residue-palette" />}
       {RESIDUE_SCHEMES.has(view.colorScheme) && doc.residues.length === 0 && (
         <p className="muted">
           This structure has no residues, so its atoms keep their element colours.
@@ -405,6 +416,7 @@ export function DisplayPanel(): JSX.Element {
           <option value="residue">Residue</option>
         </select>
       </div>
+      {view.ribbonColorScheme === 'residue' && <PaletteRow id="display-ribbon-palette" />}
       <div className="form-row">
         <label htmlFor="display-ribbon-scale">Width</label>
         <input

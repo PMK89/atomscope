@@ -34,7 +34,9 @@
 - Deleting atoms now takes their per-atom properties with them: partial charges and forces used to
   keep the old length and were then silently ignored by everything that reads them.
 - The residue colours are now a choice of Jmol's three tables — amino, shapely or hydrophobicity —
-  for the atoms and for the ribbon, and each paints an unknown residue with its own colour.
+  for the atoms and for the ribbon, and each paints an unknown residue with its own colour. The
+  nucleic bases changed with them: they are Jmol's colours now (adenine pale blue rather than dark
+  red), the same under all three palettes.
 - A MOPAC input generator (`qc_inputs` ▸ Program: MOPAC): the semi-empirical Hamiltonian
   (AM1, PM3, PM6, PM7, RM1, MNDO, MNDO-d) in place of a method and a basis set, single point,
   optimization or FORCE, and the charge and multiplicity the structure carries.

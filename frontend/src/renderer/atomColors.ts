@@ -272,10 +272,12 @@ export function atomColors(
     return out;
   }
   if (scheme === 'residue') {
+    // a stored setting from an older or hand-edited project file may name no palette at all
     const palette = extra.palette ?? 'amino';
-    const table = RESIDUE_PALETTES[palette];
+    const table = RESIDUE_PALETTES[palette] ?? RESIDUE_COLOR;
+    const unknown = PALETTE_UNKNOWN[palette] ?? UNKNOWN_COLOR;
     for (const r of residues) {
-      const c = table[r.name.trim().toUpperCase()] ?? PALETTE_UNKNOWN[palette];
+      const c = table[r.name.trim().toUpperCase()] ?? unknown;
       for (const i of r.atom_indices) write(out, i, c);
     }
     return out;
