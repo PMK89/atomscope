@@ -108,6 +108,33 @@ test('large structures are drawn with coarser spheres', () => {
   large.dispose();
 });
 
+test('the quality setting overrides the automatic tessellation in both directions', () => {
+  const doc = (n: number): StructureDoc =>
+    normalizeStructure({
+      name: `c${n}`,
+      charge: 0,
+      atoms: Array.from({ length: n }, (_, i) => makeAtom('C', [i * 2, 0, 0])),
+      bonds: [],
+    });
+  const vertices = (layer: StructureLayer): number =>
+    meshes(layer)[0]!.geometry.attributes.position!.count;
+
+  const small = new StructureLayer();
+  small.update(ctx(doc(10)));
+  const fine = vertices(small);
+  small.settings = { ...small.settings, quality: 'low' };
+  small.update(ctx(doc(10)));
+  expect(vertices(small)).toBeLessThan(fine / 8);
+
+  // and a big structure can be forced back to the fine spheres
+  const large = new StructureLayer();
+  large.settings = { ...large.settings, quality: 'high' };
+  large.update(ctx(doc(25_000)));
+  expect(vertices(large)).toBe(fine);
+  small.dispose();
+  large.dispose();
+});
+
 test('the selection can be drawn in its own style', () => {
   const layer = new StructureLayer();
   const base = doc();

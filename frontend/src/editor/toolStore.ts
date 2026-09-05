@@ -34,6 +34,8 @@ export interface ToolState extends ToolSettings {
   setCartesianEditorOpen: (open: boolean) => void;
   constraintsDialogOpen: boolean;
   setConstraintsDialogOpen: (open: boolean) => void;
+  settingsDialogOpen: boolean;
+  setSettingsDialogOpen: (open: boolean) => void;
 }
 
 export const useToolStore = create<ToolState>((set) => ({
@@ -55,9 +57,11 @@ export const useToolStore = create<ToolState>((set) => ({
   overlayVersion: 0,
   cartesianEditorOpen: false,
   constraintsDialogOpen: false,
+  settingsDialogOpen: false,
   setActive: (active) => set({ active }),
   update: (key, patch) => set((s) => ({ [key]: { ...s[key], ...patch } }) as Partial<ToolState>),
   bumpOverlay: () => set((s) => ({ overlayVersion: s.overlayVersion + 1 })),
   setCartesianEditorOpen: (cartesianEditorOpen) => set({ cartesianEditorOpen }),
   setConstraintsDialogOpen: (constraintsDialogOpen) => set({ constraintsDialogOpen }),
+  setSettingsDialogOpen: (settingsDialogOpen) => set({ settingsDialogOpen }),
 }));

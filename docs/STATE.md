@@ -1,8 +1,8 @@
 # Project state (resume here)
 
-Branch: main; this file is updated in the commit that checkpoints the work, so `git log -1 -- docs/STATE.md` is the last checkpoint. Phases 0-1 done; Phase 2 (editor tools), 3 (volumetric, trajectories, vectors), 4-5 (CP-PAW setup/execution/forces), 6 (CP-PAW analysis: DOS, bands, orbitals), crystallography, molecular mechanics and wavefunction surfaces are merged and working. Parity matrix: 165 IMPLEMENTED, 36 PARTIAL, 110 NOT STARTED, 1 BLOCKED of 312 rows.
+Branch: main; this file is updated in the commit that checkpoints the work, so `git log -1 -- docs/STATE.md` is the last checkpoint. Phases 0-1 done; Phase 2 (editor tools), 3 (volumetric, trajectories, vectors), 4-5 (CP-PAW setup/execution/forces), 6 (CP-PAW analysis: DOS, bands, orbitals), crystallography, molecular mechanics and wavefunction surfaces are merged and working. Parity matrix: 166 IMPLEMENTED, 36 PARTIAL, 109 NOT STARTED, 1 BLOCKED of 312 rows.
 
-Tests: `pytest -q -m "not cppaw"` -> 375 passed, 1 skipped; `pytest -q -m cppaw` -> 7 passed (~90 s, needs the local CP-PAW install); `pnpm vitest run` -> 351 passed; `pnpm exec playwright test` -> 20 passed (against private servers, see below; `make test-e2e` points at the user's 5173, which is stale). `ruff check`, `mypy` and `pnpm typecheck` are clean. No known failing tests. **Type-check the frontend with `pnpm typecheck` (`tsc -b --noEmit`), never with `pnpm exec tsc --noEmit`:** the root `tsconfig.json` is a solution file with `files: []`, so a bare `tsc --noEmit` checks nothing and exits 0.
+Tests: `pytest -q -m "not cppaw"` -> 375 passed, 1 skipped; `pytest -q -m cppaw` -> 7 passed (~90 s, needs the local CP-PAW install); `pnpm vitest run` -> 356 passed; `pnpm exec playwright test` -> 21 passed (against private servers, see below; `make test-e2e` points at the user's 5173, which is stale). `ruff check`, `mypy` and `pnpm typecheck` are clean. No known failing tests. **Type-check the frontend with `pnpm typecheck` (`tsc -b --noEmit`), never with `pnpm exec tsc --noEmit`:** the root `tsconfig.json` is a solution file with `files: []`, so a bare `tsc --noEmit` checks nothing and exits 0.
 
 ## Resume commands
 
@@ -36,6 +36,16 @@ make dev-backend   # 127.0.0.1:8765 ; make dev-frontend -> 127.0.0.1:5173
   atom count.
 - Chemistry, building and the remaining spectra reached the UI: Extensions menu, Build > Insert
   dialogs, NMR/UV-Vis/CD. No agent worktrees are open; `git worktree list` shows only main.
+- This checkpoint (Avogadro parity, editor and rendering): a surface coloured by a second grid with
+  a scale symmetric about zero; the Constraints dialog and the model behind it (`fix_angle`,
+  `fix_dihedral`, `ignore_atoms`, target values, ASE `FixInternals` round trip); the bond
+  properties table (periodic-safe lengths, editable, order select); the Auto-optimize tool
+  (`/api/chem/optimize-step` in a loop, drag an atom while it runs, one undo step); residue and
+  chain and secondary-structure colour schemes with `Select residues…`/`Select solvent`; the
+  Settings dialog (quality, depth cueing, projection, background, backend list). Fixes found on
+  the way: Optimize geometry sent valueless force-field constraints and was rejected with a 422;
+  `add_hydrogens` dropped every residue of a PDB structure; `tsc --noEmit` at the repository root
+  checks nothing (the real check is `pnpm typecheck`), which had hidden 37 type errors.
 
 ## Known problems / open questions
 - Installed `/usr/bin/avogadro` is Avogadro 2; live Avogadro 1 comparison BLOCKED (source tree is the reference).
@@ -58,14 +68,21 @@ make dev-backend   # 127.0.0.1:8765 ; make dev-frontend -> 127.0.0.1:5173
   this checkpoint; nothing of ours is listening.
 
 ## Next actions
-1. Remaining renderer parity gaps: ring and polygon engines (AV-VIS-021/022, both LOW) and QTAIM.
-   Cut/copy/paste, the label engine, the Display tab, cartoon/ribbon rendering with DSSP detection
-   and hydrogen-bond display are done. The label engine and the Display tab are done; the Display tab is where the label
-   content is chosen (the View menu only switches labels on) and it can give the selection its own
-   display type, which is what AV-VIS-001's "restricted to primitives" asks for.
-2. UI gaps recorded as PARTIAL: Extensions menu for the chem operations that only have API routes (add/remove hydrogens, pH, invert chirality, H->methyl, partial charges, Copy as SMILES/InChI), fragment/peptide/DNA/nanotube insert dialogs, image export.
-3. Remaining HIGH parity gaps outside the renderer: paste of crystal text with an identity mapping dialog (AV-XTAL-002), and the Settings dialog (AV-UI-012). Colour-by-second-cube (AV-SURF-013), the constraints dialog (AV-MM-005) and the bond properties table (AV-ANAL-003) the auto-optimize tool (AV-EDIT-031) and residue selection and colouring (AV-BIO-006) are done; the angle and torsion property tables (AV-ANAL-004/005) would reuse the same table.
-4. More wavefunction readers (MOPAC aux, GAMESS, ORCA, Molpro, Slater bases) for AV-SURF-006; ORCA/Gaussian/NWChem input-only plugins; desktop shell ADR.
+1. Renderer parity gaps left: ring and polygon engines (AV-VIS-021/022, both LOW) and QTAIM.
+   Everything else the renderer owes is done -- cut/copy/paste, the label engine, the Display tab
+   (which is where the label content and the selection's own display type are chosen), cartoon and
+   ribbon rendering with DSSP, hydrogen bonds, isosurfaces coloured by a second grid, and the
+   residue/chain/secondary-structure colour schemes.
+2. Rows still PARTIAL worth finishing: the angle and torsion property tables (AV-ANAL-004/005,
+   they would reuse `BondTable`), MD at 300/600/900 K in the auto-optimize tool (AV-MM-010, the
+   backend has no MD minimizer), per-engine colour maps (AV-COLOR-008), the MOPAC input generator
+   (AV-QM-007), engine primitive scoping / an Objects tab (AV-VIS-029).
+3. Remaining HIGH gap outside the renderer: paste of crystal text with an identity mapping dialog
+   (AV-XTAL-002). The constraints dialog (AV-MM-005), the bond properties table (AV-ANAL-003), the
+   auto-optimize tool (AV-EDIT-031), residue selection and colouring (AV-BIO-006), the Settings
+   dialog (AV-UI-012) and colour-by-second-cube (AV-SURF-013) are done.
+4. More wavefunction readers (MOPAC aux, GAMESS, ORCA, Molpro, Slater bases) for AV-SURF-006;
+   ORCA/Gaussian/NWChem input-only plugins; desktop shell ADR.
 5. Known limits and hand-overs:
    - `applyColors` rewrites every instance colour on every hover change (~300k operations per
      pointer move at 1e5 atoms) and both meshes have `frustumCulled = false`; ASE's CIF reader is

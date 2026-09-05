@@ -31,6 +31,8 @@
 - Adding hydrogens to a PDB structure no longer drops its residues: a new hydrogen joins the
   residue of the heavy atom it is bonded to, so the ribbons, residue labels, residue selection and
   residue colours survive `Add hydrogens`.
+- A `Settings ▸ Preferences…` dialog: rendering quality, depth cueing (fog), projection,
+  background, and the backend list with what each one found on the machine.
 - Residue-aware selection and colouring: `Select ▸ Select residues…` (names, numbers, ranges,
   chain-qualified) and `Select ▸ Select solvent`, and a `Colour by` on the Display tab with
   residue (RasMol amino colours), chain and secondary-structure schemes.

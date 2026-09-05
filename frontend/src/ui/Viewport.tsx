@@ -79,8 +79,10 @@ export function Viewport(): JSX.Element {
       multipleBonds: view.multipleBonds,
       cellRepeat: view.cellRepeat,
       atomColors: atomColorOverride,
+      quality: view.quality,
     });
     r.setBackground(BACKGROUND_HEX[view.background]);
+    r.setFog(view.fog);
     if (r.projection !== view.projection) r.setProjection(view.projection);
     syncExtraLayers(r, view, view.showRibbon ? secondary : null);
     r.update({

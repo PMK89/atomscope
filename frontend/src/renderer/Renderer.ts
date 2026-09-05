@@ -6,6 +6,7 @@ import {
   AmbientLight,
   Color,
   DirectionalLight,
+  Fog,
   OrthographicCamera,
   PerspectiveCamera,
   Raycaster,
@@ -94,7 +95,33 @@ export class Renderer {
 
   setBackground(hex: number): void {
     this.scene.background = new Color(hex);
+    if (this.scene.fog) this.scene.fog.color = new Color(hex);
     this.invalidate();
+  }
+
+  /**
+   * Depth cueing: distant atoms fade into the background, which is what tells the eye which end
+   * of a large molecule is nearer. The band follows the camera, so it works at any zoom.
+   */
+  setFog(enabled: boolean): void {
+    if (enabled === !!this.scene.fog) return;
+    this.scene.fog = enabled
+      ? new Fog(
+          this.scene.background instanceof Color ? this.scene.background.getHex() : 0xffffff,
+          1,
+          100,
+        )
+      : null;
+    this.invalidate();
+  }
+
+  /** Put the fog band around whatever the camera is looking at, just before rendering. */
+  private updateFog(): void {
+    const fog = this.scene.fog;
+    if (!(fog instanceof Fog)) return;
+    const distance = this.camera.position.distanceTo(this.controller.pivot);
+    fog.near = distance;
+    fog.far = distance * 2.2;
   }
 
   /** Push a new structure snapshot to all layers. */
@@ -297,6 +324,7 @@ export class Renderer {
   }
 
   private renderNow(): void {
+    this.updateFog();
     this.gl.render(this.scene, this.camera);
     for (const layer of this.layers)
       if (layer.visible && layer.renderOverlay) layer.renderOverlay(this.gl, this.camera);

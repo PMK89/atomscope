@@ -14,6 +14,11 @@ export interface ViewState {
   projection: Projection;
   showHydrogens: boolean;
   background: 'white' | 'black' | 'gray';
+  /** Renderer quality and depth cueing (Settings > Preferences). */
+  quality: 'low' | 'auto' | 'high';
+  fog: boolean;
+  setQuality: (q: ViewState['quality']) => void;
+  setFog: (on: boolean) => void;
   setStyle: (s: StructureStyle) => void;
   setProjection: (p: Projection) => void;
   toggleHydrogens: () => void;
@@ -79,6 +84,10 @@ export const useViewStore = create<ViewState>((set) => ({
   style: 'ball-and-stick',
   colorScheme: 'element',
   setColorScheme: (colorScheme) => set({ colorScheme }),
+  quality: 'auto',
+  fog: false,
+  setQuality: (quality) => set({ quality }),
+  setFog: (fog) => set({ fog }),
   projection: 'perspective',
   showHydrogens: true,
   background: 'white',

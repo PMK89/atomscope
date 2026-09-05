@@ -432,3 +432,28 @@ test('a peptide can be coloured by residue and selected by residue name', async 
   const selected = await page.locator('.app-statusbar').textContent();
   expect(Number(/(\d+) selected/.exec(selected ?? '')?.[1] ?? 0)).toBeGreaterThan(20);
 });
+
+test('Settings > Preferences changes the rendering and lists the backends', async ({ page }) => {
+  await page.goto('/');
+  await page.locator('button.menu-title', { hasText: 'Settings' }).click();
+  await page.getByRole('menuitem', { name: 'Preferences…' }).click();
+  const dialog = page.getByRole('dialog', { name: 'Preferences' });
+  await expect(dialog).toBeVisible();
+
+  // the backend list comes from the server, so at least the built-in ASE backend is there
+  await expect(dialog.getByText(/ASE|available/).first()).toBeVisible();
+
+  await dialog.getByLabel('Depth cueing').check();
+  await dialog.getByLabel('Background').selectOption('black');
+  await dialog.getByRole('button', { name: 'Close' }).click();
+  await page.screenshot({ path: '../.scratch/dev/settings.png' });
+
+  // the background really changed in the scene, not only in the store
+  const dark = await page.locator('.viewport-canvas canvas').evaluate((c: HTMLCanvasElement) => {
+    const gl = c.getContext('webgl2', { preserveDrawingBuffer: true }) as WebGL2RenderingContext;
+    const px = new Uint8Array(4);
+    gl.readPixels(2, 2, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, px);
+    return px[0]! + px[1]! + px[2]!;
+  });
+  expect(dark).toBeLessThan(60);
+});

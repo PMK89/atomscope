@@ -141,7 +141,14 @@ retries with a compatible `libgfortran` found under `~/miniconda3/pkgs`
 └───────────────────────────────────────────────────────────────────────────┘
 ```
 
-**Menu bar** — `File`, `Edit`, `Select`, `Build`, `Extensions`, `View`, `Help`.
+**Menu bar** — `File`, `Edit`, `Select`, `Build`, `Extensions`, `Settings`, `View`,
+`Help`.
+`Settings ▸ Preferences…` holds the settings that are about the program rather
+than the structure: rendering `Quality` (low / automatic by size / high
+tessellation), `Depth cueing` (distant atoms fade into the background),
+projection, background, and the list of calculation backends with what each one
+found on this machine. They are stored **with the open project**, not globally,
+and a backend is enabled by installing it, not from the dialog.
 `Edit` holds undo/redo, cut/copy/paste/clear and the Cartesian editor; `Select`
 holds the selection commands (all, none, invert, by element, by residue, solvent,
 by SMARTS); `Help`

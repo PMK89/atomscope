@@ -17,6 +17,7 @@ import { normalizeSymbol } from '../editor/cartesian';
 import { CartesianEditor } from './CartesianEditor';
 import { redoEdit, undoEdit } from './historyActions';
 import { ConstraintsDialog } from './ConstraintsDialog';
+import { SettingsDialog } from './SettingsDialog';
 import { BuildDialogs } from './BuildDialogs';
 import { CrystalDialogs } from './CrystalDialogs';
 import { useBuildStore } from '../state/buildStore';
@@ -57,6 +58,7 @@ export function MenuBar({ onError }: { onError: (msg: string) => void }): JSX.El
   const selection = useSelectionStore();
   const openCartesian = useToolStore((s) => s.setCartesianEditorOpen);
   const openConstraints = useToolStore((s) => s.setConstraintsDialogOpen);
+  const openSettings = useToolStore((s) => s.setSettingsDialogOpen);
   const openCrystalDialog = useCrystalStore((s) => s.openDialog);
   const openBuildDialog = useBuildStore((s) => s.openDialog);
   const trajectoryInput = useRef<HTMLInputElement>(null);
@@ -318,6 +320,10 @@ export function MenuBar({ onError }: { onError: (msg: string) => void }): JSX.El
         ]}
       />
       <Menu
+        title="Settings"
+        items={[{ label: 'Preferences…', action: () => openSettings(true) }]}
+      />
+      <Menu
         title="View"
         items={[
           styleItem('Ball and stick', 'ball-and-stick'),
@@ -369,6 +375,7 @@ export function MenuBar({ onError }: { onError: (msg: string) => void }): JSX.El
       <HelpDialog topic={help} onClose={() => setHelp(null)} />
       <CartesianEditor />
       <ConstraintsDialog />
+      <SettingsDialog />
       <CrystalDialogs onError={onError} />
       <BuildDialogs onError={onError} />
       <input

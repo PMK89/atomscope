@@ -43,6 +43,11 @@ export interface StructureLayerSettings {
    */
   atomColors: Float32Array | null;
   /**
+   * Tessellation of the spheres and cylinders. `auto` coarsens with the number of atoms, which is
+   * what keeps a hundred thousand of them interactive; the other two override that choice.
+   */
+  quality: 'low' | 'auto' | 'high';
+  /**
    * Style for the selected atoms, when they should be drawn differently from the rest (Avogadro
    * restricts an engine to a set of primitives; this is the same effect with one engine). Null
    * draws everything in `style`, which is also the fast path: the selection then never rebuilds
@@ -61,6 +66,7 @@ export const DEFAULT_STRUCTURE_SETTINGS: StructureLayerSettings = {
   cellRepeat: [1, 1, 1],
   selectionStyle: null,
   atomColors: null,
+  quality: 'auto',
 };
 
 /** [sphere segments, sphere rings, cylinder sides] from coarse to fine. */
@@ -453,7 +459,9 @@ export class StructureLayer implements DisplayLayer {
    * when a hundred thousand of them are on screen (measured, see docs/performance.md).
    */
   private geometryFor(count: number): { sphere: SphereGeometry; cylinder: CylinderGeometry } {
-    const detail = count > 20_000 ? 0 : count > 2_000 ? 1 : 2;
+    const quality = this.settings.quality;
+    const detail =
+      quality === 'low' ? 0 : quality === 'high' ? 2 : count > 20_000 ? 0 : count > 2_000 ? 1 : 2;
     let entry = this.geometries.get(detail);
     if (!entry) {
       const [segments, rings, sides] = DETAIL_LEVELS[detail]!;
