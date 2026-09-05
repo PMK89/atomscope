@@ -120,3 +120,18 @@ test('the help menu explains the shortcuts and where the guides are', () => {
   fireEvent.click(screen.getByRole('menuitem', { name: /User guide/ }));
   expect(screen.getByText(/docs\/user-guide.md/)).toBeInTheDocument();
 });
+
+test('the dock remembers which tab was open in this browser', () => {
+  const { unmount } = render(<App />);
+  fireEvent.click(screen.getByRole('tab', { name: 'Properties' }));
+  expect(screen.getByRole('tab', { name: 'Properties' })).toHaveAttribute('aria-selected', 'true');
+  unmount();
+
+  render(<App />);
+  expect(screen.getByRole('tab', { name: 'Properties' })).toHaveAttribute('aria-selected', 'true');
+  expect(screen.getByRole('tab', { name: 'Calculation' })).toHaveAttribute(
+    'aria-selected',
+    'false',
+  );
+  window.localStorage.clear();
+});

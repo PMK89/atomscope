@@ -9,15 +9,19 @@ import type { useSelectionStore } from '../state/selectionStore';
 import type { useStructureStore } from '../state/structureStore';
 import type { useToolStore } from './toolStore';
 
-export type ToolId =
-  | 'navigate'
-  | 'select'
-  | 'draw'
-  | 'manipulate'
-  | 'bond-centric'
-  | 'measure'
-  | 'auto-rotate'
-  | 'auto-optimize';
+/** Every tool id, as values: a stored active tool has to be checked against something. */
+export const TOOL_IDS = [
+  'navigate',
+  'select',
+  'draw',
+  'manipulate',
+  'bond-centric',
+  'measure',
+  'auto-rotate',
+  'auto-optimize',
+] as const;
+
+export type ToolId = (typeof TOOL_IDS)[number];
 
 export interface PointerLike {
   clientX: number;

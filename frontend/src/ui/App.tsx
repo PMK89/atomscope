@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { makeAtom, makeBond, normalizeStructure } from '../model/structure';
 import { useStructureStore } from '../state/structureStore';
+import { startToolSettingsSync } from '../state/toolSettingsSync';
 import { droppedFile, hasFiles } from './fileDrop';
 import { openUploadedFile } from './openFile';
 import { RightDock } from './RightDock';
@@ -33,6 +34,8 @@ export function App(): JSX.Element {
       useStructureStore.getState().load(demoWater());
     }
   }, []);
+  // tool settings and the open dock tab are this browser's, not the project's (state/localSettings.ts)
+  useEffect(() => startToolSettingsSync(), []);
   // the window title carries the document and whether it has unsaved work, and leaving the page
   // with unsaved work asks first (the browser shows its own wording)
   const name = useStructureStore((s) => s.doc.name);

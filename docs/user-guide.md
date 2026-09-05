@@ -276,6 +276,17 @@ undo history**.
 
 ### 4.1 Tool settings
 
+Tool settings are remembered between sessions, in this browser: the element the
+draw tool puts down, the selection mode, the auto-rotate speeds, the optimizer's
+force field, algorithm and steps, which tool was active, and which dock tab was
+open. They are *preferences*, so they follow you into the next project rather
+than being stored with one — unlike the view settings (representation, colours,
+which layers are on), which describe a particular structure and are saved with
+the project. Nothing that points at the open document is kept: a rubber band, a
+selected bond, a half-finished measurement and a running optimization all start
+clean, since restoring them into another structure would point at atoms that
+are not there.
+
 * **Draw** — an element field (type a symbol, or press `…` for a periodic
   table of Z = 1…118), a bond-order selector (`Single`/`Double`/`Triple`), and
   an `Adjust hydrogens` checkbox (on by default) that keeps hydrogen counts

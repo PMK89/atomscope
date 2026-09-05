@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Tool settings, the active tool and the open dock tab are remembered between
+  sessions in this browser. View settings still travel with the project: one
+  describes how you work, the other how a structure is shown.
+
 - The bond-centric tool bends angles: with a bond selected, dragging an atom
   next to it changes the angle it makes with the bond, drawn beside the atom as
   it turns. An angle inside a ring says so rather than tearing the ring open.

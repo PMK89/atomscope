@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { readLocal, writeLocal } from '../state/localSettings';
 import { AnalysisPanel } from './AnalysisPanel';
 import { CalculationPanel } from './CalculationPanel';
 import { CrystalPanel } from './CrystalPanel';
@@ -19,12 +20,22 @@ const TABS: { id: Tab; label: string }[] = [
   { id: 'properties', label: 'Properties' },
 ];
 
+const DOCK_TAB_KEY = 'dock.tab';
+
 const tabId = (id: Tab): string => `dock-tab-${id}`;
 const panelId = (id: Tab): string => `dock-panel-${id}`;
 
 /** Tab strip for the right dock. Panels stay mounted (hidden) so form state survives switching. */
 export function RightDock({ onError }: { onError: (m: string) => void }): JSX.Element {
-  const [tab, setTab] = useState<Tab>('calculation');
+  // which tab was open is this browser's, like the tool settings (state/localSettings.ts)
+  const [tab, setTabState] = useState<Tab>(() => {
+    const stored = readLocal<string>(DOCK_TAB_KEY, 'calculation');
+    return TABS.some((t) => t.id === stored) ? (stored as Tab) : 'calculation';
+  });
+  const setTab = (next: Tab): void => {
+    setTabState(next);
+    writeLocal(DOCK_TAB_KEY, next);
+  };
   /** Wraps a panel so screen readers pair it with its tab. */
   const panel = (id: Tab, content: JSX.Element): JSX.Element => (
     <div role="tabpanel" id={panelId(id)} aria-labelledby={tabId(id)} hidden={tab !== id}>
