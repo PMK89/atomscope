@@ -727,3 +727,26 @@ test('a file dropped on the window opens, and a second file in the same drop is 
   await expect(page.locator('.app-statusbar')).toContainText('H3N');
   await expect(page.locator('.status-error')).toContainText('the other 1 file was left alone');
 });
+
+test('opening over unsaved work asks first, and Cancel keeps the document', async ({ page }) => {
+  await page.goto('/');
+  // an edit the document has not been saved with: the bullet in the status bar says so
+  await page.getByRole('tab', { name: 'Properties' }).click();
+  await page.getByLabel('Structure name').fill('work in progress');
+  await page.getByLabel('Structure name').blur();
+  await expect(page.locator('.status-modified')).toHaveCount(1);
+
+  page.once('dialog', (d) => {
+    expect(d.message()).toContain('unsaved changes');
+    return d.dismiss();
+  });
+  await page.getByRole('button', { name: 'File' }).click();
+  await page.getByRole('menuitem', { name: 'New' }).click();
+  await expect(page.locator('.app-statusbar')).toContainText('3 atoms');
+  await expect(page.locator('.status-modified')).toHaveCount(1);
+
+  page.once('dialog', (d) => void d.accept());
+  await page.getByRole('button', { name: 'File' }).click();
+  await page.getByRole('menuitem', { name: 'New' }).click();
+  await expect(page.locator('.app-statusbar')).toContainText('0 atoms');
+});

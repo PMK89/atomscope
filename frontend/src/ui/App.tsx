@@ -83,8 +83,12 @@ export function App(): JSX.Element {
       setError(message);
       return;
     }
-    if (message) setError(message);
-    openUploadedFile(file).catch((err: Error) => setError(`Open failed: ${err.message}`));
+    openUploadedFile(file)
+      .then((opened) => {
+        // the message is about the files that were not opened: it is only true if one was
+        if (opened && message) setError(message);
+      })
+      .catch((err: Error) => setError(`Open failed: ${err.message}`));
   };
 
   return (

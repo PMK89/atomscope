@@ -5,8 +5,12 @@
 import { api } from '../api/client';
 import { normalizeStructure } from '../model/structure';
 import { useStructureStore } from '../state/structureStore';
+import { confirmReplace } from './replaceDocument';
 
-export async function openUploadedFile(file: File, format?: string): Promise<void> {
+/** False when the open document has unsaved work and the user chose to keep it. */
+export async function openUploadedFile(file: File, format?: string): Promise<boolean> {
+  if (!confirmReplace()) return false;
   const structure = await api.io.importUpload(file, format);
   useStructureStore.getState().load(normalizeStructure(structure));
+  return true;
 }

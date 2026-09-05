@@ -52,6 +52,7 @@ import { ExportImageDialog } from './ExportImageDialog';
 import { HelpDialog, type HelpTopic } from './HelpDialog';
 import { ExportDialog } from './ExportDialog';
 import { ImportDialog } from './ImportDialog';
+import { confirmReplace } from './replaceDocument';
 import { Menu, type MenuItem } from './Menu';
 import type { StructureStyle } from '../renderer/layers/StructureLayer';
 
@@ -77,6 +78,7 @@ export function MenuBar({ onError }: { onError: (msg: string) => void }): JSX.El
   const trajectoryInput = useRef<HTMLInputElement>(null);
 
   const openTrajectory = async (file: File): Promise<void> => {
+    if (!confirmReplace()) return;
     try {
       const res = await api.io.importTrajectoryUpload(file);
       store.load(normalizeStructure(res.structure));
@@ -101,6 +103,7 @@ export function MenuBar({ onError }: { onError: (msg: string) => void }): JSX.El
   };
 
   const buildSmiles = async (): Promise<void> => {
+    if (!confirmReplace()) return;
     const smiles = window.prompt('SMILES');
     if (!smiles) return;
     try {
@@ -117,6 +120,7 @@ export function MenuBar({ onError }: { onError: (msg: string) => void }): JSX.El
    */
   /** Avogadro's Open Recent: the backend keeps the list, so it outlives the browser session. */
   const openRecent = async (path: string): Promise<void> => {
+    if (!confirmReplace()) return;
     try {
       store.load(normalizeStructure(await api.io.importPath({ path })));
       void refreshRecent();
@@ -126,6 +130,7 @@ export function MenuBar({ onError }: { onError: (msg: string) => void }): JSX.El
   };
 
   const fetchStructure = async (source: 'pdb' | 'pubchem', query: string): Promise<void> => {
+    if (!confirmReplace()) return;
     try {
       store.load(normalizeStructure(await api.io.fetch({ source, query })));
     } catch (e) {
@@ -201,7 +206,9 @@ export function MenuBar({ onError }: { onError: (msg: string) => void }): JSX.El
         items={[
           {
             label: 'New',
-            action: () => store.load(normalizeStructure({ name: 'untitled', charge: 0 })),
+            action: () => {
+              if (confirmReplace()) store.load(normalizeStructure({ name: 'untitled', charge: 0 }));
+            },
           },
           { label: 'Open…', shortcut: 'Ctrl+O', action: () => setImportOpen(true) },
           // Avogadro's Open Recent submenu, flat: the menu here has one level

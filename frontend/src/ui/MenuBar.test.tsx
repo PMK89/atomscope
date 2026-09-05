@@ -28,6 +28,9 @@ beforeEach(() => {
   const st = useStructureStore.getState();
   st.load(water());
   st.commit('rename', { ...useStructureStore.getState().doc, name: 'renamed' });
+  // the rename leaves unsaved work, so every action that replaces the document asks first
+  // (replaceDocument.ts); these tests are about what happens once the user has said yes
+  vi.spyOn(window, 'confirm').mockReturnValue(true);
 });
 
 test('Ctrl+Z outside a text field undoes the document edit', () => {

@@ -83,3 +83,19 @@ test('a drag that carries no file is left to the browser', () => {
   fireEvent.drop(shell, { dataTransfer: { types: ['text/plain'], files: [] } });
   expect(useStructureStore.getState().doc).toBe(before);
 });
+
+test('a drop over unsaved work asks first, and Cancel keeps the document', async () => {
+  const st = useStructureStore.getState();
+  st.commit('rename', { ...st.doc, name: 'work in progress' });
+  const confirm = vi.spyOn(window, 'confirm').mockReturnValue(false);
+  importUpload.mockClear();
+  importUpload.mockResolvedValue({ name: 'other', charge: 0, atoms: [], bonds: [] });
+  render(<App />);
+  const shell = screen.getByTestId('viewport').closest('.app-shell')!;
+
+  fireEvent.drop(shell, { dataTransfer: transfer(file('other.xyz')) });
+  await waitFor(() => expect(confirm).toHaveBeenCalled());
+  expect(importUpload).not.toHaveBeenCalled();
+  expect(useStructureStore.getState().doc.name).toBe('work in progress');
+  confirm.mockRestore();
+});

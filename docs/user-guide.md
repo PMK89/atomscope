@@ -462,6 +462,13 @@ document open at a time, so a drop carrying several files opens the first and
 says in the status bar that the others were left alone — Avogadro opened each
 in a window of its own, which there is no equivalent of here.
 
+**Replacing the open document asks first** when it has unsaved work. `New`,
+`Open…`, a recent file, a fetch, `Build from SMILES…`, a trajectory import and
+a dropped file all put a new document in place of the old one, and loading
+clears the undo history — so there is nothing to press Ctrl+Z on afterwards.
+Cancel the question, save with Ctrl+S, and try again. A document with no
+unsaved work is replaced without a word.
+
 Text can also be pasted straight in: `Edit ▸ Paste` (Ctrl+V) reads XYZ, CIF,
 PDB, molfiles, CML, SMILES or a VASP POSCAR from the clipboard, sniffing the
 format when it is not obvious (`POST /api/io/import/text`). This is Avogadro's

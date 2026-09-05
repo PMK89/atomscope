@@ -12,6 +12,7 @@ import { normalizeStructure } from '../model/structure';
 import { useRecentStore } from '../state/recentStore';
 import { useStructureStore } from '../state/structureStore';
 import { openUploadedFile } from './openFile';
+import { confirmReplace } from './replaceDocument';
 
 /** `accept` for the file picker: every extension a reader claims. */
 export function acceptFilter(formats: FormatDescription[]): string {
@@ -58,7 +59,7 @@ export function ImportDialog({
   };
 
   const openPath = async (): Promise<void> => {
-    if (!path.trim()) return;
+    if (!path.trim() || !confirmReplace()) return;
     setBusy(true);
     try {
       finish(await api.io.importPath({ path: path.trim(), ...(format ? { format } : {}) }));
@@ -75,8 +76,7 @@ export function ImportDialog({
     setBusy(true);
     try {
       // the same path a dropped file takes, so the two agree on detection and on the document swap
-      await openUploadedFile(file, format || undefined);
-      onClose();
+      if (await openUploadedFile(file, format || undefined)) onClose();
     } catch (e) {
       onError(`Open failed: ${(e as Error).message}`);
     } finally {

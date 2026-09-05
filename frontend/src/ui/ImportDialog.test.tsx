@@ -36,6 +36,8 @@ const errors: string[] = [];
 beforeEach(() => {
   errors.length = 0;
   vi.spyOn(api.io, 'formats').mockResolvedValue(FORMATS as never);
+  // opening over unsaved work asks first (replaceDocument.ts); here the user always says yes
+  vi.spyOn(window, 'confirm').mockReturnValue(true);
 });
 
 test('the picker offers every extension a reader claims, and nothing write-only', () => {
