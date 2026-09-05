@@ -26,7 +26,13 @@ from atomscope.chem.forcefield import (
     OptimizeResult,
 )
 from atomscope.chem.pointgroup import Tolerance
-from atomscope.chem.properties import AromaticityResult, ChargeModel, ChargesResult, Identifiers
+from atomscope.chem.properties import (
+    AromaticityResult,
+    AtomTyping,
+    ChargeModel,
+    ChargesResult,
+    Identifiers,
+)
 from atomscope.chem.secondary import SecondaryKind
 from atomscope.model import Quantity, Structure
 from atomscope.model.common import StrictModel
@@ -195,6 +201,18 @@ def perceive_bonds(body: PerceiveRequest) -> Structure:
 def partial_charges(body: ChargesRequest) -> ChargesResult:
     try:
         return properties.partial_charges(body.structure, body.model)
+    except ValueError as exc:
+        raise _bad(exc) from exc
+
+
+@router.post("/atom-types", response_model=AtomTyping)
+def atom_types(body: StructureRequest) -> AtomTyping:
+    """Open Babel's atom types and connectivity for the posted structure.
+
+    Derived, never stored: an edit changes the answer, so the caller asks again.
+    """
+    try:
+        return properties.atom_types(body.structure)
     except ValueError as exc:
         raise _bad(exc) from exc
 

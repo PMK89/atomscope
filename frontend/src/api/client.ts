@@ -59,6 +59,7 @@ export type FFConstraint = components['schemas']['FFConstraint'];
 export type FragmentInfo = components['schemas']['FragmentInfo'];
 export type PeptidePresets = components['schemas']['PeptidePresets'];
 export type ChargesResult = components['schemas']['ChargesResult'];
+export type AtomTyping = components['schemas']['AtomTyping'];
 export type Identifiers = components['schemas']['Identifiers'];
 export type OptimizeResult = components['schemas']['OptimizeResult'];
 export type OptimizeStepResponse = components['schemas']['OptimizeStepResponse'];
@@ -283,6 +284,8 @@ export const api = {
       request<Structure>('/api/chem/perceive-bonds', json(body)),
     partialCharges: (body: Body<'/api/chem/partial-charges', 'post'>) =>
       request<ChargesResult>('/api/chem/partial-charges', json(body)),
+    atomTypes: (body: Body<'/api/chem/atom-types', 'post'>) =>
+      request<AtomTyping>('/api/chem/atom-types', json(body)),
     identifiers: (body: Body<'/api/chem/identifiers', 'post'>) =>
       request<Identifiers>('/api/chem/identifiers', json(body)),
     invertChirality: (body: Body<'/api/chem/invert-chirality', 'post'>) =>

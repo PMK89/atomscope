@@ -342,9 +342,25 @@ from the document.
 
 ### 4.3a The Properties tab
 
-Besides the structure fields (name, formula, charge, multiplicity, cell) and
-the selected atom (element, position, fractional coordinates, formal charge,
-label), the tab ends in a **Bonds** table: one row per bond with its two atoms,
+The **Structure** section carries the name (editable), the formula, the atom
+and bond counts, the molecular weight, the number of residues when there are
+any, the charge and multiplicity (editable), the cell, and every quantity the
+document has picked up along the way — the dipole moment that
+`Extensions ▸ Partial charges` attaches, the energy an imported output brings
+with it.
+
+The **Selection** section describes the atom that is selected: its element,
+Open Babel's atom type for it (`Car`, `O3`, …), its valence, its formal charge,
+its partial charge when the document has any, its position in Å and in
+fractional coordinates, its label, and the bonds it is in. Element, position,
+formal charge, partial charge and label can all be typed into, each as one undo
+step. *Valence* is given both ways — `3 bonds, order sum 4` — because the word
+means either, and Avogadro's column showed the first. The atom type is computed
+by the backend for the structure as it is now and is asked for again after
+every edit: it is a reading of the current bonds, not something stored, so it
+can never disagree with what is on screen.
+
+The tab then has a **Bonds** table: one row per bond with its two atoms,
 an order select, whether it can rotate, and its length in Å. Typing a length
 moves the smaller of the two sides, exactly as dragging with the bond-centric
 tool does. A bond is `rotatable` when it is a single, non-aromatic bond that

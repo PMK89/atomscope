@@ -119,6 +119,15 @@ def test_perceive_bonds_and_aromaticity(client: TestClient) -> None:
     assert sum(1 for b in a["structure"]["bonds"] if b["aromatic"]) == 6
 
 
+def test_atom_types(client: TestClient, ethanol: Structure) -> None:
+    out = client.post("/api/chem/atom-types", json={"structure": js(ethanol)}).json()
+    assert len(out["types"]) == len(ethanol.atoms)
+    assert out["types"][0].startswith("C")
+    assert sum(out["degrees"]) == 2 * len(ethanol.bonds)
+    empty = client.post("/api/chem/atom-types", json={"structure": js(Structure(name="empty"))})
+    assert empty.status_code == 400
+
+
 def test_identifiers(client: TestClient, ethanol: Structure) -> None:
     ids = client.post("/api/chem/identifiers", json={"structure": js(ethanol)}).json()
     assert ids["smiles"].upper().replace("@", "") in ("CCO", "OCC")

@@ -1,5 +1,9 @@
+import { useEffect } from 'react';
 import { bondsOfAtom, minimumImageDistance } from '../model/connectivity';
-import { formula, type StructureDoc, type Vec3 } from '../model/structure';
+import { formula, molecularWeight, type StructureDoc, type Vec3 } from '../model/structure';
+import { partialCharges } from '../renderer/labels';
+import { setPartialCharge } from '../editor/edits';
+import { useAtomTypeStore } from '../state/atomTypeStore';
 import { useSelectionStore } from '../state/selectionStore';
 import { useStructureStore } from '../state/structureStore';
 import { useToolStore } from '../editor/toolStore';
@@ -11,9 +15,27 @@ import { ELEMENT_BY_SYMBOL } from '../model/elements';
 import { cartToFrac } from '../model/crystal';
 import { SymmetrySection } from './SymmetrySection';
 
+/** A quantity attached to the document (a dipole from partial charges, an energy from an output). */
+function quantity(q: { value: number; unit: string }): string {
+  const abs = Math.abs(q.value);
+  const value =
+    abs !== 0 && (abs < 1e-3 || abs >= 1e6) ? q.value.toExponential(4) : q.value.toFixed(4);
+  return `${value} ${q.unit}`;
+}
+
 function cellLengths(doc: StructureDoc): [number, number, number] | null {
   if (!doc.cell) return null;
   return doc.cell.vectors.map((v) => Math.hypot(...v)) as [number, number, number];
+}
+
+/**
+ * "Valence" means two things -- Avogadro's column was Open Babel's `GetValence()`, the number of
+ * bonds -- so both are shown rather than one being picked.
+ */
+function valence(doc: StructureDoc, atom: number): string {
+  const bonds = bondsOfAtom(doc, atom);
+  const sum = bonds.reduce((total, bi) => total + (doc.bonds[bi]?.order ?? 0), 0);
+  return `${bonds.length} bond${bonds.length === 1 ? '' : 's'}, order sum ${Number(sum.toFixed(2))}`;
 }
 
 /** Right-dock tab: selected atom(s) and structure-level properties, all editable via commit. */
@@ -25,6 +47,17 @@ export function PropertiesPanel({ onError }: { onError?: (m: string) => void }):
   const idx = [...selected].filter((i) => i < doc.atoms.length).sort((a, b) => a - b);
   const atom = idx.length === 1 ? doc.atoms[idx[0]!] : undefined;
   const lengths = cellLengths(doc);
+  const charges = partialCharges(doc);
+
+  // Open Babel's atom type is a function of the current graph, so it is fetched per revision and
+  // only while an atom is selected -- nothing else on this panel shows it (state/atomTypeStore.ts)
+  const revision = useStructureStore((s) => s.revision);
+  const typing = useAtomTypeStore((s) => s.typing);
+  const loadTypes = useAtomTypeStore((s) => s.load);
+  const wantsTypes = atom !== undefined;
+  useEffect(() => {
+    if (wantsTypes) void loadTypes(doc, revision);
+  }, [wantsTypes, doc, revision, loadTypes]);
 
   const setAtom = (label: string, patch: Partial<StructureDoc['atoms'][number]>): void => {
     const i = idx[0]!;
@@ -58,6 +91,16 @@ export function PropertiesPanel({ onError }: { onError?: (m: string) => void }):
         </span>
       </div>
       <div className="form-row">
+        <label>Molecular weight</label>
+        <span>{molecularWeight(doc).toFixed(3)} g/mol</span>
+      </div>
+      {doc.residues.length > 0 && (
+        <div className="form-row">
+          <label>Residues</label>
+          <span>{doc.residues.length}</span>
+        </div>
+      )}
+      <div className="form-row">
         <label>Charge</label>
         <NumberField
           value={doc.charge}
@@ -88,6 +131,12 @@ export function PropertiesPanel({ onError }: { onError?: (m: string) => void }):
           </span>
         </div>
       )}
+      {Object.entries(doc.properties).map(([key, q]) => (
+        <div className="form-row" key={key}>
+          <label>{key.replace(/_/g, ' ')}</label>
+          <span>{quantity(q)}</span>
+        </div>
+      ))}
       <div className="button-row">
         <button onClick={() => openEditor(true)}>Cartesian editor…</button>
       </div>
@@ -126,6 +175,14 @@ export function PropertiesPanel({ onError }: { onError?: (m: string) => void }):
             />
           </div>
           <div className="form-row">
+            <label>Type</label>
+            <span>{typing?.types[idx[0]!] ?? '—'}</span>
+          </div>
+          <div className="form-row">
+            <label>Valence</label>
+            <span>{valence(doc, idx[0]!)}</span>
+          </div>
+          <div className="form-row">
             <label>Position (Å)</label>
             <div className="form-vector">
               {atom.position.map((v, k) => (
@@ -162,6 +219,18 @@ export function PropertiesPanel({ onError }: { onError?: (m: string) => void }):
               onCommit={(v) => setAtom('Set formal charge', { formal_charge: Math.round(v) })}
             />
           </div>
+          {charges.length > 0 && (
+            <div className="form-row">
+              <label>Partial charge</label>
+              <NumberField
+                value={charges[idx[0]!]!}
+                digits={3}
+                step={0.01}
+                label="Partial charge"
+                onCommit={(v) => commit('Set partial charge', setPartialCharge(doc, idx[0]!, v))}
+              />
+            </div>
+          )}
           <div className="form-row">
             <label>Label</label>
             <input

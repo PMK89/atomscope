@@ -102,6 +102,29 @@ def test_gasteiger_charges_sum_to_total_charge_and_water_dipole() -> None:
         assert abs(r.total_charge) < 1e-2, model
 
 
+def test_atom_types_and_the_two_readings_of_valence() -> None:
+    phenol = from_smiles("c1ccccc1O")
+    typing = properties.atom_types(phenol)
+    assert typing.perception == "openbabel"
+    by_element = dict(zip([a.element for a in phenol.atoms], typing.types, strict=True))
+    assert by_element["C"] == "Car"  # aromatic carbon
+    assert by_element["O"] == "O3"  # sp3 oxygen
+
+    # Open Babel reads the bonds Atomscope perceived, so its two numbers must agree with ours.
+    # The kekulized ring (1, 2, 1, 2, ...) has the same order sum per atom as the aromatic one.
+    degree = [0] * len(phenol.atoms)
+    order_sum = [0.0] * len(phenol.atoms)
+    for b in phenol.bonds:
+        for i in (b.a, b.b):
+            degree[i] += 1
+            order_sum[i] += b.order
+    assert typing.degrees == degree
+    assert typing.valences == pytest.approx(order_sum)
+
+    with pytest.raises(ValueError, match="no atoms"):
+        properties.atom_types(Structure(name="empty"))
+
+
 def test_aromaticity_and_rings() -> None:
     res = properties.aromaticity(from_smiles("c1ccccc1"))
     assert res.ring_count == 1 and res.aromatic_ring_count == 1

@@ -15,7 +15,7 @@ import {
   sub,
 } from '../model/geometry';
 import type { Bond, StructureDoc, Vec3 } from '../model/structure';
-import { centroid, makeAtom, makeBond } from '../model/structure';
+import { centroid, makeAtom, makeBond, partialChargeKey } from '../model/structure';
 
 /** Append an atom; when `perceiveBonds` is set, single bonds to atoms in range are added too. */
 export function addAtom(
@@ -319,4 +319,18 @@ export function bondedPosition(
   const a = doc.atoms[from]!;
   const dir = normalize(sub(towards, a.position));
   return add(a.position, scale(dir, radiusOf(a.element) + radiusOf(newElement)));
+}
+
+/**
+ * A partial charge typed into the Properties panel, written back into the scalar property that
+ * carries the charges (Avogadro's atom table let the column be edited too, propmodel.cpp:630).
+ * The document without charges is returned unchanged: there is nothing to write into.
+ */
+export function setPartialCharge(doc: StructureDoc, atom: number, charge: number): StructureDoc {
+  const key = partialChargeKey(doc);
+  const property = key ? doc.atomic_scalars[key] : undefined;
+  if (!key || !property || atom < 0 || atom >= doc.atoms.length) return doc;
+  const values = [...property.values];
+  values[atom] = charge;
+  return { ...doc, atomic_scalars: { ...doc.atomic_scalars, [key]: { ...property, values } } };
 }

@@ -2,7 +2,7 @@
 
 Branch: main; this file is updated in the commit that checkpoints the work, so `git log -1 -- docs/STATE.md` is the last checkpoint. Phases 0-1 done; Phase 2 (editor tools), 3 (volumetric, trajectories, vectors), 4-5 (CP-PAW setup/execution/forces), 6 (CP-PAW analysis: DOS, bands, orbitals), crystallography, molecular mechanics and wavefunction surfaces are merged and working. Parity matrix: 207 IMPLEMENTED, 31 PARTIAL, 73 NOT STARTED, 1 BLOCKED of 312 rows.
 
-Tests: `pytest -q -m "not cppaw"` -> 395 passed, 1 skipped; `pytest -q -m cppaw` -> 7 passed (~90 s, needs the local CP-PAW install); `pnpm vitest run` -> 453 passed; `pnpm exec playwright test` -> 34 passed (against private servers, see below; `make test-e2e` points at the user's 5173, which is stale). **`source env.sh` before Playwright**: without `PLAYWRIGHT_BROWSERS_PATH` it looks in `~/.cache/ms-playwright`, finds nothing, and every test fails at `browserType.launch`. `ruff check`, `mypy` and `pnpm typecheck` are clean. No known failing tests. **Type-check the frontend with `pnpm typecheck` (`tsc -b --noEmit`), never with `pnpm exec tsc --noEmit`:** the root `tsconfig.json` is a solution file with `files: []`, so a bare `tsc --noEmit` checks nothing and exits 0.
+Tests: `pytest -q -m "not cppaw"` -> 397 passed, 1 skipped; `pytest -q -m cppaw` -> 7 passed (~90 s, needs the local CP-PAW install); `pnpm vitest run` -> 457 passed; `pnpm exec playwright test` -> 34 passed (against private servers, see below; `make test-e2e` points at the user's 5173, which is stale). **`source env.sh` before Playwright**: without `PLAYWRIGHT_BROWSERS_PATH` it looks in `~/.cache/ms-playwright`, finds nothing, and every test fails at `browserType.launch`. `ruff check`, `mypy` and `pnpm typecheck` are clean. No known failing tests. **Type-check the frontend with `pnpm typecheck` (`tsc -b --noEmit`), never with `pnpm exec tsc --noEmit`:** the root `tsconfig.json` is a solution file with `files: []`, so a bare `tsc --noEmit` checks nothing and exits 0.
 
 ## Resume commands
 
@@ -118,13 +118,14 @@ run against current code -- Playwright above all -- use the private-server recip
      docs/avogadro1-feature-parity.md
    ```
 
-   Today that prints **13 rows, all PARTIAL** -- no CRITICAL or HIGH row is NOT STARTED, which is
-   not the same claim and an earlier version of this file got it wrong. Each of the 13 has a note
+   Today that prints **12 rows, all PARTIAL** -- no CRITICAL or HIGH row is NOT STARTED, which is
+   not the same claim and an earlier version of this file got it wrong. Each of the 12 has a note
    saying which part is missing; they are the honest remaining HIGH work (Set Spacegroup, the Gaussian and GAMESS option dialogs, the wavefunction readers past
    fchk/Molden, frontend plugin registration, modal progress dialogs).
-   Run the same awk with `MEDIUM` for what is next: today it lists 40 rows, of which the ones with
-   a real workflow behind them are the conformer table (AV-MM-009) and per-engine opacity
-   (AV-VIS-007/011).
+   Run the same awk with `MEDIUM` for what is next: today it lists 41 rows, of which the ones with
+   a real workflow behind them are the conformer table (AV-MM-009), per-engine opacity
+   (AV-VIS-007/011) and the dipole arrow (AV-ANAL-013, moved back to PARTIAL in this checkpoint:
+   the number is shown in the Properties tab, the arrow Avogadro's dipole engine drew is not).
 
    **The matrix drifts the other way too.** Flipping AV-VIS-042 turned up three rows that were
    done but never flipped (AV-SEL-011 Select residues, AV-SEL-012 Select solvent, AV-VIS-031

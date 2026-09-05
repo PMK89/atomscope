@@ -40,6 +40,22 @@ class AromaticityResult(StrictModel):
     aromatic_atoms: list[int]
 
 
+class AtomTyping(StrictModel):
+    """Open Babel's own reading of each atom, from the bonds Atomscope perceived.
+
+    ``types`` is what Avogadro's atom properties table showed in its Type column
+    (``OBAtom::GetType()``, propmodel.cpp:936). ``degrees`` and ``valences`` are the two things
+    "valence" can mean -- the number of bonds and the sum of their orders -- and are here so a
+    caller can check them against its own bond list; Avogadro showed the first
+    (``GetValence()`` in Open Babel 2).
+    """
+
+    types: list[str] = Field(description="Open Babel internal atom types, e.g. 'Car', 'O3'")
+    degrees: list[int] = Field(description="number of bonds at each atom")
+    valences: list[float] = Field(description="sum of bond orders at each atom, kekulized")
+    perception: str = "openbabel"
+
+
 class Identifiers(StrictModel):
     smiles: str
     inchi: str
@@ -62,6 +78,26 @@ def dipole_from_charges(structure: Structure, charges: list[float]) -> Dipole:
         vector=(float(v[0]), float(v[1]), float(v[2])),
         magnitude=Quantity(value=float(np.linalg.norm(v)), unit=Unit.DEBYE),
     )
+
+
+def atom_types(structure: Structure) -> AtomTyping:
+    """Type every atom with Open Babel.
+
+    A type is a function of the current graph, not a measurement, so it is computed on demand
+    rather than stored on the structure: an element edited after the fact would leave a stored
+    type not stale but wrong.
+    """
+    if structure.n_atoms == 0:
+        msg = "structure has no atoms"
+        raise ValueError(msg)
+    with OB_LOCK:
+        mol = to_obmol(structure)
+        atoms = [mol.GetAtom(i + 1) for i in range(structure.n_atoms)]
+        return AtomTyping(
+            types=[a.GetType() for a in atoms],
+            degrees=[a.GetExplicitDegree() for a in atoms],
+            valences=[float(a.GetExplicitValence()) for a in atoms],
+        )
 
 
 def partial_charges(structure: Structure, model: ChargeModel = "gasteiger") -> ChargesResult:

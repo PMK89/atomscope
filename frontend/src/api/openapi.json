@@ -158,6 +158,44 @@
         "title": "Atom",
         "type": "object"
       },
+      "AtomTyping": {
+        "additionalProperties": false,
+        "description": "Open Babel's own reading of each atom, from the bonds Atomscope perceived.\n\n``types`` is what Avogadro's atom properties table showed in its Type column\n(``OBAtom::GetType()``, propmodel.cpp:936). ``degrees`` and ``valences`` are the two things\n\"valence\" can mean -- the number of bonds and the sum of their orders -- and are here so a\ncaller can check them against its own bond list; Avogadro showed the first\n(``GetValence()`` in Open Babel 2).",
+        "properties": {
+          "degrees": {
+            "description": "number of bonds at each atom",
+            "items": {
+              "type": "integer"
+            },
+            "title": "Degrees",
+            "type": "array"
+          },
+          "perception": {
+            "default": "openbabel",
+            "title": "Perception",
+            "type": "string"
+          },
+          "types": {
+            "description": "Open Babel internal atom types, e.g. 'Car', 'O3'",
+            "items": {
+              "type": "string"
+            },
+            "title": "Types",
+            "type": "array"
+          },
+          "valences": {
+            "description": "sum of bond orders at each atom, kekulized",
+            "items": {
+              "type": "number"
+            },
+            "title": "Valences",
+            "type": "array"
+          }
+        },
+        "required": ["types", "degrees", "valences"],
+        "title": "AtomTyping",
+        "type": "object"
+      },
       "AtomicScalarProperty": {
         "additionalProperties": false,
         "description": "One float per atom (partial charges, magnetic moments, ...).",
@@ -7553,6 +7591,46 @@
           }
         },
         "summary": "Aromaticity",
+        "tags": ["chem"]
+      }
+    },
+    "/api/chem/atom-types": {
+      "post": {
+        "description": "Open Babel's atom types and connectivity for the posted structure.\n\nDerived, never stored: an edit changes the answer, so the caller asks again.",
+        "operationId": "atom_types_api_chem_atom_types_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StructureRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AtomTyping"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Atom Types",
         "tags": ["chem"]
       }
     },

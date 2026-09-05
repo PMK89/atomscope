@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- The Properties tab tells more of the story: molecular weight, residue count
+  and any quantity the document carries (the dipole from a partial-charge run,
+  an imported output's energy) in the structure section; Open Babel's atom
+  type, both readings of valence and an editable partial charge for the
+  selected atom.
+
 - A file dropped on the window opens it. A drop of several files opens the
   first and says so, since one document is open at a time.
 

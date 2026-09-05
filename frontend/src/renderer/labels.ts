@@ -5,7 +5,7 @@
  * and is worth testing on its own, while drawing needs a canvas.
  */
 import { elementBySymbol } from '../model/elements';
-import type { StructureDoc } from '../model/structure';
+import { partialChargeKey, type StructureDoc } from '../model/structure';
 
 export type AtomLabelContent =
   | 'none'
@@ -45,11 +45,8 @@ export const BOND_LABEL_OPTIONS: { id: BondLabelContent; label: string }[] = [
 
 /** Partial charges, from whichever scalar property carries them; empty when there are none. */
 export function partialCharges(doc: StructureDoc): readonly number[] {
-  for (const key of ['partial_charges', 'charges', 'mulliken_charges']) {
-    const property = doc.atomic_scalars?.[key];
-    if (property && property.values.length === doc.atoms.length) return property.values;
-  }
-  return [];
+  const key = partialChargeKey(doc);
+  return key ? doc.atomic_scalars[key]!.values : [];
 }
 
 /** Residue of each atom, by index; a sparse map because most structures have none. */

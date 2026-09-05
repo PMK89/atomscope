@@ -556,6 +556,28 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/chem/atom-types': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Atom Types
+     * @description Open Babel's atom types and connectivity for the posted structure.
+     *
+     *     Derived, never stored: an edit changes the answer, so the caller asks again.
+     */
+    post: operations['atom_types_api_chem_atom_types_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/chem/conformers': {
     parameters: {
       query?: never;
@@ -1952,6 +1974,38 @@ export interface components {
        * @description stable id surviving re-indexing
        */
       uid?: string;
+    };
+    /**
+     * AtomTyping
+     * @description Open Babel's own reading of each atom, from the bonds Atomscope perceived.
+     *
+     *     ``types`` is what Avogadro's atom properties table showed in its Type column
+     *     (``OBAtom::GetType()``, propmodel.cpp:936). ``degrees`` and ``valences`` are the two things
+     *     "valence" can mean -- the number of bonds and the sum of their orders -- and are here so a
+     *     caller can check them against its own bond list; Avogadro showed the first
+     *     (``GetValence()`` in Open Babel 2).
+     */
+    AtomTyping: {
+      /**
+       * Degrees
+       * @description number of bonds at each atom
+       */
+      degrees: number[];
+      /**
+       * Perception
+       * @default openbabel
+       */
+      perception: string;
+      /**
+       * Types
+       * @description Open Babel internal atom types, e.g. 'Car', 'O3'
+       */
+      types: string[];
+      /**
+       * Valences
+       * @description sum of bond orders at each atom, kekulized
+       */
+      valences: number[];
     };
     /**
      * AtomicScalarProperty
@@ -5779,6 +5833,39 @@ export interface operations {
         };
         content: {
           'application/json': components['schemas']['AromaticityResult'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  atom_types_api_chem_atom_types_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['StructureRequest'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['AtomTyping'];
         };
       };
       /** @description Validation Error */

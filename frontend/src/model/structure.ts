@@ -3,6 +3,7 @@
  * optional; `normalizeStructure` fills them so the rest of the UI can rely on required arrays.
  */
 import type { components } from '../api/schema';
+import { ELEMENT_BY_SYMBOL } from './elements';
 
 export type ApiStructure = Omit<components['schemas']['Structure'], 'id'> & { id?: string };
 export type Atom = components['schemas']['Atom'];
@@ -98,6 +99,27 @@ export function formula(s: StructureDoc): string {
     ];
   }
   return order.map((e) => `${e}${(counts.get(e) ?? 0) > 1 ? counts.get(e) : ''}`).join('');
+}
+
+/**
+ * Molecular weight in g/mol: the standard atomic weights of the elements present. Avogadro showed
+ * it in the Molecule Properties dialog (molecularpropextension.cpp).
+ */
+export function molecularWeight(s: StructureDoc): number {
+  let total = 0;
+  for (const a of s.atoms) total += ELEMENT_BY_SYMBOL.get(a.element)?.mass ?? 0;
+  return total;
+}
+
+const CHARGE_KEYS = ['partial_charges', 'charges', 'mulliken_charges'];
+
+/** Which scalar property carries the partial charges, if any; the order is the preference. */
+export function partialChargeKey(s: StructureDoc): string | null {
+  for (const key of CHARGE_KEYS) {
+    const property = s.atomic_scalars?.[key];
+    if (property && property.values.length === s.atoms.length) return key;
+  }
+  return null;
 }
 
 export function centroid(s: StructureDoc, indices?: Iterable<number>): Vec3 {
