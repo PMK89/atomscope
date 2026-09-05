@@ -107,7 +107,8 @@ function SelectSettings(): JSX.Element {
         onChange={(e) => update('select', { mode: e.target.value as typeof mode })}
       >
         <option value="atoms">Atoms and bonds</option>
-        {hasResidues && <option value="residues">Residues</option>}
+        {/* also when it is the current mode: a remembered one must not vanish from its own box */}
+        {(hasResidues || mode === 'residues') && <option value="residues">Residues</option>}
         <option value="molecules">Molecules</option>
       </select>
     </div>
@@ -267,9 +268,17 @@ function AutoOptimizeSettings(): JSX.Element {
   useEffect(() => {
     api.chem
       .forceFields()
-      .then((f) => setFields(f.force_fields))
+      .then((f) => {
+        setFields(f.force_fields);
+        // a force field remembered from another machine's Open Babel may not be built here, and
+        // posting a name the backend does not have is a 400 on the first run rather than a choice
+        const first = f.force_fields[0];
+        if (first && !f.force_fields.includes(useToolStore.getState().autoOptimize.forceField)) {
+          update('autoOptimize', { forceField: first });
+        }
+      })
       .catch(() => setFields([]));
-  }, []);
+  }, [update]);
   return (
     <>
       <div className="form-row">
