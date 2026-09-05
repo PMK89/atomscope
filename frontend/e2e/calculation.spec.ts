@@ -18,6 +18,9 @@ test('create project, configure, run and inspect an ASE calculation', async ({ p
   await page.getByRole('menuitem', { name: 'Build from SMILES…' }).click();
   await expect(page.locator('.app-statusbar')).toContainText('H2O');
 
+  // another test may have left a project open on the shared backend
+  const closeButton = page.getByRole('button', { name: 'Close', exact: true });
+  if (await closeButton.isVisible()) await closeButton.click();
   await page.getByLabel('Project path').fill(dir);
   await page.getByRole('button', { name: 'Create', exact: true }).click();
   await expect(page.getByText('Structures (0)')).toBeVisible();
