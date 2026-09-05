@@ -53,9 +53,7 @@ def test_write_cube_bytes_match_the_elementwise_writer(tmp_path: Path) -> None:
     rng = np.random.default_rng(3)
     shape = (5, 4, 7)  # 140 values: not a multiple of 6, so the tail line is exercised
     values = rng.normal(size=shape)
-    structure = Structure(
-        name="ref", atoms=[Atom(element="O", position=(0.1, 0.2, 0.3))]
-    )
+    structure = Structure(name="ref", atoms=[Atom(element="O", position=(0.1, 0.2, 0.3))])
     grid = VolumetricGrid(
         id="g",
         name="ref",

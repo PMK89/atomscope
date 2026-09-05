@@ -51,12 +51,15 @@ def _periodic_pairs(structure: Structure, cutoffs: np.ndarray) -> np.ndarray:
 def _molecular_pairs(positions: np.ndarray, cutoffs: np.ndarray) -> np.ndarray:
     """(M,2) index pairs with i < j for a structure without periodic boundaries."""
     tree = cKDTree(positions)
-    pairs = tree.query_pairs(r=float(2.0 * cutoffs.max()), output_type="ndarray")
+    pairs = np.asarray(
+        tree.query_pairs(r=float(2.0 * cutoffs.max()), output_type="ndarray"), dtype=np.int64
+    )
     if pairs.size == 0:
         return np.empty((0, 2), dtype=np.int64)
     delta = positions[pairs[:, 0]] - positions[pairs[:, 1]]
     distance = np.sqrt(np.einsum("ij,ij->i", delta, delta))
-    return pairs[distance < cutoffs[pairs[:, 0]] + cutoffs[pairs[:, 1]]]
+    bonded: np.ndarray = pairs[distance < cutoffs[pairs[:, 0]] + cutoffs[pairs[:, 1]]]
+    return bonded
 
 
 def perceive_bonds(structure: Structure, tolerance: float = DEFAULT_TOLERANCE) -> list[Bond]:
@@ -71,9 +74,9 @@ def perceive_bonds(structure: Structure, tolerance: float = DEFAULT_TOLERANCE) -
         pairs = _molecular_pairs(structure.positions(), cutoffs)
     if pairs.size == 0:
         return []
-    # unique rows come out lexicographically sorted, i.e. ordered by (a, b) as before; the
-    # deduplication matters for periodic cells where two images of j neighbour the same i.
-    pairs = np.unique(pairs, axis=0)
-    # a and b come from index arrays and satisfy 0 <= a < b, so Bond's validators cannot fail:
-    # model_construct skips them, which is worth seconds at 1e5 atoms.
-    return [Bond.model_construct(a=a, b=b) for a, b in pairs.tolist()]
+    # Deduplicate on a packed key: np.unique(axis=0) lexsorts a structured view and is twice as
+    # slow. The keys are increasing in (a, b), so the result is sorted by (a, b) as before. The
+    # duplicates come from periodic cells where two images of j neighbour the same i.
+    keys = pairs[:, 0] * structure.n_atoms + pairs[:, 1]
+    _, first = np.unique(keys, return_index=True)
+    return [Bond(a=a, b=b) for a, b in pairs[first].tolist()]

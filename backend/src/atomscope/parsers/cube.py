@@ -111,7 +111,9 @@ def write_cube(path: Path, grid: VolumetricGrid, values: np.ndarray, structure: 
         flat = np.asarray(values, dtype=float).reshape(-1).tolist()
         full = len(flat) - len(flat) % VALUES_PER_LINE
         row = " ".join(["%13.5E"] * VALUES_PER_LINE) + "\n"
-        fh.writelines(row % tuple(flat[i : i + VALUES_PER_LINE]) for i in range(0, full, VALUES_PER_LINE))
+        fh.writelines(
+            row % tuple(flat[i : i + VALUES_PER_LINE]) for i in range(0, full, VALUES_PER_LINE)
+        )
         if full != len(flat):
             tail = flat[full:]
             fh.write(" ".join(["%13.5E"] * len(tail)) % tuple(tail) + "\n")

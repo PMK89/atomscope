@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import json
 from datetime import UTC, datetime
 from typing import Any
 
@@ -28,6 +27,12 @@ class ProjectManifest(StrictModel):
 
 
 def dump_json(model: BaseModel) -> str:
-    """Deterministic JSON: sorted keys, 2-space indent, trailing newline."""
-    data = model.model_dump(mode="json")
-    return json.dumps(data, sort_keys=True, indent=2, ensure_ascii=False) + "\n"
+    """Deterministic JSON: field-declaration order, 2-space indent, trailing newline.
+
+    pydantic emits fields in declaration order, which is as stable and as diff-friendly as
+    sorting them and lets the model serialise itself in one pass: dumping to a dict and running
+    it through ``json.dumps(sort_keys=True)`` cost 0.83 s for a 1e5-atom structure against
+    0.13 s here (docs/performance.md). Files written by earlier versions still load; the first
+    re-save of such a file reorders its keys once.
+    """
+    return model.model_dump_json(indent=2) + "\n"

@@ -23,8 +23,8 @@ nothing depends on frontend state.
 Rules:
 
 - `format_version` is an integer; loaders migrate older versions forward.
-- JSON is written with sorted keys and two-space indentation via pydantic, so diffs are readable
-  and identical content produces identical bytes.
+- JSON is written by pydantic with two-space indentation, fields in declaration order, so diffs
+  are readable and identical content produces identical bytes.
 - Binary sidecars are little-endian, C-order, with dtype and shape given by the referencing JSON.
 - Ids are short random hex strings; names are free text.
 - Raw output directories are never rewritten by parsers; parsed data goes to `results/`.

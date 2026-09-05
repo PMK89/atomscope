@@ -13,7 +13,6 @@ from typing import Any
 
 import numpy as np
 from ase import Atoms
-from ase.data import atomic_numbers
 from ase.constraints import FixAtoms as AseFixAtoms
 from ase.constraints import FixBondLengths as AseFixBondLengths
 from ase.constraints import FixCartesian as AseFixCartesian
@@ -32,7 +31,6 @@ from atomscope.model import (
     Quantity,
     Residue,
     Structure,
-    new_uid,
 )
 from atomscope.units import Unit
 
@@ -96,29 +94,20 @@ def from_atoms(atoms: Atoms, *, name: str | None = None) -> Structure:
     symbols = atoms.get_chemical_symbols()
     positions = atoms.get_positions()
 
-    # Atom's own validators run once per atom, which dominates every large file read. The same
-    # two invariants are checked here in bulk (once per array) and the models are then built
-    # without re-validating; Atom itself is untouched, so every other code path still validates.
-    if not np.isfinite(positions).all():
-        msg = "position must be finite"
-        raise ValueError(msg)
-    unknown = sorted({s for s in set(symbols) if s == "X" or s not in atomic_numbers})
-    if unknown:
-        msg = f"unknown element symbol {unknown[0]!r}"
-        raise ValueError(msg)
-    if any(lab is not None and not isinstance(lab, str) for lab in labels):
-        msg = "atom labels must be strings or None"
-        raise ValueError(msg)
-    atom_models = [
-        Atom.model_construct(
-            element=symbols[i],
-            position=(p[0], p[1], p[2]),
-            formal_charge=int(formal[i]),
-            label=labels[i],
-            uid=uids[i] or new_uid(),
-        )
-        for i, p in enumerate(positions.tolist())
-    ]
+    # One tolist() instead of three float() calls per atom; the models themselves are still
+    # validated one by one, which measurement showed to be the irreducible part of the cost
+    # (model_construct is no faster -- see docs/performance.md).
+    atom_models = []
+    for i, p in enumerate(positions.tolist()):
+        kwargs: dict[str, Any] = {
+            "element": symbols[i],
+            "position": (p[0], p[1], p[2]),
+            "formal_charge": int(formal[i]),
+            "label": labels[i],
+        }
+        if uids[i]:
+            kwargs["uid"] = uids[i]
+        atom_models.append(Atom(**kwargs))
 
     cell = None
     if atoms.cell.rank > 0 or any(atoms.pbc):

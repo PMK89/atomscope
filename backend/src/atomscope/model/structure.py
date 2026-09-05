@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import math
-import uuid
+import os
 from typing import Literal
 
 import numpy as np
@@ -18,8 +18,12 @@ BondOrder = Literal[1, 2, 3]
 
 
 def new_uid() -> str:
-    """Short random identifier used for atoms and structures."""
-    return uuid.uuid4().hex[:12]
+    """Short random identifier used for atoms and structures: 48 random bits as 12 hex digits.
+
+    ``uuid.uuid4().hex[:12]`` produced the same 48 bits but built a UUID object first, which
+    cost 0.23 s of the 0.93 s spent reading a 1e5-atom file (docs/performance.md).
+    """
+    return os.urandom(6).hex()
 
 
 class Atom(StrictModel):

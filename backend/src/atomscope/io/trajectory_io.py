@@ -41,13 +41,16 @@ def _frame(atoms: Atoms) -> Frame:
     if forces is None and atoms.has("forces"):
         forces = atoms.get_array("forces")
     step = _scalar(atoms, "step")
+    # tolist() converts the whole array in C instead of calling float() three times per atom
     return Frame(
-        positions=[_v3(p) for p in atoms.get_positions()],
+        positions=[(p[0], p[1], p[2]) for p in atoms.get_positions().tolist()],
         cell=(_v3(atoms.cell[0]), _v3(atoms.cell[1]), _v3(atoms.cell[2]))
         if atoms.cell.rank > 0
         else None,
         energy=_scalar(atoms, "energy"),
-        forces=[_v3(f) for f in forces] if forces is not None else None,
+        forces=[(f[0], f[1], f[2]) for f in np.asarray(forces).tolist()]
+        if forces is not None
+        else None,
         time=_scalar(atoms, "time"),
         temperature=_scalar(atoms, "temperature"),
         step=int(step) if step is not None else None,
