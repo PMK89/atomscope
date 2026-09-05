@@ -16,6 +16,7 @@ import {
   type OrbitalEntry,
   type OrbitalList,
 } from '../api/client';
+import { bandSeries, formatKPath } from '../model/bands';
 import { useCalculationStore } from '../state/calculationStore';
 import { useVolumetricStore } from '../state/volumetricStore';
 import { LineChart, type ChartMarker, type ChartSeries } from './charts/LineChart';
@@ -209,23 +210,10 @@ export function AnalysisPanel({ onError }: { onError: (m: string) => void }): JS
     return level === null ? [] : [{ x: level, label: dos?.fermi_level != null ? 'E_F' : 'HOMO' }];
   }, [dos]);
 
-  const bandSeries: ChartSeries[] = useMemo(() => {
-    if (!bands) return [];
-    const out: ChartSeries[] = [];
-    bands.energies.forEach((perSpin, spinIndex) => {
-      perSpin.forEach((band, bandIndex) => {
-        out.push({
-          id: `s${spinIndex}b${bandIndex}`,
-          label: `band ${bandIndex + 1}`,
-          x: bands.k_distance,
-          y: band,
-          color: SPIN_COLORS[spinIndex % SPIN_COLORS.length]!,
-          quiet: true,
-        });
-      });
-    });
-    return out;
-  }, [bands]);
+  const bandChartSeries: ChartSeries[] = useMemo(
+    () => (bands ? bandSeries(bands, SPIN_COLORS) : []),
+    [bands],
+  );
 
   if (!selected) {
     return (
@@ -473,10 +461,7 @@ export function AnalysisPanel({ onError }: { onError: (m: string) => void }): JS
                 />
               </div>
               <p className="muted">
-                Path:{' '}
-                {path && path.length > 0
-                  ? path.map((p) => p.label).join(' – ')
-                  : 'default for this lattice'}
+                Path: {path && path.length > 0 ? formatKPath(path) : 'default for this lattice'}
               </p>
               <div className="button-row">
                 <button
@@ -489,7 +474,7 @@ export function AnalysisPanel({ onError }: { onError: (m: string) => void }): JS
               </div>
               {bands ? (
                 <LineChart
-                  series={bandSeries}
+                  series={bandChartSeries}
                   xTicks={bands.labels.map((l) => ({ value: l.distance, label: l.label }))}
                   markers={bands.labels.map((l) => ({ x: l.distance }))}
                   {...(bands.fermi_level != null || bands.homo_energy != null
