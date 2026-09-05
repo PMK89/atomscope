@@ -4,6 +4,7 @@ import { api } from '../api/client';
 import { NO_NAMED_SELECTIONS } from '../editor/namedSelections';
 import { useRecentStore } from '../state/recentStore';
 import { useSelectionStore } from '../state/selectionStore';
+import { useViewStore } from '../state/viewStore';
 import { makeAtom, normalizeStructure } from '../model/structure';
 import { useStructureStore } from '../state/structureStore';
 import { MenuBar } from './MenuBar';
@@ -67,6 +68,16 @@ test('menu titles announce their popup and items carry checkable roles', () => {
   const hydrogens = screen.getByRole('menuitemcheckbox', { name: /Show hydrogens/ });
   expect(hydrogens).toHaveAttribute('aria-checked', 'true');
   expect(screen.getByRole('menuitem', { name: /Fit to structure/ })).toBeInTheDocument();
+  expect(screen.getByRole('menuitemcheckbox', { name: /Background: white/ })).toHaveAttribute(
+    'aria-checked',
+    'true',
+  );
+
+  // with a colour of its own neither preset is what is on screen, so neither is ticked
+  act(() => useViewStore.getState().setBackgroundColor('#204080'));
+  for (const name of [/Background: white/, /Background: black/])
+    expect(screen.getByRole('menuitemcheckbox', { name })).toHaveAttribute('aria-checked', 'false');
+  act(() => useViewStore.getState().setBackground('white'));
 });
 
 test('menus support arrow-key navigation, skip disabled items and close on Escape', () => {

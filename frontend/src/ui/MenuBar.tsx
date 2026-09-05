@@ -427,14 +427,15 @@ export function MenuBar({ onError }: { onError: (msg: string) => void }): JSX.El
           { label: 'Show axes', checked: view.showAxes, action: view.toggleAxes },
           // what the labels say is chosen in the Display tab; the menu only switches them on
           { label: 'Show labels', checked: view.showLabels, action: view.toggleLabels },
+          // a chosen colour wins over the preset, so neither preset is what is on screen then
           {
             label: 'Background: white',
-            checked: view.background === 'white',
+            checked: !view.backgroundColor && view.background === 'white',
             action: () => view.setBackground('white'),
           },
           {
             label: 'Background: black',
-            checked: view.background === 'black',
+            checked: !view.backgroundColor && view.background === 'black',
             action: () => view.setBackground('black'),
           },
         ]}

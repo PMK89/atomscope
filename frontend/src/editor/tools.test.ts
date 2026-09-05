@@ -622,3 +622,16 @@ describe('auto-optimize', () => {
     expect(step).toHaveBeenCalledTimes(1);
   });
 });
+
+test('double-click resets the view, and on an atom centres on it instead', () => {
+  // Avogadro's Navigate tool resets the view on any double-click
+  // (libavogadro/src/tools/navigatetool.cpp:192-210, camera()->initializeViewPoint()).
+  // Here empty space does that and an atom centres, which is the more useful half of it.
+  host.doubleClick(ev(...at(-3, -2)));
+  expect(renderer.fitted).toBe(1);
+  expect(renderer.controller.pivot.toArray()).toEqual([0, 0, 0]);
+
+  host.doubleClick(ev(...at(1.5, 0)));
+  expect(renderer.fitted).toBe(1);
+  expect(renderer.controller.pivot.toArray()).toEqual([1.5, 0, 0]);
+});

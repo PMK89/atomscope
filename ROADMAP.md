@@ -49,9 +49,9 @@ auto-optimize tool (AV-MM-010, the backend has no MD minimizer).
 ## Phase 8 — Avogadro parity expansion — IN PROGRESS
 Crystallography, molecular mechanics and builders, biomolecules (residues, ribbons, DSSP, peptide/DNA
 builders), spectra (IR/UV/CD), vibrations, symmetry (point groups) and the file formats are merged.
-**No CRITICAL or HIGH row is NOT STARTED**, and 16 HIGH rows are PARTIAL — each note says which
+**No CRITICAL or HIGH row is NOT STARTED**, and 15 HIGH rows are PARTIAL — each note says which
 part is missing (bond selection mode, Set Spacegroup, the Gaussian and GAMESS option dialogs, the
-remaining wavefunction readers, frontend plugin registration, modal progress dialogs). Counts: 199 IMPLEMENTED, 34 PARTIAL, 78 NOT STARTED, 1 BLOCKED of 312 — re-derive
+remaining wavefunction readers, frontend plugin registration, modal progress dialogs). Counts: 200 IMPLEMENTED, 33 PARTIAL, 78 NOT STARTED, 1 BLOCKED of 312 — re-derive
 with the awk in `docs/STATE.md`, do not trust this number. The NOT STARTED work is MEDIUM and below:
 Python scripting and the plugin manager, multi-document/multi-view, drag-and-drop open, QTAIM.
 

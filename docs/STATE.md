@@ -1,6 +1,6 @@
 # Project state (resume here)
 
-Branch: main; this file is updated in the commit that checkpoints the work, so `git log -1 -- docs/STATE.md` is the last checkpoint. Phases 0-1 done; Phase 2 (editor tools), 3 (volumetric, trajectories, vectors), 4-5 (CP-PAW setup/execution/forces), 6 (CP-PAW analysis: DOS, bands, orbitals), crystallography, molecular mechanics and wavefunction surfaces are merged and working. Parity matrix: 199 IMPLEMENTED, 34 PARTIAL, 78 NOT STARTED, 1 BLOCKED of 312 rows.
+Branch: main; this file is updated in the commit that checkpoints the work, so `git log -1 -- docs/STATE.md` is the last checkpoint. Phases 0-1 done; Phase 2 (editor tools), 3 (volumetric, trajectories, vectors), 4-5 (CP-PAW setup/execution/forces), 6 (CP-PAW analysis: DOS, bands, orbitals), crystallography, molecular mechanics and wavefunction surfaces are merged and working. Parity matrix: 200 IMPLEMENTED, 33 PARTIAL, 78 NOT STARTED, 1 BLOCKED of 312 rows.
 
 Tests: `pytest -q -m "not cppaw"` -> 379 passed, 1 skipped; `pytest -q -m cppaw` -> 7 passed (~90 s, needs the local CP-PAW install); `pnpm vitest run` -> 399 passed; `pnpm exec playwright test` -> 27 passed (against private servers, see below; `make test-e2e` points at the user's 5173, which is stale). `ruff check`, `mypy` and `pnpm typecheck` are clean. No known failing tests. **Type-check the frontend with `pnpm typecheck` (`tsc -b --noEmit`), never with `pnpm exec tsc --noEmit`:** the root `tsconfig.json` is a solution file with `files: []`, so a bare `tsc --noEmit` checks nothing and exits 0.
 
@@ -60,7 +60,8 @@ run against current code -- Playwright above all -- use the private-server recip
   a VASP 4 POSCAR is; named selections (uid-keyed, listed in the Select menu, cleared when another
   document is loaded); fetch by identifier from RCSB and PubChem, which is the first outbound
   request the backend makes and is bounded as `docs/architecture/security-model.md` now describes;
-  and a recent-files list in the File menu, kept by the backend so it outlives a project.
+  a recent-files list in the File menu, kept by the backend so it outlives a project; and any
+  background colour with View ▸ Centre beside Fit to structure.
   Fixes found on the way: Optimize geometry sent valueless force-field
   constraints and was rejected with a 422; `add_hydrogens` dropped every residue of a PDB
   structure; `tsc --noEmit` at the repository root checks nothing (the real check is
@@ -110,7 +111,7 @@ run against current code -- Playwright above all -- use the private-server recip
      docs/avogadro1-feature-parity.md
    ```
 
-   Today that prints **16 rows, all PARTIAL** -- no CRITICAL or HIGH row is NOT STARTED, which is
+   Today that prints **15 rows, all PARTIAL** -- no CRITICAL or HIGH row is NOT STARTED, which is
    not the same claim and an earlier version of this file got it wrong. Each of the 18 has a note
    saying which part is missing; they are the honest remaining HIGH work (bond selection mode,
    Set Spacegroup, the Gaussian and GAMESS option dialogs, the wavefunction readers past
@@ -155,6 +156,11 @@ run against current code -- Playwright above all -- use the private-server recip
      different atom count (`Add hydrogens`), because the atom uids they are keyed by are
      regenerated then. The ribbon and hydrogen-bond layers now honour hidden atoms; the
      isosurfaces do not, which is right -- a surface is not made of atoms.
+   - `applyPersisted` patches only the keys a project's manifest holds, so a project saved before
+     a setting existed keeps whatever the previously open project had -- open one with a custom
+     background and then an older project and the background stays. That is the contract for
+     every setting added after a project was saved, not new; resetting the store to defaults
+     before applying would fix all of them at once.
    - `removeAtoms` now filters the per-atom properties with the atoms, but adding or pasting atoms
      leaves `atomic_scalars`/`atomic_vectors` shorter than the atom list. Every reader checks the
      length, so charges and forces then read as absent rather than as belonging to the wrong atom
