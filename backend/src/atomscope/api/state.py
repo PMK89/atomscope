@@ -31,7 +31,9 @@ class AppState:
         elif env_dir:
             self.data_dir = Path(env_dir)
         else:
-            self.data_dir = Path(tempfile.gettempdir())
+            # its own directory: `settings.json` at the top of a shared /tmp is somebody else's
+            # file waiting to happen
+            self.data_dir = Path(tempfile.gettempdir()) / "atomscope"
 
     def scratch_dir(self) -> Path:
         """Directory for transient uploads; inside the data dir, never the project."""

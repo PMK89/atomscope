@@ -56,7 +56,12 @@ run against current code -- Playwright above all -- use the private-server recip
   a MOPAC input generator in the qc_inputs plugin; Jmol's three residue palettes (amino, shapely,
   hydrophobicity) for the atoms and the ribbon; the angle and torsion property tables, both
   editable (typing a value turns the far side, and a value inside a ring says it cannot); a
-  POV-Ray scene export. Fixes found on the way: Optimize geometry sent valueless force-field
+  POV-Ray scene export; pasting a crystal, with the dialog that asks which element each species of
+  a VASP 4 POSCAR is; named selections (uid-keyed, listed in the Select menu, cleared when another
+  document is loaded); fetch by identifier from RCSB and PubChem, which is the first outbound
+  request the backend makes and is bounded as `docs/architecture/security-model.md` now describes;
+  and a recent-files list in the File menu, kept by the backend so it outlives a project.
+  Fixes found on the way: Optimize geometry sent valueless force-field
   constraints and was rejected with a 422; `add_hydrogens` dropped every residue of a PDB
   structure; `tsc --noEmit` at the repository root checks nothing (the real check is
   `pnpm typecheck`), which had hidden 37 type errors; depth cueing haloed a transparent image
@@ -74,8 +79,12 @@ run against current code -- Playwright above all -- use the private-server recip
   outside PROJECT_ROOT and every tmp_path test errors out.
 - The dev servers on 127.0.0.1:8765/5173 are not ours and do not reload, so they serve whatever
   routes existed when they were started. E2E tests that need a new route want private servers:
-  `python -m atomscope.api.server --host 127.0.0.1 --port 8791`, `ATOMSCOPE_API_URL=http://127.0.0.1:8791 pnpm dev --host 127.0.0.1 --port 5191`,
+  `ATOMSCOPE_DATA_DIR=/tmp/atomscope-e2e python -m atomscope.api.server --host 127.0.0.1 --port 8791`,
+  `ATOMSCOPE_API_URL=http://127.0.0.1:8791 pnpm dev --host 127.0.0.1 --port 5191`,
   then `PLAYWRIGHT_BASE_URL=http://127.0.0.1:5191 pnpm exec playwright test`.
+  Give the private backend a data directory of its own: `env.sh` points `ATOMSCOPE_DATA_DIR` at
+  `app-data/`, which is where the recent-files list lives, and `e2e/recent.spec.ts` ends by
+  clearing it -- pointed at `app-data/` it would wipe the list the person using Atomscope built up.
   Playwright needs `PLAYWRIGHT_BROWSERS_PATH=$(pwd)/.playwright-browsers` too (the Makefile exports
   it; a bare `pnpm exec playwright test` looks in ~/.cache and finds nothing).
   Stop them again with `kill $(lsof -ti tcp:8791) $(lsof -ti tcp:5191)` -- never `pkill -f "port 8791"`,

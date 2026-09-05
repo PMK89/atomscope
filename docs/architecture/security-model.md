@@ -9,6 +9,11 @@
 - Project files, input decks and imported structures are data. They are parsed, never executed
   or interpolated into commands.
 
+- The only application-level file the backend writes is `<data_dir>/settings.json`, which holds
+  the recent-files list. `data_dir` is `ATOMSCOPE_DATA_DIR`, else a temporary directory of its
+  own (never the top of a shared `/tmp`). Failing to write it never fails the operation that
+  triggered it.
+
 ## Subprocesses
 
 - Only `atomscope.jobs.runner` spawns processes: `subprocess.Popen(argv, shell=False, cwd=..., env=...)`.

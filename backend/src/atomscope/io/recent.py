@@ -61,12 +61,20 @@ def recent_files(data_dir: Path) -> list[RecentFile]:
 
 
 def record_recent(data_dir: Path, path: Path) -> list[RecentFile]:
-    """Put `path` at the top of the list, once, and drop the oldest beyond `MAX_RECENT`."""
+    """
+    Put `path` at the top of the list, once, and drop the oldest beyond `MAX_RECENT`.
+
+    Best effort: a data directory that cannot be written to (read-only, full, or owned by
+    somebody else) must not turn a file that opened perfectly well into a failed open.
+    """
     resolved = str(path.resolve())
     kept = [p for p in _paths(data_dir) if p != resolved]
     settings = _read(data_dir)
     settings["recent_files"] = [resolved, *kept][:MAX_RECENT]
-    _write(data_dir, settings)
+    try:
+        _write(data_dir, settings)
+    except OSError:
+        pass
     return recent_files(data_dir)
 
 

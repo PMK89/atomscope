@@ -5,6 +5,7 @@ from fastapi.testclient import TestClient
 
 from atomscope.api.app import create_app
 from atomscope.io import fetch as fetch_module
+from atomscope.io import recent as recent_module
 from atomscope.model import Atom, Structure
 
 
@@ -163,6 +164,21 @@ def test_recent_files_remember_what_was_opened_by_path(tmp_path: Path) -> None:
         "methane.xyz",
     ]
     assert c.delete("/api/io/recent").json() == []
+    assert c.get("/api/io/recent").json() == []
+
+
+def test_a_data_directory_that_cannot_be_written_does_not_fail_the_open(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    def refuse(*_a: object, **_k: object) -> None:
+        raise OSError("read-only file system")
+
+    monkeypatch.setattr(recent_module, "_write", refuse)
+    path = tmp_path / "water.xyz"
+    path.write_text("3\nwater\nO 0 0 0\nH 0 0.76 0.59\nH 0 -0.76 0.59\n")
+    c = client(tmp_path / "data")
+    # the file read perfectly well; only the bookkeeping failed
+    assert c.post("/api/io/import/path", json={"path": str(path)}).status_code == 200
     assert c.get("/api/io/recent").json() == []
 
 
