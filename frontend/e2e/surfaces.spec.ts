@@ -127,7 +127,7 @@ const FCHK = resolve(
   '../../backend/tests/fixtures/wavefunction/co.fchk',
 );
 
-test('an orbital is evaluated beside the request, with progress and a way to stop it', async ({
+test('an orbital reaches the project through the token, the poll and the dataset', async ({
   page,
   request,
 }) => {

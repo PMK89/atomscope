@@ -171,3 +171,62 @@ def test_the_hooks_stop_a_real_evaluation_and_report_how_far_it_got() -> None:
 
     with pytest.raises(EvaluationCancelledError):
         orbital_values(wf, wf.homo_index(), box, EvaluationHooks(should_stop=lambda: True))
+
+
+def settled(c: TestClient, task: dict[str, Any], timeout: float = TIMEOUT_S) -> dict[str, Any]:
+    """Poll a task until it stops running. A task that never settles is the bug being tested."""
+    deadline = time.monotonic() + timeout
+    while task["status"] == "running":
+        assert time.monotonic() < deadline, f"the task is still running: {task}"
+        time.sleep(0.02)
+        task = c.get(f"/api/wavefunction/surface/{task['id']}").json()
+    return task
+
+
+def test_an_unexpected_exception_is_reported_rather_than_left_running(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Nothing may escape the background task: there is no caller to receive it, only the panel."""
+
+    def boom(*args: object, **kwargs: object) -> object:
+        raise RuntimeError("the reader handed back nonsense")
+
+    monkeypatch.setattr(routes_wavefunction, "_field_values", boom)
+    fixtures = Path(__file__).resolve().parents[1] / "fixtures" / "wavefunction"
+    with TestClient(create_app()) as c:
+        c.post("/api/project/create", json={"path": str(tmp_path / "p"), "name": "wf"})
+        task = settled(
+            c,
+            c.post(
+                "/api/wavefunction/surface",
+                json={"path": str(fixtures / "co.fchk"), "kind": "density", "spacing": 0.4},
+            ).json(),
+            timeout=10.0,
+        )
+        assert task["status"] == "failed"
+        assert task["error"] == "the reader handed back nonsense"
+
+
+def test_a_failure_while_writing_the_dataset_is_reported_on_the_task(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """The arithmetic succeeding is not the end: the write can fail too, and must be seen."""
+
+    def full_disk(*args: object, **kwargs: object) -> object:
+        raise OSError("no space left on device")
+
+    monkeypatch.setattr(routes_wavefunction, "write_sidecar", full_disk)
+    fixtures = Path(__file__).resolve().parents[1] / "fixtures" / "wavefunction"
+    with TestClient(create_app()) as c:
+        c.post("/api/project/create", json={"path": str(tmp_path / "p"), "name": "wf"})
+        task = settled(
+            c,
+            c.post(
+                "/api/wavefunction/surface",
+                json={"path": str(fixtures / "co.fchk"), "kind": "density", "spacing": 0.5},
+            ).json(),
+            timeout=30.0,
+        )
+        assert task["status"] == "failed"
+        assert "no space left on device" in task["error"]
+        assert c.get("/api/grids").json() == []  # a half-written dataset is not offered

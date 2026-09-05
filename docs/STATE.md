@@ -50,8 +50,12 @@ run against current code -- Playwright above all -- use the private-server recip
 - Long field evaluations are tasks (AV-UI-022): `POST /api/wavefunction/surface` returns a
   token and computes in a worker thread, `GET`/`cancel` follow and stop it, and
   `EvaluationHooks` (wavefunction/cubes.py) is checked once per chunk of grid points so a
-  cancel ends the arithmetic. The vibrational Hessian is the other synchronous long one and
-  would take the same shape.
+  cancel ends the arithmetic. Two things a background task has to get right and this one
+  first did not: it must catch everything (`except Exception`, including the write of the
+  dataset, since there is no caller to raise to -- anything else leaves a task reading
+  "running" forever and a Cancel button that lies), and a field assembled from two others
+  must share one run of the bar (`EvaluationHooks.part`). The vibrational Hessian is the
+  other synchronous long one and would take the same shape.
 - Merged: vibrations and spectra (mass-weighted Hessian over any ASE calculator, IR intensities, Gaussian/Lorentzian broadening, Gaussian/ORCA/Q-Chem/JCAMP-DX/Turbomole parsers, Spectra dock panel with mode animation); 14 frontend review findings (periodic bond perception, marching-cubes budget, ARIA menus and dock tabs, undo during a preview gesture); molecular point groups and SMARTS selection with their UI; user guide, three tutorials, developer guide and README.
 - Merged: performance (117-case backend benchmark harness, a Playwright renderer harness and the
   fixes they justified -- KD-tree bond perception, single-pass project JSON, O(1) atom placement --

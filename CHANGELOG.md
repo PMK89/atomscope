@@ -4,7 +4,11 @@
 
 - A wavefunction surface is computed beside the request rather than inside it:
   the panel shows how far it has got and can stop it, and a cancelled
-  evaluation really ends the arithmetic instead of only ending the wait.
+  evaluation really ends the arithmetic instead of only ending the wait. Every
+  field can be stopped, including the densities and the potential; a field
+  built out of two others moves the bar once rather than twice; and anything
+  that goes wrong, in the arithmetic or in writing the dataset, is reported on
+  the panel rather than leaving it counting.
 
 - Tool settings, the active tool and the open dock tab are remembered between
   sessions in this browser. View settings still travel with the project: one

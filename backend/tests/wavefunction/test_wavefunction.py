@@ -15,6 +15,8 @@ from ase.units import Bohr
 
 from atomscope.units import Unit
 from atomscope.wavefunction import (
+    EvaluationCancelledError,
+    EvaluationHooks,
     bounding_box,
     density_values,
     electrostatic_potential_values,
@@ -230,3 +232,39 @@ def test_electrostatic_potential_refuses_a_grid_it_cannot_afford() -> None:
     box = bounding_box(wf.structure, padding=4.0, spacing=0.05)
     with pytest.raises(ValueError, match="budget"):
         electrostatic_potential_values(wf, box)
+
+
+def test_a_field_built_from_two_others_reports_one_run_of_progress() -> None:
+    """A spin density is two densities; the caller is watching one bar, which may only rise."""
+    hooks = EvaluationHooks(on_progress=lambda _: None)
+    first, second = hooks.part(0.0, 0.5), hooks.part(0.5, 0.5)
+    seen: list[float] = []
+    reporting = EvaluationHooks(on_progress=seen.append)
+    reporting.part(0.0, 0.5).step(1, 2)
+    reporting.part(0.5, 0.5).step(1, 2)
+    assert seen == [0.25, 0.75]
+    assert first.should_stop is second.should_stop  # stopping still stops both halves
+
+    wf = read_fchk(FIX / "co.fchk")
+    box = bounding_box(wf.structure, padding=2.0, spacing=0.5)
+    walked: list[float] = []
+    spin_density_values(wf, box, hooks=EvaluationHooks(on_progress=walked.append))
+    assert walked == sorted(walked)  # one run, not two: the two densities share the bar
+    assert walked[-1] == pytest.approx(1.0)
+    assert any(p <= 0.5 for p in walked) and any(p > 0.5 for p in walked)
+
+
+def test_every_field_can_be_stopped_while_it_walks_the_grid() -> None:
+    """Cancel has to reach the arithmetic itself, whichever field the panel asked for."""
+    wf = read_fchk(FIX / "co.fchk")
+    box = bounding_box(wf.structure, padding=2.0, spacing=0.4)
+    stop = EvaluationHooks(should_stop=lambda: True)
+    for field in (
+        lambda: orbital_values(wf, 0, box, stop),
+        lambda: density_values(wf, box, hooks=stop),
+        lambda: spin_density_values(wf, box, hooks=stop),
+        lambda: electrostatic_potential_values(wf, box, hooks=stop),
+        lambda: vdw_values(wf.structure, box, hooks=stop),
+    ):
+        with pytest.raises(EvaluationCancelledError):
+            field()

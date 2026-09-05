@@ -246,32 +246,37 @@ async def surface(body: SurfaceRequest, request: Request) -> SurfaceTaskStatus:
     hooks = EvaluationHooks(should_stop=task.should_stop, on_progress=task.report)
 
     async def run() -> None:
+        """Evaluate and store the field. Nothing may escape: there is no caller to catch it.
+
+        The write goes to the project that was open when the request arrived. Open another one
+        while this runs and the dataset lands in the first, which is where it was asked for.
+        """
         try:
             values = await to_thread.run_sync(
                 lambda: _field_values(wavefunction, body, box, plan.orbital_index, hooks)
             )
+            # the project is written from the loop thread, as every other route writes it
+            grid = make_grid(
+                plan.name,
+                plan.grid_kind,
+                box,
+                plan.unit,
+                wavefunction.structure,
+                plan.orbital_meta,
+                source=str(body.path),
+            )
+            relative = f"datasets/{grid.id}.f32"
+            write_sidecar(project.path_in_project(relative), np.asarray(values, dtype=np.float32))
+            grid.data_ref = relative
+            grid.dtype = "float32"
+            project.save_structure(wavefunction.structure)
+            project.save_dataset(grid)
         except EvaluationCancelledError:
             task.status = "cancelled"
             return
-        except (ValueError, MemoryError, OSError) as exc:
-            task.status, task.error = "failed", str(exc)
+        except Exception as exc:  # noqa: BLE001 -- a background task reports, it cannot raise
+            task.status, task.error = "failed", str(exc) or type(exc).__name__
             return
-        # the project is written from the loop thread, as every other route writes it
-        grid = make_grid(
-            plan.name,
-            plan.grid_kind,
-            box,
-            plan.unit,
-            wavefunction.structure,
-            plan.orbital_meta,
-            source=str(body.path),
-        )
-        relative = f"datasets/{grid.id}.f32"
-        write_sidecar(project.path_in_project(relative), np.asarray(values, dtype=np.float32))
-        grid.data_ref = relative
-        grid.dtype = "float32"
-        project.save_structure(wavefunction.structure)
-        project.save_dataset(grid)
         task.grid = grid
         task.progress = 1.0
         task.status = "done"

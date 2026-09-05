@@ -56,6 +56,21 @@ class EvaluationHooks:
         if self.on_progress is not None:
             self.on_progress(filled / total if total > 0 else 1.0)
 
+    def part(self, start: float, span: float) -> EvaluationHooks:
+        """Hooks for one piece of a longer evaluation, reporting `start` to `start + span`.
+
+        An evaluation built out of two others (a spin density is two densities) would otherwise
+        report 0 to 100 per cent twice, which reads as a bar that has broken rather than a job
+        half done.
+        """
+        if self.on_progress is None:
+            return self
+        on_progress = self.on_progress
+        return EvaluationHooks(
+            should_stop=self.should_stop,
+            on_progress=lambda fraction: on_progress(start + span * fraction),
+        )
+
 
 NO_HOOKS = EvaluationHooks()
 
@@ -169,16 +184,16 @@ def density_values(
         psi = coefficients @ chi
         return np.asarray((occupations[:, None] * psi**2).sum(axis=0))
 
-    return _evaluate(wavefunction, box, reducer)
+    return _evaluate(wavefunction, box, reducer, hooks)
 
 
 def spin_density_values(
     wavefunction: Wavefunction, box: GridBox, hooks: EvaluationHooks = NO_HOOKS
 ) -> np.ndarray:
     """Alpha minus beta density; zero for a restricted wavefunction."""
-    alpha = density_values(wavefunction, box, spin="alpha", hooks=hooks)
+    alpha = density_values(wavefunction, box, spin="alpha", hooks=hooks.part(0.0, 0.5))
     try:
-        beta = density_values(wavefunction, box, spin="beta", hooks=hooks)
+        beta = density_values(wavefunction, box, spin="beta", hooks=hooks.part(0.5, 0.5))
     except ValueError:
         return np.zeros_like(alpha)
     return np.asarray(alpha - beta)
@@ -204,8 +219,11 @@ def electrostatic_potential_values(
             "grows with the square of the point count. Use a coarser spacing."
         )
         raise ValueError(msg)
+    # the density is linear in the grid, the integral below quadratic, so the bar is nearly all
+    # the integral; the split keeps it moving in one run rather than twice from zero
+    walk = hooks.part(0.1, 0.9)
     if density is None:
-        density = density_values(wavefunction, box, hooks=hooks)
+        density = density_values(wavefunction, box, hooks=hooks.part(0.0, 0.1))
     numbers = wavefunction.structure.numbers()
     nuclei = wavefunction.structure.positions() / Bohr
     voxel = abs(np.linalg.det(np.array(box.axes) / Bohr))
@@ -252,7 +270,7 @@ def electrostatic_potential_values(
             electronic[lo : lo + targets_per_block] = partial
         out[filled : filled + chunk.shape[0]] = nuclear - electronic
         filled += chunk.shape[0]
-        hooks.step(filled, box.n_points)
+        walk.step(filled, box.n_points)
     return np.asarray(out.reshape(box.shape))
 
 
