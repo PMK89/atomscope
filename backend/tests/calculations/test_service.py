@@ -1,0 +1,56 @@
+from pathlib import Path
+
+import pytest
+from ase.build import bulk
+
+from atomscope.ase_bridge import from_atoms
+from atomscope.backends.registry import default_registry
+from atomscope.calculations import CalculationService
+from atomscope.calculations.service import CalculationError
+from atomscope.jobs import JobManager
+from atomscope.project import ProjectStore
+
+
+async def test_full_lifecycle(tmp_path: Path) -> None:
+    project = ProjectStore.create(tmp_path / "p", "demo")
+    s = from_atoms(bulk("Cu", cubic=True), name="cu")
+    project.save_structure(s)
+    jm = JobManager()
+    svc = CalculationService(project, default_registry(), jm)
+    calc = svc.create(
+        name="cu relax",
+        backend_id="ase_builtin",
+        structure=s,
+        values={"task": "relax", "max_steps": 3},
+    )
+    assert calc.status == "draft" and calc.values["calculator"] == "emt"
+    gen = svc.generate(calc.id)
+    assert (project.calculation_dir(calc.id) / "input" / "case.json").exists()
+    assert svc.get(calc.id).status == "ready" and gen.root_name == "case"
+    calc = svc.run(calc.id)
+    assert calc.job is not None
+    await jm.wait(calc.job.id)
+    calc = svc.get(calc.id)
+    assert calc.status == "completed"
+    assert calc.results is not None and "energy" in calc.results.properties
+    assert calc.result_structure_id in project.manifest.structure_ids
+    # persisted and reloadable
+    reopened = CalculationService(
+        ProjectStore.open(tmp_path / "p"), default_registry(), JobManager()
+    )
+    again = reopened.get(calc.id)
+    assert again.status == "completed" and again.results is not None
+    assert (project.calculation_dir(calc.id) / "results" / "results.json").exists()
+
+
+def test_invalid_values_block_generation(tmp_path: Path) -> None:
+    project = ProjectStore.create(tmp_path / "p", "demo")
+    s = from_atoms(bulk("Cu"))
+    svc = CalculationService(project, default_registry(), JobManager())
+    calc = svc.create(
+        name="bad", backend_id="ase_builtin", structure=s, values={"max_steps": 0, "task": "relax"}
+    )
+    with pytest.raises(CalculationError, match="max_steps"):
+        svc.generate(calc.id)
+    svc.update_values(calc.id, {"task": "single_point"})
+    assert svc.validate(calc.id).ok
