@@ -689,13 +689,15 @@ button {
 .orbital-table tr.selected {
   outline: 1px solid var(--accent);
 }
-.constraint-table th,
-.constraint-table td {
-  text-align: left;
-}
 .panel .constraint-table input:not([type]) {
   width: 5rem;
   font-size: 0.8rem;
+}
+.panel .bond-table select,
+.panel .bond-table input {
+  width: 5rem;
+  font-size: 0.8rem;
+  padding: 1px 3px;
 }
 .constraint-add {
   display: flex;
@@ -749,6 +751,13 @@ button {
 }
 .orbital-table tbody tr {
   cursor: pointer;
+}
+/* both of these read as forms, not as columns of numbers: left-align every cell */
+.bond-table th,
+.bond-table td,
+.constraint-table th,
+.constraint-table td {
+  text-align: left;
 }
 .orbital-table tbody tr:hover {
   background: color-mix(in srgb, var(--accent) 10%, transparent);

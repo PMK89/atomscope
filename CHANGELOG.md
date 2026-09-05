@@ -24,6 +24,8 @@
 - Fixed: Ctrl+C with text selected in a panel copied the molecule instead of the text; removing
   atoms in the editor left residues and constraints pointing at the old numbering; a copied
   fragment carried no residues.
+- A bond properties table on the Properties tab: every bond (or every bond of the selection) with
+  its order, whether it can rotate, and an editable length.
 - A Constraints dialog (Extensions > Constraints...): ignored and fixed atoms, fixed Cartesian
   axes, and distance, angle and torsion constraints with an optional target value, added from the
   selection, saved with the document and honoured by geometry optimization. The data model gained

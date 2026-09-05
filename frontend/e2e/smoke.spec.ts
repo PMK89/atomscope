@@ -363,3 +363,19 @@ test('a constrained bond keeps its length through an optimization', async ({ pag
     })
     .toBeCloseTo(1.8, 1);
 });
+
+test('the Properties tab lists the bonds and a typed length moves an atom', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('tab', { name: 'Properties' }).click();
+  const row = page.getByRole('row', { name: /O1—H2/ });
+  await expect(row).toBeVisible();
+  // both bonds of water end in a hydrogen, so neither rotates
+  await expect(row.getByRole('cell').nth(2)).toHaveText('no');
+  await page.screenshot({ path: '../.scratch/dev/bond-table.png' });
+
+  const length = page.getByLabel('length of O1—H2');
+  await length.fill('1.200');
+  await length.blur();
+  await expect(length).toHaveValue('1.200');
+  await expect(page.locator('.app-statusbar')).toContainText('3 atoms');
+});

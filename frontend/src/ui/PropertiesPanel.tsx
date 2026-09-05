@@ -4,6 +4,7 @@ import { formula, type StructureDoc, type Vec3 } from '../model/structure';
 import { useSelectionStore } from '../state/selectionStore';
 import { useStructureStore } from '../state/structureStore';
 import { useToolStore } from '../editor/toolStore';
+import { BondTable } from './BondTable';
 import { NumberField } from './NumberField';
 import { normalizeSymbol } from '../editor/cartesian';
 import { ELEMENT_BY_SYMBOL } from '../model/elements';
@@ -190,6 +191,9 @@ export function PropertiesPanel({ onError }: { onError?: (m: string) => void }):
           </ul>
         </>
       )}
+
+      <h3>Bonds</h3>
+      <BondTable />
     </div>
   );
 }

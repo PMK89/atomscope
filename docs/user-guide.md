@@ -172,7 +172,7 @@ the active tool.
 | `Surfaces` | volumetric grids and the isosurfaces made from them |
 | `Display` | every display layer and its settings (see [§6](#6-visualization)) |
 | `Crystal` | unit cell, symmetry, cell operations, space groups |
-| `Properties` | structure and per-atom properties, editable |
+| `Properties` | structure, selected-atom and bond properties, editable |
 
 **Trajectory player** — appears between the viewport and the job console only
 when a trajectory is loaded.
@@ -295,6 +295,18 @@ molecule with O–H = 0.969 Å and H–O–H = 104.0°.
 modal with one atom per line, `element x y z` in Å. `Apply` commits
 `Edit coordinates`; changing the number of atoms re-perceives the bonds.
 `Revert` restores the text from the document.
+
+### 4.3a The Properties tab
+
+Besides the structure fields (name, formula, charge, multiplicity, cell) and
+the selected atom (element, position, fractional coordinates, formal charge,
+label), the tab ends in a **Bonds** table: one row per bond with its two atoms,
+an order select, whether it can rotate, and its length in Å. Typing a length
+moves the smaller of the two sides, exactly as dragging with the bond-centric
+tool does. A bond is `rotatable` when it is a single, non-aromatic bond that
+closes no ring and neither of whose atoms is terminal; a ring bond says `ring`.
+With atoms selected the table shows only their bonds, and it never builds more
+than 200 rows at once.
 
 ### 4.4 Crystal building
 
