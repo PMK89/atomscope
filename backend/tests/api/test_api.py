@@ -46,7 +46,7 @@ def test_project_and_structure_flow(tmp_path: Path) -> None:
 def test_openapi_has_structure_schema() -> None:
     spec = create_app().openapi()
     assert "Structure" in spec["components"]["schemas"]
-    assert "VolumetricGrid" not in spec["components"]["schemas"]  # not exposed yet
+    assert "VolumetricGrid" in spec["components"]["schemas"]  # via ResultBundle
 
 
 def test_io_routes(tmp_path: Path) -> None:

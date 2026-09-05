@@ -31,7 +31,7 @@ def open_project(body: OpenProjectRequest, request: Request) -> ProjectInfo:
         store = ProjectStore.open(body.path)
     except ProjectError as exc:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, str(exc)) from exc
-    _state(request).project = store
+    _state(request).set_project(store)
     return ProjectInfo(path=store.root, manifest=store.manifest)
 
 
@@ -41,10 +41,10 @@ def create_project(body: CreateProjectRequest, request: Request) -> ProjectInfo:
         store = ProjectStore.create(body.path, body.name)
     except ProjectError as exc:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, str(exc)) from exc
-    _state(request).project = store
+    _state(request).set_project(store)
     return ProjectInfo(path=store.root, manifest=store.manifest)
 
 
 @router.post("/close", status_code=status.HTTP_204_NO_CONTENT)
 def close_project(request: Request) -> None:
-    _state(request).project = None
+    _state(request).set_project(None)

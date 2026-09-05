@@ -8,7 +8,13 @@ import ase
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from atomscope.api import routes_io, routes_project, routes_structures
+from atomscope.api import (
+    routes_backends,
+    routes_calculations,
+    routes_io,
+    routes_project,
+    routes_structures,
+)
 from atomscope.api.schemas import HealthResponse
 from atomscope.api.state import AppState
 
@@ -32,4 +38,6 @@ def create_app() -> FastAPI:
     app.include_router(routes_project.router)
     app.include_router(routes_structures.router)
     app.include_router(routes_io.router)
+    app.include_router(routes_backends.router)
+    app.include_router(routes_calculations.router)
     return app

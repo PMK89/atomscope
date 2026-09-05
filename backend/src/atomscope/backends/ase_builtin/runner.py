@@ -130,7 +130,7 @@ def main(argv: list[str]) -> int:  # noqa: PLR0915
     final.name = structure.name
     final.bonds = structure.bonds
     final.atomic_vectors["forces"] = AtomicVectorProperty(
-        values=[tuple(map(float, f)) for f in atoms.get_forces()],
+        values=[_v3(f) for f in atoms.get_forces()],
         unit=Unit.EV_PER_ANGSTROM,
         description="forces",
     )

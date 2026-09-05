@@ -50,7 +50,10 @@
             "type": "string"
           }
         },
-        "required": ["element", "position"],
+        "required": [
+          "element",
+          "position"
+        ],
         "title": "Atom",
         "type": "object"
       },
@@ -74,7 +77,10 @@
             "type": "array"
           }
         },
-        "required": ["values", "unit"],
+        "required": [
+          "values",
+          "unit"
+        ],
         "title": "AtomicScalarProperty",
         "type": "object"
       },
@@ -112,8 +118,111 @@
             "type": "array"
           }
         },
-        "required": ["values", "unit"],
+        "required": [
+          "values",
+          "unit"
+        ],
         "title": "AtomicVectorProperty",
+        "type": "object"
+      },
+      "BackendCapabilities": {
+        "additionalProperties": false,
+        "properties": {
+          "bands": {
+            "default": false,
+            "title": "Bands",
+            "type": "boolean"
+          },
+          "density": {
+            "default": false,
+            "title": "Density",
+            "type": "boolean"
+          },
+          "dos": {
+            "default": false,
+            "title": "Dos",
+            "type": "boolean"
+          },
+          "energy": {
+            "default": false,
+            "title": "Energy",
+            "type": "boolean"
+          },
+          "executes": {
+            "default": true,
+            "description": "False for input-generation-only plugins",
+            "title": "Executes",
+            "type": "boolean"
+          },
+          "forces": {
+            "default": false,
+            "title": "Forces",
+            "type": "boolean"
+          },
+          "molecular": {
+            "default": true,
+            "title": "Molecular",
+            "type": "boolean"
+          },
+          "molecular_dynamics": {
+            "default": false,
+            "title": "Molecular Dynamics",
+            "type": "boolean"
+          },
+          "orbitals": {
+            "default": false,
+            "title": "Orbitals",
+            "type": "boolean"
+          },
+          "periodic": {
+            "default": true,
+            "title": "Periodic",
+            "type": "boolean"
+          },
+          "relaxation": {
+            "default": false,
+            "title": "Relaxation",
+            "type": "boolean"
+          },
+          "stress": {
+            "default": false,
+            "title": "Stress",
+            "type": "boolean"
+          },
+          "vibrations": {
+            "default": false,
+            "title": "Vibrations",
+            "type": "boolean"
+          }
+        },
+        "title": "BackendCapabilities",
+        "type": "object"
+      },
+      "BackendInfo": {
+        "additionalProperties": false,
+        "properties": {
+          "capabilities": {
+            "$ref": "#/components/schemas/BackendCapabilities"
+          },
+          "executables": {
+            "$ref": "#/components/schemas/ExecutableReport"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "capabilities",
+          "executables"
+        ],
+        "title": "BackendInfo",
         "type": "object"
       },
       "Body_import_upload_api_io_import_upload_post": {
@@ -124,7 +233,9 @@
             "type": "string"
           }
         },
-        "required": ["file"],
+        "required": [
+          "file"
+        ],
         "title": "Body_import_upload_api_io_import_upload_post",
         "type": "object"
       },
@@ -149,13 +260,151 @@
           },
           "order": {
             "default": 1,
-            "enum": [1, 2, 3],
+            "enum": [
+              1,
+              2,
+              3
+            ],
             "title": "Order",
             "type": "integer"
           }
         },
-        "required": ["a", "b"],
+        "required": [
+          "a",
+          "b"
+        ],
         "title": "Bond",
+        "type": "object"
+      },
+      "Calculation": {
+        "additionalProperties": false,
+        "description": "Persisted as ``calculations/<id>/calculation.json`` inside the project.",
+        "properties": {
+          "backend_id": {
+            "title": "Backend Id",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "generated": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/GeneratedInputs"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "job": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/JobRecord"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "notes": {
+            "default": "",
+            "title": "Notes",
+            "type": "string"
+          },
+          "parent_calculation_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "for reruns/restarts",
+            "title": "Parent Calculation Id"
+          },
+          "provenance": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Provenance"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "resources": {
+            "$ref": "#/components/schemas/Resources"
+          },
+          "result_structure_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Result Structure Id"
+          },
+          "results": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ResultBundle"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "schema_version": {
+            "default": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "status": {
+            "default": "draft",
+            "enum": [
+              "draft",
+              "ready",
+              "queued",
+              "running",
+              "completed",
+              "failed",
+              "cancelled"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "structure_id": {
+            "description": "input structure (a copy is stored with the calculation)",
+            "title": "Structure Id",
+            "type": "string"
+          },
+          "values": {
+            "additionalProperties": true,
+            "description": "full merged parameter values",
+            "title": "Values",
+            "type": "object"
+          }
+        },
+        "required": [
+          "name",
+          "backend_id",
+          "structure_id"
+        ],
+        "title": "Calculation",
         "type": "object"
       },
       "Cell": {
@@ -163,7 +412,11 @@
         "description": "Periodic cell: three lattice vectors (\u00c5) and periodicity flags.",
         "properties": {
           "pbc": {
-            "default": [true, true, true],
+            "default": [
+              true,
+              true,
+              true
+            ],
             "maxItems": 3,
             "minItems": 3,
             "prefixItems": [
@@ -241,8 +494,79 @@
             "type": "array"
           }
         },
-        "required": ["vectors"],
+        "required": [
+          "vectors"
+        ],
         "title": "Cell",
+        "type": "object"
+      },
+      "Choice": {
+        "additionalProperties": false,
+        "properties": {
+          "help": {
+            "default": "",
+            "title": "Help",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "value": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "integer"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "boolean"
+              }
+            ],
+            "title": "Value"
+          }
+        },
+        "required": [
+          "value",
+          "label"
+        ],
+        "title": "Choice",
+        "type": "object"
+      },
+      "CreateCalculationRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "backend_id": {
+            "title": "Backend Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "resources": {
+            "$ref": "#/components/schemas/Resources"
+          },
+          "structure_id": {
+            "title": "Structure Id",
+            "type": "string"
+          },
+          "values": {
+            "additionalProperties": true,
+            "title": "Values",
+            "type": "object"
+          }
+        },
+        "required": [
+          "name",
+          "backend_id",
+          "structure_id"
+        ],
+        "title": "CreateCalculationRequest",
         "type": "object"
       },
       "CreateProjectRequest": {
@@ -259,8 +583,40 @@
             "type": "string"
           }
         },
-        "required": ["path", "name"],
+        "required": [
+          "path",
+          "name"
+        ],
         "title": "CreateProjectRequest",
+        "type": "object"
+      },
+      "ExecutableReport": {
+        "additionalProperties": false,
+        "properties": {
+          "available": {
+            "title": "Available",
+            "type": "boolean"
+          },
+          "executables": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "role -> absolute path",
+            "title": "Executables",
+            "type": "object"
+          },
+          "messages": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Messages",
+            "type": "array"
+          }
+        },
+        "required": [
+          "available"
+        ],
+        "title": "ExecutableReport",
         "type": "object"
       },
       "ExportRequest": {
@@ -287,7 +643,10 @@
             "$ref": "#/components/schemas/Structure"
           }
         },
-        "required": ["structure", "format"],
+        "required": [
+          "structure",
+          "format"
+        ],
         "title": "ExportRequest",
         "type": "object"
       },
@@ -338,7 +697,9 @@
             "type": "string"
           }
         },
-        "required": ["indices"],
+        "required": [
+          "indices"
+        ],
         "title": "FixAtoms",
         "type": "object"
       },
@@ -360,7 +721,10 @@
             "type": "string"
           }
         },
-        "required": ["a", "b"],
+        "required": [
+          "a",
+          "b"
+        ],
         "title": "FixBondLength",
         "type": "object"
       },
@@ -379,7 +743,11 @@
             "type": "string"
           },
           "mask": {
-            "default": [true, true, true],
+            "default": [
+              true,
+              true,
+              true
+            ],
             "maxItems": 3,
             "minItems": 3,
             "prefixItems": [
@@ -397,7 +765,9 @@
             "type": "array"
           }
         },
-        "required": ["index"],
+        "required": [
+          "index"
+        ],
         "title": "FixCartesian",
         "type": "object"
       },
@@ -432,8 +802,251 @@
             "type": "string"
           }
         },
-        "required": ["name", "extensions", "description", "can_read", "can_write", "library"],
+        "required": [
+          "name",
+          "extensions",
+          "description",
+          "can_read",
+          "can_write",
+          "library"
+        ],
         "title": "FormatDescription",
+        "type": "object"
+      },
+      "Frame": {
+        "additionalProperties": false,
+        "description": "One frame: positions (\u00c5) and optional cell, plus per-frame scalars/vectors.",
+        "properties": {
+          "cell": {
+            "anyOf": [
+              {
+                "description": "3x3 matrix as three row vectors",
+                "maxItems": 3,
+                "minItems": 3,
+                "prefixItems": [
+                  {
+                    "description": "3-vector",
+                    "maxItems": 3,
+                    "minItems": 3,
+                    "prefixItems": [
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "number"
+                      }
+                    ],
+                    "type": "array"
+                  },
+                  {
+                    "description": "3-vector",
+                    "maxItems": 3,
+                    "minItems": 3,
+                    "prefixItems": [
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "number"
+                      }
+                    ],
+                    "type": "array"
+                  },
+                  {
+                    "description": "3-vector",
+                    "maxItems": 3,
+                    "minItems": 3,
+                    "prefixItems": [
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "number"
+                      }
+                    ],
+                    "type": "array"
+                  }
+                ],
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cell"
+          },
+          "energy": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "eV",
+            "title": "Energy"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "title": "Extra",
+            "type": "object"
+          },
+          "forces": {
+            "anyOf": [
+              {
+                "items": {
+                  "description": "3-vector",
+                  "maxItems": 3,
+                  "minItems": 3,
+                  "prefixItems": [
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "number"
+                    }
+                  ],
+                  "type": "array"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "eV/\u00c5",
+            "title": "Forces"
+          },
+          "positions": {
+            "items": {
+              "description": "3-vector",
+              "maxItems": 3,
+              "minItems": 3,
+              "prefixItems": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                }
+              ],
+              "type": "array"
+            },
+            "title": "Positions",
+            "type": "array"
+          },
+          "step": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Step"
+          },
+          "temperature": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "K",
+            "title": "Temperature"
+          },
+          "time": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "fs",
+            "title": "Time"
+          }
+        },
+        "required": [
+          "positions"
+        ],
+        "title": "Frame",
+        "type": "object"
+      },
+      "GeneratedFile": {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "description": "file name inside the input directory",
+            "title": "Name",
+            "type": "string"
+          },
+          "role": {
+            "default": "input",
+            "description": "input | structure | control | script",
+            "title": "Role",
+            "type": "string"
+          },
+          "text": {
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "text"
+        ],
+        "title": "GeneratedFile",
+        "type": "object"
+      },
+      "GeneratedInputs": {
+        "additionalProperties": false,
+        "properties": {
+          "files": {
+            "items": {
+              "$ref": "#/components/schemas/GeneratedFile"
+            },
+            "title": "Files",
+            "type": "array"
+          },
+          "root_name": {
+            "description": "base name of the calculation, e.g. 'case'",
+            "title": "Root Name",
+            "type": "string"
+          },
+          "summary": {
+            "default": "",
+            "title": "Summary",
+            "type": "string"
+          }
+        },
+        "required": [
+          "files",
+          "root_name"
+        ],
+        "title": "GeneratedInputs",
         "type": "object"
       },
       "HTTPValidationError": {
@@ -466,7 +1079,10 @@
             "type": "string"
           }
         },
-        "required": ["version", "ase_version"],
+        "required": [
+          "version",
+          "ase_version"
+        ],
         "title": "HealthResponse",
         "type": "object"
       },
@@ -490,8 +1106,134 @@
             "type": "string"
           }
         },
-        "required": ["path"],
+        "required": [
+          "path"
+        ],
         "title": "ImportPathRequest",
+        "type": "object"
+      },
+      "JobRecord": {
+        "additionalProperties": false,
+        "properties": {
+          "calculation_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Calculation Id"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error"
+          },
+          "exit_code": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Exit Code"
+          },
+          "finished_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Finished At"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "pid": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pid"
+          },
+          "spec": {
+            "$ref": "#/components/schemas/RunSpec"
+          },
+          "started_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Started At"
+          },
+          "status": {
+            "default": "queued",
+            "enum": [
+              "queued",
+              "running",
+              "completed",
+              "failed",
+              "cancelled"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "spec"
+        ],
+        "title": "JobRecord",
+        "type": "object"
+      },
+      "LogResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "lines": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Lines",
+            "type": "array"
+          },
+          "stream": {
+            "title": "Stream",
+            "type": "string"
+          }
+        },
+        "required": [
+          "stream",
+          "lines"
+        ],
+        "title": "LogResponse",
         "type": "object"
       },
       "OpenProjectRequest": {
@@ -504,8 +1246,331 @@
             "type": "string"
           }
         },
-        "required": ["path"],
+        "required": [
+          "path"
+        ],
         "title": "OpenProjectRequest",
+        "type": "object"
+      },
+      "OrbitalInfo": {
+        "additionalProperties": false,
+        "description": "Metadata describing one orbital (band) for orbital selection UIs.",
+        "properties": {
+          "energy": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "eV",
+            "title": "Energy"
+          },
+          "index": {
+            "description": "0-based orbital/band index within its spin channel",
+            "title": "Index",
+            "type": "integer"
+          },
+          "kpoint": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Kpoint"
+          },
+          "label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "e.g. 'HOMO', 'LUMO+1', symmetry label",
+            "title": "Label"
+          },
+          "occupation": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Occupation"
+          },
+          "spin": {
+            "default": "none",
+            "enum": [
+              "up",
+              "down",
+              "none"
+            ],
+            "title": "Spin",
+            "type": "string"
+          },
+          "symmetry": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Symmetry"
+          }
+        },
+        "required": [
+          "index"
+        ],
+        "title": "OrbitalInfo",
+        "type": "object"
+      },
+      "ParameterSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "backend": {
+            "title": "Backend",
+            "type": "string"
+          },
+          "id": {
+            "description": "e.g. 'cppaw'",
+            "title": "Id",
+            "type": "string"
+          },
+          "sections": {
+            "items": {
+              "$ref": "#/components/schemas/Section"
+            },
+            "title": "Sections",
+            "type": "array"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "version": {
+            "default": 1,
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "backend",
+          "title",
+          "sections"
+        ],
+        "title": "ParameterSchema",
+        "type": "object"
+      },
+      "ParameterSpec": {
+        "additionalProperties": false,
+        "properties": {
+          "advanced": {
+            "default": false,
+            "title": "Advanced",
+            "type": "boolean"
+          },
+          "backend_path": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "where the value lands in the backend input, e.g. 'CONTROL/GENERIC/NSTEP'",
+            "title": "Backend Path"
+          },
+          "choices": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/Choice"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "for type 'enum'",
+            "title": "Choices"
+          },
+          "default": {
+            "title": "Default"
+          },
+          "exclusive_minimum": {
+            "default": false,
+            "title": "Exclusive Minimum",
+            "type": "boolean"
+          },
+          "group": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "UI sub-grouping inside a section",
+            "title": "Group"
+          },
+          "help": {
+            "default": "",
+            "title": "Help",
+            "type": "string"
+          },
+          "integer_vector": {
+            "default": false,
+            "description": "vector of ints instead of floats",
+            "title": "Integer Vector",
+            "type": "boolean"
+          },
+          "key": {
+            "description": "unique within the schema, e.g. 'nstep'",
+            "title": "Key",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "length": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "for type 'vector'",
+            "title": "Length"
+          },
+          "maximum": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Maximum"
+          },
+          "minimum": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Minimum"
+          },
+          "reference": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "manual section / paper",
+            "title": "Reference"
+          },
+          "required": {
+            "default": false,
+            "title": "Required",
+            "type": "boolean"
+          },
+          "type": {
+            "enum": [
+              "integer",
+              "number",
+              "boolean",
+              "string",
+              "enum",
+              "vector",
+              "text"
+            ],
+            "title": "Type",
+            "type": "string"
+          },
+          "unit": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Unit"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "visible_when": {
+            "items": {
+              "$ref": "#/components/schemas/VisibleWhen"
+            },
+            "title": "Visible When",
+            "type": "array"
+          }
+        },
+        "required": [
+          "key",
+          "label",
+          "type"
+        ],
+        "title": "ParameterSpec",
+        "type": "object"
+      },
+      "Preset": {
+        "additionalProperties": false,
+        "properties": {
+          "description": {
+            "default": "",
+            "title": "Description",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "schema_id": {
+            "title": "Schema Id",
+            "type": "string"
+          },
+          "values": {
+            "additionalProperties": true,
+            "description": "partial: only keys that differ",
+            "title": "Values",
+            "type": "object"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "schema_id"
+        ],
+        "title": "Preset",
         "type": "object"
       },
       "ProjectInfo": {
@@ -520,7 +1585,10 @@
             "type": "string"
           }
         },
-        "required": ["path", "manifest"],
+        "required": [
+          "path",
+          "manifest"
+        ],
         "title": "ProjectInfo",
         "type": "object"
       },
@@ -626,7 +1694,9 @@
             "type": "string"
           }
         },
-        "required": ["source"],
+        "required": [
+          "source"
+        ],
         "title": "Provenance",
         "type": "object"
       },
@@ -642,7 +1712,10 @@
             "type": "number"
           }
         },
-        "required": ["value", "unit"],
+        "required": [
+          "value",
+          "unit"
+        ],
         "title": "Quantity",
         "type": "object"
       },
@@ -671,8 +1744,245 @@
             "type": "integer"
           }
         },
-        "required": ["name", "number", "atom_indices"],
+        "required": [
+          "name",
+          "number",
+          "atom_indices"
+        ],
         "title": "Residue",
+        "type": "object"
+      },
+      "Resources": {
+        "additionalProperties": false,
+        "properties": {
+          "cores": {
+            "default": 1,
+            "title": "Cores",
+            "type": "integer"
+          },
+          "mpi": {
+            "default": false,
+            "title": "Mpi",
+            "type": "boolean"
+          }
+        },
+        "title": "Resources",
+        "type": "object"
+      },
+      "ResultBundle": {
+        "additionalProperties": false,
+        "description": "Parsed results in Atomscope model types. Backend-specific data stays in ``extra``.",
+        "properties": {
+          "converged": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Converged"
+          },
+          "extra": {
+            "additionalProperties": true,
+            "title": "Extra",
+            "type": "object"
+          },
+          "final_structure": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Structure"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "grids": {
+            "items": {
+              "$ref": "#/components/schemas/VolumetricGrid"
+            },
+            "title": "Grids",
+            "type": "array"
+          },
+          "properties": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/Quantity"
+            },
+            "title": "Properties",
+            "type": "object"
+          },
+          "series": {
+            "items": {
+              "$ref": "#/components/schemas/ScalarSeries"
+            },
+            "title": "Series",
+            "type": "array"
+          },
+          "trajectory": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Trajectory"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "warnings": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Warnings",
+            "type": "array"
+          }
+        },
+        "title": "ResultBundle",
+        "type": "object"
+      },
+      "RunSpec": {
+        "additionalProperties": false,
+        "description": "Everything needed to start a process. Built by backend plugins, executed by JobManager.",
+        "properties": {
+          "argv": {
+            "description": "argv[0] is an absolute executable path",
+            "items": {
+              "type": "string"
+            },
+            "minItems": 1,
+            "title": "Argv",
+            "type": "array"
+          },
+          "cwd": {
+            "format": "path",
+            "title": "Cwd",
+            "type": "string"
+          },
+          "description": {
+            "default": "",
+            "title": "Description",
+            "type": "string"
+          },
+          "env": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "added to a minimal base env",
+            "title": "Env",
+            "type": "object"
+          },
+          "stderr_name": {
+            "default": "stderr.log",
+            "title": "Stderr Name",
+            "type": "string"
+          },
+          "stdout_name": {
+            "default": "stdout.log",
+            "title": "Stdout Name",
+            "type": "string"
+          },
+          "watch_files": {
+            "description": "files (relative to cwd) whose growth is streamed",
+            "items": {
+              "type": "string"
+            },
+            "title": "Watch Files",
+            "type": "array"
+          }
+        },
+        "required": [
+          "argv",
+          "cwd"
+        ],
+        "title": "RunSpec",
+        "type": "object"
+      },
+      "ScalarSeries": {
+        "additionalProperties": false,
+        "description": "A named 1-D series (e.g. energy per iteration) with units.",
+        "properties": {
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "x": {
+            "items": {
+              "type": "number"
+            },
+            "title": "X",
+            "type": "array"
+          },
+          "x_label": {
+            "title": "X Label",
+            "type": "string"
+          },
+          "x_unit": {
+            "default": "",
+            "title": "X Unit",
+            "type": "string"
+          },
+          "y": {
+            "items": {
+              "type": "number"
+            },
+            "title": "Y",
+            "type": "array"
+          },
+          "y_label": {
+            "title": "Y Label",
+            "type": "string"
+          },
+          "y_unit": {
+            "default": "",
+            "title": "Y Unit",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "x_label",
+          "y_label",
+          "x",
+          "y"
+        ],
+        "title": "ScalarSeries",
+        "type": "object"
+      },
+      "Section": {
+        "additionalProperties": false,
+        "properties": {
+          "advanced": {
+            "default": false,
+            "title": "Advanced",
+            "type": "boolean"
+          },
+          "help": {
+            "default": "",
+            "title": "Help",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "parameters": {
+            "items": {
+              "$ref": "#/components/schemas/ParameterSpec"
+            },
+            "title": "Parameters",
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "label"
+        ],
+        "title": "Section",
         "type": "object"
       },
       "SmilesRequest": {
@@ -688,7 +1998,9 @@
             "type": "string"
           }
         },
-        "required": ["smiles"],
+        "required": [
+          "smiles"
+        ],
         "title": "SmilesRequest",
         "type": "object"
       },
@@ -839,8 +2151,76 @@
             "type": "boolean"
           }
         },
-        "required": ["id", "name", "formula", "n_atoms", "periodic"],
+        "required": [
+          "id",
+          "name",
+          "formula",
+          "n_atoms",
+          "periodic"
+        ],
         "title": "StructureSummary",
+        "type": "object"
+      },
+      "Trajectory": {
+        "additionalProperties": false,
+        "description": "A sequence of frames sharing the topology of ``structure_id``.",
+        "properties": {
+          "frames": {
+            "items": {
+              "$ref": "#/components/schemas/Frame"
+            },
+            "title": "Frames",
+            "type": "array"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "kind": {
+            "default": "generic",
+            "description": "optimization | md | neb | vibration | generic",
+            "title": "Kind",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "provenance": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Provenance"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "structure_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Structure Id"
+          },
+          "symbols": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Symbols",
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "symbols"
+        ],
+        "title": "Trajectory",
         "type": "object"
       },
       "Unit": {
@@ -874,6 +2254,21 @@
         "title": "Unit",
         "type": "string"
       },
+      "UpdateValuesRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "values": {
+            "additionalProperties": true,
+            "title": "Values",
+            "type": "object"
+          }
+        },
+        "required": [
+          "values"
+        ],
+        "title": "UpdateValuesRequest",
+        "type": "object"
+      },
       "ValidationError": {
         "properties": {
           "ctx": {
@@ -906,8 +2301,294 @@
             "type": "string"
           }
         },
-        "required": ["loc", "msg", "type"],
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
         "title": "ValidationError",
+        "type": "object"
+      },
+      "ValidationIssue": {
+        "additionalProperties": false,
+        "properties": {
+          "key": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Key"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          },
+          "severity": {
+            "default": "error",
+            "enum": [
+              "error",
+              "warning"
+            ],
+            "title": "Severity",
+            "type": "string"
+          }
+        },
+        "required": [
+          "key",
+          "message"
+        ],
+        "title": "ValidationIssue",
+        "type": "object"
+      },
+      "ValidationReport": {
+        "additionalProperties": false,
+        "properties": {
+          "issues": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationIssue"
+            },
+            "title": "Issues",
+            "type": "array"
+          }
+        },
+        "title": "ValidationReport",
+        "type": "object"
+      },
+      "VisibleWhen": {
+        "additionalProperties": false,
+        "description": "Show a parameter only when another parameter satisfies a condition.",
+        "properties": {
+          "key": {
+            "title": "Key",
+            "type": "string"
+          },
+          "op": {
+            "default": "eq",
+            "enum": [
+              "eq",
+              "ne",
+              "in",
+              "not_in",
+              "truthy",
+              "falsy"
+            ],
+            "title": "Op",
+            "type": "string"
+          },
+          "value": {
+            "title": "Value"
+          }
+        },
+        "required": [
+          "key"
+        ],
+        "title": "VisibleWhen",
+        "type": "object"
+      },
+      "VolumetricGrid": {
+        "additionalProperties": false,
+        "description": "A regular 3D grid. Voxel (i,j,k) sits at origin + i*axes[0] + j*axes[1] + k*axes[2].\n\nValues are stored in a binary sidecar (``data_ref``: path relative to the owning\nproject/calculation, little-endian float32 or float64, C order matching ``shape``) or\ninline for small grids. Exactly one of ``data_ref`` / ``inline_values`` is set.",
+        "properties": {
+          "axes": {
+            "description": "step vectors in \u00c5",
+            "maxItems": 3,
+            "minItems": 3,
+            "prefixItems": [
+              {
+                "description": "3-vector",
+                "maxItems": 3,
+                "minItems": 3,
+                "prefixItems": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ],
+                "type": "array"
+              },
+              {
+                "description": "3-vector",
+                "maxItems": 3,
+                "minItems": 3,
+                "prefixItems": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ],
+                "type": "array"
+              },
+              {
+                "description": "3-vector",
+                "maxItems": 3,
+                "minItems": 3,
+                "prefixItems": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ],
+                "type": "array"
+              }
+            ],
+            "title": "Axes",
+            "type": "array"
+          },
+          "data_ref": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Data Ref"
+          },
+          "dtype": {
+            "default": "float32",
+            "enum": [
+              "float32",
+              "float64"
+            ],
+            "title": "Dtype",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "inline_values": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "number"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Inline Values"
+          },
+          "kind": {
+            "default": "other",
+            "enum": [
+              "electron_density",
+              "spin_density",
+              "orbital",
+              "orbital_density",
+              "electrostatic_potential",
+              "density_difference",
+              "other"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "orbital": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/OrbitalInfo"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "origin": {
+            "description": "\u00c5",
+            "maxItems": 3,
+            "minItems": 3,
+            "prefixItems": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              }
+            ],
+            "title": "Origin",
+            "type": "array"
+          },
+          "provenance": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Provenance"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "shape": {
+            "maxItems": 3,
+            "minItems": 3,
+            "prefixItems": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "integer"
+              },
+              {
+                "type": "integer"
+              }
+            ],
+            "title": "Shape",
+            "type": "array"
+          },
+          "structure_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "structure the grid belongs to",
+            "title": "Structure Id"
+          },
+          "unit": {
+            "$ref": "#/components/schemas/Unit"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "origin",
+          "axes",
+          "shape",
+          "unit"
+        ],
+        "title": "VolumetricGrid",
         "type": "object"
       }
     }
@@ -918,6 +2599,551 @@
   },
   "openapi": "3.1.0",
   "paths": {
+    "/api/backends": {
+      "get": {
+        "operationId": "list_backends_api_backends_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/BackendInfo"
+                  },
+                  "title": "Response List Backends Api Backends Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List Backends",
+        "tags": [
+          "backends"
+        ]
+      }
+    },
+    "/api/backends/{backend_id}/presets": {
+      "get": {
+        "operationId": "backend_presets_api_backends__backend_id__presets_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "backend_id",
+            "required": true,
+            "schema": {
+              "title": "Backend Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/Preset"
+                  },
+                  "title": "Response Backend Presets Api Backends  Backend Id  Presets Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Backend Presets",
+        "tags": [
+          "backends"
+        ]
+      }
+    },
+    "/api/backends/{backend_id}/schema": {
+      "get": {
+        "operationId": "backend_schema_api_backends__backend_id__schema_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "backend_id",
+            "required": true,
+            "schema": {
+              "title": "Backend Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ParameterSchema"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Backend Schema",
+        "tags": [
+          "backends"
+        ]
+      }
+    },
+    "/api/calculations": {
+      "get": {
+        "operationId": "list_calculations_api_calculations_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/Calculation"
+                  },
+                  "title": "Response List Calculations Api Calculations Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List Calculations",
+        "tags": [
+          "calculations"
+        ]
+      },
+      "post": {
+        "operationId": "create_calculation_api_calculations_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCalculationRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Calculation"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Calculation",
+        "tags": [
+          "calculations"
+        ]
+      }
+    },
+    "/api/calculations/{calc_id}": {
+      "get": {
+        "operationId": "get_calculation_api_calculations__calc_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "calc_id",
+            "required": true,
+            "schema": {
+              "title": "Calc Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Calculation"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Calculation",
+        "tags": [
+          "calculations"
+        ]
+      }
+    },
+    "/api/calculations/{calc_id}/cancel": {
+      "post": {
+        "operationId": "cancel_calculation_api_calculations__calc_id__cancel_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "calc_id",
+            "required": true,
+            "schema": {
+              "title": "Calc Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Calculation"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Cancel Calculation",
+        "tags": [
+          "calculations"
+        ]
+      }
+    },
+    "/api/calculations/{calc_id}/generate": {
+      "post": {
+        "operationId": "generate_inputs_api_calculations__calc_id__generate_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "calc_id",
+            "required": true,
+            "schema": {
+              "title": "Calc Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GeneratedInputs"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Generate Inputs",
+        "tags": [
+          "calculations"
+        ]
+      }
+    },
+    "/api/calculations/{calc_id}/log": {
+      "get": {
+        "description": "Return the last ``tail`` lines of stdout/stderr or a watched file from the work directory.",
+        "operationId": "read_log_api_calculations__calc_id__log_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "calc_id",
+            "required": true,
+            "schema": {
+              "title": "Calc Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "stream",
+            "required": false,
+            "schema": {
+              "default": "stdout",
+              "title": "Stream",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "tail",
+            "required": false,
+            "schema": {
+              "default": 500,
+              "title": "Tail",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LogResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Read Log",
+        "tags": [
+          "calculations"
+        ]
+      }
+    },
+    "/api/calculations/{calc_id}/results": {
+      "get": {
+        "operationId": "results_api_calculations__calc_id__results_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "calc_id",
+            "required": true,
+            "schema": {
+              "title": "Calc Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultBundle"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Results",
+        "tags": [
+          "calculations"
+        ]
+      }
+    },
+    "/api/calculations/{calc_id}/run": {
+      "post": {
+        "description": "Async so that JobManager.submit runs inside the server's event loop.",
+        "operationId": "run_calculation_api_calculations__calc_id__run_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "calc_id",
+            "required": true,
+            "schema": {
+              "title": "Calc Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Calculation"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Run Calculation",
+        "tags": [
+          "calculations"
+        ]
+      }
+    },
+    "/api/calculations/{calc_id}/validate": {
+      "get": {
+        "operationId": "validate_calculation_api_calculations__calc_id__validate_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "calc_id",
+            "required": true,
+            "schema": {
+              "title": "Calc Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationReport"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Validate Calculation",
+        "tags": [
+          "calculations"
+        ]
+      }
+    },
+    "/api/calculations/{calc_id}/values": {
+      "put": {
+        "operationId": "update_values_api_calculations__calc_id__values_put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "calc_id",
+            "required": true,
+            "schema": {
+              "title": "Calc Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateValuesRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Calculation"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Update Values",
+        "tags": [
+          "calculations"
+        ]
+      }
+    },
     "/api/health": {
       "get": {
         "operationId": "health_api_health_get",
@@ -934,7 +3160,9 @@
           }
         },
         "summary": "Health",
-        "tags": ["system"]
+        "tags": [
+          "system"
+        ]
       }
     },
     "/api/io/export": {
@@ -973,7 +3201,9 @@
           }
         },
         "summary": "Export Structure",
-        "tags": ["io"]
+        "tags": [
+          "io"
+        ]
       }
     },
     "/api/io/formats": {
@@ -996,7 +3226,9 @@
           }
         },
         "summary": "List Formats",
-        "tags": ["io"]
+        "tags": [
+          "io"
+        ]
       }
     },
     "/api/io/import/path": {
@@ -1036,7 +3268,9 @@
           }
         },
         "summary": "Import Path",
-        "tags": ["io"]
+        "tags": [
+          "io"
+        ]
       }
     },
     "/api/io/import/upload": {
@@ -1076,7 +3310,9 @@
           }
         },
         "summary": "Import Upload",
-        "tags": ["io"]
+        "tags": [
+          "io"
+        ]
       }
     },
     "/api/io/smiles": {
@@ -1115,7 +3351,9 @@
           }
         },
         "summary": "Build From Smiles",
-        "tags": ["io"]
+        "tags": [
+          "io"
+        ]
       }
     },
     "/api/project": {
@@ -1142,7 +3380,9 @@
           }
         },
         "summary": "Current Project",
-        "tags": ["project"]
+        "tags": [
+          "project"
+        ]
       }
     },
     "/api/project/close": {
@@ -1154,7 +3394,9 @@
           }
         },
         "summary": "Close Project",
-        "tags": ["project"]
+        "tags": [
+          "project"
+        ]
       }
     },
     "/api/project/create": {
@@ -1193,7 +3435,9 @@
           }
         },
         "summary": "Create Project",
-        "tags": ["project"]
+        "tags": [
+          "project"
+        ]
       }
     },
     "/api/project/open": {
@@ -1232,7 +3476,9 @@
           }
         },
         "summary": "Open Project",
-        "tags": ["project"]
+        "tags": [
+          "project"
+        ]
       }
     },
     "/api/structures": {
@@ -1255,7 +3501,9 @@
           }
         },
         "summary": "List Structures",
-        "tags": ["structures"]
+        "tags": [
+          "structures"
+        ]
       }
     },
     "/api/structures/{structure_id}": {
@@ -1288,7 +3536,9 @@
           }
         },
         "summary": "Delete Structure",
-        "tags": ["structures"]
+        "tags": [
+          "structures"
+        ]
       },
       "get": {
         "operationId": "get_structure_api_structures__structure_id__get",
@@ -1326,7 +3576,9 @@
           }
         },
         "summary": "Get Structure",
-        "tags": ["structures"]
+        "tags": [
+          "structures"
+        ]
       },
       "put": {
         "description": "Create or replace a structure. The path id must match the body id.",
@@ -1375,7 +3627,9 @@
           }
         },
         "summary": "Put Structure",
-        "tags": ["structures"]
+        "tags": [
+          "structures"
+        ]
       }
     }
   }
