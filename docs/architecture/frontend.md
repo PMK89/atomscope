@@ -5,11 +5,12 @@ src/api        generated OpenAPI types + thin fetch client (no hand-written back
 src/model      normalized structure document, element data (generated), geometry helpers
 src/state      zustand stores: structure (undo/redo), selection, view, jobs, calculations
 src/renderer   Three.js: Renderer (scene, cameras, lights), CameraController, display layers,
-               picking, math; workers/ for meshing and parsing
+               picking, math; workers/ holds the marching-cubes worker (file parsing is done by
+               the backend, not in workers)
 src/editor     interactive tools operating on the structure store (draw, select, manipulate,
                measure, navigate); each tool is a class with pointer handlers
 src/ui         React components: MenuBar, Viewport, docks, panels, forms, console, status bar
-src/plugins    registry for tools, layers, panels
+src/editor/tools/index.ts  tool registration (a general plugin registry for layers/panels is planned)
 ```
 
 Principles:
@@ -36,5 +37,5 @@ Principles:
   Three.js.
 - Forms are rendered from `ParameterSchema` JSON (`ui/forms/SchemaForm.tsx`); adding a backend
   parameter never requires a frontend change.
-- Long-running work (parsing large files, marching cubes) runs in Web Workers with transferable
-  buffers.
+- Marching cubes runs in a Web Worker; mesh output buffers are transferred back. Grid input is
+  currently copied to the worker (ownership design is an open item from the 2026-09-05 review).
