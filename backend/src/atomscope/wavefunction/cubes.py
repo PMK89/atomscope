@@ -29,6 +29,9 @@ DEFAULT_PADDING_ANGSTROM = 3.5
 DEFAULT_SPACING_ANGSTROM = 0.2
 MAX_POINTS = 40_000_000
 CHUNK_POINTS = 200_000
+ESP_SOURCES = 20_000
+ESP_PAIR_BUDGET = 8_000_000  # entries of the target x source distance matrix (~64 MB)
+ESP_MAX_POINTS = 2_000_000  # the potential is a grid integral, so its cost is quadratic
 
 
 @dataclass(frozen=True)
@@ -154,6 +157,13 @@ def electrostatic_potential_values(
     and is the approach Avogadro 1's ESP colouring uses. Cost is O(N_grid^2) unless the density
     is thresholded, so the grid must be coarse: use a spacing of ~0.4 A or more.
     """
+    if box.n_points > ESP_MAX_POINTS:
+        msg = (
+            f"grid of {box.n_points} points is too large for the electrostatic potential "
+            f"(budget {ESP_MAX_POINTS}); the electronic term is a grid integral, so the cost "
+            "grows with the square of the point count. Use a coarser spacing."
+        )
+        raise ValueError(msg)
     if density is None:
         density = density_values(wavefunction, box)
     numbers = wavefunction.structure.numbers()
@@ -172,6 +182,10 @@ def electrostatic_potential_values(
     self_potential = 2.3800774 / side
     near = 0.5 * side
 
+    source_sq = (source_points**2).sum(axis=1)
+    # The pair term is a targets x sources matrix, so both loops are blocked to keep it small.
+    targets_per_block = max(1, ESP_PAIR_BUDGET // max(1, min(source_points.shape[0], ESP_SOURCES)))
+
     out = np.empty(box.n_points, dtype=np.float64)
     filled = 0
     for chunk in box.points_bohr():
@@ -180,14 +194,22 @@ def electrostatic_potential_values(
             distance = np.linalg.norm(chunk - r, axis=1)
             nuclear += z / np.maximum(distance, 1e-8)
         electronic = np.zeros(chunk.shape[0])
-        for start in range(0, source_points.shape[0], 20_000):
-            block = source_points[start : start + 20_000]
-            charge = source_charge[start : start + 20_000]
-            distance = np.linalg.norm(chunk[:, None, :] - block[None, :, :], axis=2)
-            contribution = np.where(
-                distance < near, charge * self_potential, charge / np.maximum(distance, near)
-            )
-            electronic += contribution.sum(axis=1)
+        for lo in range(0, chunk.shape[0], targets_per_block):
+            targets = chunk[lo : lo + targets_per_block]
+            target_sq = (targets**2).sum(axis=1)
+            partial = np.zeros(targets.shape[0])
+            for start in range(0, source_points.shape[0], ESP_SOURCES):
+                block = source_points[start : start + ESP_SOURCES]
+                charge = source_charge[start : start + ESP_SOURCES]
+                # |r - r'|^2 = |r|^2 + |r'|^2 - 2 r.r', which avoids materializing the vectors
+                d2 = target_sq[:, None] + source_sq[start : start + ESP_SOURCES][None, :]
+                d2 -= 2.0 * (targets @ block.T)
+                distance = np.sqrt(np.maximum(d2, 0.0))
+                contribution = np.where(
+                    distance < near, charge * self_potential, charge / np.maximum(distance, near)
+                )
+                partial += contribution.sum(axis=1)
+            electronic[lo : lo + targets_per_block] = partial
         out[filled : filled + chunk.shape[0]] = nuclear - electronic
         filled += chunk.shape[0]
     return np.asarray(out.reshape(box.shape))

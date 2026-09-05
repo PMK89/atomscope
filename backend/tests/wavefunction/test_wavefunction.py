@@ -192,6 +192,9 @@ def test_electrostatic_potential_is_positive_near_a_nucleus() -> None:
     esp = electrostatic_potential_values(wf, box)
     assert np.isfinite(esp).all()
     assert esp.max() > 0
+    # the electron cloud must dominate somewhere, otherwise the electronic term is not being
+    # subtracted at all (an all-positive field would pass the assertion above by itself)
+    assert esp.min() < 0
 
 
 def test_vdw_field_marks_the_molecular_volume() -> None:
@@ -219,3 +222,11 @@ def test_box_rejects_impossible_requests() -> None:
         bounding_box(wf.structure, spacing=0.0)
     with pytest.raises(ValueError, match="budget"):
         bounding_box(wf.structure, padding=5.0, spacing=0.002)
+
+
+def test_electrostatic_potential_refuses_a_grid_it_cannot_afford() -> None:
+    """The electronic term is a grid integral, so cost grows as the square of the point count."""
+    wf = read_fchk(FIX / "co.fchk")
+    box = bounding_box(wf.structure, padding=4.0, spacing=0.05)
+    with pytest.raises(ValueError, match="budget"):
+        electrostatic_potential_values(wf, box)
