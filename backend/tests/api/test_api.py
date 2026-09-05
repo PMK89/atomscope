@@ -47,3 +47,24 @@ def test_openapi_has_structure_schema() -> None:
     spec = create_app().openapi()
     assert "Structure" in spec["components"]["schemas"]
     assert "VolumetricGrid" not in spec["components"]["schemas"]  # not exposed yet
+
+
+def test_io_routes(tmp_path: Path) -> None:
+    c = client()
+    assert any(f["name"] == "xyz" for f in c.get("/api/io/formats").json())
+    r = c.post("/api/io/smiles", json={"smiles": "O"})
+    assert r.status_code == 200 and r.json()["atoms"].__len__() == 3
+    water = r.json()
+    r = c.post("/api/io/export", json={"structure": water, "format": "xyz"})
+    assert r.status_code == 200 and r.json()["text"].startswith("3\n")
+    out = tmp_path / "w.xyz"
+    r = c.post("/api/io/export", json={"structure": water, "format": "xyz", "path": str(out)})
+    assert r.status_code == 200 and out.exists()
+    r = c.post("/api/io/import/path", json={"path": str(out)})
+    assert r.status_code == 200 and len(r.json()["bonds"]) == 2
+    r = c.post("/api/io/import/upload", files={"file": ("w.xyz", out.read_bytes())})
+    assert r.status_code == 200 and len(r.json()["atoms"]) == 3
+    assert c.post("/api/io/smiles", json={"smiles": "C("}).status_code == 400
+    assert (
+        c.post("/api/io/import/path", json={"path": str(tmp_path / "nope.xyz")}).status_code == 404
+    )

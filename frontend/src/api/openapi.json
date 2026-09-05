@@ -125,6 +125,20 @@
         "title": "AtomicVectorProperty",
         "type": "object"
       },
+      "Body_import_upload_api_io_import_upload_post": {
+        "properties": {
+          "file": {
+            "contentMediaType": "application/octet-stream",
+            "title": "File",
+            "type": "string"
+          }
+        },
+        "required": [
+          "file"
+        ],
+        "title": "Body_import_upload_api_io_import_upload_post",
+        "type": "object"
+      },
       "Bond": {
         "additionalProperties": false,
         "description": "A bond between two atom indices of the owning structure.",
@@ -276,6 +290,67 @@
         "title": "CreateProjectRequest",
         "type": "object"
       },
+      "ExportRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "format": {
+            "title": "Format",
+            "type": "string"
+          },
+          "path": {
+            "anyOf": [
+              {
+                "format": "path",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "write here if given, else return text",
+            "title": "Path"
+          },
+          "structure": {
+            "$ref": "#/components/schemas/Structure"
+          }
+        },
+        "required": [
+          "structure",
+          "format"
+        ],
+        "title": "ExportRequest",
+        "type": "object"
+      },
+      "ExportResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "path": {
+            "anyOf": [
+              {
+                "format": "path",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Path"
+          },
+          "text": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Text"
+          }
+        },
+        "title": "ExportResponse",
+        "type": "object"
+      },
       "FixAtoms": {
         "additionalProperties": false,
         "properties": {
@@ -367,6 +442,48 @@
         "title": "FixCartesian",
         "type": "object"
       },
+      "FormatDescription": {
+        "additionalProperties": false,
+        "properties": {
+          "can_read": {
+            "title": "Can Read",
+            "type": "boolean"
+          },
+          "can_write": {
+            "title": "Can Write",
+            "type": "boolean"
+          },
+          "description": {
+            "title": "Description",
+            "type": "string"
+          },
+          "extensions": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Extensions",
+            "type": "array"
+          },
+          "library": {
+            "title": "Library",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "extensions",
+          "description",
+          "can_read",
+          "can_write",
+          "library"
+        ],
+        "title": "FormatDescription",
+        "type": "object"
+      },
       "HTTPValidationError": {
         "properties": {
           "detail": {
@@ -402,6 +519,32 @@
           "ase_version"
         ],
         "title": "HealthResponse",
+        "type": "object"
+      },
+      "ImportPathRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "format": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Format"
+          },
+          "path": {
+            "format": "path",
+            "title": "Path",
+            "type": "string"
+          }
+        },
+        "required": [
+          "path"
+        ],
+        "title": "ImportPathRequest",
         "type": "object"
       },
       "OpenProjectRequest": {
@@ -597,6 +740,25 @@
           "atom_indices"
         ],
         "title": "Residue",
+        "type": "object"
+      },
+      "SmilesRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "add_hydrogens": {
+            "default": true,
+            "title": "Add Hydrogens",
+            "type": "boolean"
+          },
+          "smiles": {
+            "title": "Smiles",
+            "type": "string"
+          }
+        },
+        "required": [
+          "smiles"
+        ],
+        "title": "SmilesRequest",
         "type": "object"
       },
       "Structure": {
@@ -853,6 +1015,197 @@
         "summary": "Health",
         "tags": [
           "system"
+        ]
+      }
+    },
+    "/api/io/export": {
+      "post": {
+        "operationId": "export_structure_api_io_export_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExportRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExportResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Export Structure",
+        "tags": [
+          "io"
+        ]
+      }
+    },
+    "/api/io/formats": {
+      "get": {
+        "operationId": "list_formats_api_io_formats_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/FormatDescription"
+                  },
+                  "title": "Response List Formats Api Io Formats Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List Formats",
+        "tags": [
+          "io"
+        ]
+      }
+    },
+    "/api/io/import/path": {
+      "post": {
+        "description": "Read a structure from a file on this machine (the backend is local-only).",
+        "operationId": "import_path_api_io_import_path_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ImportPathRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Structure"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Import Path",
+        "tags": [
+          "io"
+        ]
+      }
+    },
+    "/api/io/import/upload": {
+      "post": {
+        "description": "Read a structure from an uploaded file (browser file picker).",
+        "operationId": "import_upload_api_io_import_upload_post",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_import_upload_api_io_import_upload_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Structure"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Import Upload",
+        "tags": [
+          "io"
+        ]
+      }
+    },
+    "/api/io/smiles": {
+      "post": {
+        "operationId": "build_from_smiles_api_io_smiles_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SmilesRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Structure"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Build From Smiles",
+        "tags": [
+          "io"
         ]
       }
     },

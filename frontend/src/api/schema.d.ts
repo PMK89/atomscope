@@ -21,6 +21,97 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/io/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Export Structure */
+        post: operations["export_structure_api_io_export_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/io/formats": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Formats */
+        get: operations["list_formats_api_io_formats_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/io/import/path": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Import Path
+         * @description Read a structure from a file on this machine (the backend is local-only).
+         */
+        post: operations["import_path_api_io_import_path_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/io/import/upload": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Import Upload
+         * @description Read a structure from an uploaded file (browser file picker).
+         */
+        post: operations["import_upload_api_io_import_upload_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/io/smiles": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Build From Smiles */
+        post: operations["build_from_smiles_api_io_smiles_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/project": {
         parameters: {
             query?: never;
@@ -196,6 +287,11 @@ export interface components {
                 number
             ][];
         };
+        /** Body_import_upload_api_io_import_upload_post */
+        Body_import_upload_api_io_import_upload_post: {
+            /** File */
+            file: string;
+        };
         /**
          * Bond
          * @description A bond between two atom indices of the owning structure.
@@ -268,6 +364,24 @@ export interface components {
              */
             path: string;
         };
+        /** ExportRequest */
+        ExportRequest: {
+            /** Format */
+            format: string;
+            /**
+             * Path
+             * @description write here if given, else return text
+             */
+            path?: string | null;
+            structure: components["schemas"]["Structure"];
+        };
+        /** ExportResponse */
+        ExportResponse: {
+            /** Path */
+            path?: string | null;
+            /** Text */
+            text?: string | null;
+        };
         /** FixAtoms */
         FixAtoms: {
             /** Indices */
@@ -316,6 +430,21 @@ export interface components {
                 boolean
             ];
         };
+        /** FormatDescription */
+        FormatDescription: {
+            /** Can Read */
+            can_read: boolean;
+            /** Can Write */
+            can_write: boolean;
+            /** Description */
+            description: string;
+            /** Extensions */
+            extensions: string[];
+            /** Library */
+            library: string;
+            /** Name */
+            name: string;
+        };
         /** HTTPValidationError */
         HTTPValidationError: {
             /** Detail */
@@ -332,6 +461,16 @@ export interface components {
             status: string;
             /** Version */
             version: string;
+        };
+        /** ImportPathRequest */
+        ImportPathRequest: {
+            /** Format */
+            format?: string | null;
+            /**
+             * Path
+             * Format: path
+             */
+            path: string;
         };
         /** OpenProjectRequest */
         OpenProjectRequest: {
@@ -448,6 +587,16 @@ export interface components {
             /** Number */
             number: number;
         };
+        /** SmilesRequest */
+        SmilesRequest: {
+            /**
+             * Add Hydrogens
+             * @default true
+             */
+            add_hydrogens: boolean;
+            /** Smiles */
+            smiles: string;
+        };
         /**
          * Structure
          * @description The central editable object: atoms, bonds, cell and attached properties.
@@ -551,6 +700,158 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HealthResponse"];
+                };
+            };
+        };
+    };
+    export_structure_api_io_export_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ExportRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExportResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_formats_api_io_formats_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FormatDescription"][];
+                };
+            };
+        };
+    };
+    import_path_api_io_import_path_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ImportPathRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Structure"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    import_upload_api_io_import_upload_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_import_upload_api_io_import_upload_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Structure"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    build_from_smiles_api_io_smiles_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SmilesRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Structure"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };
