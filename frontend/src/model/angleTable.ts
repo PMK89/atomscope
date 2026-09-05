@@ -3,11 +3,11 @@
  * dialogs, as sections of the Properties tab).
  *
  * An angle is every pair of bonds that share an atom; a torsion is every bond with a neighbour at
- * each end. Both are editable the way the bond table's length is: the smaller of the two sides is
- * the one that moves, and a value in a ring cannot be driven at all, because rotating one side
- * about the axis would tear the ring open.
+ * each end. Both are editable: the far side of the second bond is the one that turns (the `c` side
+ * of an angle, the `c`-`d` side of a torsion), and a value in a ring cannot be driven at all,
+ * because rotating one side about the axis would tear the ring open.
  */
-import { bondAdjacency, fragmentIn, type BondAdjacency } from './connectivity';
+import { bondAdjacency, bondAdjacencyOf, fragmentIn, type BondAdjacency } from './connectivity';
 import { angleDeg, dihedralDeg } from './geometry';
 import type { StructureDoc } from './structure';
 
@@ -20,8 +20,10 @@ export interface AngleRow {
   label: string;
   /** degrees, from the positions as they are */
   value: number;
-  /** the atoms that move when the value is typed, or null when nothing can move (a ring) */
+  /** the atoms that move when the value is typed, or null when nothing can move */
   moving: number[] | null;
+  /** the three atoms are in a line: there is no plane to turn in, whatever the connectivity */
+  straight: boolean;
 }
 
 export interface TorsionRow {
@@ -73,14 +75,18 @@ export function angleRows(doc: StructureDoc, only?: ReadonlySet<number>): AngleR
         const pb = doc.atoms[b]?.position;
         const pc = doc.atoms[c]?.position;
         if (!pa || !pb || !pc) continue;
+        const value = angleDeg(pa, pb, pc);
+        // three atoms in a line have no plane to turn in, so the value cannot be driven either
+        const straight = value < 1e-6 || value > 180 - 1e-6;
         out.push({
           a,
           b,
           c,
           label: label(doc, [a, b, c]),
-          value: angleDeg(pa, pb, pc),
+          value,
           // the c side turns about the vertex; the a side stays where it is
-          moving: sideOf(adj, bondC, c, b),
+          moving: straight ? null : sideOf(adj, bondC, c, b),
+          straight,
         });
       }
     }
@@ -121,11 +127,19 @@ export function torsionRows(doc: StructureDoc, only?: ReadonlySet<number>): Tors
   return out;
 }
 
-/** How many rows each table would show without the cap. */
-export function angleRowCount(doc: StructureDoc, only?: ReadonlySet<number>): number {
-  const adj = bondAdjacency(doc);
+/**
+ * How many rows each table would show without the cap. Over the connectivity alone, not the
+ * document: the panel is always mounted, so this must not enumerate a protein on every frame of
+ * a drag.
+ */
+export function angleRowCount(
+  atomCount: number,
+  bonds: StructureDoc['bonds'],
+  only?: ReadonlySet<number>,
+): number {
+  const adj = bondAdjacencyOf(atomCount, bonds);
   let n = 0;
-  for (let b = 0; b < doc.atoms.length; b++) {
+  for (let b = 0; b < atomCount; b++) {
     const neighbours = adj[b] ?? [];
     for (let i = 0; i < neighbours.length; i++) {
       for (let j = i + 1; j < neighbours.length; j++) {
@@ -137,10 +151,14 @@ export function angleRowCount(doc: StructureDoc, only?: ReadonlySet<number>): nu
   return n;
 }
 
-export function torsionRowCount(doc: StructureDoc, only?: ReadonlySet<number>): number {
-  const adj = bondAdjacency(doc);
+export function torsionRowCount(
+  atomCount: number,
+  bonds: StructureDoc['bonds'],
+  only?: ReadonlySet<number>,
+): number {
+  const adj = bondAdjacencyOf(atomCount, bonds);
   let n = 0;
-  for (const bond of doc.bonds) {
+  for (const bond of bonds) {
     for (const [a] of adj[bond.a] ?? []) {
       if (a === bond.b) continue;
       for (const [d] of adj[bond.b] ?? []) {

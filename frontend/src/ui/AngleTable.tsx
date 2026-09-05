@@ -27,12 +27,15 @@ function ValueTable<Row extends { label: string; value: number; moving: number[]
   heading,
   waiting,
   onCommit,
+  explain,
 }: {
   rows: Row[];
   total: number;
   heading: string;
   waiting: boolean;
   onCommit: (row: Row, value: number) => void;
+  /** why a row cannot be typed; shown on the value and collected into the footnote */
+  explain: (row: Row) => string;
 }): JSX.Element {
   const selected = useSelectionStore((s) => s.atoms);
   if (waiting) {
@@ -64,7 +67,7 @@ function ValueTable<Row extends { label: string; value: number; moving: number[]
                 <td>{r.label}</td>
                 <td>
                   {r.moving === null ? (
-                    <span title="inside a ring: nothing can turn">{r.value.toFixed(2)} *</span>
+                    <span title={explain(r)}>{r.value.toFixed(2)} *</span>
                   ) : (
                     <NumberField
                       value={r.value}
@@ -79,9 +82,11 @@ function ValueTable<Row extends { label: string; value: number; moving: number[]
           </tbody>
         </table>
       </div>
-      {rows.some((r) => r.moving === null) && (
-        <p className="muted">* inside a ring: turning one side would tear it open.</p>
-      )}
+      {[...new Set(rows.filter((r) => r.moving === null).map(explain))].map((why) => (
+        <p className="muted" key={why}>
+          * {why}
+        </p>
+      ))}
       {total > rows.length && (
         <p className="muted">
           Showing {MAX_ANGLE_ROWS} of {total}. Select atoms to see theirs.
@@ -98,7 +103,11 @@ export function AngleTable(): JSX.Element {
   // the dock stays mounted, so this runs on every edit: do not enumerate a protein per keystroke
   const waiting = selected.size === 0 && doc.atoms.length > AUTO_TABLE_ATOMS;
   const rows = useMemo(() => (waiting ? [] : angleRows(doc, selected)), [doc, selected, waiting]);
-  const total = useMemo(() => angleRowCount(doc, selected), [doc, selected]);
+  // the count is connectivity only: keyed on the document it would run on every frame of a drag
+  const total = useMemo(
+    () => angleRowCount(doc.atoms.length, doc.bonds, selected),
+    [doc.atoms.length, doc.bonds, selected],
+  );
   return (
     <ValueTable
       rows={rows}
@@ -106,6 +115,11 @@ export function AngleTable(): JSX.Element {
       heading="Angles"
       waiting={waiting}
       onCommit={(r, v) => commit('Set angle', setAngle(doc, r.a, r.b, r.c, v, r.moving!))}
+      explain={(r) =>
+        r.straight
+          ? 'a straight angle: the three atoms are in a line, so there is no plane to turn in.'
+          : 'inside a ring: turning one side would tear it open.'
+      }
     />
   );
 }
@@ -116,7 +130,10 @@ export function TorsionTable(): JSX.Element {
   const selected = useSelectionStore((s) => s.atoms);
   const waiting = selected.size === 0 && doc.atoms.length > AUTO_TABLE_ATOMS;
   const rows = useMemo(() => (waiting ? [] : torsionRows(doc, selected)), [doc, selected, waiting]);
-  const total = useMemo(() => torsionRowCount(doc, selected), [doc, selected]);
+  const total = useMemo(
+    () => torsionRowCount(doc.atoms.length, doc.bonds, selected),
+    [doc.atoms.length, doc.bonds, selected],
+  );
   return (
     <ValueTable
       rows={rows}
@@ -124,6 +141,7 @@ export function TorsionTable(): JSX.Element {
       heading="Torsions"
       waiting={waiting}
       onCommit={(r, v) => commit('Set torsion', setTorsion(doc, r.a, r.b, r.c, r.d, v, r.moving!))}
+      explain={() => 'about a ring bond: turning one side would tear the ring open.'}
     />
   );
 }

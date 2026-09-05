@@ -37,8 +37,17 @@ export function findBond(doc: StructureDoc, a: number, b: number): number {
 export type BondAdjacency = [neighbour: number, bond: number][][];
 
 export function bondAdjacency(doc: StructureDoc): BondAdjacency {
-  const adj: BondAdjacency = doc.atoms.map(() => []);
-  doc.bonds.forEach((b, i) => {
+  return bondAdjacencyOf(doc.atoms.length, doc.bonds);
+}
+
+/**
+ * The same adjacency from the two things it actually depends on. A caller that only needs the
+ * connectivity can then memoize on the atom count and the bond array, and moving atoms (a drag,
+ * a trajectory frame) costs it nothing: `setPositions` keeps the bond array's identity.
+ */
+export function bondAdjacencyOf(atomCount: number, bonds: StructureDoc['bonds']): BondAdjacency {
+  const adj: BondAdjacency = Array.from({ length: atomCount }, () => []);
+  bonds.forEach((b, i) => {
     adj[b.a]?.push([b.b, i]);
     adj[b.b]?.push([b.a, i]);
   });

@@ -30,11 +30,11 @@ test('every pair of bonds at an atom is an angle, and every bond with two ends a
   const angles = angleRows(doc);
   // C1 and C2 each carry two bonds: two angles, no more
   expect(angles.map((r) => r.label)).toEqual(['H1—C2—C3', 'C2—C3—H4']);
-  expect(angleRowCount(doc)).toBe(2);
+  expect(angleRowCount(doc.atoms.length, doc.bonds)).toBe(2);
 
   const torsions = torsionRows(doc);
   expect(torsions.map((r) => r.label)).toEqual(['H1—C2—C3—H4']);
-  expect(torsionRowCount(doc)).toBe(1);
+  expect(torsionRowCount(doc.atoms.length, doc.bonds)).toBe(1);
   expect(torsions[0]!.value).toBeCloseTo(dihedralDeg(...four(doc, [0, 1, 2, 3])), 6);
 });
 
@@ -53,9 +53,9 @@ test('the side that moves is the far one, and a ring has none', () => {
 test('the tables narrow to the selection the way the bond table does', () => {
   const doc = ethane();
   expect(angleRows(doc, new Set([0])).map((r) => r.label)).toEqual(['H1—C2—C3']);
-  expect(angleRowCount(doc, new Set([0]))).toBe(1);
+  expect(angleRowCount(doc.atoms.length, doc.bonds, new Set([0]))).toBe(1);
   expect(torsionRows(doc, new Set([9]))).toEqual([]);
-  expect(torsionRowCount(doc, new Set([9]))).toBe(0);
+  expect(torsionRowCount(doc.atoms.length, doc.bonds, new Set([9]))).toBe(0);
 });
 
 test('typing an angle turns the far side to it and leaves the near side alone', () => {
@@ -85,13 +85,18 @@ test('typing a torsion turns about the central bond only', () => {
   expect(angleDeg(...three(next, [1, 2, 3]))).toBeCloseTo(angleDeg(...three(doc, [1, 2, 3])), 6);
 });
 
-test('a straight angle has no plane to turn in, so it is left alone', () => {
+test('a straight angle has no plane to turn in, so the row says so and the edit is a no-op', () => {
   const linear = normalizeStructure({
     name: 'co2',
     atoms: [makeAtom('O', [-1.2, 0, 0]), makeAtom('C', [0, 0, 0]), makeAtom('O', [1.2, 0, 0])],
     bonds: [makeBond(0, 1), makeBond(1, 2)],
   } as never);
+  const row = angleRows(linear)[0]!;
+  expect(row.straight).toBe(true);
+  expect(row.moving).toBeNull();
   expect(setAngle(linear, 0, 1, 2, 120, [2])).toBe(linear);
+  // a bent one is neither
+  expect(angleRows(ethane())[0]!.straight).toBe(false);
 });
 
 const at = (doc: StructureDoc, i: number): Vec3 => doc.atoms[i]!.position as Vec3;

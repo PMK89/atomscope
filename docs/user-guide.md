@@ -344,7 +344,8 @@ the far side of the second bond about the vertex, typing a torsion turns the
 far side about the central bond, and nothing else in the molecule moves — bond
 lengths and the other angles are left as they were. A value inside a ring
 carries a `*` and cannot be typed: turning one side of a ring about an axis
-would tear it open. A straight angle has no plane to turn in and is left alone.
+would tear it open, and a straight angle carries one too — three atoms in a
+line have no plane to turn in — with its own footnote saying which it is.
 Both tables narrow to the selection, cap at 200 rows, and above 500 atoms wait
 for a selection rather than enumerating a protein on every edit.
 

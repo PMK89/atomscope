@@ -58,6 +58,19 @@ test('a value inside a ring is read-only, and says why', () => {
   expect(screen.getByText(/turning one side would tear it open/)).toBeInTheDocument();
 });
 
+test('a straight angle says it has no plane to turn in, not that it is a ring', () => {
+  useStructureStore.getState().load(
+    normalizeStructure({
+      name: 'co2',
+      atoms: [makeAtom('O', [-1.2, 0, 0]), makeAtom('C', [0, 0, 0]), makeAtom('O', [1.2, 0, 0])],
+      bonds: [makeBond(0, 1), makeBond(1, 2)],
+    } as never),
+  );
+  render(<AngleTable />);
+  expect(screen.queryByLabelText(/value of/)).toBeNull();
+  expect(screen.getByText(/no plane to turn in/)).toBeInTheDocument();
+});
+
 test('the tables narrow to the selection', () => {
   render(<AngleTable />);
   expect(screen.getAllByLabelText(/value of/)).toHaveLength(2);
