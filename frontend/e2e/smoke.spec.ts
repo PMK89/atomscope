@@ -504,7 +504,7 @@ test('display scope hides atoms and shows only the selection', async ({ page }) 
   await expect.poll(drawn).toBeGreaterThan(all * 0.95);
 });
 
-test('atoms can be coloured by partial charge and by index', async ({ page }) => {
+test('atoms can be coloured by partial charge and by one colour', async ({ page }) => {
   /** the mean colour of the drawn pixels, which says what the molecule is painted with */
   const mean = (): Promise<[number, number, number]> =>
     page.locator('.viewport-canvas canvas').evaluate((c: HTMLCanvasElement) => {
@@ -541,8 +541,11 @@ test('atoms can be coloured by partial charge and by index', async ({ page }) =>
   await page.locator('button.menu-title', { hasText: 'Extensions' }).click();
   await page.getByRole('menuitem', { name: 'Assign partial charges' }).click();
   await expect(page.getByText(/no partial charges/)).toBeHidden();
-  // water: a negative oxygen (red) and two positive hydrogens (blue), so both ends are there
+  // water: a negative oxygen (red) and two positive hydrogens (pale blue). The oxygen sphere is
+  // the larger part of what is drawn, so the picture goes red where the element colours were not
   await expect.poll(mean).not.toEqual(elementColors);
+  const [cr, , cb] = await mean();
+  expect(cr).toBeGreaterThan(cb);
   await page.screenshot({ path: '../.scratch/dev/colour-by-charge.png' });
 
   // one colour paints everything, and it is the one the panel says

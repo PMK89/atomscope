@@ -60,18 +60,17 @@ test('secondary structure uses the cartoon colours, and unassigned residues stay
   expect(rgb(atomColors(doc.residues, doc.atoms.length, 'secondary')!, 0)).toEqual(UNKNOWN_COLOR);
 });
 
-test('the index scheme sweeps the rainbow from the first atom to the last', () => {
+test("the index scheme runs Avogadro's ramp from the first atom to the last", () => {
   const plain = normalizeStructure({
     name: 'chain',
     atoms: Array.from({ length: 5 }, (_, i) => makeAtom('C', [i, 0, 0])),
   } as never);
   const c = atomColors(plain.residues, plain.atoms.length, 'index')!;
   expect(rgb(c, 0)).toEqual([1, 0, 0]);
-  // the last atom is violet: blue with a little red, and nothing in between is red again
-  const last = rgb(c, 4);
-  expect(last[2]).toBe(1);
-  expect(last[0]).toBeGreaterThan(0.5);
-  expect(rgb(c, 2)[1]).toBeGreaterThan(0.5);
+  // the last atom is the purple end of the ramp: half red, no green, half blue
+  expect(rgb(c, 4)).toEqual([0.5, 0, 0.5]);
+  // and the middle is green, not another red
+  expect(rgb(c, 2)).toEqual([0.5, 1, 0]);
 });
 
 test('the distance scheme measures from the first atom, whatever the order', () => {
@@ -84,8 +83,9 @@ test('the distance scheme measures from the first atom, whatever the order', () 
   })!;
   expect(rgb(c, 0)).toEqual([1, 0, 0]);
   // atom 1 is the farthest, so it gets the far end of the ramp and atom 2 the middle
-  expect(rgb(c, 1)).toEqual(rainbow(1));
-  expect(rgb(c, 2)).toEqual(rainbow(0.5));
+  const round = (c: readonly number[]): number[] => c.map((v) => Number(v.toFixed(4)));
+  expect(round(rgb(c, 1))).toEqual(round(rainbow(1)));
+  expect(round(rgb(c, 2))).toEqual(round(rainbow(0.5)));
   // without the atoms the scheme has nothing to measure and says so
   expect(atomColors(plain.residues, plain.atoms.length, 'distance')).toBeNull();
 });

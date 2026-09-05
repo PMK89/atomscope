@@ -31,6 +31,8 @@
 - Adding hydrogens to a PDB structure no longer drops its residues: a new hydrogen joins the
   residue of the heavy atom it is bonded to, so the ribbons, residue labels, residue selection and
   residue colours survive `Add hydrogens`.
+- Deleting atoms now takes their per-atom properties with them: partial charges and forces used to
+  keep the old length and were then silently ignored by everything that reads them.
 - More colour maps on the Display tab: atom index and distance from the first atom (the rainbow
   sweep Avogadro uses), partial charge (red negative, blue positive, scaled by the largest in the
   structure) and a single colour of one's own.

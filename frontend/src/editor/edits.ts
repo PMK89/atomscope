@@ -90,14 +90,33 @@ export function removeAtoms(doc: StructureDoc, indices: Iterable<number>): Struc
 }
 
 /**
- * Residues and constraints after a removal: everything that refers to an atom by index has to be
- * renumbered with it, or it starts describing a different atom. A residue that lost every atom
- * and a constraint that lost any of its atoms are dropped.
+ * Per-atom properties after a removal: one entry per atom, so the entries of the atoms that went
+ * have to go with them. Left alone they keep the old length, and every reader of them checks the
+ * length against the atom count -- charges and forces would silently disappear on a delete.
+ */
+function filteredProperties<P extends { values: unknown[] }>(
+  properties: Record<string, P>,
+  remap: Int32Array,
+): Record<string, P> {
+  const out: Record<string, P> = {};
+  for (const [key, property] of Object.entries(properties)) {
+    out[key] =
+      property.values.length === remap.length
+        ? { ...property, values: property.values.filter((_, i) => remap[i]! >= 0) }
+        : property;
+  }
+  return out;
+}
+
+/**
+ * Residues, constraints and per-atom properties after a removal: everything that refers to an atom
+ * by index has to be renumbered with it, or it starts describing a different atom. A residue that
+ * lost every atom and a constraint that lost any of its atoms are dropped.
  */
 function reindexed(
   doc: StructureDoc,
   remap: Int32Array,
-): Pick<StructureDoc, 'residues' | 'constraints'> {
+): Pick<StructureDoc, 'residues' | 'constraints' | 'atomic_scalars' | 'atomic_vectors'> {
   const residues = doc.residues
     .map((r) => ({
       ...r,
@@ -128,7 +147,12 @@ function reindexed(
       ? [{ ...c, a: remap[c.a]!, b: remap[c.b]!, c: remap[c.c]!, d: remap[c.d]! }]
       : [];
   });
-  return { residues, constraints };
+  return {
+    residues,
+    constraints,
+    atomic_scalars: filteredProperties(doc.atomic_scalars, remap),
+    atomic_vectors: filteredProperties(doc.atomic_vectors, remap),
+  };
 }
 
 /** Map old atom indices to new ones after `removeAtoms(doc, removed)`; removed ones are dropped. */

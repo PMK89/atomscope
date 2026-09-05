@@ -79,31 +79,22 @@ export const CHAIN_COLORS: RGB[] = [
 ];
 
 /**
- * The rainbow Avogadro's index and distance colours sweep: red at 0 through green and blue to
- * violet at 1. Hue only, so every colour in it is fully saturated and equally bright.
+ * The ramp Avogadro's index and distance colour plugins draw (see
+ * `libavogadro/src/colors/atomindexcolor.cpp`): red at 0 through orange, yellow and green to blue,
+ * ending in a half-bright purple at 1. Piecewise linear, with the breakpoints Avogadro uses.
  */
 export function rainbow(t: number): RGB {
-  const h = 300 * Math.min(1, Math.max(0, t));
-  const c = 1;
-  const x = 1 - Math.abs(((h / 60) % 2) - 1);
-  const rgb: RGB =
-    h < 60
-      ? [c, x, 0]
-      : h < 120
-        ? [x, c, 0]
-        : h < 180
-          ? [0, c, x]
-          : h < 240
-            ? [0, x, c]
-            : h < 300
-              ? [x, 0, c]
-              : [c, 0, x];
-  return rgb;
+  const f = Math.min(1, Math.max(0, t));
+  if (f < 0.4) return [1, f * 2.5, 0]; // red -> orange -> yellow
+  if (f < 0.6) return [1 - 5 * (f - 0.4), 1, 0]; // yellow -> green
+  if (f < 0.8) return [0, 1 - 5 * (f - 0.6), 5 * (f - 0.6)]; // green -> blue
+  return [2.5 * (f - 0.8), 0, 1 - 2.5 * (f - 0.8)]; // blue -> purple
 }
 
 /**
- * Avogadro's charge colours: red for negative, blue for positive, white at zero, scaled by the
- * largest magnitude in the structure so a set of small charges is still readable.
+ * Avogadro's charge colours: white at zero towards red for negative and blue for positive.
+ * Avogadro scales by `sqrt(|q|)` clamped at 1, which is an absolute scale; this scales by the
+ * largest magnitude in the structure instead, so a set of small charges is still readable.
  */
 export function chargeColor(q: number, scale: number): RGB {
   const t = scale > 0 ? Math.min(1, Math.abs(q) / scale) : 0;
