@@ -1,6 +1,8 @@
 # Project state (resume here)
 
-Branch: main. Phases 0-1 done; Phase 2 (editor tools), 3 (volumetric, trajectories, vectors), 4-5 (CP-PAW setup/execution/forces) working; Phase 6 (CP-PAW analysis), crystallography and molecular mechanics in progress on feature branches.
+Branch: main, at `7f5bc17`. Phases 0-1 done; Phase 2 (editor tools), 3 (volumetric, trajectories, vectors), 4-5 (CP-PAW setup/execution/forces), 6 (CP-PAW analysis: DOS, bands, orbitals), crystallography, molecular mechanics and wavefunction surfaces are merged and working. Parity matrix: 111 IMPLEMENTED, 55 PARTIAL, 145 NOT STARTED, 1 BLOCKED of 312 rows.
+
+Tests: `pytest -q -m "not cppaw"` -> 254 passed, 1 skipped; `pytest -q -m cppaw` -> 7 passed (~90 s, needs the local CP-PAW install); `pnpm vitest run` -> 124 passed. `ruff check`, `mypy` and `tsc --noEmit` are clean. No known failing tests.
 
 ## Resume commands
 
@@ -24,7 +26,10 @@ make dev-backend   # 127.0.0.1:8765 ; make dev-frontend -> 127.0.0.1:5173
 
 - Merged feature branches: volumetric (marching cubes worker, isosurfaces, grid API), trajectory (playback, vector/unit-cell/axes layers), editor tools (draw/select/manipulate/bond-centric/measure/auto-rotate, properties panel, Cartesian editor).
 - CP-PAW: two-stage force evaluation, ASE CppawCalculator (BFGS with CP-PAW forces verified), fork/restart-from-parent, driver with soft stop and completion check; Codex review findings addressed (docs/reviews-codex-cppaw-2026-09-05.md).
-- Worktrees in flight (agents): feat/crystallography, feat/molecular-mechanics, feat/cppaw-analysis; Codex frontend review running (.scratch/review/codex_frontend_review.md).
+- Merged: crystallography (cells, symmetry via spglib, builders, library), molecular mechanics (Open Babel forcefields, hydrogens, pH, properties), CP-PAW analysis (DOS, band structure, orbital export, convergence charts in the Analysis panel).
+- Wavefunction surfaces (`atomscope.wavefunction`): Gaussian fchk and Molden readers (SP shells, 6D/5D, 10F/7F, gzip), contracted Gaussian evaluation with solid harmonics, molecular orbital / density / spin density / electrostatic potential / van der Waals fields, `POST /api/wavefunction/{load,surface}`, and the "Create surfaces" panel in the frontend. Validated as physics: MO overlap = identity, densities integrate to the electron count.
+
+- Worktrees in flight (agents): feat/review-fixes (frontend review findings), feat/vibrations (normal modes, IR/Raman/NMR/UV-Vis spectra), feat/performance (benchmarks, docs/performance.md), feat/docs (user guide, tutorials, developer guide).
 
 ## Known problems / open questions
 - Installed `/usr/bin/avogadro` is Avogadro 2; live Avogadro 1 comparison BLOCKED (source tree is the reference).
@@ -34,7 +39,7 @@ make dev-backend   # 127.0.0.1:8765 ; make dev-frontend -> 127.0.0.1:5173
 - `ase-cp-paw` declares MIT but has no LICENSE file (author = project owner).
 
 ## Next actions
-1. Merge feat/crystallography, feat/molecular-mechanics, feat/cppaw-analysis when their agents finish (resolve shared-file conflicts: App.tsx, RightDock.tsx, MenuBar.tsx, styles.css, client.ts, app.py, contracts regenerate).
-2. Act on the Codex frontend review; CP-PAW !OCCUPATIONS!STATE support (AFM), MPI runs, presets UI, view-settings persistence, PCA default camera.
-3. Additional backends: ORCA/Gaussian/NWChem input generation via ASE calculators (input-only plugins); vibrations/spectra; biomolecule rendering (ribbons); desktop shell ADR.
-4. Parity matrix updates; performance profiling with large systems; user documentation and tutorials.
+1. Merge feat/review-fixes, feat/vibrations, feat/performance and feat/docs when their agents finish. Shared files that always conflict: `App.tsx`, `RightDock.tsx`, `MenuBar.tsx`, `styles.css`, `client.ts`, `api/app.py`, `io/registry.py`; never hand-merge `openapi.json` / `schema.d.ts`, run `make contracts` instead.
+2. UI gaps recorded as PARTIAL: Extensions menu for the chem operations that only have API routes (add/remove hydrogens, pH, invert chirality, H->methyl, partial charges, Copy as SMILES/InChI), fragment/peptide/DNA/nanotube insert dialogs, Auto-Optimization tool, image export, constraints dialog.
+3. Remaining CRITICAL/HIGH parity gaps: label engine, Display Types dock, cut/copy/paste, cartoon/ribbon rendering with secondary-structure detection, SMARTS selection, molecular point groups, colour-by-second-cube (AV-SURF-013), QTAIM.
+4. More wavefunction readers (MOPAC aux, GAMESS, ORCA, Molpro, Slater bases) for AV-SURF-006; ORCA/Gaussian/NWChem input-only plugins; desktop shell ADR.
