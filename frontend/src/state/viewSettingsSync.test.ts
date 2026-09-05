@@ -60,3 +60,22 @@ test('a stored value of the wrong shape is ignored', () => {
   expect(s.labelSize).toBe(0.55);
   expect(s.atomLabels).toBe('symbol');
 });
+
+test('a request counter is not a setting, and a chosen background is', () => {
+  useViewStore.getState().requestCenter();
+  useViewStore.getState().setBackgroundColor('#123456');
+  const out = pickPersisted(useViewStore.getState());
+  expect(out['centerRequest']).toBeUndefined();
+  expect(out['fitRequest']).toBeUndefined();
+  expect(out['backgroundColor']).toBe('#123456');
+
+  // and it comes back, without the counter being restored over a live one
+  const before = useViewStore.getState().centerRequest;
+  applyPersisted({ ...out, centerRequest: 99 });
+  expect(useViewStore.getState().backgroundColor).toBe('#123456');
+  expect(useViewStore.getState().centerRequest).toBe(before);
+
+  // choosing a preset again takes the custom colour away, so there is one answer
+  useViewStore.getState().setBackground('black');
+  expect(useViewStore.getState().backgroundColor).toBe('');
+});

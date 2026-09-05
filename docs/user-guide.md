@@ -146,8 +146,9 @@ retries with a compatible `libgfortran` found under `~/miniconda3/pkgs`
 `Settings ▸ Preferences…` holds the settings that are about the program rather
 than the structure: rendering `Quality` (low / automatic by size / high
 tessellation), `Depth cueing` (distant atoms fade into the background),
-projection, background, and the list of calculation backends with what each one
-found on this machine. They are stored **with the open project**, not globally,
+projection, background — the white/grey/black presets, or `Custom…` for a
+colour well that takes any colour, which depth cueing then fades towards — and
+the list of calculation backends with what each one found on this machine. They are stored **with the open project**, not globally,
 and a backend is enabled by installing it, not from the dialog.
 `Edit` holds undo/redo, cut/copy/paste/clear and the Cartesian editor; `Select`
 holds the selection commands (all, none, invert, by element, by residue, solvent,
@@ -517,7 +518,9 @@ pseudopotentials.
 ## 6. Visualization
 
 The `View` menu holds the quick switches — the four display types, hydrogens,
-projection, `Fit to structure`, force vectors, unit cell, axes, labels on/off
+projection, `Fit to structure`, `Centre` (which puts the structure back in the
+middle at the zoom and angle it is at, where `Fit to structure` also reframes
+and reorients it), force vectors, unit cell, axes, labels on/off
 and the background — and everything with a setting lives in the **Display tab**
 of the right dock, which is Avogadro's Display Types dock:
 

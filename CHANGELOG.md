@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Any background colour (Settings ▸ Preferences ▸ Background ▸ Custom…), and
+  View ▸ Centre, which re-centres the structure without changing the zoom.
+
 - Recent files in the File menu, with Clear recent. The list is kept by the
   backend, so it survives opening another project and reloading the page.
 

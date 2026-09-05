@@ -27,6 +27,12 @@ export interface ViewState {
   projection: Projection;
   showHydrogens: boolean;
   background: 'white' | 'black' | 'gray';
+  /**
+   * An arbitrary background, as `#rrggbb`, which wins over the preset above (Avogadro's
+   * View ▸ Set Background Color…). Empty means "use the preset", and choosing a preset empties
+   * it again, so there is one answer to what the background is.
+   */
+  backgroundColor: string;
   /** Renderer quality and depth cueing (Settings > Preferences). */
   quality: Quality;
   fog: boolean;
@@ -36,9 +42,13 @@ export interface ViewState {
   setProjection: (p: Projection) => void;
   toggleHydrogens: () => void;
   setBackground: (b: ViewState['background']) => void;
+  setBackgroundColor: (hex: string) => void;
   /** Incremented to request "fit to structure" from whoever owns the renderer. */
   fitRequest: number;
   requestFit: () => void;
+  /** The same for "centre on the structure", which does not touch zoom or orientation. */
+  centerRequest: number;
+  requestCenter: () => void;
   /** Extra display layers (vectors, unit cell, axes). */
   showVectors: boolean;
   vectorField: string;
@@ -123,12 +133,16 @@ export const useViewStore = create<ViewState>((set) => ({
   projection: 'perspective',
   showHydrogens: true,
   background: 'white',
+  backgroundColor: '',
   fitRequest: 0,
+  centerRequest: 0,
   setStyle: (style) => set({ style }),
   setProjection: (projection) => set({ projection }),
   toggleHydrogens: () => set((s) => ({ showHydrogens: !s.showHydrogens })),
-  setBackground: (background) => set({ background }),
+  setBackground: (background) => set({ background, backgroundColor: '' }),
+  setBackgroundColor: (backgroundColor) => set({ backgroundColor }),
   requestFit: () => set((s) => ({ fitRequest: s.fitRequest + 1 })),
+  requestCenter: () => set((s) => ({ centerRequest: s.centerRequest + 1 })),
   showLabels: false,
   atomLabels: 'symbol_index',
   bondLabels: 'none',
@@ -200,3 +214,11 @@ export const BACKGROUND_HEX: Record<ViewState['background'], number> = {
   black: 0x000000,
   gray: 0x3a3d42,
 };
+
+/** The background actually drawn: the chosen colour if there is one, else the preset. */
+export function backgroundHex(state: Pick<ViewState, 'background' | 'backgroundColor'>): number {
+  const custom = /^#[0-9a-fA-F]{6}$/.test(state.backgroundColor)
+    ? Number.parseInt(state.backgroundColor.slice(1), 16)
+    : null;
+  return custom ?? BACKGROUND_HEX[state.background];
+}

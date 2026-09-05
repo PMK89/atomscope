@@ -9,8 +9,12 @@ import { useEffect, useRef, useState } from 'react';
 import { api, type BackendInfo } from '../api/client';
 import { useToolStore } from '../editor/toolStore';
 import type { Quality } from '../renderer/layers/StructureLayer';
-import { useViewStore } from '../state/viewStore';
+import { BACKGROUND_HEX, useViewStore } from '../state/viewStore';
 import { dialogKeyHandler } from './dialogKeys';
+
+/** A preset as `#rrggbb`, so switching to Custom starts from what is on screen. */
+const hexOf = (preset: keyof typeof BACKGROUND_HEX): string =>
+  `#${BACKGROUND_HEX[preset].toString(16).padStart(6, '0')}`;
 
 const QUALITIES: { id: Quality; label: string }[] = [
   { id: 'low', label: 'Low (fastest)' },
@@ -91,14 +95,30 @@ export function SettingsDialog(): JSX.Element | null {
           <label htmlFor="settings-background">Background</label>
           <select
             id="settings-background"
-            value={view.background}
-            onChange={(e) => view.setBackground(e.target.value as typeof view.background)}
+            value={view.backgroundColor ? 'custom' : view.background}
+            onChange={(e) =>
+              e.target.value === 'custom'
+                ? view.setBackgroundColor(hexOf(view.background))
+                : view.setBackground(e.target.value as typeof view.background)
+            }
           >
             <option value="white">White</option>
             <option value="gray">Grey</option>
             <option value="black">Black</option>
+            <option value="custom">Custom…</option>
           </select>
         </div>
+        {view.backgroundColor && (
+          <div className="form-row">
+            <label htmlFor="settings-background-color">Colour</label>
+            <input
+              id="settings-background-color"
+              type="color"
+              value={view.backgroundColor}
+              onChange={(e) => view.setBackgroundColor(e.target.value)}
+            />
+          </div>
+        )}
 
         <h4>Plugins</h4>
         {error && <p className="form-error">Could not read the backends: {error}</p>}

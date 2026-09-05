@@ -21,7 +21,7 @@ import type { DisplayLayer, LayerContext } from './layers/Layer';
 import { StructureLayer } from './layers/StructureLayer';
 import { imageDataUrl } from './imageData';
 import { povScene } from './pov';
-import { principalAxes } from './principalAxes';
+import { principalAxes, type PrincipalAxes } from './principalAxes';
 
 export type Projection = 'perspective' | 'orthographic';
 
@@ -164,30 +164,51 @@ export class Renderer {
     return this.layers.find((l) => l.id === id);
   }
 
-  fitToStructure(): void {
-    if (!this.ctx || this.ctx.structure.atoms.length === 0) {
-      this.controller.fit(new Vector3(), 5);
-      return;
-    }
+  /**
+   * Where what is drawn sits and how big it is, with the principal axes when they mean anything.
+   * Null when nothing is drawn.
+   */
+  private extent(): { center: Vector3; radius: number; axes: PrincipalAxes | null } | null {
+    if (!this.ctx || this.ctx.structure.atoms.length === 0) return null;
     const atoms = this.ctx.structure.atoms;
     const flat = new Float64Array(atoms.length * 3);
     atoms.forEach((a, i) => flat.set(a.position, 3 * i));
     const pa = principalAxes(flat, atoms.length);
-    const c = pa ? new Vector3(...pa.center) : new Vector3(...(atoms[0]?.position ?? [0, 0, 0]));
-    let r = 0;
-    for (const a of atoms) r = Math.max(r, c.distanceTo(new Vector3(...a.position)));
+    const center = pa
+      ? new Vector3(...pa.center)
+      : new Vector3(...(atoms[0]?.position ?? [0, 0, 0]));
+    let radius = 0;
+    for (const a of atoms) radius = Math.max(radius, center.distanceTo(new Vector3(...a.position)));
     // periodic images are part of what is drawn, so they are part of what has to fit on screen
     const cell = this.ctx.cellOverride ?? this.ctx.structure.cell?.vectors ?? null;
     const images = this.structureLayer.imageExtent(cell);
-    c.add(new Vector3(...images.center));
-    r += images.radius;
-    // Default orientation: look along the axis of least extent, largest extent horizontal.
-    if (pa && pa.variances[0] > 1e-6) {
-      const view = new Vector3(...pa.axes[2]);
-      const up = new Vector3(...pa.axes[1]);
-      this.controller.lookAlong(view, up);
+    center.add(new Vector3(...images.center));
+    radius += images.radius;
+    return { center, radius, axes: pa };
+  }
+
+  fitToStructure(): void {
+    const found = this.extent();
+    if (!found) {
+      this.controller.fit(new Vector3(), 5);
+      return;
     }
-    this.controller.fit(c, r + 1.5);
+    const { center, radius, axes } = found;
+    // Default orientation: look along the axis of least extent, largest extent horizontal.
+    if (axes && axes.variances[0] > 1e-6) {
+      this.controller.lookAlong(new Vector3(...axes.axes[2]), new Vector3(...axes.axes[1]));
+    }
+    this.controller.fit(center, radius + 1.5);
+  }
+
+  /**
+   * Avogadro's View ▸ Center: put the structure back in the middle without touching the zoom or
+   * the orientation, which is what you want after dragging a fragment off the screen.
+   */
+  centerOnStructure(): void {
+    const found = this.extent();
+    this.controller.setPivot(found ? found.center : new Vector3());
+    this.invalidate();
   }
 
   /** Atom index under the pointer (client coordinates), or null. */

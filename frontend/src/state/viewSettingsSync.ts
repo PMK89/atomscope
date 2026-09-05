@@ -26,11 +26,14 @@ function sameShape(a: unknown, b: unknown): boolean {
   return typeof a === typeof b;
 }
 
+/** Counters that ask the renderer to do something once; they are not settings. */
+const TRANSIENT = new Set(['fitRequest', 'centerRequest']);
+
 export function pickPersisted(state: ViewState): Record<string, unknown> {
   const out: Record<string, unknown> = {};
   for (const [key, v] of Object.entries(state)) {
     // strings and tuples count: a label content, a colour and a cell repeat are settings too
-    if (key !== 'fitRequest' && isSetting(v)) out[key] = v;
+    if (!TRANSIENT.has(key) && isSetting(v)) out[key] = v;
   }
   return out;
 }
@@ -40,8 +43,7 @@ export function applyPersisted(settings: Record<string, unknown>): void {
   const current = useViewStore.getState() as unknown as Record<string, unknown>;
   for (const [k, v] of Object.entries(settings)) {
     // a stored value of the wrong shape (an older or hand-edited file) would break the renderer
-    if (k in current && k !== 'fitRequest' && isSetting(v) && sameShape(current[k], v))
-      patch[k] = v;
+    if (k in current && !TRANSIENT.has(k) && isSetting(v) && sameShape(current[k], v)) patch[k] = v;
   }
   useViewStore.setState(patch as Partial<ViewState>);
 }

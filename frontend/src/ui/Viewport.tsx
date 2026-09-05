@@ -7,7 +7,7 @@ import { useStructureStore } from '../state/structureStore';
 import { useTrajectoryStore } from '../state/trajectoryStore';
 import { frameCell, framePositions, isTrajectoryCompatible } from '../model/trajectory';
 import { installExtraLayers, syncExtraLayers } from './viewportLayers';
-import { BACKGROUND_HEX, useViewStore } from '../state/viewStore';
+import { backgroundHex, useViewStore } from '../state/viewStore';
 import { atomColorArray, atomColors } from '../renderer/atomColors';
 import { partialCharges } from '../renderer/labels';
 import { hiddenAtoms, styleArray } from '../renderer/atomStyles';
@@ -77,6 +77,7 @@ export function Viewport(): JSX.Element {
   const hidden = useMemo(() => hiddenAtoms(atomStyleOverride), [atomStyleOverride]);
   const lastFitted = useRef<string | null>(null);
   const lastFitRequest = useRef(0);
+  const lastCenterRequest = useRef(0);
   // renderer readiness as state, so surfaces already in the store mount into a new renderer
   useIsosurfaceLayers(mounted?.renderer ?? null);
 
@@ -112,7 +113,7 @@ export function Viewport(): JSX.Element {
       atomStyles: atomStyleOverride,
       quality: view.quality,
     });
-    r.setBackground(BACKGROUND_HEX[view.background]);
+    r.setBackground(backgroundHex(view));
     r.setFog(view.fog);
     if (r.projection !== view.projection) r.setProjection(view.projection);
     syncExtraLayers(r, view, view.showRibbon ? secondary : null, hidden);
@@ -124,6 +125,10 @@ export function Viewport(): JSX.Element {
       positionsOverride,
       cellOverride,
     });
+    if (lastCenterRequest.current !== view.centerRequest) {
+      lastCenterRequest.current = view.centerRequest;
+      r.centerOnStructure();
+    }
     if (lastFitted.current !== doc.id || lastFitRequest.current !== view.fitRequest) {
       lastFitted.current = doc.id;
       lastFitRequest.current = view.fitRequest;
