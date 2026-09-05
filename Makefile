@@ -7,7 +7,7 @@ export npm_config_cache := $(ROOT)/.npm-cache
 export PLAYWRIGHT_BROWSERS_PATH := $(ROOT)/.playwright-browsers
 PY := $(ROOT)/.venv/bin/python
 
-.PHONY: setup backend-sync frontend-install test test-backend test-frontend lint typecheck dev-backend dev-frontend contracts
+.PHONY: test-e2e setup backend-sync frontend-install test test-backend test-frontend lint typecheck dev-backend dev-frontend contracts
 
 setup: backend-sync frontend-install
 
@@ -43,3 +43,6 @@ dev-frontend:
 contracts:
 	cd backend && $(PY) -m atomscope.api.export_openapi ../frontend/src/api/openapi.json
 	cd frontend && pnpm exec openapi-typescript src/api/openapi.json -o src/api/schema.d.ts
+
+test-e2e:
+	cd frontend && pnpm exec playwright test
