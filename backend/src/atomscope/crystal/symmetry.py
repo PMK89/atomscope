@@ -89,7 +89,7 @@ def _standardize(
         msg = "spglib could not standardize the cell (try a larger tolerance)"
         raise ValueError(msg)
     lattice, scaled, numbers = result
-    out = Atoms(numbers=numbers, cell=lattice, pbc=True)
+    out = Atoms(numbers=numbers, cell=lattice, pbc=atoms.pbc)
     out.set_scaled_positions(scaled)
     return new_atoms(structure, out)
 

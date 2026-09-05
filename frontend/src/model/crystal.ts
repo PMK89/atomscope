@@ -119,12 +119,18 @@ export function parseMatrix(text: string): Mat3 {
   return out as Mat3;
 }
 
+/** One line per atom ("El fx fy fz"); empty without a cell or for a singular cell. */
 export function formatFractional(doc: StructureDoc, digits = 5): string {
   if (!doc.cell) return '';
-  const cell = doc.cell;
+  let inv: Mat3;
+  try {
+    inv = invert3(doc.cell.vectors as Mat3);
+  } catch {
+    return '';
+  }
   return doc.atoms
     .map((a) => {
-      const f = cartToFrac(a.position, cell);
+      const f = mulRow(a.position, inv);
       return `${a.element.padEnd(2)} ${f.map((x) => x.toFixed(digits).padStart(10)).join(' ')}`;
     })
     .join('\n');

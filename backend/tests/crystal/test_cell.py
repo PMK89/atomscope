@@ -32,6 +32,13 @@ def test_set_cell_preserve_cartesian_vs_fractional(si_conventional: Structure) -
     assert frac.bonds == si_conventional.bonds
 
 
+def test_set_cell_rejects_singular(nacl: Structure) -> None:
+    with pytest.raises(ValueError, match="linearly dependent"):
+        crystal.set_cell(nacl, ((1, 0, 0), (2, 0, 0), (0, 0, 1)))
+    with pytest.raises(ValueError, match="linearly dependent"):
+        crystal.set_cell(nacl, ((0, 0, 0), (0, 0, 0), (0, 0, 0)))
+
+
 def test_set_cell_on_molecule_adds_cell(water: Structure) -> None:
     out = crystal.set_cell(water, ((10, 0, 0), (0, 10, 0), (0, 0, 10)), "fractional")
     assert out.cell is not None and out.cell.pbc == (True, True, True)
@@ -62,6 +69,8 @@ def test_translate_cartesian_and_selection(nacl: Structure) -> None:
     part = crystal.translate_atoms(nacl, (0.5, 0, 0), "fractional", indices=[0])
     delta = part.positions() - nacl.positions()
     assert np.allclose(delta[0], (2.82, 0, 0)) and np.allclose(delta[1:], 0)
+    with pytest.raises(ValueError, match="out of range"):
+        crystal.translate_atoms(nacl, (1, 0, 0), indices=[8])
 
 
 def test_rotate_to_standard_orientation(si_primitive: Structure) -> None:
@@ -104,6 +113,7 @@ def test_add_and_remove_cell(water: Structure) -> None:
     [
         ((4, 4, 4, 90, 90, 90), "cubic"),
         ((4, 4, 6, 90, 90, 90), "tetragonal"),
+        ((4.0, 4.003, 4.006, 90, 90, 90), "orthorhombic"),
         ((4, 5, 6, 90, 90, 90), "orthorhombic"),
         ((4, 4, 6, 90, 90, 120), "hexagonal"),
         ((4, 4, 4, 70, 70, 70), "rhombohedral"),

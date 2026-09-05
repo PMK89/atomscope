@@ -9,7 +9,7 @@ def test_supercell(si_primitive: Structure, nacl: Structure) -> None:
     out = crystal.supercell(si_primitive, repeat=(2, 2, 2))
     assert out.n_atoms == 16 and out.cell is not None
     assert out.cell.volume() == pytest.approx(8 * si_primitive.cell.volume())  # type: ignore[union-attr]
-    assert out.name == "Si 2x2x2"
+    assert out.name == "Si 2x2x2" and out.id == si_primitive.id
     assert out.bonds
     m = crystal.supercell(nacl, matrix=((1, 1, 0), (-1, 1, 0), (0, 0, 1)))
     assert m.n_atoms == 16

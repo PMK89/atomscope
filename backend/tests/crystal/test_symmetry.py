@@ -42,6 +42,7 @@ def test_symmetrize_and_primitive(si_primitive: Structure, si_conventional: Stru
     assert conv.n_atoms == 8 and conv.cell is not None
     assert np.allclose(conv.cell.lengths_angles()[0], 5.43)
     assert crystal.symmetrize(conv).n_atoms == 8  # idempotent
+    assert conv.id == si_primitive.id and conv.cell.pbc == (True, True, True)  # type: ignore[union-attr]
     prim = crystal.primitive_cell(si_conventional)
     assert prim.n_atoms == 2 and prim.cell is not None
     assert prim.cell.volume() == pytest.approx(5.43**3 / 4)

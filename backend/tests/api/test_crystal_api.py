@@ -86,6 +86,14 @@ def test_set_cell_parameters_and_matrix(client: TestClient) -> None:
     assert np.allclose(out.positions(), NACL.positions())
     r = client.post("/api/crystal/cell/set", json={"structure": _json(NACL)})
     assert r.status_code == 400
+    zero = [[0, 0, 0]] * 3
+    r = client.post("/api/crystal/cell/set", json={"structure": _json(NACL), "vectors": zero})
+    assert r.status_code == 400 and "linearly dependent" in r.json()["detail"]
+    r = client.post(
+        "/api/crystal/translate",
+        json={"structure": _json(NACL), "vector": [1, 0, 0], "indices": [99]},
+    )
+    assert r.status_code == 400
 
 
 def test_add_remove_cell(client: TestClient) -> None:

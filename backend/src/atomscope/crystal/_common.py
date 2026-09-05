@@ -34,7 +34,9 @@ def new_atoms(structure: Structure, atoms: Atoms, name: str | None = None) -> St
     atoms.info.pop(INFO_KEY, None)
     atoms.set_constraint()
     out = from_atoms(atoms, name=name or structure.name)
+    out.id = structure.id
     out.charge = structure.charge
+    out.multiplicity = structure.multiplicity
     out.provenance = structure.provenance
     out.bonds = perceive_bonds(out)
     return out

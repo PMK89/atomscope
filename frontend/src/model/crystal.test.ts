@@ -105,6 +105,15 @@ test('fractional editor text', () => {
   expect(lines[2]!.position).toEqual([1.25, 1.25, 1.25]);
   expect(() => parseFractional('Xx 0 0 0', cubic)).toThrow(/unknown element/);
   expect(formatFractional({ ...doc, cell: null })).toBe('');
+  const singular: Cell = {
+    vectors: [
+      [1, 0, 0],
+      [2, 0, 0],
+      [0, 0, 1],
+    ],
+    pbc: [true, true, true],
+  };
+  expect(formatFractional({ ...doc, cell: singular })).toBe('');
 });
 
 test('repeat and Miller parsing', () => {

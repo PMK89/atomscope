@@ -50,6 +50,9 @@ def set_cell(structure: Structure, vectors: Mat3, mode: CoordinateMode = "cartes
     coordinates, i.e. the atoms move with the lattice. A structure without a cell is given one
     (fractional mode then behaves like cartesian).
     """
+    if abs(np.linalg.det(np.array(vectors))) < 1e-8:
+        msg = "cell vectors are linearly dependent (zero volume)"
+        raise ValueError(msg)
     atoms = to_atoms(structure)
     pbc = structure.cell.pbc if structure.cell is not None else (True, True, True)
     scale = mode == "fractional" and structure.cell is not None
@@ -94,6 +97,9 @@ def translate_atoms(
     shift = np.array(vector, dtype=float)
     if mode == "fractional":
         shift = shift @ np.array(atoms.cell)
+    if indices is not None and any(i < 0 or i >= len(atoms) for i in indices):
+        msg = f"atom index out of range 0..{len(atoms) - 1}"
+        raise ValueError(msg)
     sel = np.arange(len(atoms)) if indices is None else np.array(indices, dtype=int)
     positions = atoms.get_positions()
     positions[sel] += shift
@@ -158,8 +164,9 @@ def lattice_type_from_parameters(cell: Cell, tol: float = 1e-3) -> LatticeType:
     right = [eq(x, 90.0) for x in (alpha, beta, gamma)]
     n_equal = sum([eq(a, b), eq(b, c), eq(a, c)])
     if all(right):
-        by_lengths: dict[int, LatticeType] = {3: "cubic", 1: "tetragonal", 0: "orthorhombic"}
-        return by_lengths[n_equal]
+        if n_equal == 3:
+            return "cubic"
+        return "tetragonal" if n_equal == 1 else "orthorhombic"
     if eq(a, b) and right[0] and right[1] and eq(gamma, 120.0):
         return "hexagonal"
     if n_equal == 3 and eq(alpha, beta) and eq(beta, gamma):
