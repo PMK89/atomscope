@@ -27,6 +27,8 @@ export class AutoOptimizeTool implements Tool {
   private timer: ReturnType<typeof setTimeout> | null = null;
   private unsubscribe: (() => void) | null = null;
   private changed = false;
+  /** The last document this tool previewed, so its own previews do not look like someone else's. */
+  private shown: StructureDoc | null = null;
   private drag: { atom: number; at: Vector3 } | null = null;
   private schedule: (fn: () => void, ms: number) => ReturnType<typeof setTimeout> = (fn, ms) =>
     setTimeout(fn, ms);
@@ -43,9 +45,21 @@ export class AutoOptimizeTool implements Tool {
 
   activate(ctx: ToolContext): void {
     this.sync(ctx);
-    this.unsubscribe = ctx.tools.subscribe((s, prev) => {
+    const unsubscribeTools = ctx.tools.subscribe((s, prev) => {
       if (s.autoOptimize.running !== prev.autoOptimize.running) this.sync(ctx);
     });
+    // an undo or redo during a run would be swallowed by the next round: stop instead
+    const unsubscribeHistory = ctx.structure.subscribe((s, prev) => {
+      if (s.historyRevision !== prev.historyRevision && this.running) {
+        this.shown = null;
+        this.changed = false;
+        ctx.tools.getState().update('autoOptimize', { running: false });
+      }
+    });
+    this.unsubscribe = () => {
+      unsubscribeTools();
+      unsubscribeHistory();
+    };
   }
 
   deactivate(ctx: ToolContext): void {
@@ -62,7 +76,9 @@ export class AutoOptimizeTool implements Tool {
   }
 
   onPointerDown(e: PointerLike, ctx: ToolContext): void {
-    if (e.button !== 0) return;
+    // dragging is only meaningful while the force field runs; otherwise it would leave a preview
+    // behind that some later commit would adopt under its own label
+    if (e.button !== 0 || !ctx.tools.getState().autoOptimize.running) return;
     const hit = ctx.renderer.pick(e.clientX, e.clientY);
     if (hit?.kind !== 'atom') return;
     const p = ctx.structure.getState().doc.atoms[hit.index]?.position;
@@ -87,11 +103,15 @@ export class AutoOptimizeTool implements Tool {
     const st = ctx.structure.getState();
     const at: Vec3 = [this.drag.at.x, this.drag.at.y, this.drag.at.z];
     const next = setPositions(st.doc, new Map([[this.drag.atom, at]]));
-    if (next !== st.doc) {
-      this.changed = true;
-      st.preview(next);
-      ctx.renderer.invalidate();
-    }
+    if (next !== st.doc) this.show(ctx, next);
+  }
+
+  /** Preview `next` and remember it, so the next round knows it was this tool that moved things. */
+  private show(ctx: ToolContext, next: StructureDoc): void {
+    this.changed = true;
+    this.shown = next;
+    ctx.structure.getState().preview(next);
+    ctx.renderer.invalidate();
   }
 
   private sync(ctx: ToolContext): void {
@@ -116,6 +136,7 @@ export class AutoOptimizeTool implements Tool {
     if (commit && this.changed) st.commit('Auto-optimize', st.doc);
     else if (!commit) st.cancelPreview();
     this.changed = false;
+    this.shown = null;
   }
 
   /** One round. A round that is still in flight is never joined by a second one. */
@@ -134,6 +155,10 @@ export class AutoOptimizeTool implements Tool {
         this.inFlight = false;
         if (!this.running) return;
         this.apply(ctx, before, result.doc);
+        ctx.tools.getState().update('autoOptimize', {
+          energy: result.energy,
+          energyUnit: result.unit,
+        });
         this.timer = this.schedule(() => this.tick(ctx), TICK_MS);
       })
       .catch((e: unknown) => {
@@ -148,11 +173,11 @@ export class AutoOptimizeTool implements Tool {
 
   private apply(ctx: ToolContext, before: StructureDoc, next: StructureDoc): void {
     const st = ctx.structure.getState();
-    // the user edited or undid while the round ran: that document wins, this result is stale
-    if (st.doc !== before) return;
-    this.changed = true;
-    st.preview(next);
+    // Someone else edited while the round ran: that document wins and this result is stale. The
+    // tool's own previews do not count -- dragging replaces the document on every pointer move,
+    // and dropping the results then would mean the molecule never relaxes while an atom is held.
+    if (st.doc !== before && st.doc !== this.shown) return;
+    this.show(ctx, next);
     this.hold(ctx);
-    ctx.renderer.invalidate();
   }
 }

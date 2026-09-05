@@ -321,6 +321,11 @@ function AutoOptimizeSettings(): JSX.Element {
           {opt.running ? 'Stop' : 'Start'}
         </button>
       </div>
+      {opt.energy !== null && (
+        <p className="muted">
+          Energy {opt.energy.toFixed(4)} {opt.energyUnit}
+        </p>
+      )}
       <p className="muted">
         Drag an atom while it runs and the rest relaxes around it. The whole run is one undo step.
       </p>

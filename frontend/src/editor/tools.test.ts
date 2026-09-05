@@ -544,6 +544,56 @@ describe('auto-optimize', () => {
     expect(S().doc.atoms[0]!.position).toEqual([2, 1, 0]);
   });
 
+  test('a round that lands mid-drag still relaxes the molecule', async () => {
+    // the request is held open, so the pointer moves while the round is in flight
+    let release: (() => void) | null = null;
+    const step = vi.spyOn(api.chem, 'optimizeStep').mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          const answer = shrink();
+          release = () => resolve(answer as never);
+        }),
+    );
+    const { next } = armed();
+    useToolStore.getState().update('autoOptimize', { running: true });
+    await vi.waitFor(() => expect(step).toHaveBeenCalledTimes(1));
+    release!();
+    await next();
+
+    host.pointerDown(ev(...at(0, 0), { buttons: 1 }));
+    await vi.waitFor(() => expect(step).toHaveBeenCalledTimes(2));
+    const held = S().doc.atoms[1]!.position;
+    // the pointer moves while round 2 is still open: the tool's own preview must not look stale
+    host.pointerMove(ev(...at(2, 1), { buttons: 1 }));
+    release!();
+
+    await vi.waitFor(() => expect(S().doc.atoms[1]!.position).not.toEqual(held));
+    expect(S().doc.atoms[0]!.position).toEqual([2, 1, 0]);
+  });
+
+  test('dragging without a run leaves no preview behind', () => {
+    armed();
+    const before = S().doc;
+    host.pointerDown(ev(...at(0, 0), { buttons: 1 }));
+    host.pointerMove(ev(...at(2, 1), { buttons: 1 }));
+    host.pointerUp(ev(...at(2, 1)));
+    expect(S().doc).toBe(before);
+    expect(useStructureStore.getState().previewBase).toBe(null);
+  });
+
+  test('an undo during a run stops it rather than optimizing the restored geometry', async () => {
+    vi.spyOn(api.chem, 'optimizeStep').mockImplementation(() => Promise.resolve(shrink() as never));
+    // something to undo: the run itself only previews
+    S().commit('Move 1 atom', { ...S().doc, name: 'moved' });
+    const before = S().doc;
+    armed();
+    useToolStore.getState().update('autoOptimize', { running: true });
+    await vi.waitFor(() => expect(S().doc).not.toBe(before));
+
+    S().undo();
+    expect(useToolStore.getState().autoOptimize.running).toBe(false);
+  });
+
   test('a force field that cannot be set up stops the run and says so once', async () => {
     const step = vi
       .spyOn(api.chem, 'optimizeStep')

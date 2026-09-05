@@ -286,6 +286,9 @@ undo history**.
   up. The document's own constraints are honoured (see [§8.7](#87-constraints)),
   the whole run is a single undo step named `Auto-optimize`, and a force field
   that cannot type the molecule stops the run with the reason in the status bar.
+  The panel shows the energy of the last round. Undo or redo during a run stops
+  it rather than immediately optimizing the restored geometry, and dragging does
+  nothing until the run is started.
 * **Auto-rotate** — three speed sliders (−180…180 °/s; defaults x 0, y 20,
   z 0) with `Start`/`Stop` and `Reset`.
 

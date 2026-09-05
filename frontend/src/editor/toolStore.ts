@@ -15,6 +15,9 @@ export interface ToolSettings {
     forceField: string;
     algorithm: 'steepest_descent' | 'conjugate_gradients';
     steps: number;
+    /** energy of the last round, so the panel can show the run doing something */
+    energy: number | null;
+    energyUnit: string;
     /** why the run stopped, for the status bar */
     message: string | null;
   };
@@ -45,6 +48,8 @@ export const useToolStore = create<ToolState>((set) => ({
     forceField: 'MMFF94',
     algorithm: 'steepest_descent',
     steps: 4,
+    energy: null,
+    energyUnit: 'eV',
     message: null,
   },
   overlayVersion: 0,
