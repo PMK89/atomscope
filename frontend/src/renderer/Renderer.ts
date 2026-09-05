@@ -72,30 +72,43 @@ export class Renderer {
     this.invalidate();
   }
 
-  /** Add a display layer (e.g. isosurfaces) on top of the structure layer. */
-  addLayer(layer: DisplayLayer): void {
-    if (this.layers.includes(layer)) return;
-    this.layers.push(layer);
-    this.scene.add(layer.object);
-    if (this.ctx) layer.update(this.ctx);
-    this.invalidate();
-  }
-
-  /** Remove and dispose a layer added with `addLayer`. */
-  removeLayer(layer: DisplayLayer): void {
-    const idx = this.layers.indexOf(layer);
-    if (idx < 0 || layer === this.structureLayer) return;
-    this.layers.splice(idx, 1);
-    this.scene.remove(layer.object);
-    layer.dispose();
-    this.invalidate();
-  }
-
   /** Push a new structure snapshot to all layers. */
   update(ctx: LayerContext): void {
     this.ctx = ctx;
-    for (const layer of this.layers) if (layer.visible) layer.update(ctx);
+    for (const layer of this.layers) {
+      layer.object.visible = layer.visible;
+      if (layer.visible) layer.update(ctx);
+    }
     this.invalidate();
+  }
+
+  /** Add a display layer (no-op if a layer with the same id exists). */
+  addLayer(layer: DisplayLayer): void {
+    if (this.getLayer(layer.id)) return;
+    this.layers.push(layer);
+    this.scene.add(layer.object);
+    if (this.ctx && layer.visible) layer.update(this.ctx);
+    this.invalidate();
+  }
+
+  /**
+   * Detach a layer from the scene. Passing the layer object also disposes it; passing an id
+   * only detaches (the caller owns `dispose()`). The structure layer cannot be removed.
+   */
+  removeLayer(layerOrId: DisplayLayer | string): DisplayLayer | undefined {
+    const id = typeof layerOrId === 'string' ? layerOrId : layerOrId.id;
+    const idx = this.layers.findIndex((l) => l.id === id);
+    if (idx < 0) return undefined;
+    const [layer] = this.layers.splice(idx, 1);
+    if (!layer || layer === this.structureLayer) return undefined;
+    this.scene.remove(layer.object);
+    if (typeof layerOrId !== 'string') layer.dispose();
+    this.invalidate();
+    return layer;
+  }
+
+  getLayer(id: string): DisplayLayer | undefined {
+    return this.layers.find((l) => l.id === id);
   }
 
   fitToStructure(): void {
@@ -159,6 +172,8 @@ export class Renderer {
 
   private renderNow(): void {
     this.gl.render(this.scene, this.camera);
+    for (const layer of this.layers)
+      if (layer.visible && layer.renderOverlay) layer.renderOverlay(this.gl, this.camera);
   }
 
   private resize(): void {

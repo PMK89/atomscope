@@ -7,6 +7,7 @@ import { MenuBar } from './MenuBar';
 import { ProjectPanel } from './ProjectPanel';
 import { StatusBar } from './StatusBar';
 import { SurfacesPanel } from './SurfacesPanel';
+import { TrajectoryPlayer } from './TrajectoryPlayer';
 import { Viewport } from './Viewport';
 
 function demoWater() {
@@ -47,6 +48,7 @@ export function App(): JSX.Element {
           <div className="app-viewport">
             <Viewport />
           </div>
+          <TrajectoryPlayer onError={setError} />
           <JobConsole />
         </section>
         <aside className="app-dock app-dock-right">

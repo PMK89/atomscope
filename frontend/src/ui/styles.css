@@ -147,7 +147,7 @@ button {
 }
 .app-center {
   display: grid;
-  grid-template-rows: 1fr 160px;
+  grid-template-rows: 1fr auto 160px;
   min-width: 0;
   min-height: 0;
 }
@@ -370,4 +370,52 @@ button {
   border-radius: 2px;
   margin-right: 4px;
   vertical-align: middle;
+}
+
+/* trajectory player: docked between viewport (row 1) and console (row 3) */
+.app-viewport {
+  grid-row: 1;
+}
+.console {
+  grid-row: 3;
+}
+.trajectory-player {
+  grid-row: 2;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 8px;
+  border-top: 1px solid var(--border);
+  background: var(--panel);
+  font-variant-numeric: tabular-nums;
+  flex-wrap: wrap;
+}
+.trajectory-player button {
+  padding: 2px 8px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+}
+.trajectory-player button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.trajectory-player input[type='range'] {
+  flex: 1 1 120px;
+  min-width: 80px;
+}
+.trajectory-player input[type='number'] {
+  width: 3.5em;
+}
+.trajectory-player select {
+  font: inherit;
+}
+.trajectory-readout {
+  display: flex;
+  gap: 10px;
+  white-space: nowrap;
+}
+.trajectory-sparkline {
+  height: 28px;
+  width: 140px;
+  flex: 0 0 auto;
 }

@@ -57,6 +57,12 @@ export class StructureLayer implements DisplayLayer {
   /** instance index -> atom index (hidden hydrogens are skipped) */
   private atomOfInstance: number[] = [];
   private instanceOfAtom: Int32Array = new Int32Array(0);
+  /** per instance sphere radius, cached so per-frame position updates skip element lookups */
+  private instanceRadius: Float32Array = new Float32Array(0);
+  private lastOverride: Float32Array | null = null;
+  private lastSelected: ReadonlySet<number> | null = null;
+  private lastHovered: number | null = null;
+  private lastStructure: StructureDoc | null = null;
 
   constructor(settings: Partial<StructureLayerSettings> = {}) {
     this.settings = { ...DEFAULT_STRUCTURE_SETTINGS, ...settings };
@@ -84,7 +90,65 @@ export class StructureLayer implements DisplayLayer {
       this.lastRevision = ctx.revision;
       this.lastSettings = settingsKey;
     }
-    this.applyColors(ctx);
+    // display-only positions (trajectory frame): update instance matrices, keep topology
+    const raw = ctx.positionsOverride ?? null;
+    const override = raw && raw.length === ctx.structure.atoms.length * 3 ? raw : null;
+    if (geometryChanged || override !== this.lastOverride) {
+      this.applyPositions(ctx.structure, override);
+      this.lastOverride = override;
+    }
+    if (
+      geometryChanged ||
+      ctx.structure !== this.lastStructure ||
+      ctx.selectedAtoms !== this.lastSelected ||
+      ctx.hoveredAtom !== this.lastHovered
+    ) {
+      this.applyColors(ctx);
+      this.lastStructure = ctx.structure;
+      this.lastSelected = ctx.selectedAtoms;
+      this.lastHovered = ctx.hoveredAtom;
+    }
+  }
+
+  /** Write atom and bond instance matrices from `override` (3 floats per atom) or the structure. */
+  private applyPositions(s: StructureDoc, override: Float32Array | null): void {
+    const m = new Matrix4();
+    const a = new Vector3();
+    const b = new Vector3();
+    const mid = new Vector3();
+    const read = (atomIndex: number, out: Vector3): Vector3 => {
+      if (override) {
+        return out.set(
+          override[3 * atomIndex]!,
+          override[3 * atomIndex + 1]!,
+          override[3 * atomIndex + 2]!,
+        );
+      }
+      const p = s.atoms[atomIndex]!.position;
+      return out.set(p[0], p[1], p[2]);
+    };
+    if (this.atomMesh) {
+      for (let k = 0; k < this.atomOfInstance.length; k++) {
+        const r = this.instanceRadius[k]!;
+        m.makeScale(r, r, r).setPosition(read(this.atomOfInstance[k]!, a));
+        this.atomMesh.setMatrixAt(k, m);
+      }
+      this.atomMesh.instanceMatrix.needsUpdate = true;
+    }
+    if (this.bondMesh) {
+      const radius =
+        this.settings.style === 'wireframe'
+          ? this.settings.bondRadius * 0.35
+          : this.settings.bondRadius;
+      this.bondMeshBonds.forEach((bond, k) => {
+        read(bond.a, a);
+        read(bond.b, b);
+        mid.addVectors(a, b).multiplyScalar(0.5);
+        this.bondMesh!.setMatrixAt(2 * k, cylinderMatrix(a, mid, radius, m));
+        this.bondMesh!.setMatrixAt(2 * k + 1, cylinderMatrix(mid, b, radius, m));
+      });
+      this.bondMesh.instanceMatrix.needsUpdate = true;
+    }
   }
 
   private rebuild(s: StructureDoc): void {
@@ -101,17 +165,11 @@ export class StructureLayer implements DisplayLayer {
 
     // atoms
     const atomMesh = new InstancedMesh(this.sphereGeometry, this.material, visibleAtoms.length);
-    const m = new Matrix4();
-    const p = new Vector3();
+    this.instanceRadius = new Float32Array(visibleAtoms.length);
     visibleAtoms.forEach((atomIndex, k) => {
-      const atom = s.atoms[atomIndex]!;
-      const el = elementBySymbol(atom.element);
-      const r = this.atomRadius(el.covalentRadius, el.vdwRadius, style);
-      p.set(atom.position[0], atom.position[1], atom.position[2]);
-      m.makeScale(r, r, r).setPosition(p);
-      atomMesh.setMatrixAt(k, m);
+      const el = elementBySymbol(s.atoms[atomIndex]!.element);
+      this.instanceRadius[k] = this.atomRadius(el.covalentRadius, el.vdwRadius, style);
     });
-    atomMesh.instanceMatrix.needsUpdate = true;
     atomMesh.frustumCulled = false;
     this.atomMesh = atomMesh;
     this.object.add(atomMesh);
@@ -122,21 +180,6 @@ export class StructureLayer implements DisplayLayer {
         (b) => this.instanceOfAtom[b.a]! >= 0 && this.instanceOfAtom[b.b]! >= 0,
       );
       const bondMesh = new InstancedMesh(this.cylinderGeometry, this.material, bonds.length * 2);
-      const a = new Vector3();
-      const b = new Vector3();
-      const mid = new Vector3();
-      const radius =
-        style === 'wireframe' ? this.settings.bondRadius * 0.35 : this.settings.bondRadius;
-      bonds.forEach((bond, k) => {
-        const pa = s.atoms[bond.a]!.position;
-        const pb = s.atoms[bond.b]!.position;
-        a.set(pa[0], pa[1], pa[2]);
-        b.set(pb[0], pb[1], pb[2]);
-        mid.addVectors(a, b).multiplyScalar(0.5);
-        bondMesh.setMatrixAt(2 * k, cylinderMatrix(a, mid, radius, m));
-        bondMesh.setMatrixAt(2 * k + 1, cylinderMatrix(mid, b, radius, m));
-      });
-      bondMesh.instanceMatrix.needsUpdate = true;
       bondMesh.frustumCulled = false;
       this.bondMesh = bondMesh;
       this.bondMeshBonds = bonds;
@@ -198,6 +241,7 @@ export class StructureLayer implements DisplayLayer {
     }
     this.atomMesh = null;
     this.bondMesh = null;
+    this.bondMeshBonds = [];
   }
 
   dispose(): void {

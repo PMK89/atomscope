@@ -1,7 +1,10 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { Renderer } from '../renderer/Renderer';
 import { useSelectionStore } from '../state/selectionStore';
 import { useStructureStore } from '../state/structureStore';
+import { useTrajectoryStore } from '../state/trajectoryStore';
+import { frameCell, framePositions } from '../model/trajectory';
+import { installExtraLayers, syncExtraLayers } from './viewportLayers';
 import { BACKGROUND_HEX, useViewStore } from '../state/viewStore';
 import { useIsosurfaceLayers } from './useIsosurfaceLayers';
 
@@ -14,6 +17,17 @@ export function Viewport(): JSX.Element {
   const selected = useSelectionStore((s) => s.atoms);
   const hovered = useSelectionStore((s) => s.hoveredAtom);
   const view = useViewStore();
+  const trajectory = useTrajectoryStore((s) => s.trajectory);
+  const frame = useTrajectoryStore((s) => s.frame);
+  // stable per frame so layers skip matrix updates on hover/selection-only changes
+  const positionsOverride = useMemo(
+    () => (trajectory ? framePositions(trajectory, frame) : null),
+    [trajectory, frame],
+  );
+  const cellOverride = useMemo(
+    () => (trajectory ? frameCell(trajectory, frame) : null),
+    [trajectory, frame],
+  );
   const lastFitted = useRef<string | null>(null);
   const lastFitRequest = useRef(0);
   useIsosurfaceLayers(rendererRef);
@@ -21,6 +35,7 @@ export function Viewport(): JSX.Element {
   useEffect(() => {
     if (!ref.current) return;
     const renderer = new Renderer(ref.current);
+    installExtraLayers(renderer);
     rendererRef.current = renderer;
     const el = renderer.gl.domElement;
     let downAt: { x: number; y: number } | null = null;
@@ -63,13 +78,21 @@ export function Viewport(): JSX.Element {
     r.structureLayer.setSettings({ style: view.style, showHydrogens: view.showHydrogens });
     r.setBackground(BACKGROUND_HEX[view.background]);
     if (r.projection !== view.projection) r.setProjection(view.projection);
-    r.update({ structure: doc, revision, selectedAtoms: selected, hoveredAtom: hovered });
+    syncExtraLayers(r, view);
+    r.update({
+      structure: doc,
+      revision,
+      selectedAtoms: selected,
+      hoveredAtom: hovered,
+      positionsOverride,
+      cellOverride,
+    });
     if (lastFitted.current !== doc.id || lastFitRequest.current !== view.fitRequest) {
       lastFitted.current = doc.id;
       lastFitRequest.current = view.fitRequest;
       r.fitToStructure();
     }
-  }, [doc, revision, selected, hovered, view]);
+  }, [doc, revision, selected, hovered, view, positionsOverride, cellOverride]);
 
   return <div ref={ref} className="viewport-canvas" data-testid="viewport" />;
 }
