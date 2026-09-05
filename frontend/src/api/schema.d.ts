@@ -286,6 +286,380 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/crystal/asymmetric-unit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Asymmetric Unit */
+        post: operations["asymmetric_unit_api_crystal_asymmetric_unit_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/crystal/bulk": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Bulk */
+        post: operations["bulk_api_crystal_bulk_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/crystal/cell/add": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Add Cell */
+        post: operations["add_cell_api_crystal_cell_add_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/crystal/cell/remove": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Remove Cell */
+        post: operations["remove_cell_api_crystal_cell_remove_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/crystal/cell/set": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Set Cell */
+        post: operations["set_cell_api_crystal_cell_set_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/crystal/fill": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Fill */
+        post: operations["fill_api_crystal_fill_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/crystal/fractional": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Fractional */
+        post: operations["fractional_api_crystal_fractional_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/crystal/fractional/set": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Set Fractional */
+        post: operations["set_fractional_api_crystal_fractional_set_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/crystal/library": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Library */
+        get: operations["library_api_crystal_library_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/crystal/library/{category}/{name}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Library Entry */
+        get: operations["library_entry_api_crystal_library__category___name__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/crystal/niggli": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Niggli */
+        post: operations["niggli_api_crystal_niggli_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/crystal/primitive": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Primitive */
+        post: operations["primitive_api_crystal_primitive_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/crystal/primitive-standardized": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Primitive Standardized */
+        post: operations["primitive_standardized_api_crystal_primitive_standardized_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/crystal/scale-volume": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Scale Volume */
+        post: operations["scale_volume_api_crystal_scale_volume_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/crystal/slab": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Slab */
+        post: operations["slab_api_crystal_slab_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/crystal/spacegroup": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** From Spacegroup */
+        post: operations["from_spacegroup_api_crystal_spacegroup_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/crystal/standard-orientation": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Standard Orientation */
+        post: operations["standard_orientation_api_crystal_standard_orientation_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/crystal/supercell": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Supercell */
+        post: operations["supercell_api_crystal_supercell_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/crystal/symmetrize": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Symmetrize */
+        post: operations["symmetrize_api_crystal_symmetrize_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/crystal/symmetry": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Symmetry */
+        post: operations["symmetry_api_crystal_symmetry_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/crystal/translate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Translate */
+        post: operations["translate_api_crystal_translate_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/crystal/wrap": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Wrap */
+        post: operations["wrap_api_crystal_wrap_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/grids": {
         parameters: {
             query?: never;
@@ -698,6 +1072,15 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** AddCellRequest */
+        AddCellRequest: {
+            /**
+             * Padding
+             * @default 5
+             */
+            padding: number;
+            structure: components["schemas"]["Structure"];
+        };
         /**
          * Atom
          * @description One atom. Positions are Cartesian in Å.
@@ -870,6 +1253,30 @@ export interface components {
              * @enum {integer}
              */
             order: 1 | 2 | 3;
+        };
+        /** BulkRequest */
+        BulkRequest: {
+            /** A */
+            a?: number | null;
+            /** C */
+            c?: number | null;
+            /**
+             * Crystalstructure
+             * @description sc, fcc, bcc, hcp, diamond, zincblende, rocksalt...
+             */
+            crystalstructure: string;
+            /**
+             * Cubic
+             * @default false
+             */
+            cubic: boolean;
+            /**
+             * Orthorhombic
+             * @default false
+             */
+            orthorhombic: boolean;
+            /** Symbol */
+            symbol: string;
         };
         /**
          * Calculation
@@ -1053,6 +1460,18 @@ export interface components {
             /** Text */
             text?: string | null;
         };
+        /** FillRequest */
+        FillRequest: {
+            /** Spacegroup */
+            spacegroup?: number | null;
+            structure: components["schemas"]["Structure"];
+            /**
+             * Symprec
+             * @description spglib tolerance in Å
+             * @default 0.001
+             */
+            symprec: number;
+        };
         /** FixAtoms */
         FixAtoms: {
             /** Indices */
@@ -1134,6 +1553,25 @@ export interface components {
             library: string;
             /** Name */
             name: string;
+        };
+        /** FractionalRequest */
+        FractionalRequest: {
+            /** Fractional */
+            fractional: [
+                number,
+                number,
+                number
+            ][];
+            structure: components["schemas"]["Structure"];
+        };
+        /** FractionalResponse */
+        FractionalResponse: {
+            /** Fractional */
+            fractional: [
+                number,
+                number,
+                number
+            ][];
         };
         /**
          * Frame
@@ -1342,6 +1780,17 @@ export interface components {
              * @enum {string}
              */
             status: "queued" | "running" | "completed" | "failed" | "cancelled";
+        };
+        /** LibraryEntry */
+        LibraryEntry: {
+            /** Category */
+            category: string;
+            /** Formula */
+            formula: string;
+            /** Name */
+            name: string;
+            /** Readable */
+            readable: boolean;
         };
         /** LogResponse */
         LogResponse: {
@@ -1758,6 +2207,63 @@ export interface components {
             /** Parameters */
             parameters?: components["schemas"]["ParameterSpec"][];
         };
+        /** SetCellRequest */
+        SetCellRequest: {
+            /**
+             * Mode
+             * @default cartesian
+             * @enum {string}
+             */
+            mode: "cartesian" | "fractional";
+            /**
+             * Parameters
+             * @description a b c (Å) alpha beta gamma (deg)
+             */
+            parameters?: [
+                number,
+                number,
+                number,
+                number,
+                number,
+                number
+            ] | null;
+            structure: components["schemas"]["Structure"];
+            /** Vectors */
+            vectors?: [
+                [
+                    number,
+                    number,
+                    number
+                ],
+                [
+                    number,
+                    number,
+                    number
+                ],
+                [
+                    number,
+                    number,
+                    number
+                ]
+            ] | null;
+        };
+        /** SlabRequest */
+        SlabRequest: {
+            /** Layers */
+            layers: number;
+            /** Miller */
+            miller: [
+                number,
+                number,
+                number
+            ];
+            structure: components["schemas"]["Structure"];
+            /**
+             * Vacuum
+             * @default 10
+             */
+            vacuum: number;
+        };
         /** SmilesRequest */
         SmilesRequest: {
             /**
@@ -1767,6 +2273,30 @@ export interface components {
             add_hydrogens: boolean;
             /** Smiles */
             smiles: string;
+        };
+        /** SpacegroupBuildRequest */
+        SpacegroupBuildRequest: {
+            /** Basis */
+            basis: [
+                number,
+                number,
+                number
+            ][];
+            /** Cellpar */
+            cellpar: [
+                number,
+                number,
+                number,
+                number,
+                number,
+                number
+            ];
+            /** Name */
+            name?: string | null;
+            /** Spacegroup */
+            spacegroup: number;
+            /** Symbols */
+            symbols: string[];
         };
         /**
          * Structure
@@ -1814,6 +2344,10 @@ export interface components {
             /** Residues */
             residues?: components["schemas"]["Residue"][];
         };
+        /** StructureBody */
+        StructureBody: {
+            structure: components["schemas"]["Structure"];
+        };
         /** StructureSummary */
         StructureSummary: {
             /** Formula */
@@ -1826,6 +2360,85 @@ export interface components {
             name: string;
             /** Periodic */
             periodic: boolean;
+        };
+        /** SupercellRequest */
+        SupercellRequest: {
+            /** Matrix */
+            matrix?: [
+                [
+                    number,
+                    number,
+                    number
+                ],
+                [
+                    number,
+                    number,
+                    number
+                ],
+                [
+                    number,
+                    number,
+                    number
+                ]
+            ] | null;
+            /** Repeat */
+            repeat?: [
+                number,
+                number,
+                number
+            ] | null;
+            structure: components["schemas"]["Structure"];
+        };
+        /**
+         * SymmetryInfo
+         * @description Result of space-group perception.
+         */
+        SymmetryInfo: {
+            /**
+             * Equivalent Atoms
+             * @description per atom: index of its orbit representative
+             */
+            equivalent_atoms: number[];
+            /** Hall */
+            hall: string;
+            /** Hall Number */
+            hall_number: number;
+            /**
+             * International
+             * @description short Hermann-Mauguin symbol, e.g. 'Fd-3m'
+             */
+            international: string;
+            /** International Full */
+            international_full: string;
+            /**
+             * Lattice Type
+             * @enum {string}
+             */
+            lattice_type: "triclinic" | "monoclinic" | "orthorhombic" | "tetragonal" | "rhombohedral" | "hexagonal" | "cubic";
+            /** N Asymmetric */
+            n_asymmetric: number;
+            /** N Operations */
+            n_operations: number;
+            /** Number */
+            number: number;
+            /** Point Group */
+            point_group: string;
+            /** Schoenflies */
+            schoenflies: string;
+            /** Symprec */
+            symprec: number;
+            /** Wyckoffs */
+            wyckoffs: string[];
+        };
+        /** SymmetryRequest */
+        SymmetryRequest: {
+            structure: components["schemas"]["Structure"];
+            /**
+             * Symprec
+             * @description spglib tolerance in Å
+             * @default 0.001
+             */
+            symprec: number;
         };
         /**
          * Trajectory
@@ -1900,6 +2513,32 @@ export interface components {
             /** Time */
             time: (number | null)[];
         };
+        /** TranslateRequest */
+        TranslateRequest: {
+            /** Indices */
+            indices?: number[] | null;
+            /**
+             * Mode
+             * @default cartesian
+             * @enum {string}
+             */
+            mode: "cartesian" | "fractional";
+            structure: components["schemas"]["Structure"];
+            /**
+             * Vector
+             * @description 3-vector
+             */
+            vector: [
+                number,
+                number,
+                number
+            ];
+            /**
+             * Wrap
+             * @default false
+             */
+            wrap: boolean;
+        };
         /**
          * Unit
          * @description Units that can appear on quantities in the data model.
@@ -1966,6 +2605,15 @@ export interface components {
             op: "eq" | "ne" | "in" | "not_in" | "truthy" | "falsy";
             /** Value */
             value?: unknown;
+        };
+        /** VolumeRequest */
+        VolumeRequest: {
+            structure: components["schemas"]["Structure"];
+            /**
+             * Volume
+             * @description target volume in Å^3
+             */
+            volume: number;
         };
         /**
          * VolumetricGrid
@@ -2555,6 +3203,718 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Calculation"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    asymmetric_unit_api_crystal_asymmetric_unit_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SymmetryRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Structure"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    bulk_api_crystal_bulk_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BulkRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Structure"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    add_cell_api_crystal_cell_add_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AddCellRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Structure"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    remove_cell_api_crystal_cell_remove_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StructureBody"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Structure"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    set_cell_api_crystal_cell_set_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SetCellRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Structure"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    fill_api_crystal_fill_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FillRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Structure"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    fractional_api_crystal_fractional_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StructureBody"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FractionalResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    set_fractional_api_crystal_fractional_set_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FractionalRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Structure"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    library_api_crystal_library_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LibraryEntry"][];
+                };
+            };
+        };
+    };
+    library_entry_api_crystal_library__category___name__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                category: string;
+                name: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Structure"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    niggli_api_crystal_niggli_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StructureBody"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Structure"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    primitive_api_crystal_primitive_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SymmetryRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Structure"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    primitive_standardized_api_crystal_primitive_standardized_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SymmetryRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Structure"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    scale_volume_api_crystal_scale_volume_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["VolumeRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Structure"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    slab_api_crystal_slab_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SlabRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Structure"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    from_spacegroup_api_crystal_spacegroup_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SpacegroupBuildRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Structure"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    standard_orientation_api_crystal_standard_orientation_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StructureBody"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Structure"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    supercell_api_crystal_supercell_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SupercellRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Structure"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    symmetrize_api_crystal_symmetrize_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SymmetryRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Structure"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    symmetry_api_crystal_symmetry_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SymmetryRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SymmetryInfo"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    translate_api_crystal_translate_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TranslateRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Structure"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    wrap_api_crystal_wrap_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StructureBody"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Structure"];
                 };
             };
             /** @description Validation Error */

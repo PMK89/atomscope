@@ -1,6 +1,25 @@
 {
   "components": {
     "schemas": {
+      "AddCellRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "padding": {
+            "default": 5.0,
+            "minimum": 0.0,
+            "title": "Padding",
+            "type": "number"
+          },
+          "structure": {
+            "$ref": "#/components/schemas/Structure"
+          }
+        },
+        "required": [
+          "structure"
+        ],
+        "title": "AddCellRequest",
+        "type": "object"
+      },
       "Atom": {
         "additionalProperties": false,
         "description": "One atom. Positions are Cartesian in \u00c5.",
@@ -288,6 +307,58 @@
           "b"
         ],
         "title": "Bond",
+        "type": "object"
+      },
+      "BulkRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "a": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "A"
+          },
+          "c": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "C"
+          },
+          "crystalstructure": {
+            "description": "sc, fcc, bcc, hcp, diamond, zincblende, rocksalt...",
+            "title": "Crystalstructure",
+            "type": "string"
+          },
+          "cubic": {
+            "default": false,
+            "title": "Cubic",
+            "type": "boolean"
+          },
+          "orthorhombic": {
+            "default": false,
+            "title": "Orthorhombic",
+            "type": "boolean"
+          },
+          "symbol": {
+            "title": "Symbol",
+            "type": "string"
+          }
+        },
+        "required": [
+          "symbol",
+          "crystalstructure"
+        ],
+        "title": "BulkRequest",
         "type": "object"
       },
       "Calculation": {
@@ -750,6 +821,39 @@
         "title": "ExportTrajectoryResponse",
         "type": "object"
       },
+      "FillRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "spacegroup": {
+            "anyOf": [
+              {
+                "maximum": 230.0,
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Spacegroup"
+          },
+          "structure": {
+            "$ref": "#/components/schemas/Structure"
+          },
+          "symprec": {
+            "default": 0.001,
+            "description": "spglib tolerance in \u00c5",
+            "exclusiveMinimum": 0.0,
+            "title": "Symprec",
+            "type": "number"
+          }
+        },
+        "required": [
+          "structure"
+        ],
+        "title": "FillRequest",
+        "type": "object"
+      },
       "FixAtoms": {
         "additionalProperties": false,
         "properties": {
@@ -921,6 +1025,72 @@
           "library"
         ],
         "title": "FormatDescription",
+        "type": "object"
+      },
+      "FractionalRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "fractional": {
+            "items": {
+              "description": "3-vector",
+              "maxItems": 3,
+              "minItems": 3,
+              "prefixItems": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                }
+              ],
+              "type": "array"
+            },
+            "title": "Fractional",
+            "type": "array"
+          },
+          "structure": {
+            "$ref": "#/components/schemas/Structure"
+          }
+        },
+        "required": [
+          "structure",
+          "fractional"
+        ],
+        "title": "FractionalRequest",
+        "type": "object"
+      },
+      "FractionalResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "fractional": {
+            "items": {
+              "description": "3-vector",
+              "maxItems": 3,
+              "minItems": 3,
+              "prefixItems": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                }
+              ],
+              "type": "array"
+            },
+            "title": "Fractional",
+            "type": "array"
+          }
+        },
+        "required": [
+          "fractional"
+        ],
+        "title": "FractionalResponse",
         "type": "object"
       },
       "Frame": {
@@ -1465,6 +1635,35 @@
           "spec"
         ],
         "title": "JobRecord",
+        "type": "object"
+      },
+      "LibraryEntry": {
+        "additionalProperties": false,
+        "properties": {
+          "category": {
+            "title": "Category",
+            "type": "string"
+          },
+          "formula": {
+            "title": "Formula",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "readable": {
+            "title": "Readable",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "category",
+          "name",
+          "formula",
+          "readable"
+        ],
+        "title": "LibraryEntry",
         "type": "object"
       },
       "LogResponse": {
@@ -2289,6 +2488,172 @@
         "title": "Section",
         "type": "object"
       },
+      "SetCellRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "mode": {
+            "default": "cartesian",
+            "enum": [
+              "cartesian",
+              "fractional"
+            ],
+            "title": "Mode",
+            "type": "string"
+          },
+          "parameters": {
+            "anyOf": [
+              {
+                "maxItems": 6,
+                "minItems": 6,
+                "prefixItems": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ],
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "a b c (\u00c5) alpha beta gamma (deg)",
+            "title": "Parameters"
+          },
+          "structure": {
+            "$ref": "#/components/schemas/Structure"
+          },
+          "vectors": {
+            "anyOf": [
+              {
+                "description": "3x3 matrix as three row vectors",
+                "maxItems": 3,
+                "minItems": 3,
+                "prefixItems": [
+                  {
+                    "description": "3-vector",
+                    "maxItems": 3,
+                    "minItems": 3,
+                    "prefixItems": [
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "number"
+                      }
+                    ],
+                    "type": "array"
+                  },
+                  {
+                    "description": "3-vector",
+                    "maxItems": 3,
+                    "minItems": 3,
+                    "prefixItems": [
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "number"
+                      }
+                    ],
+                    "type": "array"
+                  },
+                  {
+                    "description": "3-vector",
+                    "maxItems": 3,
+                    "minItems": 3,
+                    "prefixItems": [
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "number"
+                      }
+                    ],
+                    "type": "array"
+                  }
+                ],
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Vectors"
+          }
+        },
+        "required": [
+          "structure"
+        ],
+        "title": "SetCellRequest",
+        "type": "object"
+      },
+      "SlabRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "layers": {
+            "minimum": 1.0,
+            "title": "Layers",
+            "type": "integer"
+          },
+          "miller": {
+            "maxItems": 3,
+            "minItems": 3,
+            "prefixItems": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "integer"
+              },
+              {
+                "type": "integer"
+              }
+            ],
+            "title": "Miller",
+            "type": "array"
+          },
+          "structure": {
+            "$ref": "#/components/schemas/Structure"
+          },
+          "vacuum": {
+            "default": 10.0,
+            "minimum": 0.0,
+            "title": "Vacuum",
+            "type": "number"
+          }
+        },
+        "required": [
+          "structure",
+          "miller",
+          "layers"
+        ],
+        "title": "SlabRequest",
+        "type": "object"
+      },
       "SmilesRequest": {
         "additionalProperties": false,
         "properties": {
@@ -2306,6 +2671,90 @@
           "smiles"
         ],
         "title": "SmilesRequest",
+        "type": "object"
+      },
+      "SpacegroupBuildRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "basis": {
+            "items": {
+              "description": "3-vector",
+              "maxItems": 3,
+              "minItems": 3,
+              "prefixItems": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                }
+              ],
+              "type": "array"
+            },
+            "title": "Basis",
+            "type": "array"
+          },
+          "cellpar": {
+            "maxItems": 6,
+            "minItems": 6,
+            "prefixItems": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              }
+            ],
+            "title": "Cellpar",
+            "type": "array"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "spacegroup": {
+            "maximum": 230.0,
+            "minimum": 1.0,
+            "title": "Spacegroup",
+            "type": "integer"
+          },
+          "symbols": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Symbols",
+            "type": "array"
+          }
+        },
+        "required": [
+          "symbols",
+          "basis",
+          "spacegroup",
+          "cellpar"
+        ],
+        "title": "SpacegroupBuildRequest",
         "type": "object"
       },
       "Structure": {
@@ -2431,6 +2880,19 @@
         "title": "Structure",
         "type": "object"
       },
+      "StructureBody": {
+        "additionalProperties": false,
+        "properties": {
+          "structure": {
+            "$ref": "#/components/schemas/Structure"
+          }
+        },
+        "required": [
+          "structure"
+        ],
+        "title": "StructureBody",
+        "type": "object"
+      },
       "StructureSummary": {
         "additionalProperties": false,
         "properties": {
@@ -2463,6 +2925,224 @@
           "periodic"
         ],
         "title": "StructureSummary",
+        "type": "object"
+      },
+      "SupercellRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "matrix": {
+            "anyOf": [
+              {
+                "description": "3x3 matrix as three row vectors",
+                "maxItems": 3,
+                "minItems": 3,
+                "prefixItems": [
+                  {
+                    "description": "3-vector",
+                    "maxItems": 3,
+                    "minItems": 3,
+                    "prefixItems": [
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "number"
+                      }
+                    ],
+                    "type": "array"
+                  },
+                  {
+                    "description": "3-vector",
+                    "maxItems": 3,
+                    "minItems": 3,
+                    "prefixItems": [
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "number"
+                      }
+                    ],
+                    "type": "array"
+                  },
+                  {
+                    "description": "3-vector",
+                    "maxItems": 3,
+                    "minItems": 3,
+                    "prefixItems": [
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "number"
+                      }
+                    ],
+                    "type": "array"
+                  }
+                ],
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Matrix"
+          },
+          "repeat": {
+            "anyOf": [
+              {
+                "maxItems": 3,
+                "minItems": 3,
+                "prefixItems": [
+                  {
+                    "type": "integer"
+                  },
+                  {
+                    "type": "integer"
+                  },
+                  {
+                    "type": "integer"
+                  }
+                ],
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Repeat"
+          },
+          "structure": {
+            "$ref": "#/components/schemas/Structure"
+          }
+        },
+        "required": [
+          "structure"
+        ],
+        "title": "SupercellRequest",
+        "type": "object"
+      },
+      "SymmetryInfo": {
+        "additionalProperties": false,
+        "description": "Result of space-group perception.",
+        "properties": {
+          "equivalent_atoms": {
+            "description": "per atom: index of its orbit representative",
+            "items": {
+              "type": "integer"
+            },
+            "title": "Equivalent Atoms",
+            "type": "array"
+          },
+          "hall": {
+            "title": "Hall",
+            "type": "string"
+          },
+          "hall_number": {
+            "title": "Hall Number",
+            "type": "integer"
+          },
+          "international": {
+            "description": "short Hermann-Mauguin symbol, e.g. 'Fd-3m'",
+            "title": "International",
+            "type": "string"
+          },
+          "international_full": {
+            "title": "International Full",
+            "type": "string"
+          },
+          "lattice_type": {
+            "enum": [
+              "triclinic",
+              "monoclinic",
+              "orthorhombic",
+              "tetragonal",
+              "rhombohedral",
+              "hexagonal",
+              "cubic"
+            ],
+            "title": "Lattice Type",
+            "type": "string"
+          },
+          "n_asymmetric": {
+            "title": "N Asymmetric",
+            "type": "integer"
+          },
+          "n_operations": {
+            "title": "N Operations",
+            "type": "integer"
+          },
+          "number": {
+            "maximum": 230.0,
+            "minimum": 1.0,
+            "title": "Number",
+            "type": "integer"
+          },
+          "point_group": {
+            "title": "Point Group",
+            "type": "string"
+          },
+          "schoenflies": {
+            "title": "Schoenflies",
+            "type": "string"
+          },
+          "symprec": {
+            "title": "Symprec",
+            "type": "number"
+          },
+          "wyckoffs": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Wyckoffs",
+            "type": "array"
+          }
+        },
+        "required": [
+          "number",
+          "international",
+          "international_full",
+          "hall",
+          "hall_number",
+          "point_group",
+          "schoenflies",
+          "lattice_type",
+          "n_operations",
+          "wyckoffs",
+          "equivalent_atoms",
+          "n_asymmetric",
+          "symprec"
+        ],
+        "title": "SymmetryInfo",
+        "type": "object"
+      },
+      "SymmetryRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "structure": {
+            "$ref": "#/components/schemas/Structure"
+          },
+          "symprec": {
+            "default": 0.001,
+            "description": "spglib tolerance in \u00c5",
+            "exclusiveMinimum": 0.0,
+            "title": "Symprec",
+            "type": "number"
+          }
+        },
+        "required": [
+          "structure"
+        ],
+        "title": "SymmetryRequest",
         "type": "object"
       },
       "Trajectory": {
@@ -2719,6 +3399,66 @@
         "title": "TrajectoryScalars",
         "type": "object"
       },
+      "TranslateRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "indices": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "integer"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Indices"
+          },
+          "mode": {
+            "default": "cartesian",
+            "enum": [
+              "cartesian",
+              "fractional"
+            ],
+            "title": "Mode",
+            "type": "string"
+          },
+          "structure": {
+            "$ref": "#/components/schemas/Structure"
+          },
+          "vector": {
+            "description": "3-vector",
+            "maxItems": 3,
+            "minItems": 3,
+            "prefixItems": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              }
+            ],
+            "title": "Vector",
+            "type": "array"
+          },
+          "wrap": {
+            "default": false,
+            "title": "Wrap",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "structure",
+          "vector"
+        ],
+        "title": "TranslateRequest",
+        "type": "object"
+      },
       "Unit": {
         "description": "Units that can appear on quantities in the data model.",
         "enum": [
@@ -2898,6 +3638,26 @@
           "key"
         ],
         "title": "VisibleWhen",
+        "type": "object"
+      },
+      "VolumeRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "structure": {
+            "$ref": "#/components/schemas/Structure"
+          },
+          "volume": {
+            "description": "target volume in \u00c5^3",
+            "exclusiveMinimum": 0.0,
+            "title": "Volume",
+            "type": "number"
+          }
+        },
+        "required": [
+          "structure",
+          "volume"
+        ],
+        "title": "VolumeRequest",
         "type": "object"
       },
       "VolumetricGrid": {
@@ -3827,6 +4587,902 @@
         "summary": "Update Values",
         "tags": [
           "calculations"
+        ]
+      }
+    },
+    "/api/crystal/asymmetric-unit": {
+      "post": {
+        "operationId": "asymmetric_unit_api_crystal_asymmetric_unit_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SymmetryRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Structure"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Asymmetric Unit",
+        "tags": [
+          "crystal"
+        ]
+      }
+    },
+    "/api/crystal/bulk": {
+      "post": {
+        "operationId": "bulk_api_crystal_bulk_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BulkRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Structure"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Bulk",
+        "tags": [
+          "crystal"
+        ]
+      }
+    },
+    "/api/crystal/cell/add": {
+      "post": {
+        "operationId": "add_cell_api_crystal_cell_add_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddCellRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Structure"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Add Cell",
+        "tags": [
+          "crystal"
+        ]
+      }
+    },
+    "/api/crystal/cell/remove": {
+      "post": {
+        "operationId": "remove_cell_api_crystal_cell_remove_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StructureBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Structure"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Remove Cell",
+        "tags": [
+          "crystal"
+        ]
+      }
+    },
+    "/api/crystal/cell/set": {
+      "post": {
+        "operationId": "set_cell_api_crystal_cell_set_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetCellRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Structure"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Set Cell",
+        "tags": [
+          "crystal"
+        ]
+      }
+    },
+    "/api/crystal/fill": {
+      "post": {
+        "operationId": "fill_api_crystal_fill_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FillRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Structure"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Fill",
+        "tags": [
+          "crystal"
+        ]
+      }
+    },
+    "/api/crystal/fractional": {
+      "post": {
+        "operationId": "fractional_api_crystal_fractional_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StructureBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FractionalResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Fractional",
+        "tags": [
+          "crystal"
+        ]
+      }
+    },
+    "/api/crystal/fractional/set": {
+      "post": {
+        "operationId": "set_fractional_api_crystal_fractional_set_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FractionalRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Structure"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Set Fractional",
+        "tags": [
+          "crystal"
+        ]
+      }
+    },
+    "/api/crystal/library": {
+      "get": {
+        "operationId": "library_api_crystal_library_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/LibraryEntry"
+                  },
+                  "title": "Response Library Api Crystal Library Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Library",
+        "tags": [
+          "crystal"
+        ]
+      }
+    },
+    "/api/crystal/library/{category}/{name}": {
+      "get": {
+        "operationId": "library_entry_api_crystal_library__category___name__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "category",
+            "required": true,
+            "schema": {
+              "title": "Category",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "name",
+            "required": true,
+            "schema": {
+              "title": "Name",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Structure"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Library Entry",
+        "tags": [
+          "crystal"
+        ]
+      }
+    },
+    "/api/crystal/niggli": {
+      "post": {
+        "operationId": "niggli_api_crystal_niggli_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StructureBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Structure"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Niggli",
+        "tags": [
+          "crystal"
+        ]
+      }
+    },
+    "/api/crystal/primitive": {
+      "post": {
+        "operationId": "primitive_api_crystal_primitive_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SymmetryRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Structure"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Primitive",
+        "tags": [
+          "crystal"
+        ]
+      }
+    },
+    "/api/crystal/primitive-standardized": {
+      "post": {
+        "operationId": "primitive_standardized_api_crystal_primitive_standardized_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SymmetryRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Structure"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Primitive Standardized",
+        "tags": [
+          "crystal"
+        ]
+      }
+    },
+    "/api/crystal/scale-volume": {
+      "post": {
+        "operationId": "scale_volume_api_crystal_scale_volume_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VolumeRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Structure"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Scale Volume",
+        "tags": [
+          "crystal"
+        ]
+      }
+    },
+    "/api/crystal/slab": {
+      "post": {
+        "operationId": "slab_api_crystal_slab_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SlabRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Structure"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Slab",
+        "tags": [
+          "crystal"
+        ]
+      }
+    },
+    "/api/crystal/spacegroup": {
+      "post": {
+        "operationId": "from_spacegroup_api_crystal_spacegroup_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SpacegroupBuildRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Structure"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "From Spacegroup",
+        "tags": [
+          "crystal"
+        ]
+      }
+    },
+    "/api/crystal/standard-orientation": {
+      "post": {
+        "operationId": "standard_orientation_api_crystal_standard_orientation_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StructureBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Structure"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Standard Orientation",
+        "tags": [
+          "crystal"
+        ]
+      }
+    },
+    "/api/crystal/supercell": {
+      "post": {
+        "operationId": "supercell_api_crystal_supercell_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SupercellRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Structure"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Supercell",
+        "tags": [
+          "crystal"
+        ]
+      }
+    },
+    "/api/crystal/symmetrize": {
+      "post": {
+        "operationId": "symmetrize_api_crystal_symmetrize_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SymmetryRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Structure"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Symmetrize",
+        "tags": [
+          "crystal"
+        ]
+      }
+    },
+    "/api/crystal/symmetry": {
+      "post": {
+        "operationId": "symmetry_api_crystal_symmetry_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SymmetryRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SymmetryInfo"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Symmetry",
+        "tags": [
+          "crystal"
+        ]
+      }
+    },
+    "/api/crystal/translate": {
+      "post": {
+        "operationId": "translate_api_crystal_translate_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TranslateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Structure"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Translate",
+        "tags": [
+          "crystal"
+        ]
+      }
+    },
+    "/api/crystal/wrap": {
+      "post": {
+        "operationId": "wrap_api_crystal_wrap_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StructureBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Structure"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Wrap",
+        "tags": [
+          "crystal"
         ]
       }
     },
