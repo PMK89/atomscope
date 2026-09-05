@@ -1,7 +1,10 @@
-/** Click / rubber-band / double-click selection with atom, residue or molecule granularity. */
+/**
+ * Click / rubber-band / double-click selection with atom-and-bond, residue or molecule
+ * granularity (Avogadro's Selection Mode combo: Atom/Bond, Residue, Molecule).
+ */
 import { Vector3 } from 'three';
 import { fragmentOf } from '../../model/connectivity';
-import { atomsInRect, combineSelection, expandSelection } from '../selectionMath';
+import { atomsInRect, bondsWithin, combineSelection, expandSelection } from '../selectionMath';
 import { DRAG_THRESHOLD_PX, pointerModifier } from '../Tool';
 import type { OverlayShape, PointerLike, Tool, ToolContext } from '../Tool';
 
@@ -49,12 +52,16 @@ export class SelectTool implements Tool {
     const mode = ctx.tools.getState().select.mode;
     const modifier = pointerModifier(e);
     let picked: number[];
+    // a bond clicked in Atom/Bond mode is a primitive of its own, as it is in Avogadro; under
+    // residue or molecule granularity it stands for the atoms it joins, like any other hit
+    let pickedBonds: number[] = [];
     if (this.dragging) {
       const rect = ctx.tools.getState().select.rect;
       ctx.tools.getState().update('select', { rect: null });
       if (!rect) return;
       const projected = doc.atoms.map((a) => ctx.renderer.project(new Vector3(...a.position)));
       picked = atomsInRect(rect, projected);
+      pickedBonds = bondsWithin(doc, new Set(picked));
     } else {
       const hit = ctx.renderer.pick(e.clientX, e.clientY);
       if (!hit) {
@@ -63,11 +70,18 @@ export class SelectTool implements Tool {
         return;
       }
       const bond = hit.kind === 'bond' ? doc.bonds[hit.index] : undefined;
-      picked = hit.kind === 'atom' ? [hit.index] : bond ? [bond.a, bond.b] : [];
+      if (hit.kind === 'atom') picked = [hit.index];
+      else if (!bond) picked = [];
+      else if (mode === 'atoms') {
+        picked = [];
+        pickedBonds = [hit.index];
+      } else picked = [bond.a, bond.b];
     }
     this.start = null;
     const expanded = expandSelection(doc, picked, mode);
-    sel.set(combineSelection(sel.atoms, expanded, modifier));
+    const atoms = combineSelection(sel.atoms, expanded, modifier);
+    // the bonds a selection implies: those with both ends in it, plus one picked on its own
+    sel.set(atoms, mode === 'atoms' ? combineSelection(sel.bonds, pickedBonds, modifier) : []);
   }
 
   onDoubleClick(e: PointerLike, ctx: ToolContext): void {

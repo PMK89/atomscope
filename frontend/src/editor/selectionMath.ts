@@ -51,6 +51,15 @@ export function expandSelection(
   return out;
 }
 
+/** The bonds a set of atoms implies: those with both ends inside it. */
+export function bondsWithin(doc: StructureDoc, atoms: ReadonlySet<number>): number[] {
+  const out: number[] = [];
+  doc.bonds.forEach((b, i) => {
+    if (atoms.has(b.a) && atoms.has(b.b)) out.push(i);
+  });
+  return out;
+}
+
 /** Combine a new pick with the existing selection: shift adds, ctrl toggles, else replaces. */
 export function combineSelection(
   current: ReadonlySet<number>,

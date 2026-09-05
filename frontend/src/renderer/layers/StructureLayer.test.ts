@@ -61,6 +61,28 @@ test('an unchanged scope in a new array does not rebuild the meshes', () => {
   layer.dispose();
 });
 
+test('a bond selected as a primitive is tinted, and its atoms are not', () => {
+  const layer = new StructureLayer();
+  const base = doc();
+  const selectedAtoms = new Set<number>();
+  const colorOf = (mesh: InstancedMesh, i: number): number[] => {
+    const c = mesh.instanceColor!;
+    return [c.getX(i), c.getY(i), c.getZ(i)];
+  };
+  layer.update({ ...ctx(base), selectedAtoms });
+  const [atomMesh, bondMesh] = meshes(layer);
+  const plainBond = colorOf(bondMesh!, 0);
+  const plainAtom = colorOf(atomMesh!, 0);
+
+  layer.update({ ...ctx(base), selectedAtoms, selectedBonds: new Set([0]) });
+  expect(colorOf(bondMesh!, 0)).not.toEqual(plainBond);
+  // the two atoms the bond joins keep their own colour: a bond is its own primitive
+  expect(colorOf(atomMesh!, 0)).toEqual(plainAtom);
+
+  layer.update({ ...ctx(base), selectedAtoms, selectedBonds: new Set<number>() });
+  expect(colorOf(bondMesh!, 0)).toEqual(plainBond);
+});
+
 test('an unchanged colour array in a new Float32Array does not repaint', () => {
   const layer = new StructureLayer();
   const base = doc();

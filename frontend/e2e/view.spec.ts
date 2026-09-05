@@ -61,3 +61,21 @@ test('View > Centre brings the structure back without changing the zoom', async 
   await expect.poll(drawn).toBeGreaterThan(before * 0.9);
   expect(await drawn()).toBeLessThan(before * 1.1);
 });
+
+test('a bond can be selected on its own', async ({ page }) => {
+  await page.goto('/');
+  await expect(page.locator('.app-statusbar')).toContainText('H2O');
+
+  // the Select tool (its shortcut), in the default Atoms and bonds mode
+  await page.locator('.viewport-canvas canvas').click({ position: { x: 5, y: 5 } });
+  await page.keyboard.press('s');
+  await expect(page.getByLabel('Selection mode')).toHaveValue('atoms');
+
+  // water is drawn with the oxygen in the middle and a bond running out to each hydrogen, so a
+  // point part of the way towards one is on a bond and on neither atom
+  const canvas = page.locator('.viewport-canvas canvas');
+  const box = (await canvas.boundingBox())!;
+  await page.mouse.click(box.x + box.width / 2 - 27, box.y + box.height / 2 - 18);
+  await expect(page.locator('.app-statusbar')).toContainText('0 selected, 1 bond');
+  await page.screenshot({ path: '../.scratch/dev/bond-selection.png' });
+});

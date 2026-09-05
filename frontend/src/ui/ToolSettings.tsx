@@ -106,7 +106,7 @@ function SelectSettings(): JSX.Element {
         value={mode}
         onChange={(e) => update('select', { mode: e.target.value as typeof mode })}
       >
-        <option value="atoms">Atoms</option>
+        <option value="atoms">Atoms and bonds</option>
         {hasResidues && <option value="residues">Residues</option>}
         <option value="molecules">Molecules</option>
       </select>

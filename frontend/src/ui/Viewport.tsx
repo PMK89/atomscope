@@ -24,6 +24,7 @@ export function Viewport(): JSX.Element {
   const doc = useStructureStore((s) => s.doc);
   const revision = useStructureStore((s) => s.revision);
   const selected = useSelectionStore((s) => s.atoms);
+  const selectedBonds = useSelectionStore((s) => s.bonds);
   const hovered = useSelectionStore((s) => s.hoveredAtom);
   const view = useViewStore();
   const trajectory = useTrajectoryStore((s) => s.trajectory);
@@ -121,6 +122,7 @@ export function Viewport(): JSX.Element {
       structure: doc,
       revision,
       selectedAtoms: selected,
+      selectedBonds,
       hoveredAtom: hovered,
       positionsOverride,
       cellOverride,
@@ -138,6 +140,7 @@ export function Viewport(): JSX.Element {
     doc,
     revision,
     selected,
+    selectedBonds,
     hovered,
     view,
     positionsOverride,

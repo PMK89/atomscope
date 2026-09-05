@@ -288,11 +288,13 @@ export class StructureLayer implements DisplayLayer {
       rebuilt ||
       colorsChanged ||
       ctx.selectedAtoms !== this.lastSelected ||
+      (ctx.selectedBonds ?? null) !== this.lastSelectedBonds ||
       ctx.hoveredAtom !== this.lastHovered
     ) {
       this.applyColors(ctx);
       this.lastAtomColors = atomColors;
       this.lastSelected = ctx.selectedAtoms;
+      this.lastSelectedBonds = ctx.selectedBonds ?? null;
       this.lastHovered = ctx.hoveredAtom;
     }
   }
@@ -526,6 +528,7 @@ export class StructureLayer implements DisplayLayer {
   private bondMeshBondIndices: number[] = [];
   /** identity of the colour override the instance colours were written from */
   private lastAtomColors: Float32Array | null = null;
+  private lastSelectedBonds: ReadonlySet<number> | null = null;
   private lastAtomStyles: ReadonlyArray<AtomStyle | null> | null = null;
 
   private atomRadius(covalent: number, vdw: number, style: StructureStyle): number {
@@ -570,6 +573,7 @@ export class StructureLayer implements DisplayLayer {
       if (this.atomMesh.instanceColor) this.atomMesh.instanceColor.needsUpdate = true;
     }
     if (this.bondMesh) {
+      const selectedBonds = ctx.selectedBonds;
       this.bondHalves.forEach((half, k) => {
         const bond = this.bondMeshBonds[half.bond]!;
         const atomIndex = half.end === 'a' ? bond.a : bond.b;
@@ -579,6 +583,9 @@ export class StructureLayer implements DisplayLayer {
         if (atomStyle === 'stick' || atomStyle === 'wireframe') {
           if (ctx.selectedAtoms.has(atomIndex)) color.lerp(SELECTION_COLOR, 0.6);
         }
+        // a bond selected as a primitive is tinted whole, whatever its atoms are drawn with
+        if (selectedBonds?.has(this.bondMeshBondIndices[half.bond] ?? -1))
+          color.lerp(SELECTION_COLOR, 0.6);
         this.bondMesh!.setColorAt(k, color);
       });
       if (this.bondMesh.instanceColor) this.bondMesh.instanceColor.needsUpdate = true;

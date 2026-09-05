@@ -280,8 +280,12 @@ undo history**.
   table of Z = 1…118), a bond-order selector (`Single`/`Double`/`Triple`), and
   an `Adjust hydrogens` checkbox (on by default) that keeps hydrogen counts
   consistent after every edit.
-* **Select** — `Mode`: `Atoms` (default), `Residues` (offered only when the
-  structure has residues) or `Molecules`. The `Select` menu adds
+* **Select** — `Mode`: `Atoms and bonds` (default, Avogadro's `Atom/Bond`),
+  `Residues` (offered only when the structure has residues) or `Molecules`. In
+  the first mode a bond clicked on is selected as itself — tinted whole, counted
+  in the status bar beside the atoms — and a rubber band takes the bonds whose
+  ends are both inside it; under the other two a bond stands for the residue or
+  fragment it belongs to. The `Select` menu adds
   `Select residues…` — a comma-separated list of names, numbers, ranges or
   chain-qualified terms (`LYS`, `12`, `12-20`, `A:12-20`) — and
   `Select solvent`, which takes the waters and counter-ions by residue name.

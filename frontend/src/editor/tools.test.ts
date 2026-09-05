@@ -269,6 +269,33 @@ describe('select', () => {
     click(host, 20, 20);
     expect(sel()).toEqual([]);
   });
+  test('a bond is a primitive of its own in Atoms and bonds mode', () => {
+    // the skeleton's one bond runs from C0 to C1; its midpoint is at x = 0.75
+    click(host, ...at(0.75, 0));
+    expect([...useSelectionStore.getState().bonds]).toEqual([0]);
+    // Avogadro selects the bond, not the atoms it joins
+    expect(useSelectionStore.getState().atoms.size).toBe(0);
+
+    // shift adds an atom without dropping the bond, and ctrl toggles the bond off again
+    click(host, ...at(0, 0), { shiftKey: true });
+    expect([...useSelectionStore.getState().atoms]).toEqual([0]);
+    expect([...useSelectionStore.getState().bonds]).toEqual([0]);
+    click(host, ...at(0.75, 0), { ctrlKey: true });
+    expect([...useSelectionStore.getState().bonds]).toEqual([]);
+
+    // a rubber band over both carbons takes the bond between them with it
+    drag(host, [350, 250], [600, 350]);
+    expect([...useSelectionStore.getState().atoms]).toEqual([0, 1]);
+    expect([...useSelectionStore.getState().bonds]).toEqual([0]);
+  });
+
+  test('under molecule granularity a bond still stands for its atoms', () => {
+    useToolStore.getState().update('select', { mode: 'molecules' });
+    click(host, ...at(0.75, 0));
+    expect([...useSelectionStore.getState().atoms]).toEqual([0, 1]);
+    expect(useSelectionStore.getState().bonds.size).toBe(0);
+  });
+
   test('rubber band selects enclosed atoms and clears the rect', () => {
     drag(host, [350, 350], [600, 250]);
     expect(sel()).toEqual([0, 1]);

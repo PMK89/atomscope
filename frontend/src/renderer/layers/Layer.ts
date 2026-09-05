@@ -5,6 +5,8 @@ export interface LayerContext {
   structure: StructureDoc;
   revision: number;
   selectedAtoms: ReadonlySet<number>;
+  /** Bonds selected as primitives of their own (Avogadro's Atom/Bond mode). Absent means none. */
+  selectedBonds?: ReadonlySet<number>;
   hoveredAtom: number | null;
   /**
    * Display-only geometry (e.g. a trajectory frame): 3 floats per atom replacing the structure's

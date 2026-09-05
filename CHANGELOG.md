@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- A bond can be selected on its own (Select ▸ Mode ▸ Atoms and bonds): it is
+  tinted whole and counted in the status bar, rather than standing for the atoms it joins.
+
 - Any background colour (Settings ▸ Preferences ▸ Background ▸ Custom…), and
   View ▸ Centre, which re-centres the structure without changing the zoom.
 
