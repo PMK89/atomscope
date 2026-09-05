@@ -3,7 +3,17 @@
  * the same instance when nothing changes); callers pass the result to structureStore.commit.
  */
 import { findBond, perceiveBondsForAtom } from '../model/connectivity';
-import { add, rotateAbout, scale, sub, normalize, distance } from '../model/geometry';
+import {
+  add,
+  angleDeg,
+  cross,
+  dihedralDeg,
+  distance,
+  normalize,
+  rotateAbout,
+  scale,
+  sub,
+} from '../model/geometry';
 import type { Bond, StructureDoc, Vec3 } from '../model/structure';
 import { centroid, makeAtom, makeBond } from '../model/structure';
 
@@ -223,6 +233,49 @@ export function setBondLength(
   if (current < 1e-9) return doc;
   const dir = normalize(sub(pm, pf));
   return translateAtoms(doc, moving, scale(dir, length - current));
+}
+
+/**
+ * Set the angle a-b-c to `degrees` by turning `movingSide` (which holds `c`, not `a` or `b`)
+ * about the axis through the vertex perpendicular to the plane of the three atoms.
+ */
+export function setAngle(
+  doc: StructureDoc,
+  a: number,
+  b: number,
+  c: number,
+  degrees: number,
+  movingSide: Iterable<number>,
+): StructureDoc {
+  const pa = doc.atoms[a]?.position;
+  const pb = doc.atoms[b]?.position;
+  const pc = doc.atoms[c]?.position;
+  if (!pa || !pb || !pc) return doc;
+  const axis = cross(sub(pa, pb), sub(pc, pb));
+  // three atoms in a line have no plane to turn in, and no angle to speak of
+  if (Math.hypot(axis[0], axis[1], axis[2]) < 1e-9) return doc;
+  const delta = ((degrees - angleDeg(pa, pb, pc)) * Math.PI) / 180;
+  return rotateAtoms(doc, movingSide, axis, delta, pb);
+}
+
+/**
+ * Set the torsion a-b-c-d to `degrees` by turning `movingSide` (the c-d side of the b-c bond)
+ * about that bond.
+ */
+export function setTorsion(
+  doc: StructureDoc,
+  a: number,
+  b: number,
+  c: number,
+  d: number,
+  degrees: number,
+  movingSide: Iterable<number>,
+): StructureDoc {
+  const p = [a, b, c, d].map((i) => doc.atoms[i]?.position);
+  if (p.some((x) => !x)) return doc;
+  const [pa, pb, pc, pd] = p as [Vec3, Vec3, Vec3, Vec3];
+  const delta = ((degrees - dihedralDeg(pa, pb, pc, pd)) * Math.PI) / 180;
+  return rotateAtoms(doc, movingSide, sub(pc, pb), delta, pb);
 }
 
 /** Position for a new atom bonded to `from` in direction `towards`, at the covalent-radius sum. */

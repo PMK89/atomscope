@@ -3,6 +3,7 @@ import { formula, type StructureDoc, type Vec3 } from '../model/structure';
 import { useSelectionStore } from '../state/selectionStore';
 import { useStructureStore } from '../state/structureStore';
 import { useToolStore } from '../editor/toolStore';
+import { AngleTable, TorsionTable } from './AngleTable';
 import { BondTable } from './BondTable';
 import { NumberField } from './NumberField';
 import { normalizeSymbol } from '../editor/cartesian';
@@ -194,6 +195,12 @@ export function PropertiesPanel({ onError }: { onError?: (m: string) => void }):
 
       <h3>Bonds</h3>
       <BondTable />
+
+      <h3>Angles</h3>
+      <AngleTable />
+
+      <h3>Torsions</h3>
+      <TorsionTable />
     </div>
   );
 }

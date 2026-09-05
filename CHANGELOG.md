@@ -33,6 +33,9 @@
   residue colours survive `Add hydrogens`.
 - Deleting atoms now takes their per-atom properties with them: partial charges and forces used to
   keep the old length and were then silently ignored by everything that reads them.
+- Angle and torsion tables on the Properties tab, both editable: typing an angle turns the far
+  side about the vertex, typing a torsion turns it about the central bond, and a value inside a
+  ring says why it cannot be driven.
 - The residue colours are now a choice of Jmol's three tables — amino, shapely or hydrophobicity —
   for the atoms and for the ribbon, and each paints an unknown residue with its own colour. The
   nucleic bases changed with them: they are Jmol's colours now (adenine pale blue rather than dark

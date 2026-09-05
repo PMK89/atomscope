@@ -1,8 +1,8 @@
 # Project state (resume here)
 
-Branch: main; this file is updated in the commit that checkpoints the work, so `git log -1 -- docs/STATE.md` is the last checkpoint. Phases 0-1 done; Phase 2 (editor tools), 3 (volumetric, trajectories, vectors), 4-5 (CP-PAW setup/execution/forces), 6 (CP-PAW analysis: DOS, bands, orbitals), crystallography, molecular mechanics and wavefunction surfaces are merged and working. Parity matrix: 178 IMPLEMENTED, 33 PARTIAL, 100 NOT STARTED, 1 BLOCKED of 312 rows.
+Branch: main; this file is updated in the commit that checkpoints the work, so `git log -1 -- docs/STATE.md` is the last checkpoint. Phases 0-1 done; Phase 2 (editor tools), 3 (volumetric, trajectories, vectors), 4-5 (CP-PAW setup/execution/forces), 6 (CP-PAW analysis: DOS, bands, orbitals), crystallography, molecular mechanics and wavefunction surfaces are merged and working. Parity matrix: 180 IMPLEMENTED, 33 PARTIAL, 98 NOT STARTED, 1 BLOCKED of 312 rows.
 
-Tests: `pytest -q -m "not cppaw"` -> 379 passed, 1 skipped; `pytest -q -m cppaw` -> 7 passed (~90 s, needs the local CP-PAW install); `pnpm vitest run` -> 382 passed; `pnpm exec playwright test` -> 25 passed (against private servers, see below; `make test-e2e` points at the user's 5173, which is stale). `ruff check`, `mypy` and `pnpm typecheck` are clean. No known failing tests. **Type-check the frontend with `pnpm typecheck` (`tsc -b --noEmit`), never with `pnpm exec tsc --noEmit`:** the root `tsconfig.json` is a solution file with `files: []`, so a bare `tsc --noEmit` checks nothing and exits 0.
+Tests: `pytest -q -m "not cppaw"` -> 379 passed, 1 skipped; `pytest -q -m cppaw` -> 7 passed (~90 s, needs the local CP-PAW install); `pnpm vitest run` -> 392 passed; `pnpm exec playwright test` -> 26 passed (against private servers, see below; `make test-e2e` points at the user's 5173, which is stale). `ruff check`, `mypy` and `pnpm typecheck` are clean. No known failing tests. **Type-check the frontend with `pnpm typecheck` (`tsc -b --noEmit`), never with `pnpm exec tsc --noEmit`:** the root `tsconfig.json` is a solution file with `files: []`, so a bare `tsc --noEmit` checks nothing and exits 0.
 
 ## Resume commands
 
@@ -54,7 +54,8 @@ run against current code -- Playwright above all -- use the private-server recip
   ribbon now has its own, next to the structure layer's and each isosurface's); a File > Export
   dialog over every format the backend can write, which refuses to overwrite until asked twice;
   a MOPAC input generator in the qc_inputs plugin; Jmol's three residue palettes (amino, shapely,
-  hydrophobicity) for the atoms and the ribbon. Fixes found on the way: Optimize geometry sent valueless force-field
+  hydrophobicity) for the atoms and the ribbon; the angle and torsion property tables, both
+  editable (typing a value turns the far side, and a value inside a ring says it cannot). Fixes found on the way: Optimize geometry sent valueless force-field
   constraints and was rejected with a 422; `add_hydrogens` dropped every residue of a PDB
   structure; `tsc --noEmit` at the repository root checks nothing (the real check is
   `pnpm typecheck`), which had hidden 37 type errors; depth cueing haloed a transparent image
@@ -86,8 +87,7 @@ run against current code -- Playwright above all -- use the private-server recip
    (which is where the label content and the selection's own display type are chosen), cartoon and
    ribbon rendering with DSSP, hydrogen bonds, isosurfaces coloured by a second grid, and the
    residue/chain/secondary-structure colour schemes.
-2. Rows still PARTIAL worth finishing: the angle and torsion property tables (AV-ANAL-004/005,
-   they would reuse `BondTable`), MD at 300/600/900 K in the auto-optimize tool (AV-MM-010, the
+2. Rows still PARTIAL worth finishing: MD at 300/600/900 K in the auto-optimize tool (AV-MM-010, the
    backend has no MD minimizer). The colour rows left
    are a SMARTS colour (AV-COLOR-006), a per-atom colour override (AV-COLOR-010) and colours as
    plugins (AV-COLOR-009).

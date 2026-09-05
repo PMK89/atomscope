@@ -414,6 +414,29 @@ test('the Properties tab lists the bonds and a typed length moves an atom', asyn
   await expect(page.getByLabel('length of O1—H3')).toHaveValue('0.958');
 });
 
+test('the Properties tab lists the angles and a typed angle bends the molecule', async ({
+  page,
+}) => {
+  await page.goto('/');
+  await page.getByRole('tab', { name: 'Properties' }).click();
+  // water has one angle and no torsion at all
+  await expect(page.getByLabel('value of H2—O1—H3')).toBeVisible();
+  await expect(page.getByText('No torsions.')).toBeVisible();
+  await page.screenshot({ path: '../.scratch/dev/angle-table.png' });
+
+  const angle = page.getByLabel('value of H2—O1—H3');
+  await expect(angle).toHaveValue('104.48');
+  await angle.fill('120.00');
+  await angle.blur();
+  await page.getByRole('button', { name: 'Edit', exact: true }).click();
+  await expect(page.getByRole('menuitem', { name: /Undo Set angle/ })).toBeVisible();
+  await page.keyboard.press('Escape');
+  // the bonds kept their lengths: an angle turns the far side, it does not stretch anything
+  await expect(page.getByLabel('length of O1—H2')).toHaveValue('0.958');
+  await expect(page.getByLabel('length of O1—H3')).toHaveValue('0.958');
+  await expect(page.getByLabel('value of H2—O1—H3')).toHaveValue('120.00');
+});
+
 test('the auto-optimize tool relaxes a stretched bond and is one undo step', async ({ page }) => {
   await page.goto('/');
   await page.getByRole('tab', { name: 'Properties' }).click();
