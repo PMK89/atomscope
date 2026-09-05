@@ -205,6 +205,16 @@ SCHEMA = ParameterSchema(
                     visible_when=[VisibleWhen(key="spin_polarized", op="truthy")],
                 ),
                 ParameterSpec(
+                    key="occupation_states",
+                    label="Explicit state occupations",
+                    type="text",
+                    default="",
+                    advanced=True,
+                    backend_path="STRUCTURE/OCCUPATIONS/STATE",
+                    help="One state per line: 'band spin occupation' (k-point optional as 4th value), e.g. '5 1 1.0' and '5 2 0.0' to fix a spin arrangement (antiferromagnets, excited configurations). Occupations must decrease with band index unless Mermin occupations are used.",
+                    reference="manual: !STRUCTURE!OCCUPATIONS!STATE",
+                ),
+                ParameterSpec(
                     key="empty_bands",
                     label="Empty bands",
                     type="integer",

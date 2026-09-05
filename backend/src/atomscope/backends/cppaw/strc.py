@@ -12,7 +12,7 @@ Conventions used by the generator (see docs/cppaw-analysis.md §3.4, §8):
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 import numpy as np
 from ase.data import atomic_numbers
@@ -70,6 +70,7 @@ class StrcOptions:
     kpoint_mode: str = "density"
     kpoint_r: float = 12.0
     kpoint_div: tuple[int, int, int] = (2, 2, 2)
+    occupation_states: str = ""
 
     @classmethod
     def from_values(cls, v: Values) -> StrcOptions:
@@ -88,7 +89,39 @@ class StrcOptions:
             kpoint_mode=str(v.get("kpoint_mode", "density")),
             kpoint_r=float(v.get("kpoint_r", 12.0)),  # type: ignore[arg-type]
             kpoint_div=(int(div[0]), int(div[1]), int(div[2])),  # type: ignore[index]
+            occupation_states=str(v.get("occupation_states", "") or ""),
         )
+
+
+@dataclass(frozen=True)
+class OccupationState:
+    """One ``!OCCUPATIONS!STATE`` entry: occupation ``f`` of band ``b`` for spin ``s`` (1/2)."""
+
+    band: int
+    spin: int
+    occupation: float
+    kpoint: int | None = None
+
+
+def parse_occupation_states(text: str) -> list[OccupationState]:
+    """Parse 'band spin occupation [kpoint]' lines; blank lines and '#' comments are skipped."""
+    out: list[OccupationState] = []
+    for raw in text.splitlines():
+        line = raw.split("#", 1)[0].strip().replace(",", " ")
+        if not line:
+            continue
+        parts = line.split()
+        if len(parts) not in (3, 4):
+            msg = f"occupation state line needs 'band spin occupation [kpoint]': {raw!r}"
+            raise ValueError(msg)
+        band, spin = int(parts[0]), int(parts[1])
+        occ = float(parts[2])
+        kpt = int(parts[3]) if len(parts) == 4 else None
+        if band < 1 or spin not in (1, 2) or not 0.0 <= occ <= 2.0:
+            msg = f"invalid occupation state {raw!r} (band>=1, spin 1|2, 0<=f<=2)"
+            raise ValueError(msg)
+        out.append(OccupationState(band, spin, occ, kpt))
+    return out
 
 
 def molecule_box(structure: Structure, margin: float) -> Cell:
@@ -141,6 +174,14 @@ def build_strc(structure: Structure, opts: StrcOptions) -> Block:
     occ.set("CHARGE[E]", float(structure.charge))
     if nspin == 2:
         occ.set("SPIN[HBAR]", spin)
+    for state in parse_occupation_states(opts.occupation_states):
+        blk = Block("STATE")
+        blk.set("B", state.band)
+        blk.set("S", state.spin)
+        blk.set("F", state.occupation)
+        if state.kpoint is not None:
+            blk.set("K", state.kpoint)
+        occ.children.append(blk)
 
     overrides = parse_npro_overrides(opts.npro_overrides)
     seen: list[str] = []
@@ -217,6 +258,7 @@ class StrcGeometry:
     charge: float | None
     spin: float | None
     nspin: int | None
+    states: list[OccupationState] = field(default_factory=list)
 
 
 def read_strc_geometry(text: str) -> StrcGeometry:
@@ -260,4 +302,18 @@ def read_strc_geometry(text: str) -> StrcGeometry:
         raw_nspin = occ.get("NSPIN")
         if isinstance(raw_nspin, int | float):
             nspin = int(raw_nspin)
-    return StrcGeometry(names, np.array(pos).reshape(-1, 3), cell, charge, spin, nspin)
+    states: list[OccupationState] = []
+    if occ is not None:
+        for st in occ.children_named("STATE"):
+            b, sp, f = st.get("B"), st.get("S"), st.get("F")
+            if isinstance(b, int | float) and isinstance(f, int | float):
+                k = st.get("K")
+                states.append(
+                    OccupationState(
+                        int(b),
+                        int(sp) if isinstance(sp, int | float) else 1,
+                        float(f),
+                        int(k) if isinstance(k, int | float) else None,
+                    )
+                )
+    return StrcGeometry(names, np.array(pos).reshape(-1, 3), cell, charge, spin, nspin, states)

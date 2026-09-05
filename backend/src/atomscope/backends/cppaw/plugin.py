@@ -22,7 +22,12 @@ from atomscope.backends.cppaw import settings as cppaw_settings
 from atomscope.backends.cppaw.cntl import analysis_files, cntl_text, force_stage_values
 from atomscope.backends.cppaw.results import collect
 from atomscope.backends.cppaw.schema import PRESETS, SCHEMA
-from atomscope.backends.cppaw.strc import StrcOptions, molecule_box, strc_text
+from atomscope.backends.cppaw.strc import (
+    StrcOptions,
+    molecule_box,
+    parse_occupation_states,
+    strc_text,
+)
 from atomscope.jobs.models import RunSpec
 from atomscope.model import Structure
 from atomscope.schemas import (
@@ -125,6 +130,20 @@ class CppawPlugin:
                     severity="warning",
                 )
             )
+        states_text = str(merged.get("occupation_states", "") or "")
+        if states_text.strip():
+            try:
+                states = parse_occupation_states(states_text)
+            except ValueError as exc:
+                report.issues.append(ValidationIssue(key="occupation_states", message=str(exc)))
+            else:
+                if any(st.spin == 2 for st in states) and not merged.get("spin_polarized"):
+                    report.issues.append(
+                        ValidationIssue(
+                            key="occupation_states",
+                            message="spin 2 states require a spin-polarized calculation",
+                        )
+                    )
         if merged.get("task") == "md" and merged.get("start") == "scratch":
             report.issues.append(
                 ValidationIssue(
@@ -181,6 +200,14 @@ class CppawPlugin:
         if exe is None:
             msg = "paw_fast.x not found"
             raise FileNotFoundError(msg)
+        mpi_args: list[str] = []
+        if resources.cores > 1:
+            par = self.settings.find(cppaw_settings.PARALLEL_EXE)
+            if par is None or not self.settings.mpirun:
+                msg = "parallel run requested but ppaw_fast.x or mpirun is not available"
+                raise RuntimeError(msg)
+            exe = par
+            mpi_args = ["--mpirun", self.settings.mpirun, "--np", str(resources.cores)]
         if not self.settings.runtime_verified:
             problem = cppaw_settings.ensure_runtime(self.settings)
             if problem:
@@ -200,6 +227,7 @@ class CppawPlugin:
         )
         if stages:
             argv += ["--stages", *stages]
+        argv += mpi_args
         wave = self.settings.find("paw_wave.x")
         analysis = analysis_files(generated.root_name, values)
         if wave is not None and analysis:

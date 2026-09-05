@@ -41,8 +41,11 @@ def protocol_finished(prot: Path) -> bool:
     return "PROGRAM FINISHED" in text.rsplit("PROGRAM STARTED", 1)[-1]
 
 
-def run_stage(paw_fast: str, work: Path, root: str) -> tuple[int, bool]:
-    """Run ``paw_fast.x <root>.cntl`` with soft-stop handling. Returns (exit code, stop requested)."""
+def run_stage(
+    paw_fast: str, work: Path, root: str, launcher: list[str] | None = None
+) -> tuple[int, bool]:
+    """Run ``paw_fast.x <root>.cntl`` (optionally through an MPI launcher) with soft-stop handling.
+    Returns (exit code, stop requested)."""
     exit_file = work / f"{root}.exit"
     exit_file.unlink(missing_ok=True)
     out_path = work / f"{root}.out"
@@ -50,7 +53,9 @@ def run_stage(paw_fast: str, work: Path, root: str) -> tuple[int, bool]:
     print(f"[atomscope] starting {paw_fast} {root}.cntl in {work}", flush=True)
     t0 = time.monotonic()
     with out_path.open("ab") as out:
-        proc = subprocess.Popen([paw_fast, f"{root}.cntl"], stdout=out, stderr=subprocess.STDOUT)
+        proc = subprocess.Popen(
+            [*(launcher or []), paw_fast, f"{root}.cntl"], stdout=out, stderr=subprocess.STDOUT
+        )
 
         def soft_stop(signum: int, _frame: object) -> None:
             nonlocal stopped
@@ -118,6 +123,8 @@ def main(argv: list[str]) -> int:  # noqa: PLR0911
     ap.add_argument(
         "--box", nargs=12, type=float, default=None, help="origin and three edge vectors (Bohr)"
     )
+    ap.add_argument("--mpirun", default=None, help="MPI launcher executable (used with --np)")
+    ap.add_argument("--np", type=int, default=1, help="MPI ranks")
     args = ap.parse_args(argv[1:])
     work = Path(args.work_dir).resolve()
     root = args.root
@@ -138,7 +145,12 @@ def main(argv: list[str]) -> int:  # noqa: PLR0911
                 return 2
             (work / f"{root}.cntl").write_text((work / stage).read_text())
             print(f"[atomscope] stage {stage} -> {root}.cntl", flush=True)
-        code, stopped = run_stage(args.paw_fast, work, root)
+        launcher = (
+            [args.mpirun, "-np", str(args.np), "--oversubscribe"]
+            if args.mpirun and args.np > 1
+            else None
+        )
+        code, stopped = run_stage(args.paw_fast, work, root, launcher)
         if code != 0:
             return code
         if not protocol_finished(work / f"{root}.prot"):

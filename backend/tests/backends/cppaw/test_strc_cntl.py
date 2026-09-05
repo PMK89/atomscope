@@ -162,3 +162,23 @@ def test_wcntl_uses_full_cell_vectors() -> None:
     assert vb.get("T") == [0.0, 5.0, 5.0, 5.0, 0.0, 5.0, 5.0, 5.0, 0.0]
     files = parse_deck(text).path("WCNTL", "FILES").children_named("FILE")
     assert {f.get("ID") for f in files} == {"STRC", "WAVE", "CUBE", "WAVEDX"}
+
+
+def test_occupation_states_roundtrip() -> None:
+    from atomscope.backends.cppaw.strc import OccupationState, parse_occupation_states
+
+    states = parse_occupation_states("5 1 1.0\n5 2 0.0 # AFM\n\n6 1 0.5 2")
+    assert states[1] == OccupationState(5, 2, 0.0, None) and states[2].kpoint == 2
+    s = from_atoms(molecule("O2"))
+    text = strc_text(s, StrcOptions(spin_polarized=True, occupation_states="5 1 1.0\n5 2 0.0"))
+    occ = parse_deck(text).path("STRUCTURE", "OCCUPATIONS")
+    blocks = occ.children_named("STATE")
+    assert [(b.get("B"), b.get("S"), b.get("F")) for b in blocks] == [(5, 1, 1.0), (5, 2, 0.0)]
+    geo = read_strc_geometry(text)
+    assert geo.states == states[:2]
+    import pytest
+
+    with pytest.raises(ValueError, match="band spin occupation"):
+        parse_occupation_states("1 2")
+    with pytest.raises(ValueError, match="invalid"):
+        parse_occupation_states("0 1 1.0")

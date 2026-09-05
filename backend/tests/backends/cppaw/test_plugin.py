@@ -166,3 +166,50 @@ async def test_real_forces_task_through_driver(tmp_path: Path) -> None:
     assert res.converged is True and res.complete is True
     # the reported geometry is the input geometry (forces at the requested positions)
     assert abs(res.final_structure.atoms[1].position[0] - s.atoms[1].position[0]) < 1e-9
+
+
+def test_occupation_state_validation() -> None:
+    s = from_atoms(molecule("O2"))
+    rep = plugin.validate(s, {"occupation_states": "5 2 1.0", "spin_polarized": False})
+    assert not rep.ok and "spin-polarized" in rep.errors()[0].message
+    assert plugin.validate(s, {"occupation_states": "5 2 1.0", "spin_polarized": True}).ok
+    assert not plugin.validate(s, {"occupation_states": "garbage"}).ok
+
+
+@pytest.mark.cppaw
+async def test_real_parallel_run(tmp_path: Path) -> None:
+    """si2 on 2 MPI ranks through ppaw_fast.x (skipped when the parallel binary is missing)."""
+    from atomscope.backends.cppaw import settings as cppaw_settings
+
+    p = CppawPlugin()
+    if p.settings.find(cppaw_settings.PARALLEL_EXE) is None or not p.settings.mpirun:
+        pytest.skip("ppaw_fast.x or mpirun not available")
+    s = from_atoms(bulk("Si"), name="si2")
+    values = {
+        "task": "single_point",
+        "kpoint_r": 8.0,
+        "empty_bands": 2,
+        "nstep": 300,
+        "epwpsi": 25.0,
+    }
+    gen = p.generate_inputs(s, values, "case")
+    inp, work = tmp_path / "input", tmp_path / "work"
+    inp.mkdir()
+    work.mkdir()
+    (inp / "structure.json").write_text(s.model_dump_json())
+    (inp / "values.json").write_text(json.dumps(values))
+    for f in gen.files:
+        (inp / f.name).write_text(f.text)
+        (work / f.name).write_text(f.text)
+    spec = p.run_spec(inp, work, gen, Resources(cores=2, mpi=True))
+    assert "--mpirun" in spec.argv and spec.env.get("OMP_NUM_THREADS") == "1"
+    jm = JobManager()
+    rec = await jm.wait(jm.submit(spec).id)
+    logs = "".join(
+        (work / n).read_text()
+        for n in ("driver.log", "driver.err", "case.out")
+        if (work / n).exists()
+    )
+    assert rec.status == "completed", logs[-3000:]
+    res = p.parse_results(work, gen)
+    assert -8.0 * 27.2 < res.properties["energy"].value < -7.0 * 27.2

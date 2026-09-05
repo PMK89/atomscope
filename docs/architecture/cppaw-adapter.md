@@ -24,6 +24,13 @@ split at the last `PROGRAM STARTED`; `STOP=T` is documented as "zero initial vel
 libgfortran incompatibility of the installed binaries is detected and worked around via
 `LD_LIBRARY_PATH` in the job environment.
 
-Not yet implemented: MPI runs (`ppaw_fast.x`), `.pdos`/DOS and band-structure tools, restart-file
-management across calculations (copying `.rstrt` into a new calculation), inline `!AUGMENT`
-setups from `setups.rslv`, constraint scans.
+Also implemented: two-stage force evaluation (`task=forces`: converge electrons, then a few damped
+atomic steps; forces reported at the input geometry, electronic convergence checked), MPI runs
+(`Resources.cores > 1` -> `mpirun -np N --oversubscribe ppaw_fast.x`, `OMP_NUM_THREADS=1`),
+explicit `!OCCUPATIONS!STATE` blocks (antiferromagnets, excited configurations), fork/restart of
+calculations (parent `.rstrt` copied, `START=F`), and the ASE calculator
+`atomscope.ase_bridge.cppaw_calculator.CppawCalculator` (used by the ASE workflow plugin).
+
+Not yet implemented: `.pdos`/DOS and band-structure tools and the orbital browser (feature branch
+`feat/cppaw-analysis`), inline `!AUGMENT` setups from `setups.rslv`, constraint scans, wall-clock
+limits, remote runners.
