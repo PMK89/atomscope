@@ -38,6 +38,13 @@ export const DEFAULT_STRUCTURE_SETTINGS: StructureLayerSettings = {
   showHydrogens: true,
 };
 
+/** [sphere segments, sphere rings, cylinder sides] from coarse to fine. */
+const DETAIL_LEVELS: [number, number, number][] = [
+  [8, 6, 6],
+  [16, 12, 12],
+  [32, 24, 24],
+];
+
 const SELECTION_COLOR = new Color(0.2, 0.6, 1.0);
 const HOVER_COLOR = new Color(1.0, 0.85, 0.2);
 
@@ -49,8 +56,11 @@ export class StructureLayer implements DisplayLayer {
 
   private atomMesh: InstancedMesh | null = null;
   private bondMesh: InstancedMesh | null = null;
-  private readonly sphereGeometry = new SphereGeometry(1, 32, 24);
-  private readonly cylinderGeometry = new CylinderGeometry(1, 1, 1, 24, 1, true);
+  /** Tessellation actually in use, chosen from the atom count by `detailFor`. */
+  private readonly geometries = new Map<
+    number,
+    { sphere: SphereGeometry; cylinder: CylinderGeometry }
+  >();
   private readonly material = new MeshStandardMaterial({ roughness: 0.55, metalness: 0.0 });
   private lastSettings: string = '';
   /** Atom and bond arrays of the last update: immutable, so identity answers "did it change?". */
@@ -197,7 +207,8 @@ export class StructureLayer implements DisplayLayer {
     this.atomOfInstance = visibleAtoms;
 
     // atoms
-    const atomMesh = new InstancedMesh(this.sphereGeometry, this.material, visibleAtoms.length);
+    const { sphere, cylinder } = this.geometryFor(visibleAtoms.length);
+    const atomMesh = new InstancedMesh(sphere, this.material, visibleAtoms.length);
     this.instanceRadius = new Float32Array(visibleAtoms.length);
     visibleAtoms.forEach((atomIndex, k) => {
       const el = elementBySymbol(s.atoms[atomIndex]!.element);
@@ -216,12 +227,32 @@ export class StructureLayer implements DisplayLayer {
         return visible;
       });
       this.bondMeshBondIndices = bondIndices;
-      const bondMesh = new InstancedMesh(this.cylinderGeometry, this.material, bonds.length * 2);
+      const bondMesh = new InstancedMesh(cylinder, this.material, bonds.length * 2);
       bondMesh.frustumCulled = false;
       this.bondMesh = bondMesh;
       this.bondMeshBonds = bonds;
       this.object.add(bondMesh);
     }
+  }
+
+  /**
+   * Sphere segments for `count` atoms. A 32x24 sphere is 1472 triangles: at 100k atoms that is
+   * 157 M triangles per frame and the viewport drops below a frame per second, while the same
+   * scene at 8x6 renders 5-7 times faster and is indistinguishable at the size one atom occupies
+   * when a hundred thousand of them are on screen (measured, see docs/performance.md).
+   */
+  private geometryFor(count: number): { sphere: SphereGeometry; cylinder: CylinderGeometry } {
+    const detail = count > 20_000 ? 0 : count > 2_000 ? 1 : 2;
+    let entry = this.geometries.get(detail);
+    if (!entry) {
+      const [segments, rings, sides] = DETAIL_LEVELS[detail]!;
+      entry = {
+        sphere: new SphereGeometry(1, segments, rings),
+        cylinder: new CylinderGeometry(1, 1, 1, sides, 1, true),
+      };
+      this.geometries.set(detail, entry);
+    }
+    return entry;
   }
 
   private bondMeshBonds: StructureDoc['bonds'] = [];
@@ -285,8 +316,11 @@ export class StructureLayer implements DisplayLayer {
 
   dispose(): void {
     this.disposeMeshes();
-    this.sphereGeometry.dispose();
-    this.cylinderGeometry.dispose();
+    for (const { sphere, cylinder } of this.geometries.values()) {
+      sphere.dispose();
+      cylinder.dispose();
+    }
+    this.geometries.clear();
     this.material.dispose();
   }
 }

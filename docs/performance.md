@@ -493,16 +493,17 @@ SwiftShader.
   document went from 58.5 s to 25.9 ms (2260x). `adjacency` (35 ms) and `fragments` (43 ms) on
   the same document were already linear.
 
-### `StructureLayer` findings (not changed on this branch)
+### `StructureLayer` findings
 
-`frontend/src/renderer/layers/StructureLayer.ts` is being edited by another agent, so these are
-reported rather than fixed. All three are visible in the numbers above.
+The measurements above were taken before the level-of-detail fix; findings 2 and 3 still stand.
 
-1. **No level of detail.** The sphere tessellation (32x24) and the cylinder tessellation (24
-   radial segments) are constants. The measured 5-7x from an 8x6 sphere is the immediate win; a
-   real fix would pick segments from the on-screen radius, or switch to impostor spheres (a
-   camera-facing quad with a ray-traced normal in the fragment shader), which is what large-scale
-   molecular viewers do and which makes the atom count independent of tessellation entirely.
+1. **Level of detail — fixed after the merge.** The sphere and cylinder tessellations used to be
+   constants (32x24, 1472 triangles per atom). `StructureLayer.geometryFor` now picks one of three
+   tiers from the visible atom count: 32x24 below 2 000 atoms, 16x12 below 20 000 and 8x6 above,
+   which is the swap the 5-7x measurement above was taken with. The remaining step, if a
+   hundred-thousand-atom system ever has to orbit smoothly, is impostor spheres (a camera-facing
+   quad with a ray-traced normal in the fragment shader), which makes the cost independent of
+   tessellation entirely.
 2. **`applyColors` rewrites every instance colour on every hover change.** It loops over all
    visible atoms and both halves of every bond, calling `elementBySymbol` and `setColorAt` --
    about 300 000 operations and a full `instanceColor` upload per pointer move at 1e5 atoms.

@@ -77,3 +77,27 @@ test('repeating the same snapshot touches nothing', () => {
   expect(dispose).not.toHaveBeenCalled();
   layer.dispose();
 });
+
+test('large structures are drawn with coarser spheres', () => {
+  const big = (n: number): StructureDoc =>
+    normalizeStructure({
+      name: `c${n}`,
+      charge: 0,
+      atoms: Array.from({ length: n }, (_, i) => makeAtom('C', [i * 2, 0, 0])),
+      bonds: [],
+    });
+
+  const small = new StructureLayer();
+  small.update(ctx(big(10)));
+  const fine = meshes(small)[0]!.geometry.attributes.position!.count;
+
+  const large = new StructureLayer();
+  large.update(ctx(big(25_000)));
+  const coarse = meshes(large)[0]!.geometry.attributes.position!.count;
+
+  // 25k atoms at the fine tessellation is 37 M triangles a frame; the coarse sphere is what
+  // keeps the viewport interactive, and one atom of 25 000 is a few pixels wide anyway
+  expect(coarse).toBeLessThan(fine / 8);
+  small.dispose();
+  large.dispose();
+});
