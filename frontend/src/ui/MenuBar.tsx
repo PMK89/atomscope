@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { api } from '../api/client';
 import { normalizeStructure } from '../model/structure';
 import { useStructureStore } from '../state/structureStore';
+import { useTrajectoryStore } from '../state/trajectoryStore';
 import { useViewStore } from '../state/viewStore';
 import type { StructureStyle } from '../renderer/layers/StructureLayer';
 
@@ -57,6 +58,17 @@ export function MenuBar({ onError }: { onError: (msg: string) => void }): JSX.El
   const store = useStructureStore();
   const view = useViewStore();
   const fileInput = useRef<HTMLInputElement>(null);
+  const trajectoryInput = useRef<HTMLInputElement>(null);
+
+  const openTrajectory = async (file: File): Promise<void> => {
+    try {
+      const res = await api.io.importTrajectoryUpload(file);
+      store.load(normalizeStructure(res.structure));
+      useTrajectoryStore.getState().loadFromResult(res);
+    } catch (e) {
+      onError(`Trajectory import failed: ${(e as Error).message}`);
+    }
+  };
 
   const openFile = async (file: File): Promise<void> => {
     try {
@@ -128,6 +140,7 @@ export function MenuBar({ onError }: { onError: (msg: string) => void }): JSX.El
           },
           { label: 'Open…', shortcut: 'Ctrl+O', action: () => fileInput.current?.click() },
           { label: 'Build from SMILES…', action: () => void buildSmiles() },
+          { label: 'Import trajectory…', action: () => trajectoryInput.current?.click() },
           { label: 'Export XYZ', action: () => void exportText('xyz') },
           { label: 'Export extended XYZ', action: () => void exportText('extxyz') },
           { label: 'Export CIF', disabled: !store.doc.cell, action: () => void exportText('cif') },
@@ -167,6 +180,9 @@ export function MenuBar({ onError }: { onError: (msg: string) => void }): JSX.El
               ),
           },
           { label: 'Fit to structure', action: view.requestFit },
+          { label: 'Show force vectors', checked: view.showVectors, action: view.toggleVectors },
+          { label: 'Show unit cell', checked: view.showUnitCell, action: view.toggleUnitCell },
+          { label: 'Show axes', checked: view.showAxes, action: view.toggleAxes },
           {
             label: 'Background: white',
             checked: view.background === 'white',
@@ -187,6 +203,17 @@ export function MenuBar({ onError }: { onError: (msg: string) => void }): JSX.El
         onChange={(e) => {
           const f = e.target.files?.[0];
           if (f) void openFile(f);
+          e.target.value = '';
+        }}
+      />
+      <input
+        ref={trajectoryInput}
+        type="file"
+        hidden
+        data-testid="trajectory-input"
+        onChange={(e) => {
+          const f = e.target.files?.[0];
+          if (f) void openTrajectory(f);
           e.target.value = '';
         }}
       />

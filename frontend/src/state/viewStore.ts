@@ -14,6 +14,19 @@ export interface ViewState {
   /** Incremented to request "fit to structure" from whoever owns the renderer. */
   fitRequest: number;
   requestFit: () => void;
+  /** Extra display layers (vectors, unit cell, axes). */
+  showVectors: boolean;
+  vectorField: string;
+  vectorScale: number;
+  showUnitCell: boolean;
+  cellRepeat: [number, number, number];
+  showAxes: boolean;
+  toggleVectors: () => void;
+  setVectorField: (field: string) => void;
+  setVectorScale: (scale: number) => void;
+  toggleUnitCell: () => void;
+  setCellRepeat: (repeat: [number, number, number]) => void;
+  toggleAxes: () => void;
 }
 
 export const useViewStore = create<ViewState>((set) => ({
@@ -27,6 +40,18 @@ export const useViewStore = create<ViewState>((set) => ({
   toggleHydrogens: () => set((s) => ({ showHydrogens: !s.showHydrogens })),
   setBackground: (background) => set({ background }),
   requestFit: () => set((s) => ({ fitRequest: s.fitRequest + 1 })),
+  showVectors: false,
+  vectorField: 'forces',
+  vectorScale: 1,
+  showUnitCell: true,
+  cellRepeat: [1, 1, 1],
+  showAxes: true,
+  toggleVectors: () => set((s) => ({ showVectors: !s.showVectors })),
+  setVectorField: (vectorField) => set({ vectorField }),
+  setVectorScale: (vectorScale) => set({ vectorScale }),
+  toggleUnitCell: () => set((s) => ({ showUnitCell: !s.showUnitCell })),
+  setCellRepeat: (cellRepeat) => set({ cellRepeat }),
+  toggleAxes: () => set((s) => ({ showAxes: !s.showAxes })),
 }));
 
 export const BACKGROUND_HEX: Record<ViewState['background'], number> = {

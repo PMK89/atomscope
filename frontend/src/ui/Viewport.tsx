@@ -2,6 +2,9 @@ import { useEffect, useRef } from 'react';
 import { Renderer } from '../renderer/Renderer';
 import { useSelectionStore } from '../state/selectionStore';
 import { useStructureStore } from '../state/structureStore';
+import { useTrajectoryStore } from '../state/trajectoryStore';
+import { frameCell, framePositions } from '../model/trajectory';
+import { installExtraLayers, syncExtraLayers } from './viewportLayers';
 import { BACKGROUND_HEX, useViewStore } from '../state/viewStore';
 
 /** Owns one Renderer for its lifetime, feeds it store snapshots and routes pointer picks. */
@@ -13,12 +16,15 @@ export function Viewport(): JSX.Element {
   const selected = useSelectionStore((s) => s.atoms);
   const hovered = useSelectionStore((s) => s.hoveredAtom);
   const view = useViewStore();
+  const trajectory = useTrajectoryStore((s) => s.trajectory);
+  const frame = useTrajectoryStore((s) => s.frame);
   const lastFitted = useRef<string | null>(null);
   const lastFitRequest = useRef(0);
 
   useEffect(() => {
     if (!ref.current) return;
     const renderer = new Renderer(ref.current);
+    installExtraLayers(renderer);
     rendererRef.current = renderer;
     const el = renderer.gl.domElement;
     let downAt: { x: number; y: number } | null = null;
@@ -61,13 +67,21 @@ export function Viewport(): JSX.Element {
     r.structureLayer.setSettings({ style: view.style, showHydrogens: view.showHydrogens });
     r.setBackground(BACKGROUND_HEX[view.background]);
     if (r.projection !== view.projection) r.setProjection(view.projection);
-    r.update({ structure: doc, revision, selectedAtoms: selected, hoveredAtom: hovered });
+    syncExtraLayers(r, view);
+    r.update({
+      structure: doc,
+      revision,
+      selectedAtoms: selected,
+      hoveredAtom: hovered,
+      positionsOverride: trajectory ? framePositions(trajectory, frame) : null,
+      cellOverride: trajectory ? frameCell(trajectory, frame) : null,
+    });
     if (lastFitted.current !== doc.id || lastFitRequest.current !== view.fitRequest) {
       lastFitted.current = doc.id;
       lastFitRequest.current = view.fitRequest;
       r.fitToStructure();
     }
-  }, [doc, revision, selected, hovered, view]);
+  }, [doc, revision, selected, hovered, view, trajectory, frame]);
 
   return <div ref={ref} className="viewport-canvas" data-testid="viewport" />;
 }

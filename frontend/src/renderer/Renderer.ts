@@ -75,8 +75,34 @@ export class Renderer {
   /** Push a new structure snapshot to all layers. */
   update(ctx: LayerContext): void {
     this.ctx = ctx;
-    for (const layer of this.layers) if (layer.visible) layer.update(ctx);
+    for (const layer of this.layers) {
+      layer.object.visible = layer.visible;
+      if (layer.visible) layer.update(ctx);
+    }
     this.invalidate();
+  }
+
+  /** Add a display layer (no-op if a layer with the same id exists). */
+  addLayer(layer: DisplayLayer): void {
+    if (this.getLayer(layer.id)) return;
+    this.layers.push(layer);
+    this.scene.add(layer.object);
+    if (this.ctx && layer.visible) layer.update(this.ctx);
+    this.invalidate();
+  }
+
+  /** Detach a layer from the scene; the caller owns `dispose()`. */
+  removeLayer(id: string): DisplayLayer | undefined {
+    const idx = this.layers.findIndex((l) => l.id === id);
+    if (idx < 0) return undefined;
+    const [layer] = this.layers.splice(idx, 1);
+    if (layer) this.scene.remove(layer.object);
+    this.invalidate();
+    return layer;
+  }
+
+  getLayer(id: string): DisplayLayer | undefined {
+    return this.layers.find((l) => l.id === id);
   }
 
   fitToStructure(): void {
@@ -140,6 +166,8 @@ export class Renderer {
 
   private renderNow(): void {
     this.gl.render(this.scene, this.camera);
+    for (const layer of this.layers)
+      if (layer.visible && layer.renderOverlay) layer.renderOverlay(this.gl, this.camera);
   }
 
   private resize(): void {

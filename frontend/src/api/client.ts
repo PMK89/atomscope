@@ -20,6 +20,10 @@ export type GeneratedInputs = components['schemas']['GeneratedInputs'];
 export type ResultBundle = components['schemas']['ResultBundle'];
 export type ValidationReport = components['schemas']['ValidationReport'];
 export type LogResponse = components['schemas']['LogResponse'];
+export type Trajectory = components['schemas']['Trajectory'];
+export type TrajectoryScalars = components['schemas']['TrajectoryScalars'];
+export type TrajectoryImport = components['schemas']['TrajectoryImport'];
+export type ExportTrajectoryResponse = components['schemas']['ExportTrajectoryResponse'];
 export type ParameterValues = Record<string, unknown>;
 
 export class ApiError extends Error {
@@ -96,6 +100,18 @@ export const api = {
       request<Structure>('/api/io/smiles', json(body)),
     export: (body: Body<'/api/io/export', 'post'>) =>
       request<ExportResponse>('/api/io/export', json(body)),
+    importTrajectoryPath: (body: Body<'/api/io/import/trajectory', 'post'>) =>
+      request<TrajectoryImport>('/api/io/import/trajectory', json(body)),
+    importTrajectoryUpload: (file: File) => {
+      const form = new FormData();
+      form.append('file', file, file.name);
+      return request<TrajectoryImport>('/api/io/import/trajectory/upload', {
+        method: 'POST',
+        body: form,
+      });
+    },
+    exportTrajectory: (body: Body<'/api/io/export/trajectory', 'post'>) =>
+      request<ExportTrajectoryResponse>('/api/io/export/trajectory', json(body)),
   },
   backends: {
     list: () => request<BackendInfo[]>('/api/backends'),
@@ -131,6 +147,16 @@ export const api = {
       request<LogResponse>(
         `/api/calculations/${encodeURIComponent(id)}/log?stream=${encodeURIComponent(stream)}&tail=${tail}`,
       ),
+    trajectory: (id: string) =>
+      request<Trajectory>(`/api/calculations/${encodeURIComponent(id)}/trajectory`),
+    trajectoryScalars: (id: string) =>
+      request<TrajectoryScalars>(`/api/calculations/${encodeURIComponent(id)}/trajectory/scalars`),
+    /** Little-endian float32 positions, frames x atoms x 3; dimensions come from the scalars. */
+    trajectoryPositions: async (id: string): Promise<Float32Array> => {
+      const res = await fetch(`/api/calculations/${encodeURIComponent(id)}/trajectory/positions`);
+      if (!res.ok) throw new ApiError(res.status, res.statusText);
+      return new Float32Array(await res.arrayBuffer());
+    },
     /** WebSocket URL for job events (relative to the page origin; Vite proxies /api). */
     eventsUrl: () =>
       `${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host}/api/calculations/ws`,

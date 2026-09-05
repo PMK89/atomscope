@@ -11,6 +11,7 @@ import { normalizeStructure } from '../model/structure';
 import { useCalculationStore } from '../state/calculationStore';
 import { useProjectStore } from '../state/projectStore';
 import { useStructureStore } from '../state/structureStore';
+import { useTrajectoryStore } from '../state/trajectoryStore';
 import { SchemaForm } from './forms/SchemaForm';
 
 export function CalculationPanel({ onError }: { onError: (m: string) => void }): JSX.Element {
@@ -221,7 +222,19 @@ export function CalculationPanel({ onError }: { onError: (m: string) => void }):
                 <p>Converged: {String(selected.results.converged)}</p>
               )}
               {selected.results.trajectory && (
-                <p>Trajectory frames: {selected.results.trajectory.frames?.length ?? 0}</p>
+                <p>
+                  Trajectory frames: {selected.results.trajectory.frames?.length ?? 0}{' '}
+                  <button
+                    onClick={() =>
+                      void useTrajectoryStore
+                        .getState()
+                        .loadFromCalculation(selected.id)
+                        .catch(fail)
+                    }
+                  >
+                    Load trajectory
+                  </button>
+                </p>
               )}
               {selected.results.warnings?.map((w) => (
                 <p key={w} className="form-error">
