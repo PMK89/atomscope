@@ -63,6 +63,7 @@ export function Viewport(): JSX.Element {
       bondRadius: view.bondRadius,
       selectionStyle: view.selectionStyle,
       multipleBonds: view.multipleBonds,
+      cellRepeat: view.cellRepeat,
     });
     r.setBackground(BACKGROUND_HEX[view.background]);
     if (r.projection !== view.projection) r.setProjection(view.projection);

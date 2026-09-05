@@ -146,6 +146,11 @@ export class Renderer {
     const c = pa ? new Vector3(...pa.center) : new Vector3(...(atoms[0]?.position ?? [0, 0, 0]));
     let r = 0;
     for (const a of atoms) r = Math.max(r, c.distanceTo(new Vector3(...a.position)));
+    // periodic images are part of what is drawn, so they are part of what has to fit on screen
+    const cell = this.ctx.cellOverride ?? this.ctx.structure.cell?.vectors ?? null;
+    const images = this.structureLayer.imageExtent(cell);
+    c.add(new Vector3(...images.center));
+    r += images.radius;
     // Default orientation: look along the axis of least extent, largest extent horizontal.
     if (pa && pa.variances[0] > 1e-6) {
       const view = new Vector3(...pa.axes[2]);

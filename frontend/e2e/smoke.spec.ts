@@ -253,3 +253,26 @@ test('benzene from SMILES is drawn with alternating double bonds', async ({ page
   await page.getByLabel('Show multiple bonds').uncheck();
   await expect.poll(halves).toBe(12 * 2);
 });
+
+test('repeating the unit cell repeats the atoms too', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Build' }).click();
+  await page.getByRole('menuitem', { name: 'Crystal library…' }).click();
+  await page.getByRole('button', { name: 'AlSb AlSb' }).click();
+  // the conventional cell of AlSb: waiting for "atoms" alone would still match the demo water
+  await expect(page.locator('.app-statusbar')).toContainText('8 atoms');
+
+  const drawn = async (): Promise<number> =>
+    page.evaluate(() => {
+      const renderer = (window as unknown as { __atomscopeRenderer?: unknown })
+        .__atomscopeRenderer as { structureLayer: { pickables: { count?: number }[] } };
+      return renderer.structureLayer.pickables[0]?.count ?? 0;
+    });
+  const one = await drawn();
+  expect(one).toBeGreaterThan(0);
+
+  await page.getByRole('tab', { name: 'Display' }).click();
+  await page.getByLabel('Cell repeat a').fill('2');
+  await page.getByLabel('Cell repeat b').fill('2');
+  await expect.poll(drawn).toBe(one * 4);
+});

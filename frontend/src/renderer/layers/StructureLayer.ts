@@ -15,7 +15,7 @@ import {
 } from 'three';
 import { elementBySymbol } from '../../model/elements';
 import { adjacency } from '../../model/connectivity';
-import type { StructureDoc } from '../../model/structure';
+import type { Cell, StructureDoc } from '../../model/structure';
 import { bondPlaneAxis, cylinderMatrix } from '../math';
 import type { DisplayLayer, LayerContext } from './Layer';
 
@@ -32,6 +32,11 @@ export interface StructureLayerSettings {
   /** Draw double and triple bonds as two or three parallel sticks. */
   multipleBonds: boolean;
   /**
+   * Draw this many images of the structure along a, b and c. A repeated unit cell with only one
+   * cell of atoms in it says something false about the crystal, so the atoms repeat with the box.
+   */
+  cellRepeat: [number, number, number];
+  /**
    * Style for the selected atoms, when they should be drawn differently from the rest (Avogadro
    * restricts an engine to a set of primitives; this is the same effect with one engine). Null
    * draws everything in `style`, which is also the fast path: the selection then never rebuilds
@@ -47,6 +52,7 @@ export const DEFAULT_STRUCTURE_SETTINGS: StructureLayerSettings = {
   bondRadius: 0.12,
   showHydrogens: true,
   multipleBonds: true,
+  cellRepeat: [1, 1, 1],
   selectionStyle: null,
 };
 
@@ -67,8 +73,11 @@ interface BondHalf {
   shift: number;
   /** atom whose direction fixes the plane of a multiple bond, or -1 */
   reference: number;
+  /** index into `imageCells`: which periodic image this stick belongs to */
+  image: number;
 }
 
+const ORIGIN = new Vector3();
 const SELECTION_COLOR = new Color(0.2, 0.6, 1.0);
 const HOVER_COLOR = new Color(1.0, 0.85, 0.2);
 
@@ -90,8 +99,12 @@ export class StructureLayer implements DisplayLayer {
   /** Atom and bond arrays of the last update: immutable, so identity answers "did it change?". */
   private lastAtoms: StructureDoc['atoms'] | null = null;
   private lastBonds: StructureDoc['bonds'] | null = null;
-  /** instance index -> atom index (hidden hydrogens are skipped) */
+  /** instance index -> atom index (hidden hydrogens are skipped; images repeat the same atoms) */
   private atomOfInstance: number[] = [];
+  /** instance index -> which periodic image it belongs to, as an index into `imageCells` */
+  private imageOfInstance: Int32Array = new Int32Array(0);
+  /** (i, j, k) of each drawn image; [0,0,0] alone when the structure is not repeated */
+  private imageCells: [number, number, number][] = [[0, 0, 0]];
   private instanceOfAtom: Int32Array = new Int32Array(0);
   /** per instance sphere radius, cached so per-frame position updates skip element lookups */
   private instanceRadius: Float32Array = new Float32Array(0);
@@ -100,6 +113,7 @@ export class StructureLayer implements DisplayLayer {
   /** One half-cylinder per entry, in instance order (a multiple bond contributes several). */
   private bondHalves: BondHalf[] = [];
   private lastOverride: Float32Array | null = null;
+  private lastCell: Cell['vectors'] | null = null;
   private lastSelected: ReadonlySet<number> | null = null;
   private lastHovered: number | null = null;
 
@@ -109,6 +123,25 @@ export class StructureLayer implements DisplayLayer {
 
   setSettings(patch: Partial<StructureLayerSettings>): void {
     this.settings = { ...this.settings, ...patch };
+  }
+
+  /**
+   * Half-extent added by the periodic images, in Angstrom: what the drawn structure spans beyond
+   * the atoms themselves. Fitting the camera to the atoms alone would frame one cell of a repeat.
+   */
+  imageExtent(cell: Cell['vectors'] | null): { center: [number, number, number]; radius: number } {
+    const last = this.imageCells[this.imageCells.length - 1];
+    if (!cell || !last || this.imageCells.length <= 1) {
+      return { center: [0, 0, 0], radius: 0 };
+    }
+    const span: [number, number, number] = [0, 0, 0];
+    for (let axis = 0; axis < 3; axis++) {
+      for (let k = 0; k < 3; k++) span[k] += last[axis] * cell[axis][k];
+    }
+    return {
+      center: [span[0] / 2, span[1] / 2, span[2] / 2],
+      radius: Math.hypot(span[0], span[1], span[2]) / 2,
+    };
   }
 
   /** Atom index for an intersected instance of the atom mesh, or null. */
@@ -170,9 +203,11 @@ export class StructureLayer implements DisplayLayer {
     // display-only positions (trajectory frame): update instance matrices, keep topology
     const raw = ctx.positionsOverride ?? null;
     const override = raw && raw.length === s.atoms.length * 3 ? raw : null;
-    if (rebuilt || moved || override !== this.lastOverride) {
-      this.applyPositions(s, override);
+    const cell = ctx.cellOverride ?? s.cell?.vectors ?? null;
+    if (rebuilt || moved || override !== this.lastOverride || cell !== this.lastCell) {
+      this.applyPositions(s, override, cell);
       this.lastOverride = override;
+      this.lastCell = cell;
     }
     // colours depend on the element sequence (a rebuild), the selection and the hover only
     if (
@@ -187,7 +222,22 @@ export class StructureLayer implements DisplayLayer {
   }
 
   /** Write atom and bond instance matrices from `override` (3 floats per atom) or the structure. */
-  private applyPositions(s: StructureDoc, override: Float32Array | null): void {
+  private applyPositions(
+    s: StructureDoc,
+    override: Float32Array | null,
+    cell: Cell['vectors'] | null,
+  ): void {
+    // the image offsets come from the cell of the frame being displayed, so a cell that changes
+    // during a variable-cell relaxation moves the images with it
+    const offsets = this.imageCells.map(([i, j, k]) =>
+      cell
+        ? new Vector3(
+            i * cell[0][0] + j * cell[1][0] + k * cell[2][0],
+            i * cell[0][1] + j * cell[1][1] + k * cell[2][1],
+            i * cell[0][2] + j * cell[1][2] + k * cell[2][2],
+          )
+        : new Vector3(),
+    );
     const m = new Matrix4();
     const a = new Vector3();
     const b = new Vector3();
@@ -206,7 +256,8 @@ export class StructureLayer implements DisplayLayer {
     if (this.atomMesh) {
       for (let k = 0; k < this.atomOfInstance.length; k++) {
         const r = this.instanceRadius[k]!;
-        m.makeScale(r, r, r).setPosition(read(this.atomOfInstance[k]!, a));
+        read(this.atomOfInstance[k]!, a).add(offsets[this.imageOfInstance[k]!] ?? ORIGIN);
+        m.makeScale(r, r, r).setPosition(a);
         this.atomMesh.setMatrixAt(k, m);
       }
       this.atomMesh.instanceMatrix.needsUpdate = true;
@@ -217,8 +268,9 @@ export class StructureLayer implements DisplayLayer {
       this.bondHalves.forEach((half, k) => {
         const bond = this.bondMeshBonds[half.bond]!;
         const radius = this.bondRadii[half.bond]!;
-        read(bond.a, a);
-        read(bond.b, b);
+        const shift = offsets[half.image] ?? ORIGIN;
+        read(bond.a, a).add(shift);
+        read(bond.b, b).add(shift);
         mid.addVectors(a, b).multiplyScalar(0.5);
         offset.set(0, 0, 0);
         if (half.shift !== 0) {
@@ -250,6 +302,7 @@ export class StructureLayer implements DisplayLayer {
   private rebuild(s: StructureDoc, selected: ReadonlySet<number>): void {
     this.disposeMeshes();
     const { showHydrogens } = this.settings;
+    this.imageCells = this.images(s);
     const visibleAtoms: number[] = [];
     this.instanceOfAtom = new Int32Array(s.atoms.length).fill(-1);
     s.atoms.forEach((a, i) => {
@@ -257,13 +310,22 @@ export class StructureLayer implements DisplayLayer {
       this.instanceOfAtom[i] = visibleAtoms.length;
       visibleAtoms.push(i);
     });
-    this.atomOfInstance = visibleAtoms;
+    // one instance per visible atom per image; picking maps an image back to its atom
+    const images = this.imageCells.length;
+    this.atomOfInstance = [];
+    this.imageOfInstance = new Int32Array(visibleAtoms.length * images);
+    for (let image = 0; image < images; image++) {
+      for (const atomIndex of visibleAtoms) {
+        this.imageOfInstance[this.atomOfInstance.length] = image;
+        this.atomOfInstance.push(atomIndex);
+      }
+    }
 
     // atoms
-    const { sphere, cylinder } = this.geometryFor(visibleAtoms.length);
-    const atomMesh = new InstancedMesh(sphere, this.material, visibleAtoms.length);
-    this.instanceRadius = new Float32Array(visibleAtoms.length);
-    visibleAtoms.forEach((atomIndex, k) => {
+    const { sphere, cylinder } = this.geometryFor(this.atomOfInstance.length);
+    const atomMesh = new InstancedMesh(sphere, this.material, this.atomOfInstance.length);
+    this.instanceRadius = new Float32Array(this.atomOfInstance.length);
+    this.atomOfInstance.forEach((atomIndex, k) => {
       const el = elementBySymbol(s.atoms[atomIndex]!.element);
       const atomStyle = this.styleOf(atomIndex, selected);
       this.instanceRadius[k] = this.atomRadius(el.covalentRadius, el.vdwRadius, atomStyle);
@@ -305,6 +367,19 @@ export class StructureLayer implements DisplayLayer {
    * The half-cylinders to draw: two per single bond, two per stick of a double or triple one.
    * The shifts are symmetric about the bond axis (-1,+1 for a double, -1,0,+1 for a triple).
    */
+  /** The (i, j, k) images to draw: one per cell of the repeat, and just the origin without a cell. */
+  private images(s: StructureDoc): [number, number, number][] {
+    const [na, nb, nc] = this.settings.cellRepeat;
+    if (!s.cell || (na <= 1 && nb <= 1 && nc <= 1)) return [[0, 0, 0]];
+    const out: [number, number, number][] = [];
+    for (let i = 0; i < Math.max(1, na); i++) {
+      for (let j = 0; j < Math.max(1, nb); j++) {
+        for (let k = 0; k < Math.max(1, nc); k++) out.push([i, j, k]);
+      }
+    }
+    return out;
+  }
+
   private halvesFor(s: StructureDoc, bonds: StructureDoc['bonds']): BondHalf[] {
     const out: BondHalf[] = [];
     // one pass over the bonds, rather than a scan per multiple bond: at 1e4 double bonds the
@@ -317,10 +392,12 @@ export class StructureLayer implements DisplayLayer {
         sticks > 1
           ? (adj[bond.a]?.find((x) => x !== bond.b) ?? adj[bond.b]?.find((x) => x !== bond.a) ?? -1)
           : -1;
-      for (let i = 0; i < sticks; i++) {
-        const shift = sticks === 1 ? 0 : i - (sticks - 1) / 2;
-        out.push({ bond: k, end: 'a', shift, reference });
-        out.push({ bond: k, end: 'b', shift, reference });
+      for (let image = 0; image < this.imageCells.length; image++) {
+        for (let i = 0; i < sticks; i++) {
+          const shift = sticks === 1 ? 0 : i - (sticks - 1) / 2;
+          out.push({ bond: k, end: 'a', shift, reference, image });
+          out.push({ bond: k, end: 'b', shift, reference, image });
+        }
       }
     });
     return out;

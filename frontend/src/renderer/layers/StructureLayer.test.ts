@@ -220,3 +220,50 @@ test('picking still finds the bond a stick belongs to', () => {
   expect([...found].sort((a, b) => a - b)).toEqual([0, 1, 2, 3, 4]);
   layer.dispose();
 });
+
+/** One atom in a 3 Å cubic cell. */
+const crystal = (): StructureDoc =>
+  normalizeStructure({
+    name: 'po',
+    atoms: [makeAtom('Po', [0, 0, 0])],
+    bonds: [],
+    cell: {
+      vectors: [
+        [3, 0, 0],
+        [0, 3, 0],
+        [0, 0, 3],
+      ],
+      pbc: [true, true, true],
+    },
+  } as never);
+
+test('repeating the cell repeats the atoms in it, not only the box', () => {
+  const layer = new StructureLayer();
+  const doc = crystal();
+  layer.update(ctx(doc));
+  expect(meshes(layer)[0]!.count).toBe(1);
+
+  layer.setSettings({ cellRepeat: [2, 2, 1] });
+  layer.update(ctx(doc));
+  const atomMesh = meshes(layer)[0]!;
+  expect(atomMesh.count).toBe(4);
+
+  // the images sit one cell vector apart, and every one of them still names the atom it copies
+  const m = new Matrix4();
+  const xs = new Set<string>();
+  for (let i = 0; i < atomMesh.count; i++) {
+    atomMesh.getMatrixAt(i, m);
+    xs.add(`${m.elements[12]!.toFixed(3)},${m.elements[13]!.toFixed(3)}`);
+    expect(layer.atomIndexForInstance(atomMesh, i)).toBe(0);
+  }
+  expect(xs).toEqual(new Set(['0.000,0.000', '0.000,3.000', '3.000,0.000', '3.000,3.000']));
+  layer.dispose();
+});
+
+test('a structure without a cell ignores the repeat', () => {
+  const layer = new StructureLayer();
+  layer.setSettings({ cellRepeat: [3, 3, 3] });
+  layer.update(ctx(doc()));
+  expect(meshes(layer)[0]!.count).toBe(3);
+  layer.dispose();
+});

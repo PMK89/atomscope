@@ -24,6 +24,8 @@
 - Fixed: Ctrl+C with text selected in a panel copied the molecule instead of the text; removing
   atoms in the editor left residues and constraints pointing at the old numbering; a copied
   fragment carried no residues.
+- Repeating the unit cell now repeats the atoms and bonds in it, not just the box, and fitting
+  the camera frames the repeats.
 - A Select menu (the selection commands moved out of Edit) and a Help menu: the guides, the
   tutorials, the keyboard shortcuts and what the program is.
 - Double and triple bonds are drawn as two or three parallel sticks, in the plane of the molecule,
