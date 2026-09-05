@@ -23,6 +23,8 @@ export function useIsosurfaceLayers(renderer: Renderer | null): void {
       if (!layer) {
         layer = new IsosurfaceLayer(def.gridId, grid.values, gridGeometry(grid.meta));
         layer.onChange = () => renderer.invalidate();
+        layer.onWarning = (specId, message) =>
+          useVolumetricStore.getState().setSurfaceWarning(specId, message);
         layers.current.set(def.gridId, layer);
         renderer.addLayer(layer);
       }

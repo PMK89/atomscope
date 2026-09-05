@@ -176,6 +176,7 @@ function GridCard({
 function SurfaceCard({ def, grid }: { def: SurfaceDef; grid: LoadedGrid }): JSX.Element {
   const update = useVolumetricStore((s) => s.updateSurface);
   const remove = useVolumetricStore((s) => s.removeSurface);
+  const warning = useVolumetricStore((s) => s.warnings[def.id] ?? s.warnings[`${def.id}-neg`]);
   const range = sliderRange(grid.stats, grid.meta.kind);
   const [text, setText] = useState(fmt(def.isovalue));
   useEffect(() => setText(fmt(def.isovalue)), [def.isovalue]);
@@ -291,6 +292,7 @@ function SurfaceCard({ def, grid }: { def: SurfaceDef; grid: LoadedGrid }): JSX.
           />
         </div>
       )}
+      {warning && <p className="form-error">{warning}</p>}
       <div className="form-row">
         <label htmlFor={id('step')}>Resolution</label>
         <select

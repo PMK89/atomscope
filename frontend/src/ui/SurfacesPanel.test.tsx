@@ -61,3 +61,32 @@ test('dragging the isovalue slider commits once, after it settles', () => {
     9,
   );
 });
+
+test('a resolution warning from the renderer is shown on the surface card', () => {
+  const def = useVolumetricStore.getState().surfaces[0]!;
+  render(<SurfacesPanel onError={() => {}} />);
+  expect(screen.queryByText(/triangle budget/)).toBeNull();
+
+  // the negative lobe of a +/- pair reports under its own spec id
+  act(() =>
+    useVolumetricStore
+      .getState()
+      .setSurfaceWarning(
+        `${def.id}-neg`,
+        'Reduced to 1/4 resolution to stay within the triangle budget (900k triangles).',
+      ),
+  );
+  expect(screen.getByText(/1\/4 resolution/)).toBeInTheDocument();
+
+  act(() => useVolumetricStore.getState().setSurfaceWarning(`${def.id}-neg`, null));
+  expect(screen.queryByText(/triangle budget/)).toBeNull();
+});
+
+test('removing a surface forgets its warnings', () => {
+  const def = useVolumetricStore.getState().surfaces[0]!;
+  const vol = useVolumetricStore.getState();
+  vol.setSurfaceWarning(def.id, 'too big');
+  vol.setSurfaceWarning(`${def.id}-neg`, 'too big');
+  useVolumetricStore.getState().removeSurface(def.id);
+  expect(useVolumetricStore.getState().warnings).toEqual({});
+});

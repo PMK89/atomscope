@@ -12,12 +12,13 @@ const geometry: GridGeometry = {
   ],
 };
 
-const emptyMesh = (): IsosurfaceMesh => ({
+const emptyMesh = (step = 1): IsosurfaceMesh => ({
   positions: new Float32Array(9),
   normals: new Float32Array(9),
   indices: new Uint32Array([0, 1, 2]),
   vertexCount: 3,
   triangleCount: 1,
+  step,
 });
 
 /** Mesher whose computations only finish when the test releases them. */
@@ -85,6 +86,29 @@ test('only one meshing job per surface runs at a time and the newest request win
   await flush();
   expect(mesher.calls).toHaveLength(2);
   expect(onChange).toHaveBeenCalledTimes(1);
+  layer.dispose();
+});
+
+test('a coarsened surface reports a warning, and clears it when it fits again', async () => {
+  const steps = [2, 1];
+  const mesher: Mesher = {
+    loadGrid: () => undefined,
+    unloadGrid: () => undefined,
+    compute: () => Promise.resolve(emptyMesh(steps.shift() ?? 1)),
+  };
+  const layer = new IsosurfaceLayer('g1', new Float32Array(8), geometry, mesher);
+  const warnings: [string, string | null][] = [];
+  layer.onWarning = (id, message) => warnings.push([id, message]);
+
+  layer.setSurfaces([spec(0.01)]);
+  await flush();
+  expect(warnings).toHaveLength(1);
+  expect(warnings[0]![0]).toBe('s1');
+  expect(warnings[0]![1]).toMatch(/1\/2 resolution/);
+
+  layer.setSurfaces([spec(0.5)]);
+  await flush();
+  expect(warnings[1]).toEqual(['s1', null]);
   layer.dispose();
 });
 

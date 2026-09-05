@@ -48,6 +48,14 @@ function worker(): Remote<MarchingCubesWorkerApi> {
 
 const meshKey = (s: SurfaceSpec): string => `${s.isovalue}|${s.inside}|${s.step}`;
 
+/** Message for a surface the triangle budget forced to a coarser resolution, or null. */
+function coarsenedMessage(spec: SurfaceSpec, mesh: IsosurfaceMesh): string | null {
+  if (mesh.step <= spec.step) return null;
+  return `Reduced to 1/${mesh.step} resolution to stay within the triangle budget (${Math.round(
+    mesh.triangleCount / 1000,
+  )}k triangles).`;
+}
+
 interface Entry {
   mesh: Mesh<BufferGeometry, MeshStandardMaterial>;
   key: string;
@@ -63,6 +71,8 @@ export class IsosurfaceLayer implements DisplayLayer {
   visible = true;
   /** called when an asynchronous mesh arrives so the owner can re-render */
   onChange: (() => void) | null = null;
+  /** called with a message when a surface had to be coarsened, or null when it no longer is */
+  onWarning: ((surfaceId: string, message: string | null) => void) | null = null;
   private readonly entries = new Map<string, Entry>();
   private readonly ready: Promise<void>;
   private disposed = false;
@@ -101,6 +111,7 @@ export class IsosurfaceLayer implements DisplayLayer {
       this.entries.delete(id);
       entry.alive = false;
       entry.pending = null;
+      this.onWarning?.(id, null);
       this.object.remove(entry.mesh);
       entry.mesh.geometry.dispose();
       entry.mesh.material.dispose();
@@ -150,6 +161,7 @@ export class IsosurfaceLayer implements DisplayLayer {
         geometry.setIndex(new BufferAttribute(mesh.indices, 1));
         entry.mesh.geometry.dispose();
         entry.mesh.geometry = geometry;
+        this.onWarning?.(spec.id, coarsenedMessage(spec, mesh));
         this.onChange?.();
       }
     } finally {

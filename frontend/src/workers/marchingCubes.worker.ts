@@ -1,6 +1,7 @@
 /**
  * Marching cubes off the main thread. Grids are uploaded once (`loadGrid`) and kept in the
- * worker; each `compute` returns a mesh whose buffers are transferred, not copied.
+ * worker; each `compute` returns a mesh whose buffers are transferred, not copied. The requested
+ * downsample step is coarsened first if the surface would blow the triangle budget.
  */
 import { expose, transfer } from 'comlink';
 import {
@@ -9,6 +10,7 @@ import {
   type IsosurfaceMesh,
   type MarchingCubesOptions,
 } from '../renderer/marchingCubes';
+import { budgetedStep } from '../renderer/marchingCubesBudget';
 
 const grids = new Map<string, { values: Float32Array; geometry: GridGeometry }>();
 
@@ -22,7 +24,9 @@ const api = {
   compute(gridId: string, opts: MarchingCubesOptions): IsosurfaceMesh {
     const g = grids.get(gridId);
     if (!g) throw new Error(`grid ${gridId} is not loaded in the worker`);
-    const mesh = marchingCubes(g.values, g.geometry, opts);
+    // a coarser step than requested is better than exhausting the browser's memory
+    const step = budgetedStep(g.values, g.geometry, opts, opts.maxTriangles);
+    const mesh = marchingCubes(g.values, g.geometry, { ...opts, step });
     return transfer(mesh, [mesh.positions.buffer, mesh.normals.buffer, mesh.indices.buffer]);
   },
 };

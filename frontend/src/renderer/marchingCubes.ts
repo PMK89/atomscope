@@ -23,6 +23,8 @@ export interface MarchingCubesOptions {
   isovalue: number;
   /** downsample factor: use every `step`-th sample along each axis (1 = full resolution) */
   step?: number;
+  /** Triangle budget; the mesher's caller raises `step` until the estimate fits (see budget). */
+  maxTriangles?: number;
   /**
    * Which side of the isosurface is "inside". `above` (default) encloses `f >= isovalue`, the
    * right choice for densities and positive orbital lobes; `below` encloses `f <= isovalue`,
@@ -37,10 +39,20 @@ export interface IsosurfaceMesh {
   indices: Uint32Array;
   vertexCount: number;
   triangleCount: number;
+  /** Downsample factor actually used; larger than requested when a budget forced it down. */
+  step: number;
+}
+
+const INITIAL_VERTEX_CAPACITY = 1024;
+
+function grow<T extends Float32Array | Uint32Array>(a: T): T {
+  const out = new (a.constructor as new (n: number) => T)(a.length * 2);
+  out.set(a);
+  return out;
 }
 
 /** Corner offsets in Bourke's order (see marchingCubesTables.ts). */
-const CORNERS: ReadonlyArray<Vec3> = [
+export const CORNERS: ReadonlyArray<Vec3> = [
   [0, 0, 0],
   [1, 0, 0],
   [1, 1, 0],
@@ -145,10 +157,18 @@ export function marchingCubes(
     out[2] = derivative(K, m2, idx2, (d) => sample(I, J, K + d));
   };
 
-  const positions: number[] = [];
-  const normals: number[] = [];
-  const indices: number[] = [];
-  const edgeVertex = new Map<number, number>();
+  // Output grows in typed arrays; no per-vertex objects and no Map, so a large surface costs
+  // only the buffers it needs.
+  let positions = new Float32Array(INITIAL_VERTEX_CAPACITY * 3);
+  let normals = new Float32Array(INITIAL_VERTEX_CAPACITY * 3);
+  let indices = new Uint32Array(INITIAL_VERTEX_CAPACITY * 3);
+  let vertexCount = 0;
+  let indexCount = 0;
+  // Shared edge vertices are cached per coarse I layer: the edges of cell I touch layers I and
+  // I + 1 only, so two slabs suffice instead of a map over the whole lattice.
+  const slabSize = m1 * m2 * 3;
+  let slabLo = new Int32Array(slabSize).fill(-1);
+  let slabHi = new Int32Array(slabSize).fill(-1);
   const ga: Vec3 = [0, 0, 0];
   const gb: Vec3 = [0, 0, 0];
   const cornerValues = new Float64Array(8);
@@ -160,10 +180,11 @@ export function marchingCubes(
     const B = CORNERS[cb]!;
     // canonical key: lower corner of the edge + axis
     const axis = A[0] !== B[0] ? 0 : A[1] !== B[1] ? 1 : 2;
-    const lo: Vec3 = [I + Math.min(A[0], B[0]), J + Math.min(A[1], B[1]), K + Math.min(A[2], B[2])];
-    const key = ((lo[0] * m1 + lo[1]) * m2 + lo[2]) * 3 + axis;
-    const cached = edgeVertex.get(key);
-    if (cached !== undefined) return cached;
+    const lo0 = I + Math.min(A[0], B[0]);
+    const slab = lo0 === I ? slabLo : slabHi;
+    const key = ((J + Math.min(A[1], B[1])) * m2 + K + Math.min(A[2], B[2])) * 3 + axis;
+    const cached = slab[key]!;
+    if (cached >= 0) return cached;
     const va = cornerValues[ca]!;
     const vb = cornerValues[cb]!;
     let t = vb === va ? 0.5 : (iso - va) / (vb - va);
@@ -177,11 +198,6 @@ export function marchingCubes(
     const pj = lerpIdx(idx1, J, A[1], B[1]);
     const pk = lerpIdx(idx2, K, A[2], B[2]);
     const [a0, a1, a2] = grid.axes;
-    positions.push(
-      grid.origin[0] + pi * a0[0] + pj * a1[0] + pk * a2[0],
-      grid.origin[1] + pi * a0[1] + pj * a1[1] + pk * a2[1],
-      grid.origin[2] + pi * a0[2] + pj * a1[2] + pk * a2[2],
-    );
     gradAt(I + A[0], J + A[1], K + A[2], ga);
     gradAt(I + B[0], J + B[1], K + B[2], gb);
     const gi = ga[0] + t * (gb[0] - ga[0]);
@@ -189,19 +205,33 @@ export function marchingCubes(
     const gk = ga[2] + t * (gb[2] - ga[2]);
     // world gradient = inv(A) * grad_idx (A has the axes as rows); grad_idx is per fine-grid
     // index on every axis, so a shorter final stride does not skew the direction.
-    let nx = inv[0]! * gi + inv[1]! * gj + inv[2]! * gk;
-    let ny = inv[3]! * gi + inv[4]! * gj + inv[5]! * gk;
-    let nz = inv[6]! * gi + inv[7]! * gj + inv[8]! * gk;
+    const nx = inv[0]! * gi + inv[1]! * gj + inv[2]! * gk;
+    const ny = inv[3]! * gi + inv[4]! * gj + inv[5]! * gk;
+    const nz = inv[6]! * gi + inv[7]! * gj + inv[8]! * gk;
     const len = Math.hypot(nx, ny, nz) || 1;
     // normals point from the enclosed region outward: down the gradient for `above`
     const sign = below ? 1 / len : -1 / len;
-    nx *= sign;
-    ny *= sign;
-    nz *= sign;
-    normals.push(nx, ny, nz);
-    const idx = positions.length / 3 - 1;
-    edgeVertex.set(key, idx);
-    return idx;
+    if ((vertexCount + 1) * 3 > positions.length) {
+      positions = grow(positions);
+      normals = grow(normals);
+    }
+    const o = vertexCount * 3;
+    positions[o] = grid.origin[0] + pi * a0[0] + pj * a1[0] + pk * a2[0];
+    positions[o + 1] = grid.origin[1] + pi * a0[1] + pj * a1[1] + pk * a2[1];
+    positions[o + 2] = grid.origin[2] + pi * a0[2] + pj * a1[2] + pk * a2[2];
+    normals[o] = nx * sign;
+    normals[o + 1] = ny * sign;
+    normals[o + 2] = nz * sign;
+    slab[key] = vertexCount;
+    return vertexCount++;
+  };
+
+  const pushTriangle = (v0: number, v1: number, v2: number): void => {
+    if (indexCount + 3 > indices.length) indices = grow(indices);
+    indices[indexCount] = v0;
+    indices[indexCount + 1] = v1;
+    indices[indexCount + 2] = v2;
+    indexCount += 3;
   };
 
   for (let I = 0; I < m0 - 1; I++) {
@@ -229,17 +259,23 @@ export function marchingCubes(
           const v0 = cornerVertex[e0]!;
           const v1 = cornerVertex[e1]!;
           const v2 = cornerVertex[e2]!;
-          if (swapWinding) indices.push(v0, v2, v1);
-          else indices.push(v0, v1, v2);
+          if (swapWinding) pushTriangle(v0, v2, v1);
+          else pushTriangle(v0, v1, v2);
         }
       }
     }
+    // advance to the next coarse layer: the cached "high" edges become the "low" ones
+    const spent = slabLo;
+    slabLo = slabHi;
+    slabHi = spent;
+    slabHi.fill(-1);
   }
   return {
-    positions: Float32Array.from(positions),
-    normals: Float32Array.from(normals),
-    indices: Uint32Array.from(indices),
-    vertexCount: positions.length / 3,
-    triangleCount: indices.length / 3,
+    positions: positions.slice(0, vertexCount * 3),
+    normals: normals.slice(0, vertexCount * 3),
+    indices: indices.slice(0, indexCount),
+    vertexCount,
+    triangleCount: indexCount / 3,
+    step,
   };
 }
