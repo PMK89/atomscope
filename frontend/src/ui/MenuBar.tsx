@@ -99,7 +99,7 @@ export function MenuBar({ onError }: { onError: (msg: string) => void }): JSX.El
 
   const exportText = async (format: string): Promise<void> => {
     try {
-      const res = await api.io.export({ structure: store.doc, format });
+      const res = await api.io.export({ structure: store.doc, format, overwrite: false });
       const blob = new Blob([res.text ?? ''], { type: 'text/plain' });
       const a = document.createElement('a');
       a.href = URL.createObjectURL(blob);

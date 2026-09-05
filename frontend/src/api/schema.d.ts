@@ -2516,6 +2516,12 @@ export interface components {
       /** Format */
       format: string;
       /**
+       * Overwrite
+       * @description allow writing over an existing file; without it an existing path is a 409
+       * @default false
+       */
+      overwrite: boolean;
+      /**
        * Path
        * @description write here if given, else return text
        */

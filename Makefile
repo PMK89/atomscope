@@ -42,7 +42,8 @@ dev-frontend:
 # Regenerate TypeScript API types from the backend's OpenAPI schema.
 contracts:
 	cd backend && $(PY) -m atomscope.api.export_openapi ../frontend/src/api/openapi.json
-	cd frontend && pnpm exec openapi-typescript src/api/openapi.json -o src/api/schema.d.ts
+	cd frontend && pnpm exec openapi-typescript src/api/openapi.json -o src/api/schema.d.ts \
+	  && pnpm exec prettier --write src/api/openapi.json src/api/schema.d.ts
 
 test-e2e:
 	cd frontend && pnpm exec playwright test

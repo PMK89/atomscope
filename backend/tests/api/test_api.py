@@ -61,6 +61,20 @@ def test_io_routes(tmp_path: Path) -> None:
     out = tmp_path / "w.xyz"
     r = c.post("/api/io/export", json={"structure": water, "format": "xyz", "path": str(out)})
     assert r.status_code == 200 and out.exists()
+    # writing over an existing file needs saying so, so a Save As cannot silently replace one
+    r = c.post("/api/io/export", json={"structure": water, "format": "xyz", "path": str(out)})
+    assert r.status_code == 409
+    r = c.post(
+        "/api/io/export",
+        json={"structure": water, "format": "xyz", "path": str(out), "overwrite": True},
+    )
+    assert r.status_code == 200
+    # a directory is not a file to write over, and saying overwrite does not make it one
+    r = c.post(
+        "/api/io/export",
+        json={"structure": water, "format": "xyz", "path": str(tmp_path), "overwrite": True},
+    )
+    assert r.status_code == 400
     r = c.post("/api/io/import/path", json={"path": str(out)})
     assert r.status_code == 200 and len(r.json()["bonds"]) == 2
     r = c.post("/api/io/import/upload", files={"file": ("w.xyz", out.read_bytes())})

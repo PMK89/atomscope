@@ -59,6 +59,10 @@ class ExportRequest(StrictModel):
     structure: Structure
     format: str
     path: Path | None = Field(default=None, description="write here if given, else return text")
+    overwrite: bool = Field(
+        default=False,
+        description="allow writing over an existing file; without it an existing path is a 409",
+    )
 
 
 class ExportResponse(StrictModel):
@@ -167,6 +171,11 @@ def build_from_smiles(body: SmilesRequest) -> Structure:
 def export_structure(body: ExportRequest) -> ExportResponse:
     try:
         if body.path is not None:
+            if body.path.is_dir():
+                raise HTTPException(status.HTTP_400_BAD_REQUEST, f"{body.path} is a directory")
+            # a Save As that silently replaces someone's file is the one mistake worth a round trip
+            if body.path.exists() and not body.overwrite:
+                raise HTTPException(status.HTTP_409_CONFLICT, f"{body.path} exists")
             write_structure(body.structure, body.path, body.format)
             return ExportResponse(path=body.path)
         return ExportResponse(text=structure_to_string(body.structure, body.format))

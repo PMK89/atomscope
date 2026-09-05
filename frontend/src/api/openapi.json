@@ -1357,6 +1357,12 @@
             "title": "Format",
             "type": "string"
           },
+          "overwrite": {
+            "default": false,
+            "description": "allow writing over an existing file; without it an existing path is a 409",
+            "title": "Overwrite",
+            "type": "boolean"
+          },
           "path": {
             "anyOf": [
               {
