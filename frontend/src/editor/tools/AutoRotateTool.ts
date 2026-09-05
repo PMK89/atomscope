@@ -31,6 +31,7 @@ export class AutoRotateTool implements Tool {
     this.unsubscribe?.();
     this.unsubscribe = null;
     this.stop();
+    ctx.renderer.controller.resetRoll();
     ctx.tools.getState().update('autoRotate', { running: false });
   }
 

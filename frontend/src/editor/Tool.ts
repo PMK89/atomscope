@@ -25,6 +25,10 @@ export interface PointerLike {
   metaKey: boolean;
 }
 
+export interface WheelLike extends PointerLike {
+  deltaY: number;
+}
+
 export interface KeyLike {
   key: string;
   shiftKey: boolean;
@@ -40,6 +44,7 @@ export interface ToolCamera {
   setPivot(center: Vector3): void;
   rotateBy(azimuth: number, polar: number): void;
   roll(angle: number): void;
+  resetRoll(): void;
   viewDirection(out: Vector3): Vector3;
   worldPerPixel(): number;
   axes(): { right: Vector3; up: Vector3; forward: Vector3 };
@@ -86,6 +91,8 @@ export interface Tool {
   onPointerMove?(e: PointerLike, ctx: ToolContext): void;
   onPointerUp?(e: PointerLike, ctx: ToolContext): void;
   onDoubleClick?(e: PointerLike, ctx: ToolContext): void;
+  /** Wheel zoom is handled by the camera controller; tools may react in addition. */
+  onWheel?(e: WheelLike, ctx: ToolContext): void;
   /** Return true when the key was consumed. */
   onKeyDown?(e: KeyLike, ctx: ToolContext): boolean;
   /** Shapes to draw over the canvas for the current state. */

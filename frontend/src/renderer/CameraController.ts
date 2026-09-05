@@ -122,6 +122,12 @@ export class CameraController {
     this.updateCamera();
   }
 
+  /** Undo any roll so the vertical axis is up again. */
+  resetRoll(): void {
+    this.camera.up.set(0, 1, 0);
+    this.updateCamera();
+  }
+
   /** Zoom by a factor (>1 zooms in), same mapping as the wheel. */
   zoomBy(factor: number): void {
     if (this.camera instanceof PerspectiveCamera) {

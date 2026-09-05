@@ -5,7 +5,15 @@
  */
 import { useSelectionStore } from '../state/selectionStore';
 import { useStructureStore } from '../state/structureStore';
-import type { KeyLike, PointerLike, Tool, ToolContext, ToolId, ToolRenderer } from './Tool';
+import type {
+  KeyLike,
+  PointerLike,
+  Tool,
+  ToolContext,
+  ToolId,
+  ToolRenderer,
+  WheelLike,
+} from './Tool';
 import { useToolStore } from './toolStore';
 
 const CAMERA_TOOLS: ReadonlySet<ToolId> = new Set(['navigate', 'auto-rotate']);
@@ -63,6 +71,9 @@ export class ToolHost {
 
   private switchTo(id: ToolId): void {
     this.active.deactivate?.(this.ctx);
+    // a tool change mid-gesture must not leave preview geometry behind
+    useStructureStore.getState().cancelPreview();
+    this.dragging = false;
     useToolStore.getState().update('select', { rect: null });
     this.active = this.toolById(id);
     this.enter(this.active);
@@ -93,6 +104,10 @@ export class ToolHost {
     this.active.onDoubleClick?.(e, this.ctx);
   }
 
+  wheel(e: WheelLike): void {
+    this.active.onWheel?.(e, this.ctx);
+  }
+
   /** Returns true when the key was consumed (tool shortcut or tool-specific key). */
   keyDown(e: KeyLike): boolean {
     if (e.ctrlKey || e.metaKey || e.altKey) return false;
@@ -120,6 +135,7 @@ export class ToolHost {
       this.pointerUp(e);
     };
     const onDbl = (e: MouseEvent): void => this.doubleClick(e);
+    const onWheel = (e: WheelEvent): void => this.wheel(e);
     const onKey = (e: KeyboardEvent): void => {
       if (isEditableTarget(e.target)) return;
       if (this.keyDown(e)) e.preventDefault();
@@ -127,11 +143,13 @@ export class ToolHost {
     el.addEventListener('pointerdown', onDown);
     el.addEventListener('pointermove', onHover);
     el.addEventListener('dblclick', onDbl);
+    el.addEventListener('wheel', onWheel, { passive: true });
     window.addEventListener('keydown', onKey);
     this.unsubscribe.push(() => {
       el.removeEventListener('pointerdown', onDown);
       el.removeEventListener('pointermove', onHover);
       el.removeEventListener('dblclick', onDbl);
+      el.removeEventListener('wheel', onWheel);
       window.removeEventListener('pointermove', onWindowMove);
       window.removeEventListener('pointerup', onUp);
       window.removeEventListener('keydown', onKey);

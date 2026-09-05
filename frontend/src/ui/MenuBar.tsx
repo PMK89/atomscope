@@ -8,6 +8,7 @@ import { useToolStore } from '../editor/toolStore';
 import { atomsOfElement, invertSelection } from '../editor/selectionMath';
 import { normalizeSymbol } from '../editor/cartesian';
 import { CartesianEditor } from './CartesianEditor';
+import { isEditableTarget } from '../editor/ToolHost';
 import type { StructureStyle } from '../renderer/layers/StructureLayer';
 
 interface MenuItem {
@@ -16,10 +17,6 @@ interface MenuItem {
   action: () => void;
   disabled?: boolean;
   checked?: boolean;
-}
-
-function isEditable(target: EventTarget | null): boolean {
-  return target instanceof HTMLElement && ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName);
 }
 
 function Menu({ title, items }: { title: string; items: MenuItem[] }): JSX.Element {
@@ -115,7 +112,7 @@ export function MenuBar({ onError }: { onError: (msg: string) => void }): JSX.El
       } else if (e.key === 'o') {
         e.preventDefault();
         fileInput.current?.click();
-      } else if (e.key === 'a' && !isEditable(e.target)) {
+      } else if (e.key === 'a' && !isEditableTarget(e.target)) {
         e.preventDefault();
         if (e.shiftKey) useSelectionStore.getState().clear();
         else useSelectionStore.getState().set(store.doc.atoms.map((_, i) => i));

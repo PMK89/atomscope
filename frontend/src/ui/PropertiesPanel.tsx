@@ -5,6 +5,8 @@ import { useSelectionStore } from '../state/selectionStore';
 import { useStructureStore } from '../state/structureStore';
 import { useToolStore } from '../editor/toolStore';
 import { NumberField } from './NumberField';
+import { normalizeSymbol } from '../editor/cartesian';
+import { ELEMENT_BY_SYMBOL } from '../model/elements';
 
 function cellLengths(doc: StructureDoc): [number, number, number] | null {
   if (!doc.cell) return null;
@@ -111,8 +113,10 @@ export function PropertiesPanel(): JSX.Element {
               key={atom.uid}
               defaultValue={atom.element}
               onBlur={(e) => {
-                const el = e.target.value.trim();
-                if (el && el !== atom.element) setAtom(`Change to ${el}`, { element: el });
+                const el = normalizeSymbol(e.target.value);
+                if (ELEMENT_BY_SYMBOL.has(el) && el !== 'X' && el !== atom.element) {
+                  setAtom(`Change to ${el}`, { element: el });
+                } else e.target.value = atom.element;
               }}
             />
           </div>

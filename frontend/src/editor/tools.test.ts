@@ -24,6 +24,9 @@ class FakeCamera implements ToolCamera {
   roll(a: number): void {
     this.rolls.push(a);
   }
+  resetRoll(): void {
+    this.rolls.push(0);
+  }
   viewDirection(out: Vector3): Vector3 {
     return out.set(0, 0, -1);
   }
@@ -160,6 +163,16 @@ describe('host', () => {
     expect(useSelectionStore.getState().hoveredAtom).toBe(1);
     host.pointerMove(ev(10, 10));
     expect(useSelectionStore.getState().hoveredAtom).toBeNull();
+  });
+  test('switching tools mid-drag cancels the preview', () => {
+    useToolStore.getState().setActive('manipulate');
+    host.pointerDown(ev(...at(1.5, 0), { buttons: 1 }));
+    host.pointerMove(ev(...at(1.5, 1), { buttons: 1 }));
+    expect(S().previewBase).not.toBeNull();
+    host.keyDown({ key: 's', shiftKey: false, ctrlKey: false, altKey: false, metaKey: false });
+    expect(S().previewBase).toBeNull();
+    expect(S().doc.atoms[1]!.position[1]).toBe(0);
+    expect(S().canUndo()).toBe(false);
   });
   test('loading another document clears measurement picks', () => {
     useToolStore.getState().update('measure', { atoms: [0, 1] });
@@ -334,7 +347,8 @@ describe('measure', () => {
     click(host, ...at(1.5, 0));
     expect(useToolStore.getState().measure.atoms).toEqual([0, 1]);
     const shapes = host.activeTool.overlay!(host.ctx);
-    expect(shapes.some((s) => s.kind === 'label' && s.text.includes('1.500'))).toBe(true);
+    const label = shapes.find((s) => s.kind === 'label');
+    expect(label).toMatchObject({ x: 400 + 75 + 6, y: 300 - 6, text: '1.500 Å' });
     click(host, ...at(0, 0));
     expect(useToolStore.getState().measure.atoms).toEqual([1]);
     click(host, ...at(0, 0), { button: 2 });
