@@ -5,31 +5,36 @@
  * an electron-density isosurface is the standard picture of a molecule's reactivity, and it is
  * two grids -- the shape from one, the colour from the other.
  */
-import { invert3, mulRow } from '../model/geometry';
-import type { Mat3, Vec3 } from '../model/structure';
+import { invert3 } from '../model/geometry';
+import type { Mat3 } from '../model/structure';
 import type { GridGeometry } from './marchingCubes';
 
-/** Sample `values` at world point `p` by trilinear interpolation; outside the grid, the edge. */
-export function makeSampler(values: Float32Array, geometry: GridGeometry): (p: Vec3) => number {
+/** Samples one grid at a world point. Three numbers, not a vector: it runs once per vertex. */
+export type Sampler = (x: number, y: number, z: number) => number;
+
+/** Sample `values` at a world point by trilinear interpolation; outside the grid, the edge. */
+export function makeSampler(values: Float32Array, geometry: GridGeometry): Sampler {
   const [nx, ny, nz] = geometry.shape;
   // the grid axes need not be orthogonal (a triclinic cell), so go through the inverse basis
   const inverse = invert3(geometry.axes as unknown as Mat3);
-  const origin = geometry.origin;
+  const [[m00, m10, m20], [m01, m11, m21], [m02, m12, m22]] = inverse;
+  const [ox, oy, oz] = geometry.origin;
   const at = (i: number, j: number, k: number): number => values[(i * ny + j) * nz + k] ?? 0;
 
-  return (p: Vec3): number => {
-    const fractional = mulRow([p[0] - origin[0], p[1] - origin[1], p[2] - origin[2]], inverse);
-    const clamped = [
-      Math.min(nx - 1, Math.max(0, fractional[0])),
-      Math.min(ny - 1, Math.max(0, fractional[1])),
-      Math.min(nz - 1, Math.max(0, fractional[2])),
-    ];
-    const i = Math.min(nx - 2, Math.floor(clamped[0]!));
-    const j = Math.min(ny - 2, Math.floor(clamped[1]!));
-    const k = Math.min(nz - 2, Math.floor(clamped[2]!));
-    const fi = clamped[0]! - i;
-    const fj = clamped[1]! - j;
-    const fk = clamped[2]! - k;
+  return (x: number, y: number, z: number): number => {
+    const dx = x - ox;
+    const dy = y - oy;
+    const dz = z - oz;
+    // row vector times the inverse basis, written out so nothing is allocated per vertex
+    const u = Math.min(nx - 1, Math.max(0, dx * m00 + dy * m01 + dz * m02));
+    const v = Math.min(ny - 1, Math.max(0, dx * m10 + dy * m11 + dz * m12));
+    const w = Math.min(nz - 1, Math.max(0, dx * m20 + dy * m21 + dz * m22));
+    const i = Math.min(nx - 2, Math.floor(u));
+    const j = Math.min(ny - 2, Math.floor(v));
+    const k = Math.min(nz - 2, Math.floor(w));
+    const fi = u - i;
+    const fj = v - j;
+    const fk = w - k;
     // a grid with a single plane along an axis has nothing to interpolate along it
     const i1 = nx > 1 ? i + 1 : i;
     const j1 = ny > 1 ? j + 1 : j;
@@ -58,14 +63,14 @@ export function divergingColor(t: number): [number, number, number] {
 /** Values sampled at every vertex, and the range they span. */
 export function sampleAtVertices(
   positions: Float32Array,
-  sampler: (p: Vec3) => number,
+  sampler: Sampler,
 ): { values: Float32Array; min: number; max: number } {
   const n = positions.length / 3;
   const values = new Float32Array(n);
   let min = Infinity;
   let max = -Infinity;
   for (let i = 0; i < n; i++) {
-    const v = sampler([positions[3 * i]!, positions[3 * i + 1]!, positions[3 * i + 2]!]);
+    const v = sampler(positions[3 * i]!, positions[3 * i + 1]!, positions[3 * i + 2]!);
     values[i] = v;
     if (v < min) min = v;
     if (v > max) max = v;
@@ -85,4 +90,14 @@ export function colorsFromValues(values: Float32Array, low: number, high: number
     out[3 * i + 2] = b;
   }
   return out;
+}
+
+/**
+ * Default scale for a signed field: symmetric about zero, so white always means zero. An
+ * electrostatic potential running from -0.08 to +0.03 would otherwise put white at -0.025 and
+ * paint the neutral part of the surface as if it were positive.
+ */
+export function symmetricRange(min: number, max: number): [number, number] {
+  const m = Math.max(Math.abs(min), Math.abs(max));
+  return [-m, m];
 }

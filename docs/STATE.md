@@ -51,6 +51,9 @@ make dev-backend   # 127.0.0.1:8765 ; make dev-frontend -> 127.0.0.1:5173
   routes existed when they were started. E2E tests that need a new route want private servers:
   `python -m atomscope.api.server --host 127.0.0.1 --port 8791`, `ATOMSCOPE_API_URL=http://127.0.0.1:8791 pnpm dev --host 127.0.0.1 --port 5191`,
   then `PLAYWRIGHT_BASE_URL=http://127.0.0.1:5191 pnpm exec playwright test`.
+  Stop them again with `kill $(lsof -ti tcp:8791) $(lsof -ti tcp:5191)` -- never `pkill -f "port 8791"`,
+  which matches the invoking shell's own command line and kills it. Both were stopped at this
+  checkpoint; nothing of ours is listening.
 
 ## Next actions
 1. Remaining renderer parity gaps: ring and polygon engines (AV-VIS-021/022, both LOW) and QTAIM.

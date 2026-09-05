@@ -15,7 +15,7 @@ import {
 } from 'three';
 import { wrap, type Remote } from 'comlink';
 import type { MarchingCubesWorkerApi } from '../../workers/marchingCubes.worker';
-import { colorsFromValues, makeSampler, sampleAtVertices } from '../gridSampling';
+import { colorsFromValues, makeSampler, sampleAtVertices, symmetricRange } from '../gridSampling';
 import type { GridGeometry, IsosurfaceMesh, MarchingCubesOptions } from '../marchingCubes';
 import type { DisplayLayer } from './Layer';
 
@@ -60,9 +60,25 @@ function worker(): Remote<MarchingCubesWorkerApi> {
 
 const meshKey = (s: SurfaceSpec): string => `${s.isovalue}|${s.inside}|${s.step}`;
 
-/** What decides whether the vertex colours have to be computed again. */
+/** Identity of a values array, so a grid reloaded under the same id counts as a new source. */
+const arrayIds = new WeakMap<Float32Array, number>();
+let nextArrayId = 0;
+function arrayId(a: Float32Array): number {
+  let id = arrayIds.get(a);
+  if (id === undefined) {
+    id = ++nextArrayId;
+    arrayIds.set(a, id);
+  }
+  return id;
+}
+
+/** What decides whether the vertex colours have to be written again. */
 const colorKey = (s: SurfaceSpec): string =>
-  s.colorSource ? `${s.colorSource.gridId}|${s.colorSource.range?.join(':') ?? 'auto'}` : '';
+  s.colorSource
+    ? `${s.colorSource.gridId}#${arrayId(s.colorSource.values)}|${
+        s.colorSource.range?.join(':') ?? 'auto'
+      }`
+    : '';
 
 /** Message for a surface the triangle budget forced to a coarser resolution, or null. */
 function coarsenedMessage(spec: SurfaceSpec, mesh: IsosurfaceMesh): string | null {
@@ -72,11 +88,23 @@ function coarsenedMessage(spec: SurfaceSpec, mesh: IsosurfaceMesh): string | nul
   )}k triangles).`;
 }
 
+/** Values sampled onto the current vertices, kept so a range change is a recolour, not a resample. */
+interface PaintCache {
+  /** identity of the colour grid the values came from */
+  source: Float32Array;
+  /** identity of the vertex positions they were sampled at */
+  positions: Float32Array;
+  values: Float32Array;
+  min: number;
+  max: number;
+}
+
 interface Entry {
   mesh: Mesh<BufferGeometry, MeshStandardMaterial>;
   key: string;
   /** colour source of the last painting, so a range change repaints without re-meshing */
   colorKey: string;
+  sampled: PaintCache | null;
   /** Newest spec waiting to be meshed; a running job picks it up when it finishes. */
   pending: SurfaceSpec | null;
   running: boolean;
@@ -116,7 +144,15 @@ export class IsosurfaceLayer implements DisplayLayer {
         const mesh = new Mesh(new BufferGeometry(), new MeshStandardMaterial({ roughness: 0.4 }));
         mesh.name = spec.id;
         this.object.add(mesh);
-        entry = { mesh, key: '', colorKey: '', pending: null, running: false, alive: true };
+        entry = {
+          mesh,
+          key: '',
+          colorKey: '',
+          sampled: null,
+          pending: null,
+          running: false,
+          alive: true,
+        };
         this.entries.set(spec.id, entry);
       }
       this.applyMaterial(entry.mesh, spec);
@@ -206,22 +242,27 @@ export class IsosurfaceLayer implements DisplayLayer {
     const geometry = entry.mesh.geometry;
     const position = geometry.getAttribute('position');
     if (!spec.colorSource || !position) {
+      entry.sampled = null;
       geometry.deleteAttribute('color');
       this.applyMaterial(entry.mesh, spec);
       return;
     }
     const source = spec.colorSource;
-    const sampled = sampleAtVertices(
-      position.array as Float32Array,
-      makeSampler(source.values, source.geometry),
-    );
-    const [low, high] = source.range ?? [sampled.min, sampled.max];
+    const positions = position.array as Float32Array;
+    let cache = entry.sampled;
+    if (!cache || cache.source !== source.values || cache.positions !== positions) {
+      const sampled = sampleAtVertices(positions, makeSampler(source.values, source.geometry));
+      cache = { source: source.values, positions, ...sampled };
+      entry.sampled = cache;
+    }
+    // an automatic scale is symmetric about zero, so white on the surface means zero
+    const [low, high] = source.range ?? symmetricRange(cache.min, cache.max);
     geometry.setAttribute(
       'color',
-      new BufferAttribute(colorsFromValues(sampled.values, low, high), 3),
+      new BufferAttribute(colorsFromValues(cache.values, low, high), 3),
     );
     this.applyMaterial(entry.mesh, spec);
-    this.onRange?.(spec.id, [sampled.min, sampled.max]);
+    this.onRange?.(spec.id, [cache.min, cache.max]);
     this.onChange?.();
   }
 

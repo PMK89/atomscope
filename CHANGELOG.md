@@ -25,7 +25,9 @@
   atoms in the editor left residues and constraints pointing at the old numbering; a copied
   fragment carried no residues.
 - A surface can be coloured by a second grid (an electrostatic potential mapped onto an electron
-  density), with the scale taken from the surface or typed in.
+  density). The automatic scale is symmetric about zero, so white on the surface means zero; the
+  scale can also be typed in. Sampling allocates nothing per vertex and a range change recolours
+  the cached samples instead of sampling the grid again.
 - File > Open… is a dialog now: a path on this machine or an uploaded file, with the format
   detection overridable and the picker filtered to the readable extensions.
 - File > Export image…: the viewport at 1x, 2x or 4x its size, as PNG (optionally with a

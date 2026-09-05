@@ -468,9 +468,13 @@ surface card with:
   coarser step.
 * **Colour by** — paint the surface with the values of a *second* grid, which
   is how an electrostatic potential is mapped onto an electron density. Any
-  other grid of the project can be chosen and is loaded when it is; the scale
-  runs blue (low) through white to red (high) over the range found on the
-  surface, and the two fields under it set that range by hand.
+  other grid of the project can be chosen and is loaded when it is. The scale
+  runs blue (negative) through white to red (positive) and is symmetric about
+  zero by default -- white on the surface always means zero, which is what makes
+  a potential map readable -- so it spans plus and minus the largest magnitude
+  found on the surface. The line under the fields reports the values actually
+  found there, and the two fields set the scale by hand; `use this range` puts
+  the automatic one back.
 
 `Import cube` reads a Gaussian cube from a path on the backend machine and
 files it as a project dataset with a kind you choose (electron density, spin

@@ -6,6 +6,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { api, type GridRef, type VolumetricGrid } from '../api/client';
 import { useCalculationStore } from '../state/calculationStore';
 import { useProjectStore } from '../state/projectStore';
+import { symmetricRange } from '../renderer/gridSampling';
 import { SurfaceGenerator } from './SurfaceGenerator';
 import {
   isDensityKind,
@@ -241,7 +242,8 @@ function SurfaceCard({
   const [lowText, setLowText] = useState('');
   const [highText, setHighText] = useState('');
   useEffect(() => {
-    const [lo, hi] = def.colorRange ?? found ?? [0, 0];
+    // with no range of its own the surface uses the symmetric scale, so show that, not the extremes
+    const [lo, hi] = def.colorRange ?? (found ? symmetricRange(found[0], found[1]) : [0, 0]);
     setLowText(fmt(lo));
     setHighText(fmt(hi));
   }, [def.colorRange, found]);

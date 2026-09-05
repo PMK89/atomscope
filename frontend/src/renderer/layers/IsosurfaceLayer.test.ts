@@ -154,7 +154,7 @@ test('a colour source paints the vertices and reports the range it found', async
   const ranges: [string, [number, number]][] = [];
   layer.onRange = (id, range) => ranges.push([id, range]);
 
-  layer.setSurfaces([{ ...spec(0.1), colorSource: colorSource() }]);
+  layer.setSurfaces([{ ...spec(0.1), colorSource: colorSource([0, 1]) }]);
   await flush();
 
   const mesh = layer.object.children[0] as { geometry: { getAttribute(n: string): unknown } };
@@ -207,5 +207,71 @@ test('taking the colour source away restores the flat colour', async () => {
   };
   expect(mesh.geometry.getAttribute('color')).toBeUndefined();
   expect(mesh.material.vertexColors).toBe(false);
+  layer.dispose();
+});
+
+/** A mesher whose vertices sit at the given fractions along x. */
+const mesherAt = (xs: number[]): Mesher => ({
+  loadGrid: () => undefined,
+  unloadGrid: () => undefined,
+  compute: () =>
+    Promise.resolve({
+      positions: new Float32Array(xs.flatMap((x) => [x, 0, 0])),
+      normals: new Float32Array(xs.length * 3),
+      indices: new Uint32Array(xs.map((_, i) => i)),
+      vertexCount: xs.length,
+      triangleCount: 1,
+      step: 1,
+    }),
+});
+
+test('an automatic scale is symmetric, so zero on the surface is white', async () => {
+  // a signed field running from -1 to 3: white has to land on zero, not on the middle value of 1
+  const signed = {
+    gridId: 'esp',
+    values: new Float32Array([-1, -1, -1, -1, 3, 3, 3, 3]),
+    geometry,
+    range: null,
+  };
+  const layer = new IsosurfaceLayer('g1', new Float32Array(8), geometry, mesherAt([0, 0.25, 1]));
+  layer.setSurfaces([{ ...spec(0.1), colorSource: signed }]);
+  await flush();
+
+  const mesh = layer.object.children[0] as { geometry: { getAttribute(n: string): unknown } };
+  const colors = (mesh.geometry.getAttribute('color') as { array: Float32Array }).array;
+  // the vertex sampling exactly 0 is white; the negative one is blue-ish, the positive one red-ish
+  expect([...colors.slice(3, 6)].map((c) => Number(c.toFixed(3)))).toEqual([1, 1, 1]);
+  expect(colors[2]).toBe(1);
+  expect(colors[0]).toBeLessThan(1);
+  expect(colors[6]).toBe(1);
+  expect(colors[7]).toBeLessThan(1);
+  layer.dispose();
+});
+
+test('a grid reloaded under the same id repaints the surface', async () => {
+  const layer = new IsosurfaceLayer('g1', new Float32Array(8), geometry, rampMesher);
+  layer.setSurfaces([{ ...spec(0.1), colorSource: colorSource([0, 1]) }]);
+  await flush();
+  const mesh = layer.object.children[0] as { geometry: { getAttribute(n: string): unknown } };
+  expect([
+    ...(mesh.geometry.getAttribute('color') as { array: Float32Array }).array.slice(0, 3),
+  ]).toEqual([0, 0, 1]);
+
+  // same grid id and range, new data (the grid was unloaded and loaded again): reversed ramp
+  layer.setSurfaces([
+    {
+      ...spec(0.1),
+      colorSource: {
+        gridId: 'esp',
+        values: new Float32Array([1, 1, 1, 1, 0, 0, 0, 0]),
+        geometry,
+        range: [0, 1] as [number, number],
+      },
+    },
+  ]);
+  await flush();
+  expect([
+    ...(mesh.geometry.getAttribute('color') as { array: Float32Array }).array.slice(0, 3),
+  ]).toEqual([1, 0, 0]);
   layer.dispose();
 });
