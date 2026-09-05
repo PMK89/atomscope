@@ -1,7 +1,9 @@
 import {
+  BufferGeometry,
   Color,
   ConeGeometry,
   CylinderGeometry,
+  Float32BufferAttribute,
   Group,
   InstancedMesh,
   Matrix4,
@@ -118,6 +120,28 @@ test('a triangle mesh keeps its faces and takes the mean of its vertex colours',
   expect(empty.length).toBe(0);
 });
 
+test('a mesh carries its normals, so a surface is not exported faceted', () => {
+  const geometry = new BufferGeometry();
+  geometry.setAttribute('position', new Float32BufferAttribute([0, 0, 0, 1, 0, 0, 0, 1, 0], 3));
+  geometry.setAttribute('normal', new Float32BufferAttribute([0, 0, 1, 0, 0, 1, 0, 0, 1], 3));
+  geometry.setIndex([0, 1, 2]);
+  const mesh = new Mesh(geometry, new MeshStandardMaterial({ color: new Color(0, 0, 1) }));
+  // a quarter turn about x sends +z to -y, and the normals must come with it
+  mesh.rotateX(Math.PI / 2);
+  const scene = new Scene();
+  scene.add(mesh);
+  scene.updateMatrixWorld(true);
+
+  const out = new PovWriter();
+  writeObject(out, scene);
+  const text = out.toString();
+  expect(text).toContain('normal_vectors { 3,');
+  expect(text).toContain('<0, -1, 0>, <0, -1, 0>, <0, -1, 0>');
+  expect(text).toContain('normal_indices { 1,');
+  // the material colour, since this material does not read the vertex colours
+  expect(text).toContain('rgbt <0, 0, 1, 0>');
+});
+
 test('the scene block carries the camera basis, the background and one light', () => {
   const camera = new PerspectiveCamera(45, 1.5, 0.1, 100);
   camera.position.set(0, 0, 10);
@@ -125,11 +149,12 @@ test('the scene block carries the camera basis, the background and one light', (
   const pov = povScene(new Scene(), camera, { ...options, background: new Color(0, 0, 0) });
   expect(pov).toContain('background { color rgb <0, 0, 0> }');
   expect(pov).toContain('  perspective');
-  // POV's angle is horizontal once `right` is given: 45 vertical at 3:2 is 63.7 across
-  expect(pov).toMatch(/ {2}angle 63\.70\d*/);
+  // the field of view is in the vector lengths: |up| = 1, |right| = aspect, and a direction of
+  // 1 / (2 tan(fov/2)) -- 1.207107 at 45 degrees. No `angle`, which would depend on line order.
+  expect(pov).not.toContain('angle');
+  expect(pov).toContain('  direction <0, 0, -1> * 1.207107');
   expect(pov).toContain('  location <0, 0, 10>');
   // looking down -z, with x to the right and y up
-  expect(pov).toContain('  direction <0, 0, -1>');
   expect(pov).toContain('  right <1, 0, 0> * 1.5');
   expect(pov).toContain('  up <0, 1, 0>');
   expect(pov).toContain('  parallel');
@@ -142,4 +167,6 @@ test('the scene block carries the camera basis, the background and one light', (
   // the frustum width and height are the camera vectors of an orthographic POV camera
   expect(orthoPov).toContain('  right <4, 0, 0>');
   expect(orthoPov).toContain('  up <0, 2, 0>');
+  // an orthographic camera takes its extent from those two vectors, so the direction is a unit
+  expect(orthoPov).toContain('  direction <0, 0, -1>\n');
 });

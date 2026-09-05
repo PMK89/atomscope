@@ -16,6 +16,7 @@ import {
   ConeGeometry,
   CylinderGeometry,
   InstancedMesh,
+  Matrix3,
   Matrix4,
   Mesh,
   Object3D,
@@ -82,6 +83,7 @@ export class PovWriter {
     indices: ArrayLike<number> | null,
     color: Color,
     alpha = 1,
+    normals: ArrayLike<number> | null = null,
   ): void {
     const count = positions.length / 3;
     if (count < 3) return;
@@ -96,8 +98,20 @@ export class PovWriter {
       for (let i = 0; i + 2 < count; i += 3) faces.push(v(i, i + 1, i + 2));
     }
     if (faces.length === 0) return;
+    // without normal_vectors POV-Ray flat-shades every triangle, and an isosurface comes out
+    // faceted; the normal indices are the face indices, one normal per vertex
+    let smooth = '';
+    if (normals && normals.length === positions.length) {
+      const directions: string[] = [];
+      for (let i = 0; i < count; i++)
+        directions.push(v(normals[3 * i]!, normals[3 * i + 1]!, normals[3 * i + 2]!));
+      smooth =
+        `  normal_vectors { ${directions.length},\n    ${directions.join(', ')}\n  }\n` +
+        `  normal_indices { ${faces.length},\n    ${faces.join(', ')}\n  }\n`;
+    }
     this.parts.push(
       `mesh2 {\n  vertex_vectors { ${points.length},\n    ${points.join(', ')}\n  }\n` +
+        smooth +
         `  face_indices { ${faces.length},\n    ${faces.join(', ')}\n  }\n` +
         `  ${pigment(color, alpha)}\n  ${FINISH}\n}`,
     );
@@ -112,12 +126,13 @@ export class PovWriter {
   }
 }
 
-/** The horizontal field of view, in degrees, of a camera with vertical `fov` at `aspect`. */
-function horizontalFov(fov: number, aspect: number): number {
-  return (2 * Math.atan(aspect * Math.tan((fov * Math.PI) / 360)) * 180) / Math.PI;
+/** Length of the direction vector that gives a vertical field of view of `fov` degrees. */
+function focalLength(fov: number): number {
+  return 1 / (2 * Math.tan((fov * Math.PI) / 360));
 }
 
 const matrix = new Matrix4();
+const normalMatrix = new Matrix3();
 const position = new Vector3();
 const quaternion = new Quaternion();
 const scale = new Vector3();
@@ -182,6 +197,24 @@ function meshColor(mesh: Mesh): Color {
   return new Color(r / attribute.count, g / attribute.count, b / attribute.count);
 }
 
+/** The mesh's vertex normals in world space, or null when it carries none. */
+function worldNormals(mesh: Mesh): Float32Array | null {
+  const attribute = mesh.geometry.getAttribute('normal');
+  if (!attribute) return null;
+  const m = normalMatrix.getNormalMatrix(mesh.matrixWorld);
+  const out = new Float32Array(attribute.count * 3);
+  for (let i = 0; i < attribute.count; i++) {
+    position
+      .set(attribute.getX(i), attribute.getY(i), attribute.getZ(i))
+      .applyMatrix3(m)
+      .normalize();
+    out[3 * i] = position.x;
+    out[3 * i + 1] = position.y;
+    out[3 * i + 2] = position.z;
+  }
+  return out;
+}
+
 function opacityOf(mesh: Mesh | InstancedMesh): number {
   const material = Array.isArray(mesh.material) ? mesh.material[0]! : mesh.material;
   return material.transparent ? material.opacity : 1;
@@ -223,7 +256,7 @@ export function writeObject(out: PovWriter, object: Object3D): void {
           world[3 * i + 1] = position.y;
           world[3 * i + 2] = position.z;
         }
-        out.mesh(world, index ? index.array : null, paint, alpha);
+        out.mesh(world, index ? index.array : null, paint, alpha, worldNormals(object));
       }
     }
   }
@@ -251,25 +284,28 @@ export function povHeader(
   const light = options.light.clone().normalize().multiplyScalar(1000);
   const bg = options.background;
 
+  // POV-Ray takes the field of view from the *lengths* of these vectors: with |up| = 1 and
+  // |right| = aspect, a direction of 1 / (2 tan(fov/2)) is exactly three.js's vertical fov. The
+  // `angle` keyword would say the same thing, but only if it came after `direction` and `right`
+  // (it rescales the direction when it is parsed), and a camera that depends on the order of its
+  // own lines is a camera nobody can check -- so the length is written directly.
   const projection =
     camera instanceof PerspectiveCamera
       ? [
           '  perspective',
-          // POV-Ray's `angle` is the *horizontal* field of view once `right` is given, and
-          // three.js's `fov` is the vertical one. Avogadro passes its vertical angle straight
-          // through, which makes its exports slightly too wide; this converts instead.
-          `  angle ${n(horizontalFov(camera.fov, options.aspect))}`,
           `  up ${vec(up)}`,
           `  right ${vec(right)} * ${n(options.aspect)}`,
+          `  direction ${vec(direction)} * ${n(focalLength(camera.fov))}`,
         ]
       : [
           '  orthographic',
           `  up ${vec(up.clone().multiplyScalar(camera.top - camera.bottom))}`,
           `  right ${vec(right.clone().multiplyScalar(camera.right - camera.left))}`,
+          `  direction ${vec(direction)}`,
         ];
 
   return [
-    '// Atomscope POV-Ray export. Render with: povray +A +W1600 +H1200 scene.pov',
+    `// Atomscope POV-Ray export. Render with: povray +A +W${Math.round(1200 * options.aspect)} +H1200 scene.pov`,
     '#version 3.7;',
     '',
     'global_settings {',
@@ -281,9 +317,8 @@ export function povHeader(
     `background { color rgb ${v(bg.r, bg.g, bg.b)} }`,
     '',
     'camera {',
-    ...projection,
     `  location ${vec(location)}`,
-    `  direction ${vec(direction)}`,
+    ...projection,
     '}',
     '',
     'light_source {',

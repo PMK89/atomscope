@@ -577,7 +577,8 @@ drew, so it carries the periodic images, the multiple-bond offsets and the
 colours actually on screen — including the blue of a selection. What it does not
 carry: the labels (sprites), the unit-cell box (line segments), the axes gizmo
 (a separate overlay pass), and a mesh's per-vertex colours, which are flattened
-to their mean because POV-Ray would need one texture per vertex otherwise.
+to their mean because POV-Ray would need one texture per vertex otherwise —
+their normals are exported, so surfaces are still smooth-shaded.
 
 ### 6.1 Isosurfaces
 
