@@ -626,6 +626,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/chem/point-group": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Point Group */
+        post: operations["point_group_api_chem_point_group_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/chem/remove-hydrogens": {
         parameters: {
             query?: never;
@@ -637,6 +654,40 @@ export interface paths {
         put?: never;
         /** Remove Hydrogens */
         post: operations["remove_hydrogens_api_chem_remove_hydrogens_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/chem/smarts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Select Smarts */
+        post: operations["select_smarts_api_chem_smarts_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/chem/symmetrize": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Symmetrize */
+        post: operations["symmetrize_api_chem_symmetrize_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -3093,6 +3144,26 @@ export interface components {
             bond_orders: boolean;
             structure: components["schemas"]["Structure"];
         };
+        /**
+         * PointGroupResult
+         * @description Molecular point group; ``order`` is 0 for the infinite groups of a linear molecule.
+         */
+        PointGroupResult: {
+            /** Operations */
+            operations: string[];
+            /** Order */
+            order: number;
+            /** Principal Axis */
+            principal_axis?: [
+                number,
+                number,
+                number
+            ] | null;
+            /** Symbol */
+            symbol: string;
+            /** Tolerance */
+            tolerance: number;
+        };
         /** Preset */
         Preset: {
             /**
@@ -3413,6 +3484,31 @@ export interface components {
              */
             vacuum: number;
         };
+        /** SmartsRequest */
+        SmartsRequest: {
+            /**
+             * Pattern
+             * @description SMARTS pattern, Open Babel dialect
+             */
+            pattern: string;
+            structure: components["schemas"]["Structure"];
+            /**
+             * Unique
+             * @description symmetry-unique matches only
+             * @default true
+             */
+            unique: boolean;
+        };
+        /**
+         * SmartsResult
+         * @description Matches of a SMARTS query: one tuple of atom indices per match, plus their union.
+         */
+        SmartsResult: {
+            /** Atoms */
+            atoms: number[];
+            /** Matches */
+            matches: number[][];
+        };
         /** SmilesRequest */
         SmilesRequest: {
             /**
@@ -3619,16 +3715,6 @@ export interface components {
             symprec: number;
             /** Wyckoffs */
             wyckoffs: string[];
-        };
-        /** SymmetryRequest */
-        SymmetryRequest: {
-            structure: components["schemas"]["Structure"];
-            /**
-             * Symprec
-             * @description spglib tolerance in Å
-             * @default 0.001
-             */
-            symprec: number;
         };
         /**
          * Trajectory
@@ -3913,6 +3999,26 @@ export interface components {
             occupation: number;
             /** Spin */
             spin: string;
+        };
+        /** SymmetryRequest */
+        atomscope__api__routes_chem__SymmetryRequest: {
+            structure: components["schemas"]["Structure"];
+            /**
+             * Tolerance
+             * @default normal
+             * @enum {string}
+             */
+            tolerance: "loose" | "normal" | "tight";
+        };
+        /** SymmetryRequest */
+        atomscope__api__routes_crystal__SymmetryRequest: {
+            structure: components["schemas"]["Structure"];
+            /**
+             * Symprec
+             * @description spglib tolerance in Å
+             * @default 0.001
+             */
+            symprec: number;
         };
     };
     responses: never;
@@ -5060,6 +5166,39 @@ export interface operations {
             };
         };
     };
+    point_group_api_chem_point_group_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["atomscope__api__routes_chem__SymmetryRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PointGroupResult"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     remove_hydrogens_api_chem_remove_hydrogens_post: {
         parameters: {
             query?: never;
@@ -5070,6 +5209,72 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": components["schemas"]["AtomsRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Structure"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    select_smarts_api_chem_smarts_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SmartsRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SmartsResult"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    symmetrize_api_chem_symmetrize_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["atomscope__api__routes_chem__SymmetryRequest"];
             };
         };
         responses: {
@@ -5331,7 +5536,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["SymmetryRequest"];
+                "application/json": components["schemas"]["atomscope__api__routes_crystal__SymmetryRequest"];
             };
         };
         responses: {
@@ -5680,7 +5885,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["SymmetryRequest"];
+                "application/json": components["schemas"]["atomscope__api__routes_crystal__SymmetryRequest"];
             };
         };
         responses: {
@@ -5713,7 +5918,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["SymmetryRequest"];
+                "application/json": components["schemas"]["atomscope__api__routes_crystal__SymmetryRequest"];
             };
         };
         responses: {
@@ -5911,7 +6116,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["SymmetryRequest"];
+                "application/json": components["schemas"]["atomscope__api__routes_crystal__SymmetryRequest"];
             };
         };
         responses: {
@@ -5944,7 +6149,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["SymmetryRequest"];
+                "application/json": components["schemas"]["atomscope__api__routes_crystal__SymmetryRequest"];
             };
         };
         responses: {

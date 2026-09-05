@@ -3475,6 +3475,63 @@
         "title": "PerceiveRequest",
         "type": "object"
       },
+      "PointGroupResult": {
+        "additionalProperties": false,
+        "description": "Molecular point group; ``order`` is 0 for the infinite groups of a linear molecule.",
+        "properties": {
+          "operations": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Operations",
+            "type": "array"
+          },
+          "order": {
+            "title": "Order",
+            "type": "integer"
+          },
+          "principal_axis": {
+            "anyOf": [
+              {
+                "maxItems": 3,
+                "minItems": 3,
+                "prefixItems": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ],
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Principal Axis"
+          },
+          "symbol": {
+            "title": "Symbol",
+            "type": "string"
+          },
+          "tolerance": {
+            "title": "Tolerance",
+            "type": "number"
+          }
+        },
+        "required": [
+          "symbol",
+          "order",
+          "operations",
+          "tolerance"
+        ],
+        "title": "PointGroupResult",
+        "type": "object"
+      },
       "Preset": {
         "additionalProperties": false,
         "properties": {
@@ -4106,6 +4163,60 @@
         "title": "SlabRequest",
         "type": "object"
       },
+      "SmartsRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "pattern": {
+            "description": "SMARTS pattern, Open Babel dialect",
+            "title": "Pattern",
+            "type": "string"
+          },
+          "structure": {
+            "$ref": "#/components/schemas/Structure"
+          },
+          "unique": {
+            "default": true,
+            "description": "symmetry-unique matches only",
+            "title": "Unique",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "structure",
+          "pattern"
+        ],
+        "title": "SmartsRequest",
+        "type": "object"
+      },
+      "SmartsResult": {
+        "additionalProperties": false,
+        "description": "Matches of a SMARTS query: one tuple of atom indices per match, plus their union.",
+        "properties": {
+          "atoms": {
+            "items": {
+              "type": "integer"
+            },
+            "title": "Atoms",
+            "type": "array"
+          },
+          "matches": {
+            "items": {
+              "items": {
+                "type": "integer"
+              },
+              "type": "array"
+            },
+            "title": "Matches",
+            "type": "array"
+          }
+        },
+        "required": [
+          "matches",
+          "atoms"
+        ],
+        "title": "SmartsResult",
+        "type": "object"
+      },
       "SmilesRequest": {
         "additionalProperties": false,
         "properties": {
@@ -4651,26 +4762,6 @@
           "symprec"
         ],
         "title": "SymmetryInfo",
-        "type": "object"
-      },
-      "SymmetryRequest": {
-        "additionalProperties": false,
-        "properties": {
-          "structure": {
-            "$ref": "#/components/schemas/Structure"
-          },
-          "symprec": {
-            "default": 0.001,
-            "description": "spglib tolerance in \u00c5",
-            "exclusiveMinimum": 0.0,
-            "title": "Symprec",
-            "type": "number"
-          }
-        },
-        "required": [
-          "structure"
-        ],
-        "title": "SymmetryRequest",
         "type": "object"
       },
       "Trajectory": {
@@ -5483,6 +5574,49 @@
           "label"
         ],
         "title": "WavefunctionOrbital",
+        "type": "object"
+      },
+      "atomscope__api__routes_chem__SymmetryRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "structure": {
+            "$ref": "#/components/schemas/Structure"
+          },
+          "tolerance": {
+            "default": "normal",
+            "enum": [
+              "loose",
+              "normal",
+              "tight"
+            ],
+            "title": "Tolerance",
+            "type": "string"
+          }
+        },
+        "required": [
+          "structure"
+        ],
+        "title": "SymmetryRequest",
+        "type": "object"
+      },
+      "atomscope__api__routes_crystal__SymmetryRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "structure": {
+            "$ref": "#/components/schemas/Structure"
+          },
+          "symprec": {
+            "default": 0.001,
+            "description": "spglib tolerance in \u00c5",
+            "exclusiveMinimum": 0.0,
+            "title": "Symprec",
+            "type": "number"
+          }
+        },
+        "required": [
+          "structure"
+        ],
+        "title": "SymmetryRequest",
         "type": "object"
       }
     }
@@ -6978,6 +7112,47 @@
         ]
       }
     },
+    "/api/chem/point-group": {
+      "post": {
+        "operationId": "point_group_api_chem_point_group_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/atomscope__api__routes_chem__SymmetryRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PointGroupResult"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Point Group",
+        "tags": [
+          "chem"
+        ]
+      }
+    },
     "/api/chem/remove-hydrogens": {
       "post": {
         "operationId": "remove_hydrogens_api_chem_remove_hydrogens_post",
@@ -7014,6 +7189,88 @@
           }
         },
         "summary": "Remove Hydrogens",
+        "tags": [
+          "chem"
+        ]
+      }
+    },
+    "/api/chem/smarts": {
+      "post": {
+        "operationId": "select_smarts_api_chem_smarts_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SmartsRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SmartsResult"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Select Smarts",
+        "tags": [
+          "chem"
+        ]
+      }
+    },
+    "/api/chem/symmetrize": {
+      "post": {
+        "operationId": "symmetrize_api_chem_symmetrize_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/atomscope__api__routes_chem__SymmetryRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Structure"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Symmetrize",
         "tags": [
           "chem"
         ]
@@ -7347,7 +7604,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/SymmetryRequest"
+                "$ref": "#/components/schemas/atomscope__api__routes_crystal__SymmetryRequest"
               }
             }
           },
@@ -7792,7 +8049,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/SymmetryRequest"
+                "$ref": "#/components/schemas/atomscope__api__routes_crystal__SymmetryRequest"
               }
             }
           },
@@ -7833,7 +8090,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/SymmetryRequest"
+                "$ref": "#/components/schemas/atomscope__api__routes_crystal__SymmetryRequest"
               }
             }
           },
@@ -8079,7 +8336,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/SymmetryRequest"
+                "$ref": "#/components/schemas/atomscope__api__routes_crystal__SymmetryRequest"
               }
             }
           },
@@ -8120,7 +8377,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/SymmetryRequest"
+                "$ref": "#/components/schemas/atomscope__api__routes_crystal__SymmetryRequest"
               }
             }
           },

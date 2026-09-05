@@ -5,9 +5,11 @@ from __future__ import annotations
 from typing import Any
 
 import pytest
+from ase.build import molecule
 from fastapi.testclient import TestClient
 
 from atomscope.api.app import create_app
+from atomscope.ase_bridge.convert import from_atoms
 from atomscope.io.rdkit_io import from_smiles
 from atomscope.model import Structure
 
@@ -202,3 +204,37 @@ def test_nanotube_and_graphene_routes(client: TestClient) -> None:
     assert r.status_code == 200 and len(r.json()["atoms"]) == 40
     g = client.post("/api/build/graphene", json={"n": 3, "m": 4})
     assert g.status_code == 200 and any(a["element"] == "H" for a in g.json()["atoms"])
+
+
+# ---- SMARTS selection and molecular symmetry --------------------------------------------------
+
+
+def test_smarts_route(client: TestClient) -> None:
+    benzyl_alcohol = from_smiles("c1ccccc1CO")
+    body = {"structure": js(benzyl_alcohol), "pattern": "c1ccccc1"}
+    result = client.post("/api/chem/smarts", json=body).json()
+    assert len(result["matches"]) == 1 and len(result["atoms"]) == 6
+
+    every = client.post("/api/chem/smarts", json={**body, "unique": False}).json()
+    assert len(every["matches"]) == 12 and every["atoms"] == result["atoms"]
+
+    bad = client.post("/api/chem/smarts", json={**body, "pattern": "[C"})
+    assert bad.status_code == 400 and "invalid" in bad.json()["detail"]
+
+
+def test_point_group_and_symmetrize_routes(client: TestClient) -> None:
+    distorted = molecule("H2O")
+    distorted.positions[1] += [0.05, -0.03, 0.0]
+    body = {"structure": js(from_atoms(distorted))}
+
+    tight = client.post("/api/chem/point-group", json={**body, "tolerance": "tight"}).json()
+    assert tight["symbol"] == "Cs"
+    loose = client.post("/api/chem/point-group", json={**body, "tolerance": "loose"}).json()
+    assert loose["symbol"] == "C2v" and loose["order"] == 4
+    assert loose["principal_axis"] is not None
+
+    idealized = client.post("/api/chem/symmetrize", json={**body, "tolerance": "loose"}).json()
+    again = client.post(
+        "/api/chem/point-group", json={"structure": idealized, "tolerance": "tight"}
+    ).json()
+    assert again["symbol"] == "C2v"

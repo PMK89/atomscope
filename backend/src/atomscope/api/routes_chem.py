@@ -7,7 +7,7 @@ from __future__ import annotations
 from fastapi import APIRouter, HTTPException, status
 from pydantic import Field
 
-from atomscope.chem import edits, forcefield, hydrogens, properties
+from atomscope.chem import edits, forcefield, hydrogens, pointgroup, properties, smarts
 from atomscope.chem.forcefield import (
     Algorithm,
     ConformerMethod,
@@ -17,6 +17,7 @@ from atomscope.chem.forcefield import (
     ForceFieldError,
     OptimizeResult,
 )
+from atomscope.chem.pointgroup import Tolerance
 from atomscope.chem.properties import AromaticityResult, ChargeModel, ChargesResult, Identifiers
 from atomscope.model import Quantity, Structure
 from atomscope.model.common import StrictModel
@@ -213,3 +214,64 @@ def h_to_methyl(body: AtomsRequest) -> Structure:
     if idx is None:
         idx = {i for i, a in enumerate(body.structure.atoms) if a.element == "H"}
     return edits.h_to_methyl(body.structure, idx)
+
+
+class SmartsRequest(StructureRequest):
+    pattern: str = Field(description="SMARTS pattern, Open Babel dialect")
+    unique: bool = Field(default=True, description="symmetry-unique matches only")
+
+
+class SmartsResult(StrictModel):
+    """Matches of a SMARTS query: one tuple of atom indices per match, plus their union."""
+
+    matches: list[list[int]]
+    atoms: list[int]
+
+
+class SymmetryRequest(StructureRequest):
+    tolerance: Tolerance = "normal"
+
+
+class PointGroupResult(StrictModel):
+    """Molecular point group; ``order`` is 0 for the infinite groups of a linear molecule."""
+
+    symbol: str
+    order: int
+    operations: list[str]
+    principal_axis: tuple[float, float, float] | None = None
+    tolerance: float
+
+
+@router.post("/smarts", response_model=SmartsResult)
+def select_smarts(body: SmartsRequest) -> SmartsResult:
+    try:
+        matches = smarts.match(body.structure, body.pattern, unique=body.unique)
+    except smarts.SmartsError as exc:
+        raise _bad(exc) from exc
+    return SmartsResult(
+        matches=[list(m) for m in matches],
+        atoms=sorted({i for m in matches for i in m}),
+    )
+
+
+@router.post("/point-group", response_model=PointGroupResult)
+def point_group(body: SymmetryRequest) -> PointGroupResult:
+    try:
+        found = pointgroup.detect(body.structure, body.tolerance)
+    except ValueError as exc:
+        raise _bad(exc) from exc
+    return PointGroupResult(
+        symbol=found.symbol,
+        order=found.order,
+        operations=found.operations,
+        principal_axis=found.principal_axis,
+        tolerance=found.tolerance,
+    )
+
+
+@router.post("/symmetrize", response_model=Structure)
+def symmetrize(body: SymmetryRequest) -> Structure:
+    try:
+        return pointgroup.symmetrize(body.structure, body.tolerance)
+    except ValueError as exc:
+        raise _bad(exc) from exc
