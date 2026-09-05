@@ -6,24 +6,11 @@
  */
 import { useEffect, useRef, useState } from 'react';
 import { dialogKeyHandler } from './dialogKeys';
+import { downloadDataUrl, imageFileName } from './download';
 import { useRendererStore } from '../state/rendererStore';
 import { useStructureStore } from '../state/structureStore';
 
 const SCALES = [1, 2, 4];
-
-/** Hand the data URL to the browser as a download. */
-export function downloadDataUrl(url: string, filename: string): void {
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = filename;
-  a.click();
-}
-
-/** A file name from the document name: no separators, no surprises. */
-export function imageFileName(docName: string, type: string): string {
-  const base = docName.trim().replace(/[^A-Za-z0-9._-]+/g, '_') || 'atomscope';
-  return `${base}.${type === 'image/jpeg' ? 'jpg' : 'png'}`;
-}
 
 export function ExportImageDialog({
   open,

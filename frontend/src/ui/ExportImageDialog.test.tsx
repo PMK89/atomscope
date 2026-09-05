@@ -2,7 +2,8 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import { beforeEach, expect, test, vi } from 'vitest';
 import type { Renderer } from '../renderer/Renderer';
 import { useRendererStore } from '../state/rendererStore';
-import { ExportImageDialog, imageFileName } from './ExportImageDialog';
+import { ExportImageDialog } from './ExportImageDialog';
+import { imageFileName } from './download';
 
 const exportImage = vi.fn(() => 'data:image/png;base64,AA');
 const renderer = {

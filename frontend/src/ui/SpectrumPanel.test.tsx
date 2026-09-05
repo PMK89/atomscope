@@ -223,3 +223,57 @@ test('a failing computation is reported through onError and does not crash the p
   expect(screen.queryByLabelText('normal modes')).not.toBeInTheDocument();
   expect(useSpectrumStore.getState().busy).toBeNull();
 });
+
+/** The href and file name of the download an export triggers. */
+function captureDownload(run: () => void): { href: string; name: string } {
+  let captured = { href: '', name: '' };
+  const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(function (
+    this: HTMLAnchorElement,
+  ) {
+    captured = { href: this.href, name: this.download };
+  });
+  run();
+  click.mockRestore();
+  return captured;
+}
+
+const text = (href: string): string => decodeURIComponent(href.split(',').slice(1).join(','));
+
+test('the plotted curve and the mode table export as tab-separated values', async () => {
+  vibrations.mockResolvedValue({ vibrations: VIBRATIONS, structure: water, ir: IR_SPECTRUM });
+  render(<SpectrumPanel onError={vi.fn()} />);
+  fireEvent.click(screen.getByRole('button', { name: 'Compute modes' }));
+  await waitFor(() => expect(screen.getByLabelText('normal modes')).toBeInTheDocument());
+
+  const data = captureDownload(() =>
+    fireEvent.click(screen.getByRole('button', { name: 'Export data (TSV)' })),
+  );
+  expect(data.name).toBe('IR_spectrum.tsv');
+  expect(data.href.startsWith('data:text/tab-separated-values;charset=utf-8,')).toBe(true);
+  expect(text(data.href)).toBe(
+    'wavenumber [cm^-1]\tIR intensity [km/mol]\n1500\t1\n2000\t0.2\n2500\t0.1\n3000\t0.2\n3700\t1\n',
+  );
+
+  const modes = captureDownload(() =>
+    fireEvent.click(screen.getByRole('button', { name: 'Export modes (TSV)' })),
+  );
+  expect(modes.name).toMatch(/-modes\.tsv$/);
+  expect(text(modes.href).split('\n')[1]).toBe('1\t1595.30\t62.10\t-\t-\t-\tA1');
+});
+
+test('the chart exports as a standalone SVG named after the spectrum', async () => {
+  vibrations.mockResolvedValue({ vibrations: VIBRATIONS, structure: water, ir: IR_SPECTRUM });
+  render(<SpectrumPanel onError={vi.fn()} />);
+  fireEvent.click(screen.getByRole('button', { name: 'Compute modes' }));
+  await waitFor(() => expect(screen.getByRole('img', { name: 'IR spectrum' })).toBeInTheDocument());
+
+  const image = captureDownload(() =>
+    fireEvent.click(screen.getByRole('button', { name: 'Export image (SVG)' })),
+  );
+  expect(image.name).toBe('IR_spectrum.svg');
+  expect(image.href.startsWith('data:image/svg+xml;charset=utf-8,')).toBe(true);
+  const markup = text(image.href);
+  expect(markup).toContain('<svg');
+  expect(markup).toContain('IR spectrum');
+  expect(markup).not.toContain('var(--');
+});

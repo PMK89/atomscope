@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- The Spectra panel exports: the plotted curve and the mode table as
+  tab-separated values, and the plot as PNG or SVG. An exported plot is always
+  written in the light palette on white, whatever theme the application is in.
+
 - The Cartesian editor reads and writes Ångström, Bohr or fractional
   coordinates; fractional is offered only when the structure has a unit cell.
 

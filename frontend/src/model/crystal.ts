@@ -2,7 +2,7 @@
  * Pure crystallography helpers for the Crystal panel: cell parameters, fractional <-> Cartesian
  * conversion and the text grammars of the matrix and fractional-coordinate editors.
  */
-import { parseCartesian, type ParsedLine } from '../editor/cartesian';
+import { formatCoordinates, parseCoordinates, type ParsedLine } from '../editor/cartesian';
 import { cross, dot, invert3, length, mulRow, type Mat3 } from './geometry';
 import type { Cell, StructureDoc, Vec3 } from './structure';
 
@@ -97,24 +97,12 @@ export function parseMatrix(text: string): Mat3 {
 
 /** One line per atom ("El fx fy fz"); empty without a cell or for a singular cell. */
 export function formatFractional(doc: StructureDoc, digits = 5): string {
-  if (!doc.cell) return '';
-  let inv: Mat3;
-  try {
-    inv = invert3(doc.cell.vectors as Mat3);
-  } catch {
-    return '';
-  }
-  return doc.atoms
-    .map((a) => {
-      const f = mulRow(a.position, inv);
-      return `${a.element.padEnd(2)} ${f.map((x) => x.toFixed(digits).padStart(10)).join(' ')}`;
-    })
-    .join('\n');
+  return formatCoordinates(doc, 'fractional', digits);
 }
 
 /** Parse "El fx fy fz" lines and convert to Cartesian lines for `applyCartesian`. */
 export function parseFractional(text: string, cell: Cell): ParsedLine[] {
-  return parseCartesian(text).map((l) => ({ ...l, position: fracToCart(l.position, cell) }));
+  return parseCoordinates(text, 'fractional', cell);
 }
 
 /** Parse "a b c" integers (>= 1) for supercell repeats or view repeats. */

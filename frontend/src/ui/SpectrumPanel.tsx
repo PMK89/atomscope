@@ -13,15 +13,19 @@ import { useMemo, useRef, useState } from 'react';
 import { api } from '../api/client';
 import { normalizeStructure } from '../model/structure';
 import {
+  axisLabel,
   formatFrequency,
   maxDisplacement,
+  modesTsv,
   nearestPeak,
   scaleToMatch,
+  spectrumTsv,
   type LineShape,
-  type SpectrumDoc,
 } from '../model/vibration';
 import { useSpectrumStore } from '../state/spectrumStore';
 import { useStructureStore } from '../state/structureStore';
+import { chartSize, chartSvgMarkup, svgDataUrl, svgToPngDataUrl } from './charts/chartExport';
+import { downloadDataUrl, fileBase, textDataUrl } from './download';
 import { OtherSpectra } from './OtherSpectra';
 import { useTrajectoryStore } from '../state/trajectoryStore';
 import { LineChart, type ChartSeries, type ChartStick } from './charts/LineChart';
@@ -30,10 +34,7 @@ const COMPUTED_COLOR = '#2f6fdb';
 const OVERLAY_COLOR = '#e07a3c';
 const STICK_COLOR = '#7a8699';
 const FORCE_FIELDS = ['MMFF94', 'MMFF94s', 'UFF', 'GAFF', 'Ghemical'];
-
-function axisLabel(axis: SpectrumDoc['x']): string {
-  return axis.unit ? `${axis.label} [${axis.unit}]` : axis.label;
-}
+const TSV_MIME = 'text/tab-separated-values';
 
 export function SpectrumPanel({ onError }: { onError: (m: string) => void }): JSX.Element {
   const s = useSpectrumStore();
@@ -41,6 +42,7 @@ export function SpectrumPanel({ onError }: { onError: (m: string) => void }): JS
   const animating = useTrajectoryStore((st) => st.trajectory?.kind === 'vibration');
   const spectrumFileInput = useRef<HTMLInputElement>(null);
   const outputFileInput = useRef<HTMLInputElement>(null);
+  const chartBox = useRef<HTMLDivElement>(null);
 
   const [forceField, setForceField] = useState('MMFF94');
   const [width, setWidth] = useState(30);
@@ -155,6 +157,37 @@ export function SpectrumPanel({ onError }: { onError: (m: string) => void }): JS
     }
   };
 
+  const exportSpectrumData = (): void => {
+    if (!active) return;
+    downloadDataUrl(textDataUrl(spectrumTsv(active), TSV_MIME), `${fileBase(active.name)}.tsv`);
+  };
+
+  const exportModes = (): void => {
+    if (!s.vibrations) return;
+    const name = s.source ?? doc.name;
+    downloadDataUrl(textDataUrl(modesTsv(s.vibrations), TSV_MIME), `${fileBase(name)}-modes.tsv`);
+  };
+
+  const exportChart = async (format: 'svg' | 'png'): Promise<void> => {
+    const svg = chartBox.current?.querySelector('svg');
+    if (!svg || !active) {
+      onError('The chart is not ready yet');
+      return;
+    }
+    const markup = chartSvgMarkup(svg);
+    const base = fileBase(active.name);
+    try {
+      if (format === 'svg') {
+        downloadDataUrl(svgDataUrl(markup), `${base}.svg`);
+      } else {
+        const { width, height } = chartSize(svg);
+        downloadDataUrl(await svgToPngDataUrl(markup, width, height), `${base}.png`);
+      }
+    } catch (e) {
+      onError(`Export failed: ${(e as Error).message}`);
+    }
+  };
+
   const pickPeak = (x: number): void => {
     if (!active) return;
     const i = nearestPeak(active.peaks, x);
@@ -244,6 +277,9 @@ export function SpectrumPanel({ onError }: { onError: (m: string) => void }): JS
             </button>
             <button onClick={s.stopAnimation} disabled={!animating}>
               Stop
+            </button>
+            <button onClick={exportModes} title="Write the mode table as tab-separated values">
+              Export modes (TSV)
             </button>
           </div>
           <div className="orbital-table-wrap">
@@ -386,17 +422,29 @@ export function SpectrumPanel({ onError }: { onError: (m: string) => void }): JS
 
       {active ? (
         <>
-          <LineChart
-            series={series}
-            sticks={sticks}
-            xReversed={reverseX && active.x.descending}
-            xLabel={axisLabel(active.x)}
-            yLabel={axisLabel(active.y)}
-            title={active.name}
-            height={240}
-            onPick={pickPeak}
-          />
+          <div ref={chartBox}>
+            <LineChart
+              series={series}
+              sticks={sticks}
+              xReversed={reverseX && active.x.descending}
+              xLabel={axisLabel(active.x)}
+              yLabel={axisLabel(active.y)}
+              title={active.name}
+              height={240}
+              onPick={pickPeak}
+            />
+          </div>
           <p className="muted">Click a peak to animate the corresponding mode.</p>
+          <div className="button-row">
+            <button
+              onClick={exportSpectrumData}
+              title="Write the plotted curve as tab-separated values"
+            >
+              Export data (TSV)
+            </button>
+            <button onClick={() => void exportChart('png')}>Export image (PNG)</button>
+            <button onClick={() => void exportChart('svg')}>Export image (SVG)</button>
+          </div>
         </>
       ) : (
         <p className="muted">No spectrum yet. Compute modes or import a file.</p>

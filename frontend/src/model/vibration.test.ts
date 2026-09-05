@@ -6,10 +6,12 @@ import {
   equilibriumPositions,
   formatFrequency,
   maxDisplacement,
+  modesTsv,
   modeToTrajectory,
   nearestPeak,
   normalizeSpectrum,
   scaleToMatch,
+  spectrumTsv,
   type ApiVibrationalMode,
   type ApiVibrationalSpectrum,
 } from './vibration';
@@ -173,4 +175,58 @@ test('normalizeSpectrum fills the arrays pydantic marks optional', () => {
   expect(s.peaks).toEqual([]);
   expect(s.x_values).toEqual([]);
   expect(s.y_values).toEqual([]);
+});
+
+test('a spectrum exports as two tab-separated columns headed by its axes', () => {
+  const spectrum = normalizeSpectrum({
+    id: 's1',
+    kind: 'ir',
+    name: 'IR spectrum',
+    x: { label: 'wavenumber', unit: 'cm^-1', descending: true },
+    y: { label: 'IR intensity', unit: 'km/mol', descending: false },
+    x_values: [1500, 1600.25, 1700],
+    y_values: [0, 62.1234567, 0.5],
+  });
+  expect(spectrumTsv(spectrum)).toBe(
+    'wavenumber [cm^-1]\tIR intensity [km/mol]\n1500\t0\n1600.25\t62.1235\n1700\t0.5\n',
+  );
+});
+
+test('a spectrum with no unit is headed by the bare label', () => {
+  const spectrum = normalizeSpectrum({
+    id: 's2',
+    kind: 'other',
+    name: 'raw',
+    x: { label: 'index', unit: '', descending: false },
+    y: { label: 'signal', unit: '', descending: false },
+    x_values: [1],
+    y_values: [2],
+  });
+  expect(spectrumTsv(spectrum).split('\n')[0]).toBe('index\tsignal');
+});
+
+test('the mode table exports one row per mode, with "-" where nothing was reported', () => {
+  const tsv = modesTsv({
+    id: 'v1',
+    modes: [
+      {
+        frequency: 1595.34,
+        displacements: [[0, 0, 1]],
+        ir_intensity: 62.1,
+        reduced_mass: 1.0824,
+        symmetry: 'A1',
+        kind: 'vibration',
+      },
+      { frequency: -212.5, displacements: [[0, 0, 1]], kind: 'vibration' },
+    ],
+    trivial_modes: [],
+  });
+  const lines = tsv.split('\n');
+  expect(lines[0]).toBe(
+    'mode\tfrequency [cm^-1]\tIR intensity [km/mol]\tRaman activity [A^4/amu]\treduced mass [amu]\tforce constant [mDyne/A]\tsymmetry',
+  );
+  expect(lines[1]).toBe('1\t1595.34\t62.10\t-\t1.0824\t-\tA1');
+  // an imaginary frequency keeps its sign: a table is not the place for the "123i" convention
+  expect(lines[2]).toBe('2\t-212.50\t-\t-\t-\t-\t-');
+  expect(lines[3]).toBe('');
 });

@@ -958,6 +958,55 @@ only fixed atoms and fixed bond lengths from the list. Open Babel treats a
 torsion constraint as a restraint rather than a hard condition, so a torsion
 holds approximately where a distance or an angle holds exactly.
 
+### 8.8 Vibrations and spectra
+
+The `Spectra` tab works on the structure in the viewport, not on a saved
+calculation, so it has something to show before any run exists.
+
+**Getting modes.** `Compute modes` builds the mass-weighted Hessian by finite
+differences over an Open Babel force field (the one chosen above the button),
+which is seconds of work for a molecule and gives frequencies good enough to
+assign a spectrum by eye, not to publish. `Import output…` reads normal modes
+out of a Gaussian, ORCA or Q-Chem output instead, and loads the geometry they
+belong to; the panel then says where the modes came from and
+what the zero-point energy is.
+
+**The mode table** lists frequency, IR intensity, Raman activity and symmetry
+per mode. Click a row to select the mode (its stick is highlighted in the
+plot), double-click it to animate; `Amplitude` and `Frames per period` set what
+the animation looks like, and `Stop` ends it. An imaginary frequency is written
+the way Avogadro writes it, `123i`.
+
+**The plot** draws the broadened curve, one stick per mode underneath, and an
+imported spectrum over it for comparison. `Line shape`, `Width (FWHM)` and
+`Scale frequencies` re-broaden the same modes — scaling is the usual empirical
+correction for harmonic frequencies. `Raman activities` broadens the Raman
+column instead of the IR one, `Transmittance` turns absorbance upside down,
+`Reverse x axis` puts high wavenumbers on the left as IR spectra are usually
+printed, and clicking a peak animates the mode it belongs to.
+
+`Import experimental…` reads a measured spectrum as `.tsv`, `.csv` or JCAMP-DX
+`.jdx` and puts it in the `Overlay` box; because the measured *y* unit is
+almost never the computed one, the overlay is scaled to the same peak height,
+which compares shapes and not intensities. NMR and UV/Vis spectra computed from
+an imported output appear in the same `Spectrum` box.
+
+**Exports.**
+
+* `Export data (TSV)` writes the plotted curve as two tab-separated columns headed
+  by the axis labels — whatever the spectrum is, including an NMR or UV/Vis one.
+* `Export image (PNG)` writes the plot at twice its drawn size;
+  `Export image (SVG)` writes it as vector, which is the one to use for a
+  figure. Both are written in a light palette on white whatever theme the
+  application is in, so a plot exported at night is not a dark rectangle in a
+  paper.
+* `Export modes (TSV)`, under the mode table, writes one row per mode: number,
+  frequency, IR intensity, Raman activity, reduced mass, force constant and
+  symmetry, with `-` where the source reported nothing.
+
+Files arrive through the browser's own download, so they land wherever it puts
+downloads rather than in the project.
+
 ---
 
 ## 9. Keyboard shortcuts

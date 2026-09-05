@@ -168,3 +168,57 @@ export function scaleToMatch(y: readonly number[], reference: readonly number[])
   const factor = to / from;
   return y.map((v) => v * factor);
 }
+
+/** An axis as a column or axis title: the label, with the unit when there is one. */
+export function axisLabel(axis: ApiSpectrumAxis): string {
+  return axis.unit ? `${axis.label} [${axis.unit}]` : axis.label;
+}
+
+/** `value` at six significant digits, without the trailing zeros `toPrecision` leaves. */
+const sixFigures = (value: number): string => String(Number(value.toPrecision(6)));
+
+/**
+ * The broadened curve as tab-separated values, one row per grid point, headed by the axis titles.
+ *
+ * Avogadro exported the same two columns under fixed headers per spectrum type -- "Frequencies /
+ * Intensities" for IR, "Energy(eV) / Density(e/UC)" for a DOS (spectratype.cpp:77, ir.cpp:171,
+ * dos.cpp:259). The axes carry those titles here, so one function stays right for the kinds
+ * Avogadro had and for the ones it did not.
+ */
+export function spectrumTsv(spectrum: SpectrumDoc): string {
+  const rows = spectrum.x_values.map(
+    (x, i) => `${sixFigures(x)}\t${sixFigures(spectrum.y_values[i] ?? 0)}`,
+  );
+  return [`${axisLabel(spectrum.x)}\t${axisLabel(spectrum.y)}`, ...rows, ''].join('\n');
+}
+
+/**
+ * The normal modes as tab-separated values: one row per mode, "-" where a property was not
+ * reported. Avogadro's own Export button wrote frequency and IR intensity only, and shipped
+ * commented out (vibrationwidget.cpp:318-364); the other per-mode numbers cost nothing to write.
+ */
+export function modesTsv(vibrations: ApiVibrationalSpectrum): string {
+  const cell = (value: number | null | undefined, digits: number): string =>
+    value == null ? '-' : value.toFixed(digits);
+  const rows = vibrations.modes.map((m, i) =>
+    [
+      i + 1,
+      m.frequency.toFixed(2),
+      cell(m.ir_intensity, 2),
+      cell(m.raman_activity, 2),
+      cell(m.reduced_mass, 4),
+      cell(m.force_constant, 4),
+      m.symmetry ?? '-',
+    ].join('\t'),
+  );
+  const header = [
+    'mode',
+    'frequency [cm^-1]',
+    'IR intensity [km/mol]',
+    'Raman activity [A^4/amu]',
+    'reduced mass [amu]',
+    'force constant [mDyne/A]',
+    'symmetry',
+  ].join('\t');
+  return [header, ...rows, ''].join('\n');
+}
