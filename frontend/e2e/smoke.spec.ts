@@ -289,8 +289,9 @@ test('Export image saves a PNG of the viewport at the chosen resolution', async 
   const file = await download;
   expect(file.suggestedFilename()).toMatch(/\.png$/);
 
-  const path = await file.path();
-  const bytes = await readFile(path);
+  // saved so the picture itself can be looked at, not only its header
+  await file.saveAs('test-results/export.png');
+  const bytes = await readFile('test-results/export.png');
   // a real PNG, and its header says twice the viewport's width
   expect(bytes.subarray(1, 4).toString()).toBe('PNG');
   const width = bytes.readUInt32BE(16);
@@ -300,4 +301,6 @@ test('Export image saves a PNG of the viewport at the chosen resolution', async 
     return renderer.viewportSize.width;
   });
   expect(width).toBe(viewport * 2);
+  // an empty frame of this size compresses to a couple of kilobytes; this one has a molecule in it
+  expect(bytes.length).toBeGreaterThan(20_000);
 });

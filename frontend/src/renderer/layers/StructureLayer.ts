@@ -63,6 +63,12 @@ const DETAIL_LEVELS: [number, number, number][] = [
   [32, 24, 24],
 ];
 
+/**
+ * Largest number of sphere instances a repeat may produce. Above this the tab stops responding
+ * long before the picture becomes more informative.
+ */
+const MAX_INSTANCES = 2_000_000;
+
 /** Centre-to-centre distance between the sticks of a multiple bond, in bond radii. */
 const MULTIPLE_BOND_GAP = 2.6;
 
@@ -114,6 +120,10 @@ export class StructureLayer implements DisplayLayer {
   private bondHalves: BondHalf[] = [];
   private lastOverride: Float32Array | null = null;
   private lastCell: Cell['vectors'] | null = null;
+  /** Whether the last rebuild saw a cell: gaining or losing one changes how many images there are. */
+  private lastHadCell = false;
+  /** True when the repeat asked for more instances than the budget allows, so the UI can say why. */
+  truncated = false;
   private lastSelected: ReadonlySet<number> | null = null;
   private lastHovered: number | null = null;
 
@@ -191,14 +201,21 @@ export class StructureLayer implements DisplayLayer {
     // the selection only changes what is drawn when it has a style of its own
     const selectionChanged =
       this.settings.selectionStyle !== null && ctx.selectedAtoms !== this.lastSelected;
+    // removing the cell of a repeated structure leaves the topology untouched but the images
+    // meaningless, so the presence of a cell is part of what decides a rebuild
+    const cellAppeared = !!s.cell !== this.lastHadCell;
     const rebuilt =
-      settingsKey !== this.lastSettings || this.topologyChanged(s) || selectionChanged;
+      settingsKey !== this.lastSettings ||
+      this.topologyChanged(s) ||
+      selectionChanged ||
+      cellAppeared;
     const moved = s.atoms !== this.lastAtoms;
     this.lastAtoms = s.atoms;
     this.lastBonds = s.bonds;
     if (rebuilt) {
       this.rebuild(s, ctx.selectedAtoms);
       this.lastSettings = settingsKey;
+      this.lastHadCell = !!s.cell;
     }
     // display-only positions (trajectory frame): update instance matrices, keep topology
     const raw = ctx.positionsOverride ?? null;
@@ -302,7 +319,6 @@ export class StructureLayer implements DisplayLayer {
   private rebuild(s: StructureDoc, selected: ReadonlySet<number>): void {
     this.disposeMeshes();
     const { showHydrogens } = this.settings;
-    this.imageCells = this.images(s);
     const visibleAtoms: number[] = [];
     this.instanceOfAtom = new Int32Array(s.atoms.length).fill(-1);
     s.atoms.forEach((a, i) => {
@@ -311,6 +327,7 @@ export class StructureLayer implements DisplayLayer {
       visibleAtoms.push(i);
     });
     // one instance per visible atom per image; picking maps an image back to its atom
+    this.imageCells = this.images(s, visibleAtoms.length);
     const images = this.imageCells.length;
     this.atomOfInstance = [];
     this.imageOfInstance = new Int32Array(visibleAtoms.length * images);
@@ -367,14 +384,26 @@ export class StructureLayer implements DisplayLayer {
    * The half-cylinders to draw: two per single bond, two per stick of a double or triple one.
    * The shifts are symmetric about the bond axis (-1,+1 for a double, -1,0,+1 for a triple).
    */
-  /** The (i, j, k) images to draw: one per cell of the repeat, and just the origin without a cell. */
-  private images(s: StructureDoc): [number, number, number][] {
+  /**
+   * The (i, j, k) images to draw: one per cell of the repeat, and just the origin without a cell.
+   * A repeat large enough to exceed the instance budget is cut short rather than drawn: a
+   * hundred images of a thousand atoms is a dead tab, not a picture.
+   */
+  private images(s: StructureDoc, atoms: number): [number, number, number][] {
     const [na, nb, nc] = this.settings.cellRepeat;
+    this.truncated = false;
     if (!s.cell || (na <= 1 && nb <= 1 && nc <= 1)) return [[0, 0, 0]];
+    const budget = Math.max(1, Math.floor(MAX_INSTANCES / Math.max(1, atoms)));
     const out: [number, number, number][] = [];
     for (let i = 0; i < Math.max(1, na); i++) {
       for (let j = 0; j < Math.max(1, nb); j++) {
-        for (let k = 0; k < Math.max(1, nc); k++) out.push([i, j, k]);
+        for (let k = 0; k < Math.max(1, nc); k++) {
+          if (out.length >= budget) {
+            this.truncated = true;
+            return out;
+          }
+          out.push([i, j, k]);
+        }
       }
     }
     return out;

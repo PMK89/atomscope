@@ -130,7 +130,15 @@ export const useViewStore = create<ViewState>((set) => ({
   setVectorField: (vectorField) => set({ vectorField }),
   setVectorScale: (vectorScale) => set({ vectorScale }),
   toggleUnitCell: () => set((s) => ({ showUnitCell: !s.showUnitCell })),
-  setCellRepeat: (cellRepeat) => set({ cellRepeat }),
+  // the repeat multiplies every atom, so it is bounded here as well as in the input
+  setCellRepeat: ([a, b, c]) =>
+    set({
+      cellRepeat: [
+        Math.min(10, Math.max(1, Math.round(a))),
+        Math.min(10, Math.max(1, Math.round(b))),
+        Math.min(10, Math.max(1, Math.round(c))),
+      ],
+    }),
   toggleAxes: () => set((s) => ({ showAxes: !s.showAxes })),
 }));
 

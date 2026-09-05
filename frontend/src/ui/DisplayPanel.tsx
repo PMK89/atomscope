@@ -10,6 +10,7 @@
 import type { RibbonStyle } from '../model/ribbon';
 import { ATOM_LABEL_OPTIONS, BOND_LABEL_OPTIONS } from '../renderer/labels';
 import { useBioStore } from '../state/bioStore';
+import { useRendererStore } from '../state/rendererStore';
 import type { StructureStyle } from '../renderer/layers/StructureLayer';
 import { useStructureStore } from '../state/structureStore';
 import { useViewStore } from '../state/viewStore';
@@ -45,6 +46,8 @@ export function DisplayPanel(): JSX.Element {
   const doc = useStructureStore((s) => s.doc);
   const vectorFields = Object.keys(doc.atomic_vectors ?? {});
   const ribbonError = useBioStore((s) => (view.showRibbon ? s.error : null));
+  const layer = useRendererStore((s) => s.renderer)?.structureLayer;
+  const repeatTruncated = layer?.truncated === true && doc.atoms.length > 0;
 
   return (
     <div className="panel display-panel">
@@ -328,6 +331,11 @@ export function DisplayPanel(): JSX.Element {
         </div>
       </div>
       {!doc.cell && <p className="muted">This structure has no unit cell.</p>}
+      {repeatTruncated && (
+        <p className="error-text">
+          Too many atoms to repeat that far: only the images that fit are drawn.
+        </p>
+      )}
       <Toggle
         id="display-axes"
         label="Show axes"

@@ -222,6 +222,14 @@ export class Renderer {
     return this.gl.domElement.toDataURL(type);
   }
 
+  /**
+   * Largest image the GPU will render in one go. A render target above the texture limit fails
+   * silently, so the export offers nothing bigger.
+   */
+  get maxImageSize(): number {
+    return this.gl.capabilities.maxTextureSize;
+  }
+
   /** Size of the drawing buffer in CSS pixels, which is what an export scales up from. */
   get viewportSize(): { width: number; height: number } {
     const size = new Vector2();
@@ -245,6 +253,10 @@ export class Renderer {
     quality?: number;
   }): string {
     const { width, height, transparent = false, type = 'image/png', quality = 0.92 } = options;
+    const limit = this.maxImageSize;
+    if (width > limit || height > limit) {
+      throw new Error(`this GPU renders at most ${limit} pixels across`);
+    }
     const target = new WebGLRenderTarget(width, height, { samples: 4 });
     const background = this.scene.background;
     const alpha = this.gl.getClearAlpha();
@@ -260,6 +272,9 @@ export class Renderer {
       this.gl.setRenderTarget(target);
       this.gl.clear();
       this.gl.render(this.scene, this.camera);
+      // the overlay pass draws the axes gizmo; the export is what the viewport shows
+      for (const layer of this.layers)
+        if (layer.visible && layer.renderOverlay) layer.renderOverlay(this.gl, this.camera);
       this.gl.readRenderTargetPixels(target, 0, 0, width, height, buffer);
     } finally {
       this.gl.setRenderTarget(null);

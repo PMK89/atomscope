@@ -267,3 +267,40 @@ test('a structure without a cell ignores the repeat', () => {
   expect(meshes(layer)[0]!.count).toBe(3);
   layer.dispose();
 });
+
+test('removing the cell takes the images with it', () => {
+  const layer = new StructureLayer();
+  const doc = crystal();
+  layer.setSettings({ cellRepeat: [2, 2, 2] });
+  layer.update(ctx(doc));
+  expect(meshes(layer)[0]!.count).toBe(8);
+
+  // the atoms and bonds are the same arrays: only the cell went away
+  layer.update(ctx({ ...doc, cell: null }));
+  expect(meshes(layer)[0]!.count).toBe(1);
+  layer.dispose();
+});
+
+test('a repeat larger than the instance budget is cut short and says so', () => {
+  const many = normalizeStructure({
+    name: 'big',
+    atoms: Array.from({ length: 30_000 }, (_, i) => makeAtom('C', [i * 0.1, 0, 0])),
+    bonds: [],
+    cell: {
+      vectors: [
+        [100, 0, 0],
+        [0, 100, 0],
+        [0, 0, 100],
+      ],
+      pbc: [true, true, true],
+    },
+  } as never);
+  const layer = new StructureLayer();
+  layer.setSettings({ cellRepeat: [10, 10, 10] });
+  layer.update(ctx(many));
+
+  // 1000 images of 30k atoms would be 3e7 spheres; the budget stops well short of that
+  expect(layer.truncated).toBe(true);
+  expect(meshes(layer)[0]!.count).toBeLessThanOrEqual(2_000_000);
+  layer.dispose();
+});

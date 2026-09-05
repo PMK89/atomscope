@@ -50,6 +50,10 @@ export function ExportImageDialog({
   const size = renderer?.viewportSize ?? { width: 0, height: 0 };
   const width = Math.round(size.width * scale);
   const height = Math.round(size.height * scale);
+  // a render target beyond the texture limit fails silently, so those sizes are not offered
+  const limit = renderer?.maxImageSize ?? Infinity;
+  const fits = (s: number): boolean =>
+    Math.round(size.width * s) <= limit && Math.round(size.height * s) <= limit;
 
   const save = (): void => {
     if (!renderer) {
@@ -90,7 +94,7 @@ export function ExportImageDialog({
             value={scale}
             onChange={(e) => setScale(Number(e.target.value))}
           >
-            {SCALES.map((s) => (
+            {SCALES.filter(fits).map((s) => (
               <option key={s} value={s}>
                 {s}× ({Math.round(size.width * s)} × {Math.round(size.height * s)})
               </option>
