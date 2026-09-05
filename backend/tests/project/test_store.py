@@ -3,9 +3,9 @@ from pathlib import Path
 import pytest
 
 from atomscope.model import Atom, Structure, VolumetricGrid
-from atomscope.units import Unit
 from atomscope.project import ProjectStore
 from atomscope.project.store import ProjectError
+from atomscope.units import Unit
 
 
 def test_create_open_roundtrip(tmp_path: Path) -> None:
