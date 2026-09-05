@@ -20,3 +20,5 @@ html, body, #root { height: 100%; margin: 0; background: var(--bg); color: var(-
 .app-dock-right { border-left: 1px solid var(--border); }
 .app-viewport { position: relative; min-width: 0; min-height: 0; background: #ffffff; }
 .app-console { height: 140px; border-top: 1px solid var(--border); background: var(--panel); font-family: ui-monospace, monospace; overflow: auto; }
+.viewport-canvas { position: absolute; inset: 0; overflow: hidden; }
+.viewport-canvas canvas { width: 100% !important; height: 100% !important; }

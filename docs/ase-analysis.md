@@ -785,8 +785,9 @@ file -> `ase.io.read` -> heuristic bonds when the file had bonds.
   the *reported* positions/forces pair and warn.
 * Units: energy `Hartree -> eV` via `ase.units.Hartree`; forces `mH/aBohr -> eV/Å` via
   `ase.units.Hartree / (1000 * ase.units.Bohr)` only when the header says `MH/ABOHR` (raise if the
-  header is unknown); positions/cell in Å directly (`LUNIT` written as `1.8897261249` Bohr = 1 Å -
-  pass ASE's `1/units.Bohr`, not a literal). `magmom` in µB = `2*S` (positive), not `S*g_e`.
+  header is unknown); positions/cell in Å directly (`LUNIT` = 1 Å expressed in Bohr: write
+  `1/ase.units.Bohr` = `1.8897261258369282`, not the `1.889726124`/`1.8897261` literals found in
+  `default1.strc`, `case.strc` and the workbench). `magmom` in µB = `2*S` (positive), not `S*g_e`.
 * Charges: `Q[E]` per atom -> `results['charges']`; `dipole` only if CP-PAW prints one - otherwise
   do not fabricate a point-charge dipole (asecppaw B7).
 * Restart: `case.rstrt` handled through a `restart: bool | Path` parameter that renders `START=F`
