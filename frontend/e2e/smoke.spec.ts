@@ -457,3 +457,49 @@ test('Settings > Preferences changes the rendering and lists the backends', asyn
   });
   expect(dark).toBeLessThan(60);
 });
+
+test('display scope hides atoms and shows only the selection', async ({ page }) => {
+  /** pixels that differ from the white background: how much structure is on screen */
+  const drawn = (): Promise<number> =>
+    page.locator('.viewport-canvas canvas').evaluate((c: HTMLCanvasElement) => {
+      const gl = c.getContext('webgl2', {
+        preserveDrawingBuffer: true,
+      }) as WebGL2RenderingContext | null;
+      if (!gl) return -1;
+      const w = gl.drawingBufferWidth;
+      const h = gl.drawingBufferHeight;
+      const px = new Uint8Array(w * h * 4);
+      gl.readPixels(0, 0, w, h, gl.RGBA, gl.UNSIGNED_BYTE, px);
+      let n = 0;
+      for (let i = 0; i < px.length; i += 4)
+        if (px[i]! < 240 || px[i + 1]! < 240 || px[i + 2]! < 240) n++;
+      return n;
+    });
+
+  await page.goto('/');
+  await expect(page.locator('.app-statusbar')).toContainText('H2O');
+  await page.waitForTimeout(400);
+  const all = await drawn();
+  expect(all).toBeGreaterThan(500);
+
+  // the oxygen alone: the menu bar's Select, not the Select tool button
+  await page.locator('button.menu-title', { hasText: 'Select' }).click();
+  page.once('dialog', (d) => void d.accept('O'));
+  await page.getByRole('menuitem', { name: 'Select by element…' }).click();
+  await expect(page.locator('.app-statusbar')).toContainText('1 selected');
+
+  await page.getByRole('tab', { name: 'Display' }).click();
+  await page.getByRole('button', { name: 'Display only selection' }).click();
+  await expect(page.getByText(/3 of 3 atoms have a display type of their own/)).toBeVisible();
+  // one atom and no bonds is much less than the whole molecule
+  await expect.poll(drawn).toBeLessThan(all * 0.6);
+  await page.screenshot({ path: '../.scratch/dev/display-scope.png' });
+  const only = await drawn();
+
+  // hiding the last atom leaves the structure empty; the axes gizmo is still drawn, so what is
+  // left is the gizmo alone. Show all then brings the whole molecule back.
+  await page.getByRole('button', { name: 'Hide selection' }).click();
+  await expect.poll(drawn).toBeLessThan(only);
+  await page.getByRole('button', { name: 'Show all' }).click();
+  await expect.poll(drawn).toBeGreaterThan(all * 0.95);
+});

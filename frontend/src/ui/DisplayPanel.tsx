@@ -7,9 +7,12 @@
  * turning a representation on and adjusting it -- without a layer registry the renderer does not
  * have. Isosurfaces keep their own panel because they are per-grid rather than per-structure.
  */
+import { useState } from 'react';
 import type { RibbonStyle } from '../model/ribbon';
 import { ATOM_LABEL_OPTIONS, BOND_LABEL_OPTIONS } from '../renderer/labels';
 import { COLOR_SCHEMES, type ColorScheme } from '../renderer/atomColors';
+import { assignStyle, assignmentCounts, displayOnly, NO_STYLES } from '../renderer/atomStyles';
+import { useSelectionStore } from '../state/selectionStore';
 import { useBioStore } from '../state/bioStore';
 import { useRendererStore } from '../state/rendererStore';
 import type { StructureStyle } from '../renderer/layers/StructureLayer';
@@ -39,6 +42,84 @@ function Toggle({
       <label htmlFor={id}>{label}</label>
       <input id={id} type="checkbox" checked={checked} onChange={onChange} />
     </div>
+  );
+}
+
+/**
+ * Avogadro's Objects tab (Add All / Add Selected / Remove Selected / Display Only Selected /
+ * Assign to Selection): which atoms a display type applies to. Avogadro scopes each engine to a
+ * list of primitives; with one structure layer the same thing is a display type per atom, plus
+ * atoms nothing draws.
+ *
+ * The assignment follows the atoms (it is keyed by uid), so deleting or optimizing does not hand
+ * one atom's display type to another.
+ */
+function DisplayScope(): JSX.Element {
+  const doc = useStructureStore((s) => s.doc);
+  const selected = useSelectionStore((s) => s.atoms);
+  const assignment = useViewStore((s) => s.atomStyles);
+  const setAtomStyles = useViewStore((s) => s.setAtomStyles);
+  const globalStyle = useViewStore((s) => s.style);
+  const [style, setStyle] = useState<StructureStyle>(globalStyle);
+  const counts = assignmentCounts(doc, assignment);
+  const nothingSelected = selected.size === 0;
+
+  return (
+    <>
+      <h3>Display scope</h3>
+      <div className="form-row">
+        <label htmlFor="display-scope-style">Display type to assign</label>
+        <select
+          id="display-scope-style"
+          value={style}
+          onChange={(e) => setStyle(e.target.value as StructureStyle)}
+        >
+          {STYLES.map((s) => (
+            <option key={s.id} value={s.id}>
+              {s.label}
+            </option>
+          ))}
+        </select>
+      </div>
+      <div className="button-row">
+        <button
+          type="button"
+          disabled={nothingSelected}
+          onClick={() => setAtomStyles(assignStyle(assignment, doc, selected, style))}
+        >
+          Assign to selection
+        </button>
+        <button
+          type="button"
+          disabled={nothingSelected}
+          onClick={() => setAtomStyles(displayOnly(assignment, doc, selected, style))}
+        >
+          Display only selection
+        </button>
+      </div>
+      <div className="button-row">
+        <button
+          type="button"
+          disabled={nothingSelected}
+          onClick={() => setAtomStyles(assignStyle(assignment, doc, selected, 'hidden'))}
+        >
+          Hide selection
+        </button>
+        <button
+          type="button"
+          disabled={counts.assigned === 0}
+          onClick={() => setAtomStyles(NO_STYLES)}
+        >
+          Show all
+        </button>
+      </div>
+      <p className="muted">
+        {counts.assigned === 0
+          ? 'Every atom is drawn with the display type above the scope section.'
+          : `${counts.assigned} of ${doc.atoms.length} atoms have a display type of their own` +
+            (counts.hidden > 0 ? `, ${counts.hidden} of them hidden.` : '.')}
+      </p>
+    </>
   );
 }
 
@@ -140,6 +221,7 @@ export function DisplayPanel(): JSX.Element {
         onChange={view.toggleHydrogens}
       />
 
+      <DisplayScope />
       <h3>Labels</h3>
       <Toggle
         id="display-labels"

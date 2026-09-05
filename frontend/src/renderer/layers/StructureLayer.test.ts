@@ -331,3 +331,46 @@ test('a repeat larger than the instance budget is cut short and says so', () => 
   expect(meshes(layer)[0]!.count).toBeLessThanOrEqual(2_000_000);
   layer.dispose();
 });
+
+test('a hidden atom leaves the meshes, its bonds and the picking behind', () => {
+  const layer = new StructureLayer();
+  const base = addBond(doc(), 1, 2, 1);
+  layer.update(ctx(base));
+  const [atomMesh, bondMesh] = meshes(layer);
+  // 3 atoms, 2 bonds, one half-cylinder per bond end
+  expect(atomMesh!.count).toBe(3);
+  expect(bondMesh!.count).toBe(4);
+
+  layer.setSettings({ atomStyles: [null, null, 'hidden'] });
+  layer.update(ctx(base));
+  const [atomMesh2, bondMesh2] = meshes(layer);
+  expect(atomMesh2!.count).toBe(2);
+  // only the C-C bond is left
+  expect(bondMesh2!.count).toBe(2);
+  // and nothing on screen picks the hidden atom
+  const picked = [0, 1].map((k) => layer.atomIndexForInstance(atomMesh2!, k));
+  expect(picked).toEqual([0, 1]);
+
+  // showing it again brings everything back
+  layer.setSettings({ atomStyles: null });
+  layer.update(ctx(base));
+  expect(meshes(layer)[0]!.count).toBe(3);
+  expect(meshes(layer)[1]!.count).toBe(4);
+  layer.dispose();
+});
+
+test('an assigned display type beats the selection style and the global one', () => {
+  const layer = new StructureLayer();
+  const base = doc();
+  layer.setSettings({ style: 'ball-and-stick', selectionStyle: 'vdw' });
+  const selected = { ...ctx(base), selectedAtoms: new Set([0, 1]) };
+  layer.update(selected);
+  // a van der Waals atom draws no bonds, so the C-C bond is gone with both ends selected
+  expect(meshes(layer)[1]).toBeUndefined();
+
+  // both ends are assigned back to sticks, over the selection style: the bond is drawn again
+  layer.setSettings({ atomStyles: ['ball-and-stick', 'ball-and-stick', null] });
+  layer.update({ ...ctx(base), selectedAtoms: selected.selectedAtoms });
+  expect(meshes(layer)[1]!.count).toBe(2);
+  layer.dispose();
+});

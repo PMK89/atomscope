@@ -17,6 +17,7 @@ import { elementBySymbol } from '../../model/elements';
 import { adjacency } from '../../model/connectivity';
 import type { Cell, StructureDoc } from '../../model/structure';
 import { bondPlaneAxis, cylinderMatrix } from '../math';
+import type { AtomStyle } from '../atomStyles';
 import type { DisplayLayer, LayerContext } from './Layer';
 
 export type StructureStyle = 'ball-and-stick' | 'stick' | 'vdw' | 'wireframe';
@@ -57,6 +58,12 @@ export interface StructureLayerSettings {
    * the meshes.
    */
   selectionStyle: StructureStyle | null;
+  /**
+   * One display type per atom, overriding both of the above: this is engine primitive scoping,
+   * and `hidden` is an atom no engine draws. Null (the default) draws the whole document in
+   * `style`. Built by `renderer/atomStyles`, and compared by identity like `atomColors`.
+   */
+  atomStyles: ReadonlyArray<AtomStyle | null> | null;
 }
 
 export const DEFAULT_STRUCTURE_SETTINGS: StructureLayerSettings = {
@@ -69,6 +76,7 @@ export const DEFAULT_STRUCTURE_SETTINGS: StructureLayerSettings = {
   cellRepeat: [1, 1, 1],
   selectionStyle: null,
   atomColors: null,
+  atomStyles: null,
   quality: 'auto',
 };
 
@@ -216,9 +224,11 @@ export class StructureLayer implements DisplayLayer {
     const s = ctx.structure;
     // the colour array is per atom and identified by identity: stringifying it every frame would
     // cost more than drawing does
-    const { atomColors, ...keyed } = this.settings;
+    const { atomColors, atomStyles, ...keyed } = this.settings;
     const settingsKey = JSON.stringify(keyed);
     const colorsChanged = atomColors !== this.lastAtomColors;
+    // one entry per atom: stringifying it would cost more than the rebuild it guards
+    const stylesChanged = atomStyles !== this.lastAtomStyles;
     // the selection only changes what is drawn when it has a style of its own
     const selectionChanged =
       this.settings.selectionStyle !== null && ctx.selectedAtoms !== this.lastSelected;
@@ -229,6 +239,7 @@ export class StructureLayer implements DisplayLayer {
       settingsKey !== this.lastSettings ||
       this.topologyChanged(s) ||
       selectionChanged ||
+      stylesChanged ||
       cellAppeared;
     const moved = s.atoms !== this.lastAtoms;
     this.lastAtoms = s.atoms;
@@ -236,6 +247,7 @@ export class StructureLayer implements DisplayLayer {
     if (rebuilt) {
       this.rebuild(s, ctx.selectedAtoms);
       this.lastSettings = settingsKey;
+      this.lastAtomStyles = atomStyles;
       this.lastHadCell = !!s.cell;
     }
     // display-only positions (trajectory frame): update instance matrices, keep topology
@@ -333,19 +345,27 @@ export class StructureLayer implements DisplayLayer {
     }
   }
 
-  /** The style an atom is drawn with: its own when the selection has one, the layer's otherwise. */
+  /**
+   * The style an atom is drawn with: the one assigned to it if it has one, else the selection's
+   * when the selection has one of its own, else the layer's. A hidden atom is not drawn at all
+   * and never reaches this.
+   */
   private styleOf(atomIndex: number, selected: ReadonlySet<number>): StructureStyle {
-    const { style, selectionStyle } = this.settings;
+    const { style, selectionStyle, atomStyles } = this.settings;
+    const assigned = atomStyles?.[atomIndex];
+    if (assigned && assigned !== 'hidden') return assigned;
     return selectionStyle !== null && selected.has(atomIndex) ? selectionStyle : style;
   }
 
   private rebuild(s: StructureDoc, selected: ReadonlySet<number>): void {
     this.disposeMeshes();
-    const { showHydrogens } = this.settings;
+    const { showHydrogens, atomStyles } = this.settings;
     const visibleAtoms: number[] = [];
     this.instanceOfAtom = new Int32Array(s.atoms.length).fill(-1);
     s.atoms.forEach((a, i) => {
       if (!showHydrogens && a.element === 'H') return;
+      // an atom scoped out of every engine: leaving it at -1 removes its bonds and its pick too
+      if (atomStyles?.[i] === 'hidden') return;
       this.instanceOfAtom[i] = visibleAtoms.length;
       visibleAtoms.push(i);
     });
@@ -482,6 +502,7 @@ export class StructureLayer implements DisplayLayer {
   private bondMeshBondIndices: number[] = [];
   /** identity of the colour override the instance colours were written from */
   private lastAtomColors: Float32Array | null = null;
+  private lastAtomStyles: ReadonlyArray<AtomStyle | null> | null = null;
 
   private atomRadius(covalent: number, vdw: number, style: StructureStyle): number {
     switch (style) {

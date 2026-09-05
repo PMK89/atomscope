@@ -463,6 +463,7 @@ of the right dock, which is Avogadro's Display Types dock:
 | Section | What it holds |
 |---|---|
 | Structure | display type, **colour by**, atom radius, bond radius, multiple bonds, hydrogens, and a display type for the **selected atoms only** (ball-and-stick on the active site, wireframe on the rest) |
+| Display scope | which atoms a display type applies to: assign one to the selection, show only the selection, hide the selection, or put everything back |
 | Labels | on/off, what atoms and bonds are labelled with (index, symbol, name, formal or partial charge, residue name or number, uid, custom; bond order or length), colour, size, offset |
 | Hydrogen bonds | on/off, cut-off distance and angle; drawn as dashed sticks from the geometry on screen |
 | Ribbons | cartoon, ribbon or backbone rendering of a protein, and a width; helices red, strands yellow with an arrowhead, coil thin |
@@ -487,6 +488,24 @@ the panel says so. Double
 and triple bonds are drawn as two or three parallel sticks in the plane of the
 molecule; structures built from SMILES are kekulized, so an aromatic ring shows
 alternating double bonds.
+
+**Display scope** is Avogadro's Objects tab. Avogadro scopes each display
+engine to a list of atoms; Atomscope draws one structure layer, so the same
+thing is a display type *per atom*, plus atoms that nothing draws:
+
+* **Assign to selection** — the selected atoms take the display type chosen
+  above the buttons; everything else keeps the global one. Van der Waals
+  spheres on a ligand over a wireframe protein is this, twice.
+* **Display only selection** — the selection stays, every other atom is hidden.
+* **Hide selection** — the selection is hidden and nothing else changes.
+* **Show all** — every atom goes back to the global display type.
+
+A hidden atom is drawn by nothing: no sphere, no bond, no label, and the mouse
+cannot pick it. The assignment follows the *atoms*, not their positions in the
+list, so deleting an atom, optimizing the geometry or undoing does not hand one
+atom's display type to another; an operation that rebuilds the whole document
+(`Add hydrogens`, opening another file) starts from a clean slate. It is a view
+setting, not part of the document, and is not saved with the project.
 
 The **cell repeat** (Display ▸ Unit cell and axes ▸ Repeat a/b/c) draws copies
 of the atoms and bonds as well as the box, up to ten per axis and a total

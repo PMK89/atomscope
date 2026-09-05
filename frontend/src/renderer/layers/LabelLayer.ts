@@ -29,6 +29,8 @@ export interface LabelLayerSettings {
   shift: [number, number, number];
   /** Match the structure layer: a hidden atom must not keep its label. */
   hideHydrogens: boolean;
+  /** Atoms scoped out of every display type, which the structure layer does not draw either. */
+  hiddenAtoms: ReadonlySet<number> | null;
   /** Lift labels clear of van der Waals spheres when that is the display style. */
   lift: 'small' | 'vdw';
 }
@@ -40,6 +42,7 @@ export const DEFAULT_LABEL_SETTINGS: LabelLayerSettings = {
   size: 0.55,
   shift: [0, 0, 0],
   hideHydrogens: false,
+  hiddenAtoms: null,
   lift: 'small',
 };
 
@@ -99,6 +102,7 @@ export class LabelLayer implements DisplayLayer {
 
   /** Hidden atoms keep no label: the structure layer does not draw them either. */
   private hidden(s: StructureDoc, atom: number): boolean {
+    if (this.settings.hiddenAtoms?.has(atom)) return true;
     return this.settings.hideHydrogens && s.atoms[atom]?.element === 'H';
   }
 

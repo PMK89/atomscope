@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import type { ColorScheme } from '../renderer/atomColors';
+import { NO_STYLES, type StyleAssignment } from '../renderer/atomStyles';
 import type { Quality, StructureStyle } from '../renderer/layers/StructureLayer';
 import type { Projection } from '../renderer/Renderer';
 import type { AtomLabelContent, BondLabelContent } from '../renderer/labels';
@@ -69,6 +70,12 @@ export interface ViewState {
   toggleMultipleBonds: () => void;
   /** Style for the selected atoms, or null to draw them like the rest. */
   selectionStyle: StructureStyle | null;
+  /**
+   * Per-atom display types (engine primitive scoping), keyed by atom uid. Not persisted with the
+   * project: it belongs to one document, and `pickPersisted` stores scalars only.
+   */
+  atomStyles: StyleAssignment;
+  setAtomStyles: (styles: StyleAssignment) => void;
   setAtomScale: (scale: number) => void;
   setBondRadius: (radius: number) => void;
   setSelectionStyle: (style: StructureStyle | null) => void;
@@ -129,6 +136,8 @@ export const useViewStore = create<ViewState>((set) => ({
   multipleBonds: true,
   toggleMultipleBonds: () => set((s) => ({ multipleBonds: !s.multipleBonds })),
   selectionStyle: null,
+  atomStyles: NO_STYLES,
+  setAtomStyles: (atomStyles) => set({ atomStyles }),
   setAtomScale: (atomScale) => set({ atomScale }),
   setBondRadius: (bondRadius) => set({ bondRadius }),
   setSelectionStyle: (selectionStyle) => set({ selectionStyle }),

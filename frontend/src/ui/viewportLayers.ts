@@ -21,6 +21,7 @@ export function syncExtraLayers(
   renderer: Renderer,
   view: ViewState,
   secondary: SecondaryStructureData | null = null,
+  hiddenAtoms: ReadonlySet<number> | null = null,
 ): void {
   const hbonds = renderer.getLayer('hbonds');
   if (hbonds instanceof HBondLayer) {
@@ -52,6 +53,7 @@ export function syncExtraLayers(
       atoms: view.atomLabels,
       bonds: view.bondLabels,
       hideHydrogens: !view.showHydrogens,
+      hiddenAtoms,
       lift: view.style === 'vdw' ? 'vdw' : 'small',
       color: view.labelColor,
       size: view.labelSize,

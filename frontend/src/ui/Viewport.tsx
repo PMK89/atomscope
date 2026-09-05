@@ -9,6 +9,7 @@ import { frameCell, framePositions, isTrajectoryCompatible } from '../model/traj
 import { installExtraLayers, syncExtraLayers } from './viewportLayers';
 import { BACKGROUND_HEX, useViewStore } from '../state/viewStore';
 import { atomColors } from '../renderer/atomColors';
+import { hiddenAtoms, styleArray } from '../renderer/atomStyles';
 import { useBioStore } from '../state/bioStore';
 import { useRendererStore } from '../state/rendererStore';
 import { useIsosurfaceLayers } from './useIsosurfaceLayers';
@@ -45,6 +46,11 @@ export function Viewport(): JSX.Element {
     () => atomColors(residues, atomCount, scheme, secondary),
     [residues, atomCount, scheme, secondary],
   );
+  // engine primitive scoping: uid-keyed in the store, resolved to one entry per atom here, and
+  // stable while neither the atoms nor the assignment change (a new array rebuilds the meshes)
+  const assignment = view.atomStyles;
+  const atomStyleOverride = useMemo(() => styleArray(doc, assignment), [doc, assignment]);
+  const hidden = useMemo(() => hiddenAtoms(atomStyleOverride), [atomStyleOverride]);
   const lastFitted = useRef<string | null>(null);
   const lastFitRequest = useRef(0);
   // renderer readiness as state, so surfaces already in the store mount into a new renderer
@@ -79,12 +85,13 @@ export function Viewport(): JSX.Element {
       multipleBonds: view.multipleBonds,
       cellRepeat: view.cellRepeat,
       atomColors: atomColorOverride,
+      atomStyles: atomStyleOverride,
       quality: view.quality,
     });
     r.setBackground(BACKGROUND_HEX[view.background]);
     r.setFog(view.fog);
     if (r.projection !== view.projection) r.setProjection(view.projection);
-    syncExtraLayers(r, view, view.showRibbon ? secondary : null);
+    syncExtraLayers(r, view, view.showRibbon ? secondary : null, hidden);
     r.update({
       structure: doc,
       revision,
@@ -108,6 +115,8 @@ export function Viewport(): JSX.Element {
     cellOverride,
     secondary,
     atomColorOverride,
+    atomStyleOverride,
+    hidden,
   ]);
 
   // the assignment depends on the geometry, so it is refetched per revision -- but only while

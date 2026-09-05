@@ -31,6 +31,9 @@
 - Adding hydrogens to a PDB structure no longer drops its residues: a new hydrogen joins the
   residue of the heavy atom it is bonded to, so the ribbons, residue labels, residue selection and
   residue colours survive `Add hydrogens`.
+- Display scope (Avogadro's Objects tab): a display type per atom, assigned to the selection, with
+  `Display only selection`, `Hide selection` and `Show all`. Hidden atoms are not drawn, labelled or
+  pickable, and the assignment is keyed by atom uid, so it survives edits, optimizations and undo.
 - A `Settings ▸ Preferences…` dialog: rendering quality, depth cueing (fog), projection,
   background, and the backend list with what each one found on the machine. Depth cueing is turned
   off for a transparent image export, where fading towards the background colour would leave a halo.

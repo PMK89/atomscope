@@ -1,6 +1,8 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import { beforeEach, expect, test } from 'vitest';
 import { makeAtom, normalizeStructure } from '../model/structure';
+import { NO_STYLES, styleArray } from '../renderer/atomStyles';
+import { useSelectionStore } from '../state/selectionStore';
 import { useStructureStore } from '../state/structureStore';
 import { useViewStore } from '../state/viewStore';
 import { DisplayPanel } from './DisplayPanel';
@@ -103,4 +105,32 @@ test('the panel says when a setting has nothing to act on', () => {
   render(<DisplayPanel />);
   expect(screen.getByText(/carries no vector field/)).toBeInTheDocument();
   expect(screen.getByText('This structure has no unit cell.')).toBeInTheDocument();
+});
+
+test('display scope assigns a display type to the selection and hides the rest', () => {
+  const doc = normalizeStructure({
+    name: 'c3',
+    atoms: [makeAtom('C', [0, 0, 0]), makeAtom('C', [1.5, 0, 0]), makeAtom('O', [3, 0, 0])],
+  } as never);
+  useStructureStore.getState().load(doc);
+  useViewStore.setState({ atomStyles: NO_STYLES });
+  render(<DisplayPanel />);
+
+  // with nothing selected there is nothing to scope, and no way to hide the whole structure
+  expect(screen.getByRole('button', { name: 'Assign to selection' })).toBeDisabled();
+  expect(screen.getByRole('button', { name: 'Display only selection' })).toBeDisabled();
+  expect(screen.getByRole('button', { name: 'Show all' })).toBeDisabled();
+
+  act(() => useSelectionStore.getState().set([1]));
+  fireEvent.change(screen.getByLabelText('Display type to assign'), { target: { value: 'vdw' } });
+  fireEvent.click(screen.getByRole('button', { name: 'Assign to selection' }));
+  expect(styleArray(doc, useViewStore.getState().atomStyles)).toEqual([null, 'vdw', null]);
+  expect(screen.getByText(/1 of 3 atoms have a display type of their own/)).toBeInTheDocument();
+
+  fireEvent.click(screen.getByRole('button', { name: 'Display only selection' }));
+  expect(styleArray(doc, useViewStore.getState().atomStyles)).toEqual(['hidden', 'vdw', 'hidden']);
+  expect(screen.getByText(/3 of 3 atoms .*, 2 of them hidden\./)).toBeInTheDocument();
+
+  fireEvent.click(screen.getByRole('button', { name: 'Show all' }));
+  expect(styleArray(doc, useViewStore.getState().atomStyles)).toBeNull();
 });
