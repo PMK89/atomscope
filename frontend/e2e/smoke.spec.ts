@@ -376,6 +376,10 @@ test('the Properties tab lists the bonds and a typed length moves an atom', asyn
   const length = page.getByLabel('length of O1—H2');
   await length.fill('1.200');
   await length.blur();
-  await expect(length).toHaveValue('1.200');
-  await expect(page.locator('.app-statusbar')).toContainText('3 atoms');
+  // the field keeps whatever was typed, so ask the document instead: the edit is on the undo stack
+  await page.getByRole('button', { name: 'Edit', exact: true }).click();
+  await expect(page.getByRole('menuitem', { name: /Undo Set bond length/ })).toBeVisible();
+  await page.keyboard.press('Escape');
+  // the other bond did not move with it
+  await expect(page.getByLabel('length of O1—H3')).toHaveValue('0.958');
 });

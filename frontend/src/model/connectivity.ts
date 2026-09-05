@@ -33,23 +33,33 @@ export function findBond(doc: StructureDoc, a: number, b: number): number {
   return doc.bonds.findIndex((x) => (x.a === a && x.b === b) || (x.a === b && x.b === a));
 }
 
+/** Neighbour and the bond that leads to it, so a walk can skip one bond without rebuilding. */
+export type BondAdjacency = [neighbour: number, bond: number][][];
+
+export function bondAdjacency(doc: StructureDoc): BondAdjacency {
+  const adj: BondAdjacency = doc.atoms.map(() => []);
+  doc.bonds.forEach((b, i) => {
+    adj[b.a]?.push([b.b, i]);
+    adj[b.b]?.push([b.a, i]);
+  });
+  return adj;
+}
+
 /** Connected component containing `start`, optionally ignoring one bond (index). */
 export function fragmentOf(doc: StructureDoc, start: number, ignoreBond = -1): Set<number> {
-  const adj: number[][] = doc.atoms.map(() => []);
-  doc.bonds.forEach((b, i) => {
-    if (i === ignoreBond) return;
-    adj[b.a]?.push(b.b);
-    adj[b.b]?.push(b.a);
-  });
+  return fragmentIn(bondAdjacency(doc), start, ignoreBond);
+}
+
+/** The same walk over an adjacency built once: the caller pays for it, not every call. */
+export function fragmentIn(adj: BondAdjacency, start: number, ignoreBond = -1): Set<number> {
   const seen = new Set<number>([start]);
   const stack = [start];
   while (stack.length) {
     const i = stack.pop()!;
-    for (const j of adj[i] ?? []) {
-      if (!seen.has(j)) {
-        seen.add(j);
-        stack.push(j);
-      }
+    for (const [j, bond] of adj[i] ?? []) {
+      if (bond === ignoreBond || seen.has(j)) continue;
+      seen.add(j);
+      stack.push(j);
     }
   }
   return seen;

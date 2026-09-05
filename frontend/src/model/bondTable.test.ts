@@ -54,3 +54,25 @@ test('a selection narrows the table to the bonds that touch it', () => {
   expect(bondRowCount(doc, new Set([4]))).toBe(1);
   expect(bondRowCount(doc)).toBe(5);
 });
+
+test('a bond across the cell boundary reports the minimum image, and says so', () => {
+  const crystal = normalizeStructure({
+    name: 'chain',
+    atoms: [makeAtom('Si', [0.2, 0, 0]), makeAtom('Si', [3.8, 0, 0])],
+    cell: {
+      vectors: [
+        [4, 0, 0],
+        [0, 4, 0],
+        [0, 0, 4],
+      ],
+      pbc: [true, true, true],
+    },
+    bonds: [{ a: 0, b: 1, order: 1 }],
+  } as never);
+  const [row] = bondRows(crystal);
+  // 3.6 A the long way round the box, 0.4 A through the wall
+  expect(row!.length).toBeCloseTo(0.4);
+  expect(row!.periodic).toBe(true);
+  // an ordinary molecular bond is not flagged
+  expect(bondRows(doc)[0]!.periodic).toBe(false);
+});

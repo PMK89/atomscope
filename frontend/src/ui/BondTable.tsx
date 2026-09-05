@@ -6,7 +6,7 @@
 import { useMemo } from 'react';
 import { setBondLength, setBondOrder } from '../editor/edits';
 import { movingSide } from '../editor/tools/BondCentricTool';
-import { bondRowCount, bondRows, MAX_BOND_ROWS } from '../model/bondTable';
+import { AUTO_TABLE_LIMIT, bondRowCount, bondRows, MAX_BOND_ROWS } from '../model/bondTable';
 import { useSelectionStore } from '../state/selectionStore';
 import { useStructureStore } from '../state/structureStore';
 import { NumberField } from './NumberField';
@@ -17,10 +17,20 @@ export function BondTable(): JSX.Element {
   const doc = useStructureStore((s) => s.doc);
   const commit = useStructureStore((s) => s.commit);
   const selected = useSelectionStore((s) => s.atoms);
-  const rows = useMemo(() => bondRows(doc, selected), [doc, selected]);
+  // every dock panel stays mounted, so this runs on every edit: do not walk a crystal per keystroke
+  const waiting = selected.size === 0 && doc.bonds.length > AUTO_TABLE_LIMIT;
+  const rows = useMemo(() => (waiting ? [] : bondRows(doc, selected)), [doc, selected, waiting]);
   const total = useMemo(() => bondRowCount(doc, selected), [doc, selected]);
 
   if (doc.bonds.length === 0) return <p className="muted">No bonds.</p>;
+  if (waiting) {
+    return (
+      <p className="muted">
+        {doc.bonds.length} bonds. Select atoms to see theirs; listing them all would mean walking
+        the structure {MAX_BOND_ROWS} times on every edit.
+      </p>
+    );
+  }
   return (
     <>
       {selected.size > 0 && <p className="muted">Bonds of the {selected.size} selected atom(s).</p>}
@@ -59,23 +69,33 @@ export function BondTable(): JSX.Element {
                 </td>
                 <td>{r.ring ? 'ring' : r.rotatable ? 'yes' : 'no'}</td>
                 <td>
-                  <NumberField
-                    value={r.length}
-                    digits={3}
-                    label={`length of ${r.label}`}
-                    onCommit={(v) =>
-                      commit(
-                        'Set bond length',
-                        setBondLength(doc, r.index, v, movingSide(doc, r.index).atoms),
-                      )
-                    }
-                  />
+                  {/* across a periodic boundary the two atoms are far apart in Cartesian space:
+                      the length shown is the minimum image, and moving one atom along the
+                      unwrapped vector would fling it across the cell */}
+                  {r.periodic ? (
+                    <span title="through the cell boundary">{r.length.toFixed(3)} *</span>
+                  ) : (
+                    <NumberField
+                      value={r.length}
+                      digits={3}
+                      label={`length of ${r.label}`}
+                      onCommit={(v) =>
+                        commit(
+                          'Set bond length',
+                          setBondLength(doc, r.index, v, movingSide(doc, r.index).atoms),
+                        )
+                      }
+                    />
+                  )}
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
+      {rows.some((r) => r.periodic) && (
+        <p className="muted">* through the cell boundary: the minimum image, not editable.</p>
+      )}
       {total > rows.length && (
         <p className="muted">
           Showing {MAX_BOND_ROWS} of {total} bonds. Select atoms to see theirs.

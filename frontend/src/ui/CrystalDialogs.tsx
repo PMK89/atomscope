@@ -1,5 +1,6 @@
 /** Modal dialogs opened from the Build menu / Crystal tab: supercell, slab and crystal library. */
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { dialogKeyHandler } from './dialogKeys';
 import { api, type LibraryEntry } from '../api/client';
 import { parseMiller, parseRepeat } from '../model/crystal';
 import { normalizeStructure } from '../model/structure';
@@ -30,19 +31,15 @@ function Dialog({
   onClose: () => void;
   children: React.ReactNode;
 }): JSX.Element {
+  const dialog = useRef<HTMLDivElement>(null);
   return (
     <div
       className="dialog-backdrop"
       role="dialog"
       aria-label={title}
-      onKeyDown={(e) => {
-        if (e.key === 'Escape') {
-          e.stopPropagation();
-          onClose();
-        }
-      }}
+      onKeyDown={dialogKeyHandler(dialog, onClose)}
     >
-      <div className="dialog panel">
+      <div className="dialog panel" ref={dialog}>
         <h3>{title}</h3>
         {children}
       </div>

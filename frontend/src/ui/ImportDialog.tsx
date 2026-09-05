@@ -5,7 +5,8 @@
  * The override is what makes a Gaussian output called `run.txt` openable: detection goes by
  * extension first, and a file whose extension says nothing needs to be told what it is.
  */
-import { useEffect, useRef, useState, type KeyboardEvent } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { dialogKeyHandler } from './dialogKeys';
 import { api, type FormatDescription } from '../api/client';
 import { normalizeStructure } from '../model/structure';
 import { useStructureStore } from '../state/structureStore';
@@ -35,6 +36,7 @@ export function ImportDialog({
   const [busy, setBusy] = useState(false);
   const fileInput = useRef<HTMLInputElement>(null);
   const first = useRef<HTMLInputElement>(null);
+  const dialog = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!open) return;
@@ -76,16 +78,11 @@ export function ImportDialog({
     }
   };
 
-  const onKeyDown = (e: KeyboardEvent<HTMLDivElement>): void => {
-    if (e.key === 'Escape') {
-      e.stopPropagation();
-      onClose();
-    }
-  };
+  const onKeyDown = dialogKeyHandler(dialog, onClose);
 
   return (
     <div className="dialog-backdrop" role="presentation" onKeyDown={onKeyDown}>
-      <div className="dialog panel" role="dialog" aria-modal="true" aria-label="Open">
+      <div className="dialog panel" ref={dialog} role="dialog" aria-modal="true" aria-label="Open">
         <h3>Open</h3>
         <div className="form-row">
           <label htmlFor="import-format">Format</label>

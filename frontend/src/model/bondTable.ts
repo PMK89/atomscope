@@ -2,7 +2,12 @@
  * Rows for the bond properties table: what a bond is between, its order, whether it can rotate
  * and how long it is. Avogadro's Bond Properties dialog, as a section of the Properties tab.
  */
-import { fragmentOf } from './connectivity';
+import {
+  bondAdjacency,
+  fragmentIn,
+  minimumImageDistance,
+  type BondAdjacency,
+} from './connectivity';
 import { distance } from './geometry';
 import type { StructureDoc } from './structure';
 
@@ -18,19 +23,33 @@ export interface BondRow {
   ring: boolean;
   /** a single, non-aromatic, non-ring bond between two atoms that both carry something else */
   rotatable: boolean;
+  /** the length as drawn: the minimum image, for a bond that crosses a periodic boundary */
   length: number;
+  /** true when the two atoms are only bonded through the cell boundary, so the length is not editable */
+  periodic: boolean;
 }
 
 /** How many rows the table builds at once; each ring test walks the molecule. */
 export const MAX_BOND_ROWS = 200;
 
-function row(doc: StructureDoc, index: number, degree: readonly number[]): BondRow | null {
+/** Above this many bonds the table waits for a selection rather than walking the molecule 200x. */
+export const AUTO_TABLE_LIMIT = 2000;
+
+function row(
+  doc: StructureDoc,
+  index: number,
+  degree: readonly number[],
+  adj: BondAdjacency,
+): BondRow | null {
   const b = doc.bonds[index];
   const pa = b && doc.atoms[b.a]?.position;
   const pb = b && doc.atoms[b.b]?.position;
   if (!b || !pa || !pb) return null;
-  const ring = fragmentOf(doc, b.a, index).has(b.b);
+  const ring = fragmentIn(adj, b.a, index).has(b.b);
   const terminal = (degree[b.a] ?? 0) < 2 || (degree[b.b] ?? 0) < 2;
+  // a bond perceived across the cell boundary is short through the wall and long across the box
+  const direct = distance(pa, pb);
+  const image = minimumImageDistance(pa, pb, doc.cell ?? null);
   return {
     index,
     a: b.a,
@@ -40,7 +59,8 @@ function row(doc: StructureDoc, index: number, degree: readonly number[]): BondR
     aromatic: !!b.aromatic,
     ring,
     rotatable: b.order === 1 && !b.aromatic && !ring && !terminal,
-    length: distance(pa, pb),
+    length: image,
+    periodic: direct - image > 1e-6,
   };
 }
 
@@ -54,11 +74,12 @@ export function bondRows(doc: StructureDoc, only?: ReadonlySet<number>): BondRow
     degree[b.a] = (degree[b.a] ?? 0) + 1;
     degree[b.b] = (degree[b.b] ?? 0) + 1;
   }
+  const adj = bondAdjacency(doc);
   const out: BondRow[] = [];
   for (let i = 0; i < doc.bonds.length && out.length < MAX_BOND_ROWS; i++) {
     const b = doc.bonds[i]!;
     if (only && only.size > 0 && !only.has(b.a) && !only.has(b.b)) continue;
-    const r = row(doc, i, degree);
+    const r = row(doc, i, degree, adj);
     if (r) out.push(r);
   }
   return out;

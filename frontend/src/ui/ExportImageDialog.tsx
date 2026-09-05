@@ -4,7 +4,8 @@
  *
  * The size is the viewport times a multiplier, so what is framed on screen is what comes out.
  */
-import { useEffect, useRef, useState, type KeyboardEvent } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { dialogKeyHandler } from './dialogKeys';
 import { useRendererStore } from '../state/rendererStore';
 import { useStructureStore } from '../state/structureStore';
 
@@ -39,6 +40,7 @@ export function ExportImageDialog({
   const [type, setType] = useState('image/png');
   const [transparent, setTransparent] = useState(false);
   const first = useRef<HTMLSelectElement>(null);
+  const dialog = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (!open) return;
     const previous = document.activeElement as HTMLElement | null;
@@ -75,16 +77,17 @@ export function ExportImageDialog({
     }
   };
 
-  const onKeyDown = (e: KeyboardEvent<HTMLDivElement>): void => {
-    if (e.key === 'Escape') {
-      e.stopPropagation();
-      onClose();
-    }
-  };
+  const onKeyDown = dialogKeyHandler(dialog, onClose);
 
   return (
     <div className="dialog-backdrop" role="presentation" onKeyDown={onKeyDown}>
-      <div className="dialog panel" role="dialog" aria-modal="true" aria-label="Export image">
+      <div
+        className="dialog panel"
+        ref={dialog}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Export image"
+      >
         <h3>Export image</h3>
         <div className="form-row">
           <label htmlFor="export-scale">Resolution</label>
