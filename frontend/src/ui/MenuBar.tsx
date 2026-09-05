@@ -289,11 +289,14 @@ export function MenuBar({ onError }: { onError: (msg: string) => void }): JSX.El
           },
           { label: 'Named selections…', action: () => setNamedOpen(true) },
           // each saved set recalls itself, which is Avogadro's project-tree entry as a menu item
-          ...selection.named.map((entry) => ({
-            label: `  ${entry.name}`,
-            action: () => selection.set(resolveNamed(store.doc, entry)),
-            disabled: resolveNamed(store.doc, entry).length === 0,
-          })),
+          ...selection.named.map((entry) => {
+            const atoms = resolveNamed(store.doc, entry);
+            return {
+              label: entry.name,
+              action: () => selection.set(atoms),
+              disabled: atoms.length === 0,
+            };
+          }),
         ]}
       />
       <Menu

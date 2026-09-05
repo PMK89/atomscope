@@ -4,6 +4,8 @@
  */
 import { create } from 'zustand';
 import { emptyStructure, type StructureDoc } from '../model/structure';
+import { NO_NAMED_SELECTIONS } from '../editor/namedSelections';
+import { useSelectionStore } from './selectionStore';
 
 export interface HistoryEntry {
   label: string;
@@ -64,7 +66,11 @@ export const useStructureStore = create<StructureState>((set, get) => ({
   undoStack: [],
   redoStack: [],
   previewBase: null,
-  load: (doc) =>
+  load: (doc) => {
+    // a different document: a selection of indices and a set of uids both point at atoms that
+    // are not there any more, and a named set would sit in the Select menu reading "0 of 2"
+    useSelectionStore.getState().clear();
+    useSelectionStore.getState().setNamed(NO_NAMED_SELECTIONS);
     set((s) => ({
       doc,
       revision: s.revision + 1,
@@ -73,7 +79,8 @@ export const useStructureStore = create<StructureState>((set, get) => ({
       undoStack: [],
       redoStack: [],
       previewBase: null,
-    })),
+    }));
+  },
   markSaved: () => set((s) => ({ savedDoc: s.doc })),
   isModified: () => get().doc !== get().savedDoc,
   adoptIdentity: ({ id, name }) =>

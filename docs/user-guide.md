@@ -289,7 +289,8 @@ undo history**.
   `Named selections…` renames or removes it. A saved set names its *atoms*, so
   it survives an edit — the dialog shows `1 of 2` when the document no longer
   has everything the set named. Named selections belong to the session, not to
-  the project file.
+  the project file, and opening another document clears them along with the
+  selection itself.
 * **Manipulate** — besides dragging, numeric `Translate (Å)` x/y/z with a
   `Translate` button, and a `Rotate (°)` angle with `About x` / `About y` /
   `About z` buttons. With nothing selected these act on **all** atoms.

@@ -8,6 +8,8 @@ import {
   resolveNamed,
 } from './namedSelections';
 import { makeAtom, makeBond, normalizeStructure, type StructureDoc } from '../model/structure';
+import { useSelectionStore } from '../state/selectionStore';
+import { useStructureStore } from '../state/structureStore';
 
 const doc = (): StructureDoc =>
   normalizeStructure({
@@ -56,4 +58,21 @@ test('renaming and removing', () => {
   expect(renameNamed(list, 'a', 'b')).toBe(list);
   expect(renameNamed(list, 'a', '  ')).toBe(list);
   expect(removeNamed(list, 'a').map((s) => s.name)).toEqual(['b']);
+});
+
+test('loading another document takes the sets with it', () => {
+  const d = doc();
+  useStructureStore.getState().load(d);
+  useSelectionStore.getState().set([0, 1]);
+  useSelectionStore
+    .getState()
+    .setNamed(addNamed(NO_NAMED_SELECTIONS, 'pair', d, useSelectionStore.getState().atoms));
+  expect(useSelectionStore.getState().named).toHaveLength(1);
+
+  // a set of another molecule's atoms would sit in the Select menu reading "0 of 2"
+  useStructureStore
+    .getState()
+    .load(normalizeStructure({ name: 'ne', atoms: [makeAtom('Ne', [0, 0, 0])] }));
+  expect(useSelectionStore.getState().named).toEqual([]);
+  expect(useSelectionStore.getState().atoms.size).toBe(0);
 });
