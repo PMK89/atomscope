@@ -28,7 +28,7 @@ not inside a worktree; from a worktree call `python -m benchmarks.run` directly 
 | Disk | NVMe SSD |
 | GPU | NVIDIA RTX 3090, 24 GB — **not used by any measurement here** |
 | OS | Ubuntu 26.04.1, kernel 7.0.0-30 |
-| Python | 3.12.13, NumPy 2.5.2, pydantic 2.13.5, ASE 3.26.0, SciPy 1.x |
+| Python | 3.12.13, NumPy 2.5.2, pydantic 2.13.5, ASE 3.26.0, SciPy 1.18.1 |
 | Browser | headless Chromium 1234 (Playwright 1.62) with `--use-gl=swiftshader` |
 
 **The frontend numbers are software-rasterised WebGL.** SwiftShader runs the whole pipeline on
@@ -47,8 +47,9 @@ triangle counts, not fill rate.
 * **Setup is not timed.** A case factory prepares its inputs and returns the callable to time.
   Fixtures (files, grids, trajectories) are generated once into `.scratch/bench/fixtures/`
   before the run, so a timeout measures work rather than fixture generation.
-* **Repeats**: 5 at 1e3 atoms, 3 at 1e4, 1 at 1e5 (2–3 for grids, depending on size). The
-  reported wall time is the median; the JSON also carries the minimum.
+* **Repeats**: 5 at 1e3 atoms, 3 at 1e4, 1 at 1e5; 3 / 2 / 1 for the 80³ / 160³ / 256³ grids;
+  3 for 200-frame and 1 for 1000-frame trajectories. The reported wall time is the median; the
+  JSON also carries the minimum.
 * **Peak RSS** is the child's `ru_maxrss`. Importing the model and IO stack alone is ~90 MB and
   importing the API stack ~166 MB (`baseline.imports`); subtract that from any row.
 * **Data.** Periodic: `ase.build.bulk("Cu", cubic=True).repeat(r)` with r = 6/14/29, giving
@@ -461,8 +462,14 @@ SwiftShader.
 
 * **Opening a structure is dominated by the API fetch, not by the renderer.** At 1e5 atoms:
   1.19 s of the 1.60 s from click to first frame is the `GET /api/structures/{id}` round trip,
-  and 0.41 s is normalising the document, building the instanced meshes and drawing. The
-  backend work described above shows up here as 1.56 s -> 1.19 s on the fetch.
+  and 0.41 s is parsing the JSON body, normalising the document, building the instanced meshes
+  and drawing (`PerformanceResourceTiming.duration` ends at `responseEnd`, so `response.json()`
+  of the 10 MB body falls on the render side of the split). The backend work described above
+  shows up here as 1.56 s -> 1.19 s on the fetch.
+* **Ignore the 1e3 row when comparing before and after.** It is the first structure opened after
+  `page.goto`, so it carries JIT warm-up and the first connection through the Vite proxy; the
+  backend serves that same structure in 9 ms (`api.get_structure.1e3`). The 1e4 and 1e5 rows are
+  the meaningful ones: 152 -> 73 ms and 1556 -> 1186 ms on the fetch.
 * **First render is not the problem; the second frame is.** Building the scene for 100 000 atoms
   takes 0.41 s once. *Orbiting* then runs at 4 frames in 172.6 s -- one frame every 43 seconds.
   At 10 000 atoms it is 5 frames in 20.4 s (0.24 fps) and at 1 000 atoms 9 frames in 4.3 s
