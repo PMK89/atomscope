@@ -1,6 +1,4 @@
 import { expect, test, type Page } from '@playwright/test';
-import { mkdtempSync } from 'node:fs';
-import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -34,7 +32,8 @@ test('import a cube and render an isosurface', async ({ page, request }) => {
     if (m.type() === 'error') errors.push(m.text());
   });
   const base = process.env['PLAYWRIGHT_BASE_URL'] ?? 'http://127.0.0.1:5173';
-  const dir = mkdtempSync(join(tmpdir(), 'atomscope-e2e-'));
+  // inside frontend/test-results/, never outside the repository
+  const dir = test.info().outputPath('project');
   await request.post(`${base}/api/project/close`);
   const created = await request.post(`${base}/api/project/create`, {
     data: { path: join(dir, 'p'), name: 'e2e' },

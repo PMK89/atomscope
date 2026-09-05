@@ -62,7 +62,8 @@ export function SurfacesPanel({ onError }: { onError: (m: string) => void }): JS
     if (!cubePath.trim()) return;
     await api.io.importCube({ path: cubePath.trim(), kind: cubeKind });
     setCubePath('');
-    await refreshDatasets();
+    // the cube's embedded structure was saved into the project as well
+    await Promise.all([refreshDatasets(), useProjectStore.getState().refresh()]);
   };
 
   const addSurface = async (ref: GridRef): Promise<void> => {
