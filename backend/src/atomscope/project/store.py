@@ -8,6 +8,8 @@ import tempfile
 from datetime import UTC, datetime
 from pathlib import Path
 
+from pydantic import ValidationError
+
 from atomscope.model import Structure, VolumetricGrid
 from atomscope.project.manifest import FORMAT_VERSION, ProjectManifest, dump_json
 
@@ -111,7 +113,25 @@ class ProjectStore:
         self.save_manifest()
 
     def list_structures(self) -> list[Structure]:
-        return [self.load_structure(i) for i in self.manifest.structure_ids]
+        """All structures of the project.
+
+        A manifest entry whose file has disappeared (deleted outside the application, an
+        interrupted write) is dropped from the manifest instead of failing the whole listing, so
+        one damaged file cannot make a project unopenable.
+        """
+        out: list[Structure] = []
+        missing: list[str] = []
+        for structure_id in list(self.manifest.structure_ids):
+            try:
+                out.append(self.load_structure(structure_id))
+            except (ProjectError, ValidationError):
+                missing.append(structure_id)
+        if missing:
+            self.manifest.structure_ids = [
+                i for i in self.manifest.structure_ids if i not in missing
+            ]
+            self.save_manifest()
+        return out
 
     # ---- datasets (standalone imported grids: datasets/<id>.json + binary sidecar) ----------
     def dataset_path(self, dataset_id: str) -> Path:
@@ -131,7 +151,19 @@ class ProjectStore:
         return VolumetricGrid.model_validate_json(path.read_text(encoding="utf-8"))
 
     def list_datasets(self) -> list[VolumetricGrid]:
-        return [self.load_dataset(i) for i in self.manifest.dataset_ids]
+        """All standalone datasets; entries with a missing/corrupt file are pruned (see
+        :meth:`list_structures`)."""
+        out: list[VolumetricGrid] = []
+        missing: list[str] = []
+        for dataset_id in list(self.manifest.dataset_ids):
+            try:
+                out.append(self.load_dataset(dataset_id))
+            except (ProjectError, ValidationError):
+                missing.append(dataset_id)
+        if missing:
+            self.manifest.dataset_ids = [i for i in self.manifest.dataset_ids if i not in missing]
+            self.save_manifest()
+        return out
 
     # ---- calculations (directories are created here; contents are owned by services) -------
     def calculation_dir(self, calculation_id: str) -> Path:
