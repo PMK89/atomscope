@@ -21,9 +21,27 @@ interface DialogProps {
   onError: (m: string) => void;
 }
 
-function Dialog({ title, children }: { title: string; children: React.ReactNode }): JSX.Element {
+function Dialog({
+  title,
+  onClose,
+  children,
+}: {
+  title: string;
+  onClose: () => void;
+  children: React.ReactNode;
+}): JSX.Element {
   return (
-    <div className="dialog-backdrop" role="dialog" aria-label={title}>
+    <div
+      className="dialog-backdrop"
+      role="dialog"
+      aria-label={title}
+      onKeyDown={(e) => {
+        if (e.key === 'Escape') {
+          e.stopPropagation();
+          onClose();
+        }
+      }}
+    >
       <div className="dialog panel">
         <h3>{title}</h3>
         {children}
@@ -51,7 +69,7 @@ function SupercellDialog({ onClose, onError }: DialogProps): JSX.Element {
     if (ok) onClose();
   };
   return (
-    <Dialog title="Supercell">
+    <Dialog title="Supercell" onClose={onClose}>
       <p className="muted">Repeat the unit cell along a, b and c (creates real atoms).</p>
       <div className="form-row">
         <label>Repeats a b c</label>
@@ -108,7 +126,7 @@ function SlabDialog({ onClose, onError }: DialogProps): JSX.Element {
     if (ok) onClose();
   };
   return (
-    <Dialog title="Surface slab">
+    <Dialog title="Surface slab" onClose={onClose}>
       <p className="muted">
         Cut a slab of the current bulk crystal perpendicular to the (h k l) plane; vacuum is added
         on both sides along c.
@@ -171,7 +189,7 @@ function LibraryDialog({ onClose, onError }: DialogProps): JSX.Element {
   };
 
   return (
-    <Dialog title="Crystal library">
+    <Dialog title="Crystal library" onClose={onClose}>
       <div className="form-row">
         <label htmlFor="library-category">Category</label>
         <select

@@ -15,8 +15,18 @@ import {
 } from 'three';
 import { wrap, type Remote } from 'comlink';
 import type { MarchingCubesWorkerApi } from '../../workers/marchingCubes.worker';
+import { colorsFromValues, makeSampler, sampleAtVertices } from '../gridSampling';
 import type { GridGeometry, IsosurfaceMesh, MarchingCubesOptions } from '../marchingCubes';
 import type { DisplayLayer } from './Layer';
+
+/** A second grid painted onto the surface: the values decide the colour, the range the scale. */
+export interface ColorSource {
+  gridId: string;
+  values: Float32Array;
+  geometry: GridGeometry;
+  /** low and high end of the colour scale, or null to take the range of what was sampled */
+  range: [number, number] | null;
+}
 
 /** One rendered surface. `inside: 'below'` is the negative lobe of a signed field. */
 export interface SurfaceSpec {
@@ -27,6 +37,8 @@ export interface SurfaceSpec {
   color: string;
   opacity: number;
   visible: boolean;
+  /** paint the surface with a second grid (electrostatic potential on a density, say) */
+  colorSource?: ColorSource | null;
 }
 
 /** The meshing service the layer talks to; the worker in the app, a stub in tests. */
@@ -48,6 +60,10 @@ function worker(): Remote<MarchingCubesWorkerApi> {
 
 const meshKey = (s: SurfaceSpec): string => `${s.isovalue}|${s.inside}|${s.step}`;
 
+/** What decides whether the vertex colours have to be computed again. */
+const colorKey = (s: SurfaceSpec): string =>
+  s.colorSource ? `${s.colorSource.gridId}|${s.colorSource.range?.join(':') ?? 'auto'}` : '';
+
 /** Message for a surface the triangle budget forced to a coarser resolution, or null. */
 function coarsenedMessage(spec: SurfaceSpec, mesh: IsosurfaceMesh): string | null {
   if (mesh.step <= spec.step) return null;
@@ -59,6 +75,8 @@ function coarsenedMessage(spec: SurfaceSpec, mesh: IsosurfaceMesh): string | nul
 interface Entry {
   mesh: Mesh<BufferGeometry, MeshStandardMaterial>;
   key: string;
+  /** colour source of the last painting, so a range change repaints without re-meshing */
+  colorKey: string;
   /** Newest spec waiting to be meshed; a running job picks it up when it finishes. */
   pending: SurfaceSpec | null;
   running: boolean;
@@ -73,6 +91,8 @@ export class IsosurfaceLayer implements DisplayLayer {
   onChange: (() => void) | null = null;
   /** called with a message when a surface had to be coarsened, or null when it no longer is */
   onWarning: ((surfaceId: string, message: string | null) => void) | null = null;
+  /** called with the range of the values a colour source painted onto a surface */
+  onRange: ((surfaceId: string, range: [number, number]) => void) | null = null;
   private readonly entries = new Map<string, Entry>();
   private readonly ready: Promise<void>;
   private disposed = false;
@@ -96,14 +116,19 @@ export class IsosurfaceLayer implements DisplayLayer {
         const mesh = new Mesh(new BufferGeometry(), new MeshStandardMaterial({ roughness: 0.4 }));
         mesh.name = spec.id;
         this.object.add(mesh);
-        entry = { mesh, key: '', pending: null, running: false, alive: true };
+        entry = { mesh, key: '', colorKey: '', pending: null, running: false, alive: true };
         this.entries.set(spec.id, entry);
       }
       this.applyMaterial(entry.mesh, spec);
       const key = meshKey(spec);
       if (key !== entry.key) {
         entry.key = key;
+        entry.colorKey = '';
         this.schedule(entry, spec);
+      } else if (colorKey(spec) !== entry.colorKey) {
+        // same shape, different paint: no need to mesh again
+        entry.colorKey = colorKey(spec);
+        this.paint(entry, spec);
       }
     }
     for (const [id, entry] of this.entries) {
@@ -120,7 +145,9 @@ export class IsosurfaceLayer implements DisplayLayer {
 
   private applyMaterial(mesh: Mesh<BufferGeometry, MeshStandardMaterial>, spec: SurfaceSpec): void {
     const m = mesh.material;
-    m.color = new Color(spec.color);
+    // with vertex colours the material colour multiplies them, so it has to be white
+    m.vertexColors = !!spec.colorSource;
+    m.color = new Color(spec.colorSource ? '#ffffff' : spec.color);
     const transparent = spec.opacity < 1;
     m.transparent = transparent;
     m.opacity = spec.opacity;
@@ -161,12 +188,41 @@ export class IsosurfaceLayer implements DisplayLayer {
         geometry.setIndex(new BufferAttribute(mesh.indices, 1));
         entry.mesh.geometry.dispose();
         entry.mesh.geometry = geometry;
+        entry.colorKey = colorKey(spec);
+        this.paint(entry, spec);
         this.onWarning?.(spec.id, coarsenedMessage(spec, mesh));
         this.onChange?.();
       }
     } finally {
       entry.running = false;
     }
+  }
+
+  /**
+   * Write (or clear) the vertex colours sampled from the colour source. Reports the range that
+   * was actually found, which is what the panel shows when the range is automatic.
+   */
+  private paint(entry: Entry, spec: SurfaceSpec): void {
+    const geometry = entry.mesh.geometry;
+    const position = geometry.getAttribute('position');
+    if (!spec.colorSource || !position) {
+      geometry.deleteAttribute('color');
+      this.applyMaterial(entry.mesh, spec);
+      return;
+    }
+    const source = spec.colorSource;
+    const sampled = sampleAtVertices(
+      position.array as Float32Array,
+      makeSampler(source.values, source.geometry),
+    );
+    const [low, high] = source.range ?? [sampled.min, sampled.max];
+    geometry.setAttribute(
+      'color',
+      new BufferAttribute(colorsFromValues(sampled.values, low, high), 3),
+    );
+    this.applyMaterial(entry.mesh, spec);
+    this.onRange?.(spec.id, [sampled.min, sampled.max]);
+    this.onChange?.();
   }
 
   update(): void {

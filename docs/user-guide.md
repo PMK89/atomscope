@@ -123,7 +123,7 @@ retries with a compatible `libgfortran` found under `~/miniconda3/pkgs`
 
 ```
 ┌───────────────────────────────────────────────────────────────────────────┐
-│ Atomscope   File   Edit   Build   View                          menu bar  │
+│ Atomscope  File Edit Select Build Extensions View Help          menu bar  │
 ├──────────────┬──┬─────────────────────────────────┬───────────────────────┤
 │              │T │                                 │  Calculation          │
 │  Project     │o │                                 │  Analysis             │
@@ -141,7 +141,10 @@ retries with a compatible `libgfortran` found under `~/miniconda3/pkgs`
 └───────────────────────────────────────────────────────────────────────────┘
 ```
 
-**Menu bar** — `File`, `Edit`, `Build`, `View`. See the
+**Menu bar** — `File`, `Edit`, `Select`, `Build`, `Extensions`, `View`, `Help`.
+`Edit` holds undo/redo, cut/copy/paste/clear and the Cartesian editor; `Select`
+holds the selection commands (all, none, invert, by element, by SMARTS); `Help`
+names the guides, the tutorials and the shortcuts. See the
 [shortcut table](#9-keyboard-shortcuts) for the accelerators.
 
 **Project panel** (left) — open/create a project, and the lists
@@ -159,14 +162,16 @@ nothing tool-related is drawn inside the 3-D scene.
 **Tool settings** — a floating panel over the viewport showing the options of
 the active tool.
 
-**Right dock** — five tabs, all kept mounted so form state survives switching:
+**Right dock** — seven tabs, all kept mounted so form state survives switching:
 
 | Tab | Purpose |
 |---|---|
 | `Calculation` | choose a backend, fill in the parameter form, preview the generated input, run, read results |
 | `Analysis` | convergence charts, orbital browser, DOS, band structure |
+| `Spectra` | vibrational, NMR, UV-Vis and CD spectra, with mode animation |
 | `Surfaces` | volumetric grids and the isosurfaces made from them |
-| `Crystal` | unit cell, symmetry, cell operations, display repeats |
+| `Display` | every display layer and its settings (see [§6](#6-visualization)) |
+| `Crystal` | unit cell, symmetry, cell operations, space groups |
 | `Properties` | structure and per-atom properties, editable |
 
 **Trajectory player** — appears between the viewport and the job console only
@@ -371,10 +376,17 @@ they cannot be written.
 Readers always return bonds — from the file when the format carries them,
 otherwise perceived from interatomic distances.
 
-**Import.** `File ▸ Open…` uploads a file through the browser. The backend
-writes it into a scratch directory outside your project, parses it and deletes
-it. `POST /api/io/import/path` reads a file that already sits on the backend
-machine.
+**Import.** `File ▸ Open…` opens a dialog with two ways in: a **path on this
+machine**, which the backend reads directly, or **Choose a file…**, which
+uploads it through the browser (the backend writes it into a scratch directory
+outside your project, parses it and deletes it). The **Format** box overrides
+the detection, which is what a file whose extension says nothing about its
+contents needs — a Gaussian output called `run.txt`, say. The file picker is
+filtered to the extensions the readers claim.
+
+Text can also be pasted straight in: `Edit ▸ Paste` (Ctrl+V) reads XYZ, CIF,
+PDB, molfiles, CML or SMILES from the clipboard, sniffing the format when it is
+not obvious (`POST /api/io/import/text`).
 
 **Import of quantum-chemistry output logs** (`POST /api/io/import/output`,
 API only) reads Gaussian, ORCA, NWChem, Quantum ESPRESSO and GAMESS-US logs via
@@ -382,8 +394,15 @@ ASE, attaching the total energy, forces, dipole magnitude, partial charges and
 magnetic moments, and turning a multi-step run into an optimization trajectory.
 Vibrational data is not parsed.
 
+**Save.** `File ▸ Save` (Ctrl+S) stores the open document in the project;
+`Save as…` (Ctrl+Shift+S) writes a copy under a new name and continues editing
+the copy, so an optimized or supercelled structure does not overwrite the one
+it came from. Unsaved work is marked with a bullet in the window title and the
+status bar, and leaving the page then asks first.
+
 **Export.** `File ▸ Export XYZ`, `Export extended XYZ` and `Export CIF` (the
-last is disabled without a unit cell) download the current structure.
+last is disabled without a unit cell) download the current structure;
+`Export image…` writes a picture of the viewport (see [§6](#6-visualization)).
 Extended XYZ carries the cell and per-atom properties; plain XYZ does not.
 Trajectories are exported from the trajectory player's `Export XYZ` button as
 extended XYZ with per-frame energy, forces, cell and time.
@@ -395,29 +414,34 @@ machine. Returning the text inline (no `path`) works for the ASE formats only.
 
 ## 6. Visualization
 
-Everything in the `View` menu:
+The `View` menu holds the quick switches — the four display types, hydrogens,
+projection, `Fit to structure`, force vectors, unit cell, axes, labels on/off
+and the background — and everything with a setting lives in the **Display tab**
+of the right dock, which is Avogadro's Display Types dock:
 
-| Item | Effect | Default |
-|---|---|---|
-| `Ball and stick` | spheres at 0.35 × covalent radius, bonds as paired half-cylinders coloured by their atoms | **on** |
-| `Stick` | atoms drawn at the bond radius | |
-| `Van der Waals spheres` | full vdW radii, no bonds | |
-| `Wireframe` | thin bonds and atoms (0.35 × bond radius) | |
-| `Show hydrogens` | hide/show H atoms and their bonds | **on** |
-| `Orthographic projection` | swap the perspective camera for an orthographic one | off (perspective) |
-| `Fit to structure` | re-orient and re-frame: the camera looks along the axis of least extent with the largest extent horizontal (principal axes), then zooms to fit | — |
-| `Show force vectors` | red arrows from the `forces` field of the structure; arrows shorter than 0.05 Å are hidden | off |
-| `Show unit cell` | the cell box with `a`/`b`/`c` labels | **on** |
-| `Show axes` | a small x/y/z gizmo in the corner (x red, y green, z blue) | **on** |
-| `Background: white` / `black` | canvas background | white |
+| Section | What it holds |
+|---|---|
+| Structure | display type, atom radius, bond radius, multiple bonds, hydrogens, and a display type for the **selected atoms only** (ball-and-stick on the active site, wireframe on the rest) |
+| Labels | on/off, what atoms and bonds are labelled with (index, symbol, name, formal or partial charge, residue name or number, uid, custom; bond order or length), colour, size, offset |
+| Hydrogen bonds | on/off, cut-off distance and angle; drawn as dashed sticks from the geometry on screen |
+| Ribbons | cartoon, ribbon or backbone rendering of a protein, and a width; helices red, strands yellow with an arrowhead, coil thin |
+| Vectors | on/off, which field (forces, moments, mode displacements) and a scale |
+| Unit cell and axes | the cell box, the repeat counts, the corner gizmo |
 
-Atom colours always come from the built-in element table (generated from ASE);
-there is no colour-scheme chooser and no atom-label layer yet. Selected atoms
-are tinted towards blue, hovered atoms towards yellow.
+Atom colours come from the built-in element table (generated from ASE);
+selected atoms are tinted towards blue, hovered atoms towards yellow. Double
+and triple bonds are drawn as two or three parallel sticks in the plane of the
+molecule; structures built from SMILES are kekulized, so an aromatic ring shows
+alternating double bonds.
 
-The **Crystal ▸ Display ▸ Cell repeats** fields repeat the *cell box* in the
-display only (a, b, c counts); they create no atoms. Use `Build ▸ Supercell…`
-for that.
+The **cell repeat** (Display ▸ Unit cell and axes ▸ Repeat a/b/c) draws copies
+of the atoms and bonds as well as the box, up to ten per axis and a total
+instance budget; it changes nothing in the document. Use `Build ▸ Supercell…`
+to actually create the atoms.
+
+`File ▸ Export image…` writes what the viewport shows — including the axes
+gizmo — at one, two or four times its size, as a PNG (with an optional
+transparent background) or a JPEG.
 
 ### 6.1 Isosurfaces
 
@@ -442,6 +466,11 @@ surface card with:
   the familiar two-lobed picture.
 * **Resolution** — `full`, `1/2` or `1/4`. Grids above 128³ points start at a
   coarser step.
+* **Colour by** — paint the surface with the values of a *second* grid, which
+  is how an electrostatic potential is mapped onto an electron density. Any
+  other grid of the project can be chosen and is loaded when it is; the scale
+  runs blue (low) through white to red (high) over the range found on the
+  surface, and the two fields under it set that range by hand.
 
 `Import cube` reads a Gaussian cube from a path on the backend machine and
 files it as a project dataset with a kind you choose (electron density, spin
@@ -722,13 +751,17 @@ ignored while you are typing in a text field.
 | `Ctrl`/`Cmd` + `Y` | Redo | |
 | `Ctrl`/`Cmd` + `A` | Select all atoms | |
 | `Ctrl`/`Cmd` + `Shift` + `A` | Select none | |
-| `Ctrl`/`Cmd` + `O` | Open a file | |
+| `Ctrl`/`Cmd` + `O` | Open… | the import dialog |
+| `Ctrl`/`Cmd` + `S` | Save | into the open project |
+| `Ctrl`/`Cmd` + `Shift` + `S` | Save as… | a copy under a new name |
+| `Ctrl`/`Cmd` + `X` / `C` / `V` | Cut / Copy / Paste | the selection, or the whole molecule when nothing is selected; text selected in a panel is left alone |
+| `Ctrl`/`Cmd` + `Backspace` | Clear the selection | without touching the clipboard |
 | `Enter` | commit the value and leave the field | in number, element and isovalue fields |
 
 Mouse conventions are summarised in the tool table in
-[§4](#4-building-and-editing-structures). There is no `Escape` handling: the
-modal dialogs (Cartesian editor, Supercell, Surface slab, Crystal library) are
-closed with their own buttons.
+[§4](#4-building-and-editing-structures). The modal dialogs (Cartesian editor,
+Open, Export image, Help, Supercell, Surface slab, Crystal library) close on
+`Escape` as well as with their buttons.
 
 Note that `Ctrl+Z` and `Ctrl+O` are *not* suppressed while you type in a text
 area, so undo can fire from inside the Cartesian editor.
@@ -754,8 +787,9 @@ workaround hidden from you.
 * **Cancelling a CP-PAW run takes ~90 s to report**, even when CP-PAW itself
   stopped immediately. The stop is clean and the restart file is written; only
   the status update is late.
-* **`Save current structure` overwrites** the structure it was derived from
-  (see [§3](#3-projects)); there is no *Save as*.
+* **`Save current structure` and `File ▸ Save` overwrite** the structure the
+  document came from (see [§3](#3-projects)); `File ▸ Save as…` is how a
+  derived structure gets its own entry.
 * **One project and one running job at a time** per backend process.
 * **Runs are serial.** The CP-PAW plugin can build an MPI command line
   (`mpirun -np N --oversubscribe ppaw_fast.x`) when a calculation asks for more

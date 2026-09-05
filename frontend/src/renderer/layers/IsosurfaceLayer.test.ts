@@ -125,3 +125,87 @@ test('a surface removed while its job runs does not receive the late mesh', asyn
   expect(onChange).not.toHaveBeenCalled();
   layer.dispose();
 });
+
+/** A mesher returning three vertices at x = 0, 0.5 and 1 of the unit cube. */
+const rampMesher: Mesher = {
+  loadGrid: () => undefined,
+  unloadGrid: () => undefined,
+  compute: () =>
+    Promise.resolve({
+      positions: new Float32Array([0, 0, 0, 0.5, 0, 0, 1, 0, 0]),
+      normals: new Float32Array(9),
+      indices: new Uint32Array([0, 1, 2]),
+      vertexCount: 3,
+      triangleCount: 1,
+      step: 1,
+    }),
+};
+
+/** A second grid ramping from 0 to 1 along x, as an electrostatic potential would. */
+const colorSource = (range: [number, number] | null = null) => ({
+  gridId: 'esp',
+  values: new Float32Array([0, 0, 0, 0, 1, 1, 1, 1]),
+  geometry,
+  range,
+});
+
+test('a colour source paints the vertices and reports the range it found', async () => {
+  const layer = new IsosurfaceLayer('g1', new Float32Array(8), geometry, rampMesher);
+  const ranges: [string, [number, number]][] = [];
+  layer.onRange = (id, range) => ranges.push([id, range]);
+
+  layer.setSurfaces([{ ...spec(0.1), colorSource: colorSource() }]);
+  await flush();
+
+  const mesh = layer.object.children[0] as { geometry: { getAttribute(n: string): unknown } };
+  const colors = mesh.geometry.getAttribute('color') as { array: Float32Array } | undefined;
+  expect(colors).toBeTruthy();
+  // blue at the low end, white in the middle, red at the high end
+  expect([...colors!.array.slice(0, 3)]).toEqual([0, 0, 1]);
+  expect([...colors!.array.slice(3, 6)]).toEqual([1, 1, 1]);
+  expect([...colors!.array.slice(6, 9)]).toEqual([1, 0, 0]);
+  expect(ranges).toEqual([['s1', [0, 1]]]);
+  layer.dispose();
+});
+
+test('changing only the range repaints without meshing again', async () => {
+  const calls: number[] = [];
+  const counting: Mesher = {
+    ...rampMesher,
+    compute: (...args: Parameters<Mesher['compute']>) => {
+      calls.push(1);
+      return rampMesher.compute(...args);
+    },
+  };
+  const layer = new IsosurfaceLayer('g1', new Float32Array(8), geometry, counting);
+  layer.setSurfaces([{ ...spec(0.1), colorSource: colorSource() }]);
+  await flush();
+  expect(calls).toHaveLength(1);
+
+  layer.setSurfaces([{ ...spec(0.1), colorSource: colorSource([0, 2]) }]);
+  await flush();
+  expect(calls).toHaveLength(1);
+
+  const mesh = layer.object.children[0] as { geometry: { getAttribute(n: string): unknown } };
+  const colors = mesh.geometry.getAttribute('color') as { array: Float32Array };
+  // over [0, 2] the middle vertex (0.5) is a quarter of the way up, still on the blue side
+  expect(colors.array[2]).toBe(1);
+  expect(colors.array[3]).toBeCloseTo(0.5);
+  layer.dispose();
+});
+
+test('taking the colour source away restores the flat colour', async () => {
+  const layer = new IsosurfaceLayer('g1', new Float32Array(8), geometry, rampMesher);
+  layer.setSurfaces([{ ...spec(0.1), colorSource: colorSource() }]);
+  await flush();
+  layer.setSurfaces([{ ...spec(0.1), colorSource: null }]);
+  await flush();
+
+  const mesh = layer.object.children[0] as {
+    geometry: { getAttribute(n: string): unknown };
+    material: { vertexColors: boolean };
+  };
+  expect(mesh.geometry.getAttribute('color')).toBeUndefined();
+  expect(mesh.material.vertexColors).toBe(false);
+  layer.dispose();
+});

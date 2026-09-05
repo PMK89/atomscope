@@ -24,6 +24,8 @@
 - Fixed: Ctrl+C with text selected in a panel copied the molecule instead of the text; removing
   atoms in the editor left residues and constraints pointing at the old numbering; a copied
   fragment carried no residues.
+- A surface can be coloured by a second grid (an electrostatic potential mapped onto an electron
+  density), with the scale taken from the surface or typed in.
 - File > Open… is a dialog now: a path on this machine or an uploaded file, with the format
   detection overridable and the picker filtered to the readable extensions.
 - File > Export image…: the viewport at 1x, 2x or 4x its size, as PNG (optionally with a

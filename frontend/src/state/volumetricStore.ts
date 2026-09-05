@@ -27,6 +27,10 @@ export interface SurfaceDef {
   pair: boolean;
   /** downsample factor 1, 2 or 4 */
   step: number;
+  /** paint the surface with the values of this grid (an ESP on a density), or null for one colour */
+  colorGridId: string | null;
+  /** colour scale bounds, or null to use the range found on the surface */
+  colorRange: [number, number] | null;
 }
 
 export const DENSITY_COLOR = '#3d7be0';
@@ -59,12 +63,31 @@ export function defaultSurface(grid: LoadedGrid): SurfaceDef {
     visible: true,
     pair: signed,
     step: n > LARGE_GRID_POINTS ? 2 : 1,
+    colorGridId: null,
+    colorRange: null,
   };
 }
 
 /** Rendered surfaces for a definition: one, or a +/- pair for signed fields. */
-export function surfaceSpecs(def: SurfaceDef): SurfaceSpec[] {
-  const base = { step: def.step, opacity: def.opacity, visible: def.visible };
+export function surfaceSpecs(
+  def: SurfaceDef,
+  grids: Record<string, LoadedGrid> = {},
+): SurfaceSpec[] {
+  const source = def.colorGridId ? grids[def.colorGridId] : undefined;
+  const colorSource: SurfaceSpec['colorSource'] = source
+    ? {
+        gridId: source.meta.id,
+        values: source.values,
+        geometry: gridGeometry(source.meta),
+        range: def.colorRange,
+      }
+    : null;
+  const base = {
+    step: def.step,
+    opacity: def.opacity,
+    visible: def.visible,
+    colorSource,
+  };
   const positive: SurfaceSpec = {
     ...base,
     id: def.id,
@@ -120,7 +143,10 @@ interface VolumetricState {
   loading: Record<string, boolean>;
   /** Renderer feedback per rendered surface spec id (e.g. a resolution the budget forced). */
   warnings: Record<string, string>;
+  /** Range of the colour values actually found on each rendered surface. */
+  colorRanges: Record<string, [number, number]>;
   setSurfaceWarning: (specId: string, message: string | null) => void;
+  setSurfaceColorRange: (specId: string, range: [number, number]) => void;
   loadGrid: (gridId: string, calculationId?: string | null) => Promise<LoadedGrid>;
   unloadGrid: (gridId: string) => void;
   addSurface: (gridId: string) => SurfaceDef | null;
@@ -134,6 +160,9 @@ export const useVolumetricStore = create<VolumetricState>((set, get) => ({
   surfaces: [],
   loading: {},
   warnings: {},
+  colorRanges: {},
+  setSurfaceColorRange: (specId, range) =>
+    set((s) => ({ colorRanges: { ...s.colorRanges, [specId]: range } })),
   setSurfaceWarning: (specId, message) =>
     set((s) =>
       message === null

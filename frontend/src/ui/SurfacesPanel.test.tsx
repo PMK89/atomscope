@@ -90,3 +90,39 @@ test('removing a surface forgets its warnings', () => {
   useVolumetricStore.getState().removeSurface(def.id);
   expect(useVolumetricStore.getState().warnings).toEqual({});
 });
+
+test('a surface can be painted by another grid, and the scale can be set by hand', () => {
+  const esp: LoadedGrid = {
+    meta: { ...meta, id: 'g2', name: 'esp', kind: 'other' },
+    stats,
+    values: new Float32Array(8),
+    calculationId: null,
+  };
+  useVolumetricStore.setState({ grids: { g1: grid, g2: esp } });
+  render(<SurfacesPanel onError={() => {}} />);
+
+  const def = useVolumetricStore.getState().surfaces[0]!;
+  fireEvent.change(screen.getByLabelText('Colour by'), { target: { value: 'g2' } });
+  expect(useVolumetricStore.getState().surfaces[0]!.colorGridId).toBe('g2');
+
+  // the renderer reports what it found; the panel shows it until a range is typed
+  act(() => useVolumetricStore.getState().setSurfaceColorRange(def.id, [-0.05, 0.05]));
+  expect(screen.getByLabelText('colour scale low')).toHaveValue('-0.05000');
+
+  fireEvent.change(screen.getByLabelText('colour scale low'), { target: { value: '-0.1' } });
+  fireEvent.change(screen.getByLabelText('colour scale high'), { target: { value: '0.1' } });
+  fireEvent.blur(screen.getByLabelText('colour scale high'));
+  expect(useVolumetricStore.getState().surfaces[0]!.colorRange).toEqual([-0.1, 0.1]);
+
+  // and switching the source off takes the range with it
+  fireEvent.change(screen.getByLabelText('Colour by'), { target: { value: '' } });
+  const after = useVolumetricStore.getState().surfaces[0]!;
+  expect(after.colorGridId).toBeNull();
+  expect(after.colorRange).toBeNull();
+});
+
+test('the grid a surface is made of is not offered as its own colour source', () => {
+  render(<SurfacesPanel onError={() => {}} />);
+  const options = [...screen.getByLabelText('Colour by').querySelectorAll('option')];
+  expect(options.map((o) => o.textContent)).toEqual(['One colour']);
+});

@@ -29,9 +29,27 @@ export function BuildDialogs({ onError }: { onError: (m: string) => void }): JSX
   return null;
 }
 
-function Dialog({ title, children }: { title: string; children: React.ReactNode }): JSX.Element {
+function Dialog({
+  title,
+  onClose,
+  children,
+}: {
+  title: string;
+  onClose: () => void;
+  children: React.ReactNode;
+}): JSX.Element {
   return (
-    <div className="dialog-backdrop" role="dialog" aria-label={title}>
+    <div
+      className="dialog-backdrop"
+      role="dialog"
+      aria-label={title}
+      onKeyDown={(e) => {
+        if (e.key === 'Escape') {
+          e.stopPropagation();
+          onClose();
+        }
+      }}
+    >
       <div className="dialog panel">
         <h3>{title}</h3>
         {children}
@@ -115,7 +133,7 @@ function FragmentDialog({ onClose, onError }: DialogProps): JSX.Element {
   };
 
   return (
-    <Dialog title="Insert fragment">
+    <Dialog title="Insert fragment" onClose={onClose}>
       <p className="muted">
         Select a single atom first to attach the fragment there (a selected hydrogen is replaced).
       </p>
@@ -196,7 +214,7 @@ function PeptideDialog({ onClose, onError }: DialogProps): JSX.Element {
   };
 
   return (
-    <Dialog title="Insert peptide">
+    <Dialog title="Insert peptide" onClose={onClose}>
       <div className="form-row">
         <label htmlFor="peptide-sequence">Sequence</label>
         <input
@@ -265,7 +283,7 @@ function NucleicDialog({ onClose, onError }: DialogProps): JSX.Element {
   };
 
   return (
-    <Dialog title="Insert nucleic acid">
+    <Dialog title="Insert nucleic acid" onClose={onClose}>
       <div className="form-row">
         <label htmlFor="nucleic-sequence">Sequence</label>
         <input
@@ -342,7 +360,7 @@ function NanotubeDialog({ onClose, onError }: DialogProps): JSX.Element {
   };
 
   return (
-    <Dialog title="Insert nanotube or graphene">
+    <Dialog title="Insert nanotube or graphene" onClose={onClose}>
       <div className="form-row">
         <label htmlFor="tube-shape">Shape</label>
         <select

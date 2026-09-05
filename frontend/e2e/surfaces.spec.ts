@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
+import { writeFile } from 'node:fs/promises';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -6,6 +7,24 @@ const CUBE = resolve(
   dirname(fileURLToPath(import.meta.url)),
   '../../backend/tests/fixtures/cppaw/h2o/case_total_density.cub.gz',
 );
+
+/** pixels whose colour is dominated by red (the high end of the diverging colour scale) */
+async function redPixels(page: Page): Promise<number> {
+  return page.locator('.viewport-canvas canvas').evaluate((c: HTMLCanvasElement) => {
+    const gl = c.getContext('webgl2', {
+      preserveDrawingBuffer: true,
+    }) as WebGL2RenderingContext | null;
+    if (!gl) return -1;
+    const w = gl.drawingBufferWidth;
+    const h = gl.drawingBufferHeight;
+    const px = new Uint8Array(w * h * 4);
+    gl.readPixels(0, 0, w, h, gl.RGBA, gl.UNSIGNED_BYTE, px);
+    let n = 0;
+    for (let i = 0; i < px.length; i += 4)
+      if (px[i]! > px[i + 2]! + 40 && px[i]! > px[i + 1]! + 20) n++;
+    return n;
+  });
+}
 
 /** pixels whose colour is dominated by blue (the default density colour) */
 async function bluePixels(page: Page): Promise<number> {
@@ -59,8 +78,44 @@ test('import a cube and render an isosurface', async ({ page, request }) => {
   await page.getByLabel('Opacity').fill('0.5');
   await page.waitForTimeout(300);
   expect(await bluePixels(page)).toBeGreaterThan(before + 200);
+
+  // colour the surface by a second grid: a ramp along x, standing in for a potential
+  const ramp = join(dir, 'ramp.cube');
+  await writeFile(ramp, rampCube());
+  await page.getByLabel('Import cube').fill(ramp);
+  await page.getByLabel('cube kind').selectOption('electrostatic_potential');
+  await page.getByRole('button', { name: 'Import' }).click();
+  await expect(page.getByText(/electrostatic potential · 2/)).toBeVisible();
+
+  await page.getByLabel('Colour by').selectOption({ label: 'ramp' });
+  // the diverging scale paints the low end blue and the high end red: red is what was not there
+  await expect.poll(() => redPixels(page), { timeout: 30_000 }).toBeGreaterThan(200);
+  await page.screenshot({ path: join(dir, 'surface-colored.png') });
+  console.log('screenshot:', join(dir, 'surface-colored.png'));
+
   await page.getByRole('button', { name: 'delete surface' }).click();
   await expect.poll(() => bluePixels(page)).toBeLessThan(before + 50);
   expect(errors).toEqual([]);
   console.log('screenshot:', join(dir, 'surface.png'));
 });
+
+/** A 2x2x2 Gaussian cube over a large box, ramping from -1 to 1 along x. */
+function rampCube(): string {
+  const lines = [
+    'ramp',
+    'linear in x',
+    '    1    -12.000000    -12.000000    -12.000000',
+    '    2     24.000000      0.000000      0.000000',
+    '    2      0.000000     24.000000      0.000000',
+    '    2      0.000000      0.000000     24.000000',
+    '    8    8.000000     0.000000      0.000000      0.000000',
+  ];
+  const values: string[] = [];
+  for (let i = 0; i < 2; i++) {
+    for (let j = 0; j < 2; j++) {
+      for (let k = 0; k < 2; k++) values.push((i === 0 ? -1 : 1).toExponential(5));
+    }
+  }
+  lines.push(values.join(' '));
+  return lines.join('\n') + '\n';
+}

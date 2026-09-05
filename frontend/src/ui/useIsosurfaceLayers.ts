@@ -25,13 +25,17 @@ export function useIsosurfaceLayers(renderer: Renderer | null): void {
         layer.onChange = () => renderer.invalidate();
         layer.onWarning = (specId, message) =>
           useVolumetricStore.getState().setSurfaceWarning(specId, message);
+        layer.onRange = (specId, range) =>
+          useVolumetricStore.getState().setSurfaceColorRange(specId, range);
         layers.current.set(def.gridId, layer);
         renderer.addLayer(layer);
       }
     }
     for (const [gridId, layer] of layers.current) {
       if (wanted.has(gridId)) {
-        layer.setSurfaces(surfaces.filter((d) => d.gridId === gridId).flatMap(surfaceSpecs));
+        layer.setSurfaces(
+          surfaces.filter((d) => d.gridId === gridId).flatMap((d) => surfaceSpecs(d, grids)),
+        );
       } else {
         layers.current.delete(gridId);
         renderer.removeLayer(layer);

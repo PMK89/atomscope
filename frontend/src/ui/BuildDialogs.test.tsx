@@ -117,3 +117,11 @@ test('a failed insertion is reported and the dialog stays open', async () => {
   );
   expect(useBuildStore.getState().dialog).toBe('peptide');
 });
+
+test('Escape closes the dialog', () => {
+  useBuildStore.getState().openDialog('fragment');
+  render(<BuildDialogs onError={() => {}} />);
+  const dialog = screen.getByRole('dialog', { name: 'Insert fragment' });
+  fireEvent.keyDown(dialog, { key: 'Escape' });
+  expect(useBuildStore.getState().dialog).toBeNull();
+});

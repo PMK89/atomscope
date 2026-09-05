@@ -2,7 +2,7 @@
  * Isosurface controls (Avogadro "Surfaces" equivalent): grids of the selected calculation and
  * imported cube datasets, per-surface isovalue / colour / opacity / +- pair / resolution.
  */
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { api, type GridRef, type VolumetricGrid } from '../api/client';
 import { useCalculationStore } from '../state/calculationStore';
 import { useProjectStore } from '../state/projectStore';
@@ -139,7 +139,15 @@ export function SurfacesPanel({ onError }: { onError: (m: string) => void }): JS
       {vol.surfaces.length === 0 && <p className="muted">No surfaces yet.</p>}
       {vol.surfaces.map((def) => {
         const grid = vol.grids[def.gridId];
-        return grid ? <SurfaceCard key={def.id} def={def} grid={grid} /> : null;
+        return grid ? (
+          <SurfaceCard
+            key={def.id}
+            def={def}
+            grid={grid}
+            available={[...calcGrids, ...datasets]}
+            onError={onError}
+          />
+        ) : null;
       })}
     </div>
   );
@@ -183,10 +191,66 @@ function GridCard({
   );
 }
 
-function SurfaceCard({ def, grid }: { def: SurfaceDef; grid: LoadedGrid }): JSX.Element {
+function SurfaceCard({
+  def,
+  grid,
+  available,
+  onError,
+}: {
+  def: SurfaceDef;
+  grid: LoadedGrid;
+  /** every grid in the project, loaded or not: a colour source is loaded on demand */
+  available: GridRef[];
+  onError: (m: string) => void;
+}): JSX.Element {
   const update = useVolumetricStore((s) => s.updateSurface);
   const remove = useVolumetricStore((s) => s.removeSurface);
   const warning = useVolumetricStore((s) => s.warnings[def.id] ?? s.warnings[`${def.id}-neg`]);
+  // any other loaded grid can paint this surface: an electrostatic potential on a density is the
+  // usual pair, but nothing here assumes that
+  // every other grid in the project can paint this surface -- an electrostatic potential on a
+  // density is the usual pair -- and one that is not loaded yet is fetched when it is chosen
+  const loaded = useVolumetricStore((s) => s.grids);
+  const others = useMemo(() => {
+    const byId = new Map(available.map((r) => [r.grid.id, r]));
+    // a grid already loaded belongs in the list even if the project listing has not caught up
+    for (const g of Object.values(loaded)) {
+      if (!byId.has(g.meta.id)) {
+        byId.set(g.meta.id, { grid: g.meta, calculation_id: g.calculationId });
+      }
+    }
+    byId.delete(def.gridId);
+    return [...byId.values()];
+  }, [available, loaded, def.gridId]);
+  const chooseColorGrid = async (gridId: string): Promise<void> => {
+    if (!gridId) {
+      update(def.id, { colorGridId: null, colorRange: null });
+      return;
+    }
+    const ref = available.find((r) => r.grid.id === gridId);
+    try {
+      if (!useVolumetricStore.getState().grids[gridId]) {
+        await useVolumetricStore.getState().loadGrid(gridId, ref?.calculation_id ?? null);
+      }
+      update(def.id, { colorGridId: gridId, colorRange: null });
+    } catch (e) {
+      onError(`Could not load ${ref?.grid.name ?? gridId}: ${(e as Error).message}`);
+    }
+  };
+  const found = useVolumetricStore((s) => s.colorRanges[def.id]);
+  const [lowText, setLowText] = useState('');
+  const [highText, setHighText] = useState('');
+  useEffect(() => {
+    const [lo, hi] = def.colorRange ?? found ?? [0, 0];
+    setLowText(fmt(lo));
+    setHighText(fmt(hi));
+  }, [def.colorRange, found]);
+  const commitRange = (): void => {
+    const lo = Number(lowText);
+    const hi = Number(highText);
+    if (Number.isFinite(lo) && Number.isFinite(hi) && hi > lo)
+      update(def.id, { colorRange: [lo, hi] });
+  };
   const range = sliderRange(grid.stats, grid.meta.kind);
   const [text, setText] = useState(fmt(def.isovalue));
   useEffect(() => setText(fmt(def.isovalue)), [def.isovalue]);
@@ -279,6 +343,54 @@ function SurfaceCard({ def, grid }: { def: SurfaceDef; grid: LoadedGrid }): JSX.
           )}
         </div>
       </div>
+      <div className="form-row">
+        <label htmlFor={id('colorby')}>Colour by</label>
+        <select
+          id={id('colorby')}
+          value={def.colorGridId ?? ''}
+          onChange={(e) => void chooseColorGrid(e.target.value)}
+        >
+          <option value="">One colour</option>
+          {others.map((r) => (
+            <option key={r.grid.id} value={r.grid.id}>
+              {r.grid.name}
+            </option>
+          ))}
+        </select>
+      </div>
+      {def.colorGridId && (
+        <div className="form-row">
+          <label htmlFor={id('range-lo')}>Scale (blue → red)</label>
+          <div className="form-vector">
+            <input
+              id={id('range-lo')}
+              aria-label="colour scale low"
+              value={lowText}
+              onChange={(e) => setLowText(e.target.value)}
+              onBlur={commitRange}
+              onKeyDown={(e) => e.key === 'Enter' && commitRange()}
+            />
+            <input
+              aria-label="colour scale high"
+              value={highText}
+              onChange={(e) => setHighText(e.target.value)}
+              onBlur={commitRange}
+              onKeyDown={(e) => e.key === 'Enter' && commitRange()}
+            />
+          </div>
+        </div>
+      )}
+      {def.colorGridId && found && (
+        <p className="muted">
+          On this surface: {fmt(found[0])} … {fmt(found[1])}
+          {def.colorRange && (
+            <>
+              {' '}
+              <button onClick={() => update(def.id, { colorRange: null })}>use this range</button>
+            </>
+          )}
+        </p>
+      )}
       <div className="form-row">
         <label htmlFor={id('opacity')}>Opacity</label>
         <input
