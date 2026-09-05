@@ -93,10 +93,27 @@ export class CameraController {
   /** Orbit by screen-space deltas (pixels), same mapping as a left drag. */
   orbit(dx: number, dy: number): void {
     const h = this.element.clientHeight || 1;
-    this.spherical.theta -= (2 * Math.PI * dx * this.rotateSpeed) / h;
-    this.spherical.phi -= (2 * Math.PI * dy * this.rotateSpeed) / h;
+    this.rotateBy(
+      (2 * Math.PI * dx * this.rotateSpeed) / h,
+      (2 * Math.PI * dy * this.rotateSpeed) / h,
+    );
+  }
+
+  /** Orbit by angles (radians): azimuth about the vertical axis, then polar. */
+  rotateBy(azimuth: number, polar: number): void {
+    this.spherical.theta -= azimuth;
+    this.spherical.phi -= polar;
     this.spherical.phi = Math.max(1e-3, Math.min(Math.PI - 1e-3, this.spherical.phi));
     this.updateCamera();
+  }
+
+  /** Camera axes in world space: right, up and forward (towards the pivot). */
+  axes(): { right: Vector3; up: Vector3; forward: Vector3 } {
+    return {
+      right: new Vector3().setFromMatrixColumn(this.camera.matrixWorld, 0).normalize(),
+      up: new Vector3().setFromMatrixColumn(this.camera.matrixWorld, 1).normalize(),
+      forward: this.viewDirection(new Vector3()),
+    };
   }
 
   /** Roll the camera about the view direction (radians). */
