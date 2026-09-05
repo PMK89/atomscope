@@ -1,0 +1,566 @@
+
+********************************************************************************
+**************                CP-PAW                     ***********************
+**************     FIRST PRINCIPLES MOLECULAR DYNAMICS      ********************
+**************   WITH THE PROJECTOR AUGMENTED WAVE METHOD   ********************
+********************************************************************************
+         P.E. BLOECHL, (C) CLAUSTHAL UNIVERSITY OF TECHNOLOGY (CUT)
+         DISTRIBUTED UNDER THE GNU PUBLIC LICENSE V3
+************************  CPPAW VERSION INFO  ************************************
+this is a development version
+compiled by  root  ON Mi 7. Mai 20:03:11 CEST 2025
+hash=        aa467ef8739758bfe067e80a2ab61f5697ede009
+branch=      main
+remote=      https://github.com/cp-paw/cp-paw.git
+committed on=Wed Dec 18 16:40:29 2024 +0100
+committed by=lksrmp <64144957+lksrmp@users.noreply.github.com>
+no changes since last commit
+**********************************************************************************
+PROGRAM STARTED on FRI 04 SEP 2026 22:57 (56.066S) 
+
+UNUSED ELEMENTS FROM INPUT FILE
+================================
+NAME OF CURRENT LIST: CONTROL
+UNUSED ELEMENTS COULD INDICATE MISSPELLED OR INCORRECTLY PLACED DATA OR LISTS
+---------START LIST OF UNUSED ELEMENTS------------------------------------------
+---------END LIST OF UNUSED ELEMENTS--------------------------------------------
+
+INFORMATION FROM CONTROL INPUT FILE
+===================================
+WAVE FUNCTIONS ARE READ FROM FILE
+NUMBER OF ITERATIONS...................................:         30
+TIME STEP..............................................:    5.00000 A.U.
+START WITH WAVE FUNCTIONS FROM FILE....................: RESTART_IN
+DETAILED INFORMATION AFTER EACH........................:         10 TIME STEPS
+
+UNUSED ELEMENTS FROM INPUT FILE
+================================
+NAME OF CURRENT LIST: STRUCTURE
+UNUSED ELEMENTS COULD INDICATE MISSPELLED OR INCORRECTLY PLACED DATA OR LISTS
+---------START LIST OF UNUSED ELEMENTS------------------------------------------
+---------END LIST OF UNUSED ELEMENTS--------------------------------------------
+
+
+WAVE FUNCTIONS
+==============
+NUMBER OF BANDS........................................:          6  
+NUMBER OF K-POINTS.....................................:          8  
+NUMBER OF SPINS........................................:          1  
+NUMBER OF SPINOR COMPONENTS............................:          1  
+WAVEFUNCTION PLANE WAVE CUTOFF.........................:   30.00000 RY
+WAVEFUNCTION MASS......................................:  250.00000 A.U.
+G**2 ENHANCEMENT OF FUNCTION MASS......................:    0.12665  
+BUCKET POTENTIAL STARTS AT 0.5G^2=.....................:   0.00E+00 RY
+BUCKET POTENTIAL PREFACTOR.............................:   0.00E+00 H
+CUTOFF SCALE-FACTOR FOR NEIGHBORLIST...................:    2.00000  
+|R1-R2|<(RCOV1+RCOV2)*SCALERCUT........................: 
+FRICTION...............................................:    0.00500  
+SAFEORTHO..............................................: TRUE
+I.E. ORTHOGONALIZATION CONSERVES ENERGY (DO NOT USE WITH VARIABLE OCCUPATIONS)
+NUMBER OF (GLOBAL) PLANE WAVES FOR WAVE FUNCTION.......:        725  
+NUMBER OF (GLOBAL) PLANE WAVES FOR WAVE FUNCTION.......:        754  
+NUMBER OF (GLOBAL) PLANE WAVES FOR WAVE FUNCTION.......:        754  
+NUMBER OF (GLOBAL) PLANE WAVES FOR WAVE FUNCTION.......:        740  
+NUMBER OF (GLOBAL) PLANE WAVES FOR WAVE FUNCTION.......:        754  
+NUMBER OF (GLOBAL) PLANE WAVES FOR WAVE FUNCTION.......:        740  
+NUMBER OF (GLOBAL) PLANE WAVES FOR WAVE FUNCTION.......:        740  
+NUMBER OF (GLOBAL) PLANE WAVES FOR WAVE FUNCTION.......:        754  
+
+POTENTIAL
+=========
+DENSITY PLANE WAVE CUTOFF..............................:   60.00000 RY
+#(G-VECTORS FOR DENSITY)...............................:       1043  
+MEMORY REQUIRED BIG PERMANENT ARRAYS...................:   9.87E-08 MBYTE
+
+OCCUPATIONS
+===========
+FIXED OCCUPATIONS
+ OCCUPATIONS
+FOR K-POINT:     1 AND SPIN 1
+OCC  0:   2.000   2.000   2.000   2.000   0.000   0.000
+FOR K-POINT:     2 AND SPIN 1
+OCC  0:   2.000   2.000   2.000   2.000   0.000   0.000
+FOR K-POINT:     3 AND SPIN 1
+OCC  0:   2.000   2.000   2.000   2.000   0.000   0.000
+FOR K-POINT:     4 AND SPIN 1
+OCC  0:   2.000   2.000   2.000   2.000   0.000   0.000
+FOR K-POINT:     5 AND SPIN 1
+OCC  0:   2.000   2.000   2.000   2.000   0.000   0.000
+FOR K-POINT:     6 AND SPIN 1
+OCC  0:   2.000   2.000   2.000   2.000   0.000   0.000
+FOR K-POINT:     7 AND SPIN 1
+OCC  0:   2.000   2.000   2.000   2.000   0.000   0.000
+FOR K-POINT:     8 AND SPIN 1
+OCC  0:   2.000   2.000   2.000   2.000   0.000   0.000
+
+K-POINTS
+========
+KDIV(1)................................................:          2  
+KDIV(2)................................................:          2  
+KDIV(3)................................................:          2  
+ K   1 = ( 0.0000 * G1,  0.0000 * G2,  0.0000* G3) = ( 0.00000,  0.00000, 0.00000);
+ K   2 = ( 0.0000 * G1,  0.0000 * G2,  0.5000* G3) = ( 0.30620,  0.30620,-0.30620);
+ K   3 = ( 0.0000 * G1,  0.5000 * G2,  0.0000* G3) = ( 0.30620, -0.30620, 0.30620);
+ K   4 = ( 0.0000 * G1,  0.5000 * G2,  0.5000* G3) = ( 0.61240,  0.00000, 0.00000);
+ K   5 = ( 0.5000 * G1,  0.0000 * G2,  0.0000* G3) = (-0.30620,  0.30620, 0.30620);
+ K   6 = ( 0.5000 * G1,  0.0000 * G2,  0.5000* G3) = ( 0.00000,  0.61240, 0.00000);
+ K   7 = ( 0.5000 * G1,  0.5000 * G2,  0.0000* G3) = ( 0.00000,  0.00000, 0.61240);
+ K   8 = ( 0.5000 * G1,  0.5000 * G2,  0.5000* G3) = ( 0.30620,  0.30620, 0.30620);
+
+DENSITY FUNCTIONAL
+==================
+NON-SPIN POLARIZED (LDA) FUNCTIONAL
+PERDEW WANG PARAMETERIZATION OF LOCAL CORRELATION (PHYS.REV.B 45, 13244 (1992-I))
+PERDEW-BURKE-ERNZERHOF GGA FOR EXCHANGE AND CORRELATION (PHYS.REV.LETT 77, 3865 (1996))
+
+
+ATOMIC SETUP: SI
+================
+ATOMIC NUMBER..........................................:   14.00000  
+ATOMIC MASS  ..........................................:   28.08550 U
+#(VALENCE ELECTRONS)...................................:    4.00000  
+#(PROJECTORS FOR L=0)..................................:          2  
+#(PROJECTORS FOR L=1)..................................:          2  
+#(PROJECTORS FOR L=2)..................................:          1  
+MAX #(ANGULAR MOMENTA (L,M) FOR 1C-DENSITY)............:          9  
+GAUSSIAN DECAY FOR COMPENSATION DENSITY ...............:    0.52440 ABOHR 
+GAUSSIAN DECAY FOR EXTENDED COMPENSATION DENSITY.......:    2.14176 ABOHR 
+PARAMETER PS<G2> FOR MASS RENORMALIZATION..............:    2.82576 H
+PARAMETER PS<G4> FOR MASS RENORMALIZATION..............:   24.01606 H
+SETUP ID...............................................: SI_.75_6.0
+CONSTRUCTION METHOD....................................: HAMANN-BACHELET-SCHLUETER TYPE
+PARTIAL WAVE PSEUDIZATION PARAMETER RC FOR L=0.........:    1.57320 ABOHR
+PARTIAL WAVE PSEUDIZATION PARAMETER LAMBDA FOR L=0.....:    6.00000 ABOHR
+PARTIAL WAVE PSEUDIZATION PARAMETER RC FOR L=1.........:    1.57320 ABOHR
+PARTIAL WAVE PSEUDIZATION PARAMETER LAMBDA FOR L=1.....:    6.00000 ABOHR
+PARTIAL WAVE PSEUDIZATION PARAMETER RC FOR L=2.........:    1.57320 ABOHR
+PARTIAL WAVE PSEUDIZATION PARAMETER LAMBDA FOR L=2.....:    6.00000 ABOHR
+POTENTIAL PSEUDIZATION PARAMETER: VAL(0)...............: NOT DETERMINED
+POTENTIAL PSEUDIZATION PARAMETER: RC...................:    1.47251 ABOHR
+POTENTIAL PSEUDIZATION PARAMETER: POWER................:    3.00000  
+CORE DENSITY PSEUDIZATION PARAMETER: VAL(0)............: NOT DETERMINED
+CORE DENSITY PSEUDIZATION PARAMETER: RC................:    1.47251 ABOHR
+CORE DENSITY PSEUDIZATION PARAMETER: POWER.............:    3.00000  
+
+ATOMS
+=====
+NUMBER OF ATOMS........................................:          2  
+INITIAL POSITIONS TAKEN FROM RESTART FILE
+ATOMS ARE PROPAGATED
+FRICTION...............................................:    0.10000  
+
+ATOMLIST REPORT
+===============
+T1[ANGSTROM]=  0.000000  2.714679  2.714679
+T2[ANGSTROM]=  2.714679  0.000000  2.714679
+T3[ANGSTROM]=  2.714679  2.714679  0.000000
+NAME          POSITION[ANGSTROM]            M[U]    MPSI_EFF[U] Q[E]           FORCE[MH/ABOHR]
+SI1      (  0.00000,  0.00000,  0.00000)   28.0855    0.5365  -0.00000  (   0.00,   0.00,   0.00)
+SI2      (  1.35734,  1.35734,  1.35734)   28.0855    0.5365  -0.00000  (   0.00,   0.00,   0.00)
+
+UNIT CELL
+=========
+INITIAL UNIT CELL FROM RESTART FILE
+DYNAMICAL UNIT CELL....................................: FALSE
+
+AUTOMATIC MINIMIZER
+===================
+LOWER FRICTION FOR WAVES...............................:    0.50000  
+SCALING FACTOR OF LOWER FRICTION FOR WAVES.............:    0.95000  
+UPPER FRICTION FOR WAVES...............................:    1.00000  
+LOWEST FRICTION VALUE FOR WAVES........................:    0.01000  
+ENERGY TOLERANCE FOR TERMINATION.......................:   1.00E-05  
+#STEPS BEFORE TERMINATION IS CONSIDERED................:         20  
+      FRICTION=0: NEWTON DYNAMICS
+      FRICTION=1: STEEPEST DESCENT
+
+GROUPLIST REPORT
+================
+GROUP:ALL             N(MEMBERS)    2
+SI1; SI2; 
+GROUP:SI              N(MEMBERS)    2
+SI1; SI2; 
+
+FILE REPORT
+===========
+IDENTIFIER                FILENAME
+PROT                      si2.prot
+CNTL                      si2.cntl
+STRC                      si2.strc
+RESTART_IN                si2.rstrt
+STP_REPORT                si2_stpforz14.myxml
+
+RUN-TIME REPORT [FRI 04 SEP 2026 22:57 (57.798S) ]
+==================================================
+ELAPSED WALLCLOCK TIME........:     0H 0M 1.7S
+TOTAL CPU TIME................:     0H 0M 1.2S
+
+ID                                   TOTAL CPU      CPU/#ITER CPU/TOT
+----------------------------------------------------------------------
+TOTALCLOCK.....................     0H 0M 1.2S     0H 0M 1.2S 100 %
+INITIALIZATION.................     0H 0M 1.2S     0H 0M 1.2S 100 %
+SETUP CONSTRUCTION.............     0H 0M 1.0S     0H 0M 1.0S  80 %
+SCF-ATOM.......................     0H 0M 0.6S     0H 0M 0.6S  53 %
+MAKEPARTIALWAVES...............     0H 0M 0.0S     0H 0M 0.0S   7 %
+TEST SCATTERING................     0H 0M 0.1S     0H 0M 0.1S  10 %
+TEST GHOSTS....................     0H 0M 0.0S     0H 0M 0.0S   4 %
+BESSELTRANSFORMS...............     0H 0M 0.0S     0H 0M 0.0S   5 %
+WAVES__INITIALIZE..............     0H 0M 0.0S     0H 0M 0.0S   0 %
+RESTART I/O....................     0H 0M 0.0S     0H 0M 0.0S   0 %
+
+    NFI  T[PSEC] T[K]   EKIN(PSI)        E(RHO)         ECONS   ANNEE   ANNER
+!>   144   0.01742     0   0.000000     -7.905026     -7.905026  0.5000  0.1000
+ENERGY REPORT
+=============
+TOTAL ENERGY                            :     -7.9050265 H         
+AE  KINETIC                             :     11.0817109 H         
+AE  ELECTROSTATIC                       :    -15.9300306 H         
+AE  EXCHANGE-CORRELATION                :     -3.0567068 H         
+    LOCAL CORRELATIONS                  :      0.0000000 H         
+BACKGROUND                              :      0.0000000 H         
+PS  KINETIC                             :      3.3952641 H         
+PS  ELECTROSTATIC                       :     19.3359471 H         
+PS  EXCHANGE-CORRELATION                :     -3.0410861 H         
+CORE RELAXATION                         :      0.0000000 H         
+IONIC KINETIC ENERGY                    :      0.0000000 H         
+IONIC TEMPERATURE                       :      0.0000000 H         
+WAVEFUNCTION KINETIC ENERGY             :      0.0000000 H         
+BO-WAVEFUNCTION KINETIC ENERGY          :      0.0000000 H         
+EXTERNAL 1CENTER POTENTIAL              :      0.0000000 H         
+
+ATOMLIST REPORT
+===============
+T1[ANGSTROM]=  0.000000  2.714679  2.714679
+T2[ANGSTROM]=  2.714679  0.000000  2.714679
+T3[ANGSTROM]=  2.714679  2.714679  0.000000
+NAME          POSITION[ANGSTROM]            M[U]    MPSI_EFF[U] Q[E]           FORCE[MH/ABOHR]
+SI1      (  0.00000,  0.00000,  0.00000)   28.0855    0.5365  -0.00000  (   0.03,   0.01,  -0.00)
+SI2      (  1.35734,  1.35734,  1.35734)   28.0855    0.5365  -0.00000  (   0.01,  -0.03,  -0.08)
+
+
+EIGENVALUES [EV] FOR K-POINT    1                               
+================================================================
+  0:  -4.337   7.705   7.705   7.705  10.174  10.178
+
+EIGENVALUES [EV] FOR K-POINT    2                               
+================================================================
+  0:  -1.978   0.622   6.447   6.447   9.294  10.952
+
+EIGENVALUES [EV] FOR K-POINT    3                               
+================================================================
+  0:  -1.978   0.622   6.447   6.447   9.294  10.952
+
+EIGENVALUES [EV] FOR K-POINT    4                               
+================================================================
+  0:  -0.167  -0.167   4.734   4.734   8.358   8.358
+
+EIGENVALUES [EV] FOR K-POINT    5                               
+================================================================
+  0:  -1.978   0.622   6.447   6.447   9.294  10.952
+
+EIGENVALUES [EV] FOR K-POINT    6                               
+================================================================
+  0:  -0.167  -0.167   4.734   4.734   8.358   8.358
+
+EIGENVALUES [EV] FOR K-POINT    7                               
+================================================================
+  0:  -0.167  -0.167   4.734   4.734   8.358   8.358
+
+EIGENVALUES [EV] FOR K-POINT    8                               
+================================================================
+  0:  -1.978   0.623   6.447   6.447   9.294  10.952
+BAND INDEX OF HOMO.....................................:          4  
+SMALLEST DIRECT GAP....................................:     2.4686 EV AT IK=    1 AND ISPIN=1
+ABSOLUTE GAP...........................................:     0.6530 EV 
+          FROM BAND=    4 AT IK=    1 WITH ISPIN=1 TO BAND     5 AT IK=    7 WITH ISPIN=1
+HOMO-ENERGY............................................:    7.70506 EV
+LUMO-ENERGY............................................:    8.35811 EV
+
+    NFI  T[PSEC] T[K]   EKIN(PSI)        E(RHO)         ECONS   ANNEE   ANNER
+!>   145   0.01754     0   0.000000     -7.905026     -7.905026  0.4750  0.1000
+!>   146   0.01766     0   0.000000     -7.905027     -7.905027  0.4512  0.1000
+!>   147   0.01778     0   0.000000     -7.905027     -7.905027  0.4287  0.1000
+!>   148   0.01790     0   0.000000     -7.905027     -7.905027  0.4073  0.1000
+!>   149   0.01802     0   0.000000     -7.905027     -7.905027  0.3869  0.1000
+!>   150   0.01814     0   0.000000     -7.905027     -7.905027  0.3675  0.1000
+ENERGY REPORT
+=============
+TOTAL ENERGY                            :     -7.9050265 H         
+AE  KINETIC                             :     11.0819149 H         
+AE  ELECTROSTATIC                       :    -15.9302234 H         
+AE  EXCHANGE-CORRELATION                :     -3.0567180 H         
+    LOCAL CORRELATIONS                  :      0.0000000 H         
+BACKGROUND                              :      0.0000000 H         
+PS  KINETIC                             :      3.3952879 H         
+PS  ELECTROSTATIC                       :     19.3359577 H         
+PS  EXCHANGE-CORRELATION                :     -3.0410918 H         
+CORE RELAXATION                         :      0.0000000 H         
+IONIC KINETIC ENERGY                    :      0.0000000 H         
+IONIC TEMPERATURE                       :      0.0000000 H         
+WAVEFUNCTION KINETIC ENERGY             :      0.0000000 H         
+BO-WAVEFUNCTION KINETIC ENERGY          :      0.0000000 H         
+EXTERNAL 1CENTER POTENTIAL              :      0.0000000 H         
+
+ATOMLIST REPORT
+===============
+T1[ANGSTROM]=  0.000000  2.714679  2.714679
+T2[ANGSTROM]=  2.714679  0.000000  2.714679
+T3[ANGSTROM]=  2.714679  2.714679  0.000000
+NAME          POSITION[ANGSTROM]            M[U]    MPSI_EFF[U] Q[E]           FORCE[MH/ABOHR]
+SI1      (  0.00000,  0.00000,  0.00000)   28.0855    0.5365  -0.00000  (   0.02,   0.01,   0.00)
+SI2      (  1.35734,  1.35734,  1.35734)   28.0855    0.5365  -0.00000  (   0.01,  -0.01,  -0.03)
+
+
+EIGENVALUES [EV] FOR K-POINT    1                               
+================================================================
+  0:  -4.337   7.705   7.705   7.705  10.174  10.178
+
+EIGENVALUES [EV] FOR K-POINT    2                               
+================================================================
+  0:  -1.978   0.622   6.447   6.447   9.294  10.952
+
+EIGENVALUES [EV] FOR K-POINT    3                               
+================================================================
+  0:  -1.978   0.622   6.447   6.447   9.294  10.952
+
+EIGENVALUES [EV] FOR K-POINT    4                               
+================================================================
+  0:  -0.167  -0.167   4.734   4.734   8.358   8.358
+
+EIGENVALUES [EV] FOR K-POINT    5                               
+================================================================
+  0:  -1.978   0.622   6.447   6.447   9.294  10.952
+
+EIGENVALUES [EV] FOR K-POINT    6                               
+================================================================
+  0:  -0.167  -0.167   4.734   4.734   8.358   8.358
+
+EIGENVALUES [EV] FOR K-POINT    7                               
+================================================================
+  0:  -0.167  -0.167   4.734   4.734   8.358   8.358
+
+EIGENVALUES [EV] FOR K-POINT    8                               
+================================================================
+  0:  -1.978   0.623   6.447   6.447   9.294  10.952
+BAND INDEX OF HOMO.....................................:          4  
+SMALLEST DIRECT GAP....................................:     2.4687 EV AT IK=    1 AND ISPIN=1
+ABSOLUTE GAP...........................................:     0.6532 EV 
+          FROM BAND=    4 AT IK=    1 WITH ISPIN=1 TO BAND     5 AT IK=    7 WITH ISPIN=1
+HOMO-ENERGY............................................:    7.70496 EV
+LUMO-ENERGY............................................:    8.35815 EV
+
+    NFI  T[PSEC] T[K]   EKIN(PSI)        E(RHO)         ECONS   ANNEE   ANNER
+!>   151   0.01826     0   0.000000     -7.905027     -7.905027  0.3492  0.1000
+!>   152   0.01838     0   0.000000     -7.905027     -7.905027  0.3317  0.1000
+!>   153   0.01850     0   0.000000     -7.905027     -7.905027  0.3151  0.1000
+!>   154   0.01863     0   0.000000     -7.905027     -7.905027  0.2994  0.1000
+!>   155   0.01875     0   0.000000     -7.905027     -7.905027  0.2844  0.1000
+!>   156   0.01887     0   0.000000     -7.905027     -7.905027  0.2702  0.1000
+!>   157   0.01899     0   0.000000     -7.905027     -7.905027  0.2567  0.1000
+!>   158   0.01911     0   0.000000     -7.905027     -7.905027  0.2438  0.1000
+!>   159   0.01923     0   0.000000     -7.905027     -7.905027  0.2316  0.1000
+!>   160   0.01935     0   0.000000     -7.905027     -7.905027  0.2201  0.1000
+ENERGY REPORT
+=============
+TOTAL ENERGY                            :     -7.9050266 H         
+AE  KINETIC                             :     11.0820304 H         
+AE  ELECTROSTATIC                       :    -15.9303323 H         
+AE  EXCHANGE-CORRELATION                :     -3.0567247 H         
+    LOCAL CORRELATIONS                  :      0.0000000 H         
+BACKGROUND                              :      0.0000000 H         
+PS  KINETIC                             :      3.3953025 H         
+PS  ELECTROSTATIC                       :     19.3359587 H         
+PS  EXCHANGE-CORRELATION                :     -3.0410944 H         
+CORE RELAXATION                         :      0.0000000 H         
+IONIC KINETIC ENERGY                    :      0.0000000 H         
+IONIC TEMPERATURE                       :      0.0000000 H         
+WAVEFUNCTION KINETIC ENERGY             :      0.0000000 H         
+BO-WAVEFUNCTION KINETIC ENERGY          :      0.0000000 H         
+EXTERNAL 1CENTER POTENTIAL              :      0.0000000 H         
+
+ATOMLIST REPORT
+===============
+T1[ANGSTROM]=  0.000000  2.714679  2.714679
+T2[ANGSTROM]=  2.714679  0.000000  2.714679
+T3[ANGSTROM]=  2.714679  2.714679  0.000000
+NAME          POSITION[ANGSTROM]            M[U]    MPSI_EFF[U] Q[E]           FORCE[MH/ABOHR]
+SI1      (  0.00000,  0.00000,  0.00000)   28.0855    0.5365  -0.00000  (   0.01,   0.01,   0.01)
+SI2      (  1.35734,  1.35734,  1.35734)   28.0855    0.5365  -0.00000  (   0.01,   0.00,   0.00)
+
+
+EIGENVALUES [EV] FOR K-POINT    1                               
+================================================================
+  0:  -4.337   7.705   7.705   7.705  10.174  10.178
+
+EIGENVALUES [EV] FOR K-POINT    2                               
+================================================================
+  0:  -1.978   0.622   6.447   6.447   9.294  10.952
+
+EIGENVALUES [EV] FOR K-POINT    3                               
+================================================================
+  0:  -1.978   0.622   6.447   6.447   9.294  10.952
+
+EIGENVALUES [EV] FOR K-POINT    4                               
+================================================================
+  0:  -0.167  -0.167   4.734   4.734   8.358   8.358
+
+EIGENVALUES [EV] FOR K-POINT    5                               
+================================================================
+  0:  -1.978   0.622   6.447   6.447   9.294  10.952
+
+EIGENVALUES [EV] FOR K-POINT    6                               
+================================================================
+  0:  -0.167  -0.167   4.734   4.734   8.358   8.358
+
+EIGENVALUES [EV] FOR K-POINT    7                               
+================================================================
+  0:  -0.167  -0.167   4.734   4.734   8.358   8.358
+
+EIGENVALUES [EV] FOR K-POINT    8                               
+================================================================
+  0:  -1.978   0.623   6.447   6.447   9.294  10.952
+BAND INDEX OF HOMO.....................................:          4  
+SMALLEST DIRECT GAP....................................:     2.4687 EV AT IK=    1 AND ISPIN=1
+ABSOLUTE GAP...........................................:     0.6533 EV 
+          FROM BAND=    4 AT IK=    1 WITH ISPIN=1 TO BAND     5 AT IK=    7 WITH ISPIN=1
+HOMO-ENERGY............................................:    7.70488 EV
+LUMO-ENERGY............................................:    8.35818 EV
+
+    NFI  T[PSEC] T[K]   EKIN(PSI)        E(RHO)         ECONS   ANNEE   ANNER
+!>   161   0.01947     0   0.000000     -7.905027     -7.905027  0.2091  0.1000
+!>   162   0.01959     0   0.000000     -7.905027     -7.905027  0.1986  0.1000
+!>   163   0.01971     0   0.000000     -7.905027     -7.905027  0.1887  0.1000
+!>   164   0.01983     0   0.000000     -7.905027     -7.905027  0.1792  0.1000
+ STOP SIGNAL FROM AUTOPILOT
+!>   165   0.01996     0   0.000000     -7.905027     -7.905027  0.1703  0.1000
+ STOP SIGNAL RECEIVED
+!>   166   0.02008     0   0.000000     -7.905027     -7.905027  0.1618  0.1000
+ENERGY REPORT
+=============
+TOTAL ENERGY                            :     -7.9050266 H         
+AE  KINETIC                             :     11.0820283 H         
+AE  ELECTROSTATIC                       :    -15.9303303 H         
+AE  EXCHANGE-CORRELATION                :     -3.0567245 H         
+    LOCAL CORRELATIONS                  :      0.0000000 H         
+BACKGROUND                              :      0.0000000 H         
+PS  KINETIC                             :      3.3953030 H         
+PS  ELECTROSTATIC                       :     19.3359549 H         
+PS  EXCHANGE-CORRELATION                :     -3.0410934 H         
+CORE RELAXATION                         :      0.0000000 H         
+IONIC KINETIC ENERGY                    :      0.0000000 H         
+IONIC TEMPERATURE                       :      0.0000000 H         
+WAVEFUNCTION KINETIC ENERGY             :      0.0000000 H         
+BO-WAVEFUNCTION KINETIC ENERGY          :      0.0000000 H         
+EXTERNAL 1CENTER POTENTIAL              :      0.0000000 H         
+
+ATOMLIST REPORT
+===============
+T1[ANGSTROM]=  0.000000  2.714679  2.714679
+T2[ANGSTROM]=  2.714679  0.000000  2.714679
+T3[ANGSTROM]=  2.714679  2.714679  0.000000
+NAME          POSITION[ANGSTROM]            M[U]    MPSI_EFF[U] Q[E]           FORCE[MH/ABOHR]
+SI1      (  0.00000,  0.00000,  0.00000)   28.0855    0.5365  -0.00000  (   0.01,   0.01,   0.00)
+SI2      (  1.35734,  1.35734,  1.35734)   28.0855    0.5365  -0.00000  (   0.01,   0.00,   0.01)
+
+
+EIGENVALUES [EV] FOR K-POINT    1                               
+================================================================
+  0:  -4.337   7.705   7.705   7.705  10.174  10.178
+
+EIGENVALUES [EV] FOR K-POINT    2                               
+================================================================
+  0:  -1.978   0.622   6.447   6.447   9.294  10.952
+
+EIGENVALUES [EV] FOR K-POINT    3                               
+================================================================
+  0:  -1.978   0.622   6.447   6.447   9.294  10.952
+
+EIGENVALUES [EV] FOR K-POINT    4                               
+================================================================
+  0:  -0.167  -0.167   4.734   4.734   8.358   8.358
+
+EIGENVALUES [EV] FOR K-POINT    5                               
+================================================================
+  0:  -1.978   0.622   6.447   6.447   9.294  10.952
+
+EIGENVALUES [EV] FOR K-POINT    6                               
+================================================================
+  0:  -0.167  -0.167   4.734   4.734   8.358   8.358
+
+EIGENVALUES [EV] FOR K-POINT    7                               
+================================================================
+  0:  -0.167  -0.167   4.734   4.734   8.358   8.358
+
+EIGENVALUES [EV] FOR K-POINT    8                               
+================================================================
+  0:  -1.978   0.622   6.447   6.447   9.294  10.952
+BAND INDEX OF HOMO.....................................:          4  
+SMALLEST DIRECT GAP....................................:     2.4687 EV AT IK=    1 AND ISPIN=1
+ABSOLUTE GAP...........................................:     0.6533 EV 
+          FROM BAND=    4 AT IK=    1 WITH ISPIN=1 TO BAND     5 AT IK=    7 WITH ISPIN=1
+HOMO-ENERGY............................................:    7.70486 EV
+LUMO-ENERGY............................................:    8.35818 EV
+
+FILE REPORT
+===========
+IDENTIFIER                FILENAME
+PROT                      si2.prot
+CNTL                      si2.cntl
+STRC                      si2.strc
+STRC_OUT                  si2.strc_out
+RESTART_IN                si2.rstrt
+RESTART_OUT               si2.rstrt
+POSITION-TRAJECTORY       si2_r.tra
+CONSTRAINTS               si2_constr.report
+PDOS                      si2.pdos
+BANDDATA                  si2.banddata
+STP_REPORT                si2_stpforz14.myxml
+
+RUN-TIME REPORT [FRI 04 SEP 2026 22:58 ( 0.443S) ]
+==================================================
+NUMBER OF ITERATIONS..........:        23
+ELAPSED WALLCLOCK TIME........:     0H 0M 2.5S
+TOTAL CPU TIME................:     0H 0M 1.2S
+
+ID                                   TOTAL CPU      CPU/#ITER CPU/TOT
+----------------------------------------------------------------------
+TOTALCLOCK.....................     0H 0M 1.2S     0H 0M 0.0S 100 %
+TIMESTEP.......................     0H 0M 1.2S     0H 0M 0.0S 100 %
+STRUCTURECONSTANTS.............     0H 0M 0.0S     0H 0M 0.0S   0 %
+WAVES__ETOT....................     0H 0M 1.0S     0H 0M 0.0S  91 %
+W:EKIN.........................     0H 0M 0.0S     0H 0M 0.0S   0 %
+W:DENMAT.......................     0H 0M 0.0S     0H 0M 0.0S   0 %
+W:RHO..........................     0H 0M 0.0S     0H 0M 0.0S   6 %
+PLANEWAVE__FFT.................     0H 0M 0.1S     0H 0M 0.0S  15 %
+W:MOMENTS......................     0H 0M 0.0S     0H 0M 0.0S   2 %
+POTENTIAL......................     0H 0M 0.1S     0H 0M 0.0S  10 %
+PLANEWAVE__SUPFFT..............     0H 0M 0.0S     0H 0M 0.0S   2 %
+VOFRHO: HARTREE................     0H 0M 0.0S     0H 0M 0.0S   0 %
+VOFRHO: PAIRP..................     0H 0M 0.0S     0H 0M 0.0S   3 %
+VOFRHO: ISOLATE................     0H 0M 0.0S     0H 0M 0.0S   0 %
+VOFRHO: FFT POTENTIAL..........     0H 0M 0.0S     0H 0M 0.0S   0 %
+VOFRHO: NABLA-RHO AND FFT......     0H 0M 0.0S     0H 0M 0.0S   1 %
+VOFRHO: XC-POTENTIAL...........     0H 0M 0.0S     0H 0M 0.0S   3 %
+VOFRHO: GRAD-COR-POT...........     0H 0M 0.0S     0H 0M 0.0S   1 %
+VOFRHO: FORCE ON PS-CORE.......     0H 0M 0.0S     0H 0M 0.0S   0 %
+W:SPHERE.......................     0H 0M 0.6S     0H 0M 0.0S  51 %
+W:ADDCONSTANTPOT...............     0H 0M 0.0S     0H 0M 0.0S   0 %
+WAVES__FROMNTBO................     0H 0M 0.0S     0H 0M 0.0S   0 %
+W:FORCE........................     0H 0M 0.0S     0H 0M 0.0S   3 %
+W:HPSI.........................     0H 0M 0.1S     0H 0M 0.0S  13 %
+W:HPSI.VPSI....................     0H 0M 0.1S     0H 0M 0.0S  11 %
+W:HPSI.HPROJ...................     0H 0M 0.0S     0H 0M 0.0S   0 %
+W:HPSI.ADDPROJ.................     0H 0M 0.0S     0H 0M 0.0S   2 %
+WAVES_ADDPRO...................     0H 0M 0.0S     0H 0M 0.0S   4 %
+W:EXPECT.......................     0H 0M 0.0S     0H 0M 0.0S   1 %
+WAVES_OVERLAP..................     0H 0M 0.0S     0H 0M 0.0S   2 %
+PLANEWAVE__SCALARPRODUCT.......     0H 0M 0.0S     0H 0M 0.0S   3 %
+WAVES__ORTHOGONALIZE...........     0H 0M 0.0S     0H 0M 0.0S   8 %
+WAVES_PROJECTIONS..............     0H 0M 0.0S     0H 0M 0.0S   3 %
+WAVES_ADDOPSI..................     0H 0M 0.0S     0H 0M 0.0S   0 %
+RESTART I/O....................     0H 0M 0.0S     0H 0M 0.0S   0 %
+ REMARK: THE TIMING REPORT DOES NOT CONSIDER THE FIRST ITERATION
+         TO EXCLUDE THE TIME FOR SELF-INITIALIZATION
+================================================================================
+==============  PROGRAM FINISHED FRI 04 SEP 2026 22:58 ( 0.443S)   =============
+================================================================================

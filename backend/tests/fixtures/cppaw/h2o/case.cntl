@@ -1,0 +1,19 @@
+!CONTROL 
+  !FILES  !END
+  !GENERIC  START=T NSTEP=300 DT=5.0  NWRITE=100 !END
+  !DFT  TYPE=10 !END
+  !FOURIER  EPWPSI=50.0  CDUAL=2.0  !END
+  !PSIDYN  STOP=T FRIC=0.05  SAFEORTHO=T
+    !AUTO  FRIC(-)=0.1  FACT(-)=0.97  FRIC(+)=0.2  FACT(+)=1.0  MINFRIC=0.01  !END
+  !END
+  !RDYN_x  STOP=T FRIC=0.0 
+    !AUTO  FRIC(-)=0.0  FACT(-)=0.0  FRIC(+)=0.1  FACT(+)=1.0  !END
+  !END
+  !FILES 
+  !END
+  !ANALYSE 
+    !DENSITY  TYPE='total' TITLE='case total density'
+      FILE='case_total_density.wv' !END
+  !END
+!END
+!EOB

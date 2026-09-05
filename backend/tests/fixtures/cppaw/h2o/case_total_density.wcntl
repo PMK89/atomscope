@@ -1,0 +1,13 @@
+!WCNTL 
+  !FILES 
+    !FILE  ID='STRC' EXT=F NAME='case.strc_out' !END
+    !FILE  ID='WAVE' EXT=F NAME='case_total_density.wv' !END
+    !FILE  ID='CUBE' EXT=F NAME='case_total_density.cub' !END
+  !END
+  !VIEWBOX  O=-9.4486306 -10.890945 -10.350124 
+    T=18.897261 0.0 0.0  
+                                                  0.0 21.78189 0.0  
+                                                  0.0 0.0 20.024124  
+                                                   !END
+!END
+!EOB
