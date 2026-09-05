@@ -1,8 +1,8 @@
 # Project state (resume here)
 
-Branch: main, at `c4c2a8c`. Phases 0-1 done; Phase 2 (editor tools), 3 (volumetric, trajectories, vectors), 4-5 (CP-PAW setup/execution/forces), 6 (CP-PAW analysis: DOS, bands, orbitals), crystallography, molecular mechanics and wavefunction surfaces are merged and working. Parity matrix: 111 IMPLEMENTED, 55 PARTIAL, 145 NOT STARTED, 1 BLOCKED of 312 rows.
+Branch: main; this file is updated in the commit that checkpoints the work, so `git log -1 -- docs/STATE.md` is the last checkpoint. Phases 0-1 done; Phase 2 (editor tools), 3 (volumetric, trajectories, vectors), 4-5 (CP-PAW setup/execution/forces), 6 (CP-PAW analysis: DOS, bands, orbitals), crystallography, molecular mechanics and wavefunction surfaces are merged and working. Parity matrix: 132 IMPLEMENTED, 47 PARTIAL, 132 NOT STARTED, 1 BLOCKED of 312 rows.
 
-Tests: `pytest -q -m "not cppaw"` -> 343 passed, 1 skipped; `pytest -q -m cppaw` -> 7 passed (~90 s, needs the local CP-PAW install); `pnpm vitest run` -> 206 passed; `make test-e2e` -> 7 passed. `ruff check`, `mypy` and `tsc --noEmit` are clean. No known failing tests.
+Tests: `pytest -q -m "not cppaw"` -> 351 passed, 1 skipped; `pytest -q -m cppaw` -> 7 passed (~90 s, needs the local CP-PAW install); `pnpm vitest run` -> 212 passed; `make test-e2e` -> 7 passed. `ruff check`, `mypy` and `tsc --noEmit` are clean. No known failing tests.
 
 ## Resume commands
 
@@ -30,7 +30,12 @@ make dev-backend   # 127.0.0.1:8765 ; make dev-frontend -> 127.0.0.1:5173
 - Wavefunction surfaces (`atomscope.wavefunction`): Gaussian fchk and Molden readers (SP shells, 6D/5D, 10F/7F, gzip), contracted Gaussian evaluation with solid harmonics, molecular orbital / density / spin density / electrostatic potential / van der Waals fields, `POST /api/wavefunction/{load,surface}`, and the "Create surfaces" panel in the frontend. Validated as physics: MO overlap = identity, densities integrate to the electron count.
 
 - Merged: vibrations and spectra (mass-weighted Hessian over any ASE calculator, IR intensities, Gaussian/Lorentzian broadening, Gaussian/ORCA/Q-Chem/JCAMP-DX/Turbomole parsers, Spectra dock panel with mode animation); 14 frontend review findings (periodic bond perception, marching-cubes budget, ARIA menus and dock tabs, undo during a preview gesture); molecular point groups and SMARTS selection with their UI; user guide, three tutorials, developer guide and README.
-- Worktree in flight: feat/performance (benchmarks, docs/performance.md).
+- Merged: performance (117-case backend benchmark harness, a Playwright renderer harness and the
+  fixes they justified -- KD-tree bond perception, single-pass project JSON, O(1) atom placement --
+  written up in `docs/performance.md`); the renderer now picks its sphere tessellation from the
+  atom count.
+- Chemistry, building and the remaining spectra reached the UI: Extensions menu, Build > Insert
+  dialogs, NMR/UV-Vis/CD. No agent worktrees are open; `git worktree list` shows only main.
 
 ## Known problems / open questions
 - Installed `/usr/bin/avogadro` is Avogadro 2; live Avogadro 1 comparison BLOCKED (source tree is the reference).
@@ -39,8 +44,18 @@ make dev-backend   # 127.0.0.1:8765 ; make dev-frontend -> 127.0.0.1:5173
 - `ase-cp-paw` declares MIT but has no LICENSE file (author = project owner).
 
 ## Next actions
-1. Merge feat/performance when its agent finishes. Shared files that always conflict: `App.tsx`, `RightDock.tsx`, `MenuBar.tsx`, `styles.css`, `client.ts`, `api/app.py`, `io/registry.py`; never hand-merge `openapi.json` / `schema.d.ts`, run `make contracts` instead. Checkable menu items now carry the `menuitemcheckbox` role, which e2e selectors must use.
+1. Remaining CRITICAL parity gaps, all in the renderer or the UI: the Display Types dock (per-layer
+   show/hide with settings -- probably first, since it changes how every other layer is reached),
+   the label engine (AV-LABEL-*), cut/copy/paste, cartoon/ribbon rendering with secondary-structure
+   detection, QTAIM. Read the AV-DISP-* and AV-LABEL-* rows before choosing.
 2. UI gaps recorded as PARTIAL: Extensions menu for the chem operations that only have API routes (add/remove hydrogens, pH, invert chirality, H->methyl, partial charges, Copy as SMILES/InChI), fragment/peptide/DNA/nanotube insert dialogs, Auto-Optimization tool, image export, constraints dialog.
 3. Remaining CRITICAL/HIGH parity gaps: label engine, Display Types dock, cut/copy/paste, cartoon/ribbon rendering with secondary-structure detection, SMARTS selection, molecular point groups, colour-by-second-cube (AV-SURF-013), QTAIM.
 4. More wavefunction readers (MOPAC aux, GAMESS, ORCA, Molpro, Slater bases) for AV-SURF-006; ORCA/Gaussian/NWChem input-only plugins; desktop shell ADR.
-5. Smallest next increments handed over by the agents: NMR/UV-Vis/CD have parsers and spectrum builders but no route or UI (AV-SPEC-004/006/007); force-field IR intensities are qualitative because topological charge models have no charge flux; `resources` is hard-coded `{cores: 1, mpi: false}` in `CalculationPanel.tsx`, so the CP-PAW MPI path is unreachable from the UI; there is no "Save as" (`api.structures.put` reuses the id, so saving after a supercell overwrites the source); units render as raw tags; DOS and band results are not reloaded when a project is reopened; calculation renames are silently discarded (no rename endpoint); `ase_builtin` reads an `optimizer` key that its schema does not declare and tags `pressure` as eV rather than eV/A^3; `mode: "diagonalize"` bands still fail on the installed CP-PAW binaries (2025-05-07), which needs a rebuild -- the API now reports that instead of serving the previous run's file.
+5. Known limits and hand-overs:
+   - `applyColors` rewrites every instance colour on every hover change (~300k operations per
+     pointer move at 1e5 atoms) and both meshes have `frustumCulled = false`; ASE's CIF reader is
+     O(N^2) in `equivalent_sites`; `list_structures` loads every structure; `editor/cartesian.ts`
+     is O(N^2) around the fixed helper. All measured, all in `docs/performance.md`.
+   - The orbit frame rates in `docs/performance.md` predate the tessellation fix; re-running
+     `make test-perf` needs a backend and a frontend dev server of one's own, not the user's.
+   - Smaller items: NMR/UV-Vis/CD have parsers and spectrum builders but no route or UI (AV-SPEC-004/006/007); force-field IR intensities are qualitative because topological charge models have no charge flux; `resources` is hard-coded `{cores: 1, mpi: false}` in `CalculationPanel.tsx`, so the CP-PAW MPI path is unreachable from the UI; there is no "Save as" (`api.structures.put` reuses the id, so saving after a supercell overwrites the source); units render as raw tags; DOS and band results are not reloaded when a project is reopened; calculation renames are silently discarded (no rename endpoint); `ase_builtin` reads an `optimizer` key that its schema does not declare and tags `pressure` as eV rather than eV/A^3; `mode: "diagonalize"` bands still fail on the installed CP-PAW binaries (2025-05-07), which needs a rebuild -- the API now reports that instead of serving the previous run's file.

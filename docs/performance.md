@@ -498,12 +498,21 @@ SwiftShader.
 The measurements above were taken before the level-of-detail fix; findings 2 and 3 still stand.
 
 1. **Level of detail — fixed after the merge.** The sphere and cylinder tessellations used to be
-   constants (32x24, 1472 triangles per atom). `StructureLayer.geometryFor` now picks one of three
-   tiers from the visible atom count: 32x24 below 2 000 atoms, 16x12 below 20 000 and 8x6 above,
-   which is the swap the 5-7x measurement above was taken with. The remaining step, if a
-   hundred-thousand-atom system ever has to orbit smoothly, is impostor spheres (a camera-facing
-   quad with a ray-traced normal in the fragment shader), which makes the cost independent of
-   tessellation entirely.
+   constants. `StructureLayer.geometryFor` now picks one of three tiers from the number of
+   *visible* atoms (so toggling hydrogens re-picks, because that goes through `rebuild`):
+
+   | atoms | sphere | triangles/atom | cylinder | triangles/bond half |
+   | --- | --- | ---: | --- | ---: |
+   | < 2 000 | 32x24 | 1472 | 24 sides | 48 |
+   | < 20 000 | 16x12 | 352 | 12 sides | 24 |
+   | >= 20 000 | 8x6 | 80 | 6 sides | 12 |
+
+   Triangle counts read off the geometries themselves. The coarse tier is the swap the 5-7x
+   counterfactual above was measured with, so **the orbit frame rates in the "Renderer" section
+   describe the code before this fix**; they have not been re-measured since. The remaining step,
+   if a hundred-thousand-atom system ever has to orbit smoothly, is impostor spheres (a
+   camera-facing quad with a ray-traced normal in the fragment shader), which makes the cost
+   independent of tessellation entirely.
 2. **`applyColors` rewrites every instance colour on every hover change.** It loops over all
    visible atoms and both halves of every bond, calling `elementBySymbol` and `setColorAt` --
    about 300 000 operations and a full `instanceColor` upload per pointer move at 1e5 atoms.

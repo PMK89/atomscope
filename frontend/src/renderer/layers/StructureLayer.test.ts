@@ -98,6 +98,12 @@ test('large structures are drawn with coarser spheres', () => {
   // 25k atoms at the fine tessellation is 37 M triangles a frame; the coarse sphere is what
   // keeps the viewport interactive, and one atom of 25 000 is a few pixels wide anyway
   expect(coarse).toBeLessThan(fine / 8);
+
+  // hiding hydrogens changes the visible count, and the settings path rebuilds, so the tier is
+  // re-picked rather than left on the geometry the first build happened to choose
+  large.settings = { ...large.settings, showHydrogens: false };
+  large.update(ctx(big(25_000)));
+  expect(meshes(large)[0]!.geometry.attributes.position!.count).toBe(coarse);
   small.dispose();
   large.dispose();
 });
