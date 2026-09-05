@@ -56,6 +56,8 @@ test('symmetrize commits the idealized geometry as one undo step', async () => {
     operations: ['E'],
   } as never);
 
+  const before = useStructureStore.getState().doc.atoms.map((a) => a.uid);
+
   render(<SymmetrySection />);
   fireEvent.click(screen.getByText('Symmetrize'));
 
@@ -63,9 +65,7 @@ test('symmetrize commits the idealized geometry as one undo step', async () => {
   const doc = useStructureStore.getState().doc;
   expect(doc.atoms[0]!.position[2]).toBeCloseTo(0.1);
   // atom identities survive, so selections and the undo history still refer to the same atoms
-  expect(doc.atoms.map((a) => a.uid)).toEqual(
-    useStructureStore.getState().doc.atoms.map((a) => a.uid),
-  );
+  expect(doc.atoms.map((a) => a.uid)).toEqual(before);
   expect(useStructureStore.getState().undoLabel()).toBe('Symmetrize');
 });
 

@@ -31,3 +31,7 @@ coverage/
 *.rstrt
 *.wv
 *.tsbuildinfo
+
+# Playwright run artefacts
+frontend/test-results/
+frontend/playwright-report/

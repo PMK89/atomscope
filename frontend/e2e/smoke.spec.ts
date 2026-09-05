@@ -34,7 +34,8 @@ test('app renders the demo molecule into the WebGL canvas', async ({ page }) => 
 test('view menu switches to stick and status bar shows selection on click', async ({ page }) => {
   await page.goto('/');
   await page.getByRole('button', { name: 'View' }).click();
-  await page.getByRole('menuitem', { name: 'Stick', exact: true }).click();
+  // checkable items carry the menuitemcheckbox role (ARIA menu-button contract)
+  await page.getByRole('menuitemcheckbox', { name: 'Stick', exact: true }).click();
   const box = await page.locator('.viewport-canvas canvas').boundingBox();
   if (!box) throw new Error('no canvas');
   await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
