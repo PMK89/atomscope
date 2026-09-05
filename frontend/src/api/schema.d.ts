@@ -4,1075 +4,1071 @@
  */
 
 export interface paths {
-    "/api/health": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Health */
-        get: operations["health_api_health_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+  '/api/health': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/io/export": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Export Structure */
-        post: operations["export_structure_api_io_export_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /** Health */
+    get: operations['health_api_health_get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/io/export': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/io/formats": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List Formats */
-        get: operations["list_formats_api_io_formats_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get?: never;
+    put?: never;
+    /** Export Structure */
+    post: operations['export_structure_api_io_export_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/io/formats': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/io/import/path": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Import Path
-         * @description Read a structure from a file on this machine (the backend is local-only).
-         */
-        post: operations["import_path_api_io_import_path_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /** List Formats */
+    get: operations['list_formats_api_io_formats_get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/io/import/path': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/io/import/upload": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Import Upload
-         * @description Read a structure from an uploaded file (browser file picker).
-         */
-        post: operations["import_upload_api_io_import_upload_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get?: never;
+    put?: never;
+    /**
+     * Import Path
+     * @description Read a structure from a file on this machine (the backend is local-only).
+     */
+    post: operations['import_path_api_io_import_path_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/io/import/upload': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/io/smiles": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Build From Smiles */
-        post: operations["build_from_smiles_api_io_smiles_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get?: never;
+    put?: never;
+    /**
+     * Import Upload
+     * @description Read a structure from an uploaded file (browser file picker).
+     */
+    post: operations['import_upload_api_io_import_upload_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/io/smiles': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/project": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Current Project */
-        get: operations["current_project_api_project_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get?: never;
+    put?: never;
+    /** Build From Smiles */
+    post: operations['build_from_smiles_api_io_smiles_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/project': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/project/close": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Close Project */
-        post: operations["close_project_api_project_close_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /** Current Project */
+    get: operations['current_project_api_project_get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/project/close': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/project/create": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Create Project */
-        post: operations["create_project_api_project_create_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get?: never;
+    put?: never;
+    /** Close Project */
+    post: operations['close_project_api_project_close_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/project/create': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/project/open": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Open Project */
-        post: operations["open_project_api_project_open_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get?: never;
+    put?: never;
+    /** Create Project */
+    post: operations['create_project_api_project_create_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/project/open': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/structures": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List Structures */
-        get: operations["list_structures_api_structures_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get?: never;
+    put?: never;
+    /** Open Project */
+    post: operations['open_project_api_project_open_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/structures': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/structures/{structure_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get Structure */
-        get: operations["get_structure_api_structures__structure_id__get"];
-        /**
-         * Put Structure
-         * @description Create or replace a structure. The path id must match the body id.
-         */
-        put: operations["put_structure_api_structures__structure_id__put"];
-        post?: never;
-        /** Delete Structure */
-        delete: operations["delete_structure_api_structures__structure_id__delete"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /** List Structures */
+    get: operations['list_structures_api_structures_get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/structures/{structure_id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
+    /** Get Structure */
+    get: operations['get_structure_api_structures__structure_id__get'];
+    /**
+     * Put Structure
+     * @description Create or replace a structure. The path id must match the body id.
+     */
+    put: operations['put_structure_api_structures__structure_id__put'];
+    post?: never;
+    /** Delete Structure */
+    delete: operations['delete_structure_api_structures__structure_id__delete'];
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
 }
 export type webhooks = Record<string, never>;
 export interface components {
-    schemas: {
-        /**
-         * Atom
-         * @description One atom. Positions are Cartesian in Å.
-         */
-        Atom: {
-            /**
-             * Element
-             * @description chemical symbol, e.g. 'C'
-             */
-            element: string;
-            /**
-             * Formal Charge
-             * @default 0
-             */
-            formal_charge: number;
-            /** Label */
-            label?: string | null;
-            /**
-             * Position
-             * @description 3-vector
-             */
-            position: [
-                number,
-                number,
-                number
-            ];
-            /**
-             * Uid
-             * @description stable id surviving re-indexing
-             */
-            uid?: string;
-        };
-        /**
-         * AtomicScalarProperty
-         * @description One float per atom (partial charges, magnetic moments, ...).
-         */
-        AtomicScalarProperty: {
-            /**
-             * Description
-             * @default
-             */
-            description: string;
-            unit: components["schemas"]["Unit"];
-            /** Values */
-            values: number[];
-        };
-        /**
-         * AtomicVectorProperty
-         * @description One 3-vector per atom (forces, velocities, magnetic moment vectors, ...).
-         */
-        AtomicVectorProperty: {
-            /**
-             * Description
-             * @default
-             */
-            description: string;
-            unit: components["schemas"]["Unit"];
-            /** Values */
-            values: [
-                number,
-                number,
-                number
-            ][];
-        };
-        /** Body_import_upload_api_io_import_upload_post */
-        Body_import_upload_api_io_import_upload_post: {
-            /** File */
-            file: string;
-        };
-        /**
-         * Bond
-         * @description A bond between two atom indices of the owning structure.
-         */
-        Bond: {
-            /** A */
-            a: number;
-            /**
-             * Aromatic
-             * @default false
-             */
-            aromatic: boolean;
-            /** B */
-            b: number;
-            /**
-             * Order
-             * @default 1
-             * @enum {integer}
-             */
-            order: 1 | 2 | 3;
-        };
-        /**
-         * Cell
-         * @description Periodic cell: three lattice vectors (Å) and periodicity flags.
-         */
-        Cell: {
-            /**
-             * Pbc
-             * @default [
-             *       true,
-             *       true,
-             *       true
-             *     ]
-             */
-            pbc: [
-                boolean,
-                boolean,
-                boolean
-            ];
-            /**
-             * Vectors
-             * @description 3x3 matrix as three row vectors
-             */
-            vectors: [
-                [
-                    number,
-                    number,
-                    number
-                ],
-                [
-                    number,
-                    number,
-                    number
-                ],
-                [
-                    number,
-                    number,
-                    number
-                ]
-            ];
-        };
-        /** CreateProjectRequest */
-        CreateProjectRequest: {
-            /** Name */
-            name: string;
-            /**
-             * Path
-             * Format: path
-             * @description absolute path of a new (empty or missing) directory
-             */
-            path: string;
-        };
-        /** ExportRequest */
-        ExportRequest: {
-            /** Format */
-            format: string;
-            /**
-             * Path
-             * @description write here if given, else return text
-             */
-            path?: string | null;
-            structure: components["schemas"]["Structure"];
-        };
-        /** ExportResponse */
-        ExportResponse: {
-            /** Path */
-            path?: string | null;
-            /** Text */
-            text?: string | null;
-        };
-        /** FixAtoms */
-        FixAtoms: {
-            /** Indices */
-            indices: number[];
-            /**
-             * @description discriminator enum property added by openapi-typescript
-             * @enum {string}
-             */
-            kind: "fix_atoms";
-        };
-        /** FixBondLength */
-        FixBondLength: {
-            /** A */
-            a: number;
-            /** B */
-            b: number;
-            /**
-             * @description discriminator enum property added by openapi-typescript
-             * @enum {string}
-             */
-            kind: "fix_bond_length";
-        };
-        /**
-         * FixCartesian
-         * @description Fix selected Cartesian components (mask True = fixed) of one atom.
-         */
-        FixCartesian: {
-            /** Index */
-            index: number;
-            /**
-             * @description discriminator enum property added by openapi-typescript
-             * @enum {string}
-             */
-            kind: "fix_cartesian";
-            /**
-             * Mask
-             * @default [
-             *       true,
-             *       true,
-             *       true
-             *     ]
-             */
-            mask: [
-                boolean,
-                boolean,
-                boolean
-            ];
-        };
-        /** FormatDescription */
-        FormatDescription: {
-            /** Can Read */
-            can_read: boolean;
-            /** Can Write */
-            can_write: boolean;
-            /** Description */
-            description: string;
-            /** Extensions */
-            extensions: string[];
-            /** Library */
-            library: string;
-            /** Name */
-            name: string;
-        };
-        /** HTTPValidationError */
-        HTTPValidationError: {
-            /** Detail */
-            detail?: components["schemas"]["ValidationError"][];
-        };
-        /** HealthResponse */
-        HealthResponse: {
-            /** Ase Version */
-            ase_version: string;
-            /**
-             * Status
-             * @default ok
-             */
-            status: string;
-            /** Version */
-            version: string;
-        };
-        /** ImportPathRequest */
-        ImportPathRequest: {
-            /** Format */
-            format?: string | null;
-            /**
-             * Path
-             * Format: path
-             */
-            path: string;
-        };
-        /** OpenProjectRequest */
-        OpenProjectRequest: {
-            /**
-             * Path
-             * Format: path
-             * @description absolute path of an existing project directory
-             */
-            path: string;
-        };
-        /** ProjectInfo */
-        ProjectInfo: {
-            manifest: components["schemas"]["ProjectManifest"];
-            /**
-             * Path
-             * Format: path
-             */
-            path: string;
-        };
-        /** ProjectManifest */
-        ProjectManifest: {
-            /** Calculation Ids */
-            calculation_ids?: string[];
-            /**
-             * Created At
-             * Format: date-time
-             */
-            created_at?: string;
-            /** Dataset Ids */
-            dataset_ids?: string[];
-            /**
-             * Format Version
-             * @default 1
-             */
-            format_version: number;
-            /** Id */
-            id?: string;
-            /**
-             * Modified At
-             * Format: date-time
-             */
-            modified_at?: string;
-            /**
-             * Name
-             * @default untitled project
-             */
-            name: string;
-            /**
-             * Notes
-             * @default
-             */
-            notes: string;
-            /** Structure Ids */
-            structure_ids?: string[];
-            /** View Settings */
-            view_settings?: {
-                [key: string]: unknown;
-            };
-        };
-        /**
-         * Provenance
-         * @description Where a piece of data came from.
-         */
-        Provenance: {
-            /**
-             * Created At
-             * Format: date-time
-             */
-            created_at?: string;
-            /**
-             * Notes
-             * @default
-             */
-            notes: string;
-            /**
-             * Parents
-             * @description ids of parent objects
-             */
-            parents?: string[];
-            /**
-             * Software
-             * @description e.g. 'CP-PAW aa467ef', 'ASE 3.26'
-             */
-            software?: string | null;
-            /**
-             * Source
-             * @description file path, backend id, tool name or 'user'
-             */
-            source: string;
-        };
-        /**
-         * Quantity
-         * @description A scalar with an explicit unit.
-         */
-        Quantity: {
-            unit: components["schemas"]["Unit"];
-            /** Value */
-            value: number;
-        };
-        /**
-         * Residue
-         * @description Residue/chain information for biomolecules.
-         */
-        Residue: {
-            /** Atom Indices */
-            atom_indices: number[];
-            /**
-             * Chain
-             * @default
-             */
-            chain: string;
-            /** Name */
-            name: string;
-            /** Number */
-            number: number;
-        };
-        /** SmilesRequest */
-        SmilesRequest: {
-            /**
-             * Add Hydrogens
-             * @default true
-             */
-            add_hydrogens: boolean;
-            /** Smiles */
-            smiles: string;
-        };
-        /**
-         * Structure
-         * @description The central editable object: atoms, bonds, cell and attached properties.
-         */
-        Structure: {
-            /** Atomic Scalars */
-            atomic_scalars?: {
-                [key: string]: components["schemas"]["AtomicScalarProperty"];
-            };
-            /** Atomic Vectors */
-            atomic_vectors?: {
-                [key: string]: components["schemas"]["AtomicVectorProperty"];
-            };
-            /** Atoms */
-            atoms?: components["schemas"]["Atom"][];
-            /** Bonds */
-            bonds?: components["schemas"]["Bond"][];
-            cell?: components["schemas"]["Cell"] | null;
-            /**
-             * Charge
-             * @description total charge in e
-             * @default 0
-             */
-            charge: number;
-            /** Constraints */
-            constraints?: (components["schemas"]["FixAtoms"] | components["schemas"]["FixCartesian"] | components["schemas"]["FixBondLength"])[];
-            /** Id */
-            id?: string;
-            /**
-             * Multiplicity
-             * @description 2S+1; None = unspecified
-             */
-            multiplicity?: number | null;
-            /**
-             * Name
-             * @default untitled
-             */
-            name: string;
-            /** Properties */
-            properties?: {
-                [key: string]: components["schemas"]["Quantity"];
-            };
-            provenance?: components["schemas"]["Provenance"] | null;
-            /** Residues */
-            residues?: components["schemas"]["Residue"][];
-        };
-        /** StructureSummary */
-        StructureSummary: {
-            /** Formula */
-            formula: string;
-            /** Id */
-            id: string;
-            /** N Atoms */
-            n_atoms: number;
-            /** Name */
-            name: string;
-            /** Periodic */
-            periodic: boolean;
-        };
-        /**
-         * Unit
-         * @description Units that can appear on quantities in the data model.
-         * @enum {string}
-         */
-        Unit: "angstrom" | "bohr" | "nm" | "eV" | "hartree" | "kJ/mol" | "kcal/mol" | "rydberg" | "eV/angstrom" | "hartree/bohr" | "fs" | "atomic_time" | "ps" | "e" | "muB" | "K" | "cm^-1" | "debye" | "e*angstrom" | "" | "e/angstrom^3" | "e/bohr^3" | "V" | "hartree/e";
-        /** ValidationError */
-        ValidationError: {
-            /** Context */
-            ctx?: Record<string, never>;
-            /** Input */
-            input?: unknown;
-            /** Location */
-            loc: (string | number)[];
-            /** Message */
-            msg: string;
-            /** Error Type */
-            type: string;
-        };
+  schemas: {
+    /**
+     * Atom
+     * @description One atom. Positions are Cartesian in Å.
+     */
+    Atom: {
+      /**
+       * Element
+       * @description chemical symbol, e.g. 'C'
+       */
+      element: string;
+      /**
+       * Formal Charge
+       * @default 0
+       */
+      formal_charge: number;
+      /** Label */
+      label?: string | null;
+      /**
+       * Position
+       * @description 3-vector
+       */
+      position: [number, number, number];
+      /**
+       * Uid
+       * @description stable id surviving re-indexing
+       */
+      uid?: string;
     };
-    responses: never;
-    parameters: never;
-    requestBodies: never;
-    headers: never;
-    pathItems: never;
+    /**
+     * AtomicScalarProperty
+     * @description One float per atom (partial charges, magnetic moments, ...).
+     */
+    AtomicScalarProperty: {
+      /**
+       * Description
+       * @default
+       */
+      description: string;
+      unit: components['schemas']['Unit'];
+      /** Values */
+      values: number[];
+    };
+    /**
+     * AtomicVectorProperty
+     * @description One 3-vector per atom (forces, velocities, magnetic moment vectors, ...).
+     */
+    AtomicVectorProperty: {
+      /**
+       * Description
+       * @default
+       */
+      description: string;
+      unit: components['schemas']['Unit'];
+      /** Values */
+      values: [number, number, number][];
+    };
+    /** Body_import_upload_api_io_import_upload_post */
+    Body_import_upload_api_io_import_upload_post: {
+      /** File */
+      file: string;
+    };
+    /**
+     * Bond
+     * @description A bond between two atom indices of the owning structure.
+     */
+    Bond: {
+      /** A */
+      a: number;
+      /**
+       * Aromatic
+       * @default false
+       */
+      aromatic: boolean;
+      /** B */
+      b: number;
+      /**
+       * Order
+       * @default 1
+       * @enum {integer}
+       */
+      order: 1 | 2 | 3;
+    };
+    /**
+     * Cell
+     * @description Periodic cell: three lattice vectors (Å) and periodicity flags.
+     */
+    Cell: {
+      /**
+       * Pbc
+       * @default [
+       *       true,
+       *       true,
+       *       true
+       *     ]
+       */
+      pbc: [boolean, boolean, boolean];
+      /**
+       * Vectors
+       * @description 3x3 matrix as three row vectors
+       */
+      vectors: [[number, number, number], [number, number, number], [number, number, number]];
+    };
+    /** CreateProjectRequest */
+    CreateProjectRequest: {
+      /** Name */
+      name: string;
+      /**
+       * Path
+       * Format: path
+       * @description absolute path of a new (empty or missing) directory
+       */
+      path: string;
+    };
+    /** ExportRequest */
+    ExportRequest: {
+      /** Format */
+      format: string;
+      /**
+       * Path
+       * @description write here if given, else return text
+       */
+      path?: string | null;
+      structure: components['schemas']['Structure'];
+    };
+    /** ExportResponse */
+    ExportResponse: {
+      /** Path */
+      path?: string | null;
+      /** Text */
+      text?: string | null;
+    };
+    /** FixAtoms */
+    FixAtoms: {
+      /** Indices */
+      indices: number[];
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      kind: 'fix_atoms';
+    };
+    /** FixBondLength */
+    FixBondLength: {
+      /** A */
+      a: number;
+      /** B */
+      b: number;
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      kind: 'fix_bond_length';
+    };
+    /**
+     * FixCartesian
+     * @description Fix selected Cartesian components (mask True = fixed) of one atom.
+     */
+    FixCartesian: {
+      /** Index */
+      index: number;
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      kind: 'fix_cartesian';
+      /**
+       * Mask
+       * @default [
+       *       true,
+       *       true,
+       *       true
+       *     ]
+       */
+      mask: [boolean, boolean, boolean];
+    };
+    /** FormatDescription */
+    FormatDescription: {
+      /** Can Read */
+      can_read: boolean;
+      /** Can Write */
+      can_write: boolean;
+      /** Description */
+      description: string;
+      /** Extensions */
+      extensions: string[];
+      /** Library */
+      library: string;
+      /** Name */
+      name: string;
+    };
+    /** HTTPValidationError */
+    HTTPValidationError: {
+      /** Detail */
+      detail?: components['schemas']['ValidationError'][];
+    };
+    /** HealthResponse */
+    HealthResponse: {
+      /** Ase Version */
+      ase_version: string;
+      /**
+       * Status
+       * @default ok
+       */
+      status: string;
+      /** Version */
+      version: string;
+    };
+    /** ImportPathRequest */
+    ImportPathRequest: {
+      /** Format */
+      format?: string | null;
+      /**
+       * Path
+       * Format: path
+       */
+      path: string;
+    };
+    /** OpenProjectRequest */
+    OpenProjectRequest: {
+      /**
+       * Path
+       * Format: path
+       * @description absolute path of an existing project directory
+       */
+      path: string;
+    };
+    /** ProjectInfo */
+    ProjectInfo: {
+      manifest: components['schemas']['ProjectManifest'];
+      /**
+       * Path
+       * Format: path
+       */
+      path: string;
+    };
+    /** ProjectManifest */
+    ProjectManifest: {
+      /** Calculation Ids */
+      calculation_ids?: string[];
+      /**
+       * Created At
+       * Format: date-time
+       */
+      created_at?: string;
+      /** Dataset Ids */
+      dataset_ids?: string[];
+      /**
+       * Format Version
+       * @default 1
+       */
+      format_version: number;
+      /** Id */
+      id?: string;
+      /**
+       * Modified At
+       * Format: date-time
+       */
+      modified_at?: string;
+      /**
+       * Name
+       * @default untitled project
+       */
+      name: string;
+      /**
+       * Notes
+       * @default
+       */
+      notes: string;
+      /** Structure Ids */
+      structure_ids?: string[];
+      /** View Settings */
+      view_settings?: {
+        [key: string]: unknown;
+      };
+    };
+    /**
+     * Provenance
+     * @description Where a piece of data came from.
+     */
+    Provenance: {
+      /**
+       * Created At
+       * Format: date-time
+       */
+      created_at?: string;
+      /**
+       * Notes
+       * @default
+       */
+      notes: string;
+      /**
+       * Parents
+       * @description ids of parent objects
+       */
+      parents?: string[];
+      /**
+       * Software
+       * @description e.g. 'CP-PAW aa467ef', 'ASE 3.26'
+       */
+      software?: string | null;
+      /**
+       * Source
+       * @description file path, backend id, tool name or 'user'
+       */
+      source: string;
+    };
+    /**
+     * Quantity
+     * @description A scalar with an explicit unit.
+     */
+    Quantity: {
+      unit: components['schemas']['Unit'];
+      /** Value */
+      value: number;
+    };
+    /**
+     * Residue
+     * @description Residue/chain information for biomolecules.
+     */
+    Residue: {
+      /** Atom Indices */
+      atom_indices: number[];
+      /**
+       * Chain
+       * @default
+       */
+      chain: string;
+      /** Name */
+      name: string;
+      /** Number */
+      number: number;
+    };
+    /** SmilesRequest */
+    SmilesRequest: {
+      /**
+       * Add Hydrogens
+       * @default true
+       */
+      add_hydrogens: boolean;
+      /** Smiles */
+      smiles: string;
+    };
+    /**
+     * Structure
+     * @description The central editable object: atoms, bonds, cell and attached properties.
+     */
+    Structure: {
+      /** Atomic Scalars */
+      atomic_scalars?: {
+        [key: string]: components['schemas']['AtomicScalarProperty'];
+      };
+      /** Atomic Vectors */
+      atomic_vectors?: {
+        [key: string]: components['schemas']['AtomicVectorProperty'];
+      };
+      /** Atoms */
+      atoms?: components['schemas']['Atom'][];
+      /** Bonds */
+      bonds?: components['schemas']['Bond'][];
+      cell?: components['schemas']['Cell'] | null;
+      /**
+       * Charge
+       * @description total charge in e
+       * @default 0
+       */
+      charge: number;
+      /** Constraints */
+      constraints?: (
+        | components['schemas']['FixAtoms']
+        | components['schemas']['FixCartesian']
+        | components['schemas']['FixBondLength']
+      )[];
+      /** Id */
+      id?: string;
+      /**
+       * Multiplicity
+       * @description 2S+1; None = unspecified
+       */
+      multiplicity?: number | null;
+      /**
+       * Name
+       * @default untitled
+       */
+      name: string;
+      /** Properties */
+      properties?: {
+        [key: string]: components['schemas']['Quantity'];
+      };
+      provenance?: components['schemas']['Provenance'] | null;
+      /** Residues */
+      residues?: components['schemas']['Residue'][];
+    };
+    /** StructureSummary */
+    StructureSummary: {
+      /** Formula */
+      formula: string;
+      /** Id */
+      id: string;
+      /** N Atoms */
+      n_atoms: number;
+      /** Name */
+      name: string;
+      /** Periodic */
+      periodic: boolean;
+    };
+    /**
+     * Unit
+     * @description Units that can appear on quantities in the data model.
+     * @enum {string}
+     */
+    Unit:
+      | 'angstrom'
+      | 'bohr'
+      | 'nm'
+      | 'eV'
+      | 'hartree'
+      | 'kJ/mol'
+      | 'kcal/mol'
+      | 'rydberg'
+      | 'eV/angstrom'
+      | 'hartree/bohr'
+      | 'fs'
+      | 'atomic_time'
+      | 'ps'
+      | 'e'
+      | 'muB'
+      | 'K'
+      | 'cm^-1'
+      | 'debye'
+      | 'e*angstrom'
+      | ''
+      | 'e/angstrom^3'
+      | 'e/bohr^3'
+      | 'V'
+      | 'hartree/e';
+    /** ValidationError */
+    ValidationError: {
+      /** Context */
+      ctx?: Record<string, never>;
+      /** Input */
+      input?: unknown;
+      /** Location */
+      loc: (string | number)[];
+      /** Message */
+      msg: string;
+      /** Error Type */
+      type: string;
+    };
+  };
+  responses: never;
+  parameters: never;
+  requestBodies: never;
+  headers: never;
+  pathItems: never;
 }
 export type $defs = Record<string, never>;
 export interface operations {
-    health_api_health_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HealthResponse"];
-                };
-            };
-        };
+  health_api_health_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    export_structure_api_io_export_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
         };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ExportRequest"];
-            };
+        content: {
+          'application/json': components['schemas']['HealthResponse'];
         };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ExportResponse"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
+      };
     };
-    list_formats_api_io_formats_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["FormatDescription"][];
-                };
-            };
-        };
+  };
+  export_structure_api_io_export_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    import_path_api_io_import_path_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ImportPathRequest"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Structure"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['ExportRequest'];
+      };
     };
-    import_upload_api_io_import_upload_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
         };
-        requestBody: {
-            content: {
-                "multipart/form-data": components["schemas"]["Body_import_upload_api_io_import_upload_post"];
-            };
+        content: {
+          'application/json': components['schemas']['ExportResponse'];
         };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Structure"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
         };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
     };
-    build_from_smiles_api_io_smiles_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["SmilesRequest"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Structure"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
+  };
+  list_formats_api_io_formats_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    current_project_api_project_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
         };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ProjectInfo"] | null;
-                };
-            };
+        content: {
+          'application/json': components['schemas']['FormatDescription'][];
         };
+      };
     };
-    close_project_api_project_close_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
+  };
+  import_path_api_io_import_path_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    create_project_api_project_create_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CreateProjectRequest"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ProjectInfo"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['ImportPathRequest'];
+      };
     };
-    open_project_api_project_open_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
         };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["OpenProjectRequest"];
-            };
+        content: {
+          'application/json': components['schemas']['Structure'];
         };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ProjectInfo"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
         };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
     };
-    list_structures_api_structures_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["StructureSummary"][];
-                };
-            };
-        };
+  };
+  import_upload_api_io_import_upload_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    get_structure_api_structures__structure_id__get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                structure_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Structure"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
+    requestBody: {
+      content: {
+        'multipart/form-data': components['schemas']['Body_import_upload_api_io_import_upload_post'];
+      };
     };
-    put_structure_api_structures__structure_id__put: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                structure_id: string;
-            };
-            cookie?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
         };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["Structure"];
-            };
+        content: {
+          'application/json': components['schemas']['Structure'];
         };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["StructureSummary"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
         };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
     };
-    delete_structure_api_structures__structure_id__delete: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                structure_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
+  };
+  build_from_smiles_api_io_smiles_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['SmilesRequest'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['Structure'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  current_project_api_project_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ProjectInfo'] | null;
+        };
+      };
+    };
+  };
+  close_project_api_project_close_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  create_project_api_project_create_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['CreateProjectRequest'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ProjectInfo'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  open_project_api_project_open_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['OpenProjectRequest'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ProjectInfo'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  list_structures_api_structures_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['StructureSummary'][];
+        };
+      };
+    };
+  };
+  get_structure_api_structures__structure_id__get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        structure_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['Structure'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  put_structure_api_structures__structure_id__put: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        structure_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['Structure'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['StructureSummary'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  delete_structure_api_structures__structure_id__delete: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        structure_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
 }

@@ -88,7 +88,8 @@ export class Renderer {
     for (const a of this.ctx.structure.atoms) c.add(new Vector3(...a.position));
     c.divideScalar(this.ctx.structure.atoms.length);
     let r = 0;
-    for (const a of this.ctx.structure.atoms) r = Math.max(r, c.distanceTo(new Vector3(...a.position)));
+    for (const a of this.ctx.structure.atoms)
+      r = Math.max(r, c.distanceTo(new Vector3(...a.position)));
     this.controller.fit(c, r + 1.5);
   }
 
@@ -118,7 +119,9 @@ export class Renderer {
     this.raycaster.setFromCamera(ndc, this.camera);
     const normal = this.controller.viewDirection(new Vector3());
     const denom = normal.dot(this.raycaster.ray.direction);
-    const t = normal.dot(new Vector3().subVectors(this.controller.pivot, this.raycaster.ray.origin)) / denom;
+    const t =
+      normal.dot(new Vector3().subVectors(this.controller.pivot, this.raycaster.ray.origin)) /
+      denom;
     return this.raycaster.ray.at(t, new Vector3());
   }
 

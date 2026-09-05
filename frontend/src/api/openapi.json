@@ -50,10 +50,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "element",
-          "position"
-        ],
+        "required": ["element", "position"],
         "title": "Atom",
         "type": "object"
       },
@@ -77,10 +74,7 @@
             "type": "array"
           }
         },
-        "required": [
-          "values",
-          "unit"
-        ],
+        "required": ["values", "unit"],
         "title": "AtomicScalarProperty",
         "type": "object"
       },
@@ -118,10 +112,7 @@
             "type": "array"
           }
         },
-        "required": [
-          "values",
-          "unit"
-        ],
+        "required": ["values", "unit"],
         "title": "AtomicVectorProperty",
         "type": "object"
       },
@@ -133,9 +124,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "file"
-        ],
+        "required": ["file"],
         "title": "Body_import_upload_api_io_import_upload_post",
         "type": "object"
       },
@@ -160,19 +149,12 @@
           },
           "order": {
             "default": 1,
-            "enum": [
-              1,
-              2,
-              3
-            ],
+            "enum": [1, 2, 3],
             "title": "Order",
             "type": "integer"
           }
         },
-        "required": [
-          "a",
-          "b"
-        ],
+        "required": ["a", "b"],
         "title": "Bond",
         "type": "object"
       },
@@ -181,11 +163,7 @@
         "description": "Periodic cell: three lattice vectors (\u00c5) and periodicity flags.",
         "properties": {
           "pbc": {
-            "default": [
-              true,
-              true,
-              true
-            ],
+            "default": [true, true, true],
             "maxItems": 3,
             "minItems": 3,
             "prefixItems": [
@@ -263,9 +241,7 @@
             "type": "array"
           }
         },
-        "required": [
-          "vectors"
-        ],
+        "required": ["vectors"],
         "title": "Cell",
         "type": "object"
       },
@@ -283,10 +259,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "path",
-          "name"
-        ],
+        "required": ["path", "name"],
         "title": "CreateProjectRequest",
         "type": "object"
       },
@@ -314,10 +287,7 @@
             "$ref": "#/components/schemas/Structure"
           }
         },
-        "required": [
-          "structure",
-          "format"
-        ],
+        "required": ["structure", "format"],
         "title": "ExportRequest",
         "type": "object"
       },
@@ -368,9 +338,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "indices"
-        ],
+        "required": ["indices"],
         "title": "FixAtoms",
         "type": "object"
       },
@@ -392,10 +360,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "a",
-          "b"
-        ],
+        "required": ["a", "b"],
         "title": "FixBondLength",
         "type": "object"
       },
@@ -414,11 +379,7 @@
             "type": "string"
           },
           "mask": {
-            "default": [
-              true,
-              true,
-              true
-            ],
+            "default": [true, true, true],
             "maxItems": 3,
             "minItems": 3,
             "prefixItems": [
@@ -436,9 +397,7 @@
             "type": "array"
           }
         },
-        "required": [
-          "index"
-        ],
+        "required": ["index"],
         "title": "FixCartesian",
         "type": "object"
       },
@@ -473,14 +432,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "name",
-          "extensions",
-          "description",
-          "can_read",
-          "can_write",
-          "library"
-        ],
+        "required": ["name", "extensions", "description", "can_read", "can_write", "library"],
         "title": "FormatDescription",
         "type": "object"
       },
@@ -514,10 +466,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "version",
-          "ase_version"
-        ],
+        "required": ["version", "ase_version"],
         "title": "HealthResponse",
         "type": "object"
       },
@@ -541,9 +490,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "path"
-        ],
+        "required": ["path"],
         "title": "ImportPathRequest",
         "type": "object"
       },
@@ -557,9 +504,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "path"
-        ],
+        "required": ["path"],
         "title": "OpenProjectRequest",
         "type": "object"
       },
@@ -575,10 +520,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "path",
-          "manifest"
-        ],
+        "required": ["path", "manifest"],
         "title": "ProjectInfo",
         "type": "object"
       },
@@ -684,9 +626,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "source"
-        ],
+        "required": ["source"],
         "title": "Provenance",
         "type": "object"
       },
@@ -702,10 +642,7 @@
             "type": "number"
           }
         },
-        "required": [
-          "value",
-          "unit"
-        ],
+        "required": ["value", "unit"],
         "title": "Quantity",
         "type": "object"
       },
@@ -734,11 +671,7 @@
             "type": "integer"
           }
         },
-        "required": [
-          "name",
-          "number",
-          "atom_indices"
-        ],
+        "required": ["name", "number", "atom_indices"],
         "title": "Residue",
         "type": "object"
       },
@@ -755,9 +688,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "smiles"
-        ],
+        "required": ["smiles"],
         "title": "SmilesRequest",
         "type": "object"
       },
@@ -908,13 +839,7 @@
             "type": "boolean"
           }
         },
-        "required": [
-          "id",
-          "name",
-          "formula",
-          "n_atoms",
-          "periodic"
-        ],
+        "required": ["id", "name", "formula", "n_atoms", "periodic"],
         "title": "StructureSummary",
         "type": "object"
       },
@@ -981,11 +906,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "loc",
-          "msg",
-          "type"
-        ],
+        "required": ["loc", "msg", "type"],
         "title": "ValidationError",
         "type": "object"
       }
@@ -1013,9 +934,7 @@
           }
         },
         "summary": "Health",
-        "tags": [
-          "system"
-        ]
+        "tags": ["system"]
       }
     },
     "/api/io/export": {
@@ -1054,9 +973,7 @@
           }
         },
         "summary": "Export Structure",
-        "tags": [
-          "io"
-        ]
+        "tags": ["io"]
       }
     },
     "/api/io/formats": {
@@ -1079,9 +996,7 @@
           }
         },
         "summary": "List Formats",
-        "tags": [
-          "io"
-        ]
+        "tags": ["io"]
       }
     },
     "/api/io/import/path": {
@@ -1121,9 +1036,7 @@
           }
         },
         "summary": "Import Path",
-        "tags": [
-          "io"
-        ]
+        "tags": ["io"]
       }
     },
     "/api/io/import/upload": {
@@ -1163,9 +1076,7 @@
           }
         },
         "summary": "Import Upload",
-        "tags": [
-          "io"
-        ]
+        "tags": ["io"]
       }
     },
     "/api/io/smiles": {
@@ -1204,9 +1115,7 @@
           }
         },
         "summary": "Build From Smiles",
-        "tags": [
-          "io"
-        ]
+        "tags": ["io"]
       }
     },
     "/api/project": {
@@ -1233,9 +1142,7 @@
           }
         },
         "summary": "Current Project",
-        "tags": [
-          "project"
-        ]
+        "tags": ["project"]
       }
     },
     "/api/project/close": {
@@ -1247,9 +1154,7 @@
           }
         },
         "summary": "Close Project",
-        "tags": [
-          "project"
-        ]
+        "tags": ["project"]
       }
     },
     "/api/project/create": {
@@ -1288,9 +1193,7 @@
           }
         },
         "summary": "Create Project",
-        "tags": [
-          "project"
-        ]
+        "tags": ["project"]
       }
     },
     "/api/project/open": {
@@ -1329,9 +1232,7 @@
           }
         },
         "summary": "Open Project",
-        "tags": [
-          "project"
-        ]
+        "tags": ["project"]
       }
     },
     "/api/structures": {
@@ -1354,9 +1255,7 @@
           }
         },
         "summary": "List Structures",
-        "tags": [
-          "structures"
-        ]
+        "tags": ["structures"]
       }
     },
     "/api/structures/{structure_id}": {
@@ -1389,9 +1288,7 @@
           }
         },
         "summary": "Delete Structure",
-        "tags": [
-          "structures"
-        ]
+        "tags": ["structures"]
       },
       "get": {
         "operationId": "get_structure_api_structures__structure_id__get",
@@ -1429,9 +1326,7 @@
           }
         },
         "summary": "Get Structure",
-        "tags": [
-          "structures"
-        ]
+        "tags": ["structures"]
       },
       "put": {
         "description": "Create or replace a structure. The path id must match the body id.",
@@ -1480,9 +1375,7 @@
           }
         },
         "summary": "Put Structure",
-        "tags": [
-          "structures"
-        ]
+        "tags": ["structures"]
       }
     }
   }

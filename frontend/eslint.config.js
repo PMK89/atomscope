@@ -9,6 +9,10 @@ export default tseslint.config(
   {
     files: ['**/*.{ts,tsx}'],
     plugins: { 'react-hooks': reactHooks },
-    rules: { ...reactHooks.configs.recommended.rules },
+    rules: {
+      ...reactHooks.configs.recommended.rules,
+      // noUncheckedIndexedAccess makes `!` the explicit, reviewed way to assert index validity.
+      '@typescript-eslint/no-non-null-assertion': 'off',
+    },
   },
 );

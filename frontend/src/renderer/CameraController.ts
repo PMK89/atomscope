@@ -2,7 +2,14 @@
  * Trackball-style navigation: left drag rotates about the pivot, right/middle drag (or
  * shift+left) pans, wheel zooms. Works for both perspective and orthographic cameras.
  */
-import { OrthographicCamera, PerspectiveCamera, Quaternion, Spherical, Vector2, Vector3 } from 'three';
+import {
+  OrthographicCamera,
+  PerspectiveCamera,
+  Quaternion,
+  Spherical,
+  Vector2,
+  Vector3,
+} from 'three';
 
 export type AnyCamera = PerspectiveCamera | OrthographicCamera;
 

@@ -125,7 +125,8 @@ export class StructureLayer implements DisplayLayer {
       const a = new Vector3();
       const b = new Vector3();
       const mid = new Vector3();
-      const radius = style === 'wireframe' ? this.settings.bondRadius * 0.35 : this.settings.bondRadius;
+      const radius =
+        style === 'wireframe' ? this.settings.bondRadius * 0.35 : this.settings.bondRadius;
       bonds.forEach((bond, k) => {
         const pa = s.atoms[bond.a]!.position;
         const pb = s.atoms[bond.b]!.position;

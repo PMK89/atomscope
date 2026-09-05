@@ -5,20 +5,143 @@
   --fg: #1c1e21;
   --border: #d0d4da;
   --accent: #2f6fdb;
-  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --error: #c0392b;
+  font-family:
+    system-ui,
+    -apple-system,
+    'Segoe UI',
+    Roboto,
+    sans-serif;
   font-size: 13px;
 }
 @media (prefers-color-scheme: dark) {
-  :root { --bg: #1e1f22; --panel: #26282c; --fg: #e6e6e6; --border: #3a3d42; --accent: #6ea0ff; }
+  :root {
+    --bg: #1e1f22;
+    --panel: #26282c;
+    --fg: #e6e6e6;
+    --border: #3a3d42;
+    --accent: #6ea0ff;
+    --error: #ff7b6b;
+  }
 }
-html, body, #root { height: 100%; margin: 0; background: var(--bg); color: var(--fg); }
-.app-shell { display: grid; grid-template-rows: auto 1fr auto; height: 100%; }
-.app-menubar { padding: 4px 8px; border-bottom: 1px solid var(--border); background: var(--panel); }
-.app-main { display: grid; grid-template-columns: 260px 1fr 300px; min-height: 0; }
-.app-dock { background: var(--panel); border-color: var(--border); overflow: auto; padding: 6px; }
-.app-dock-left { border-right: 1px solid var(--border); }
-.app-dock-right { border-left: 1px solid var(--border); }
-.app-viewport { position: relative; min-width: 0; min-height: 0; background: #ffffff; }
-.app-console { height: 140px; border-top: 1px solid var(--border); background: var(--panel); font-family: ui-monospace, monospace; overflow: auto; }
-.viewport-canvas { position: absolute; inset: 0; overflow: hidden; }
-.viewport-canvas canvas { width: 100% !important; height: 100% !important; }
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+}
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+.app-shell {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  height: 100%;
+}
+.app-menubar {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 0 6px;
+  border-bottom: 1px solid var(--border);
+  background: var(--panel);
+  user-select: none;
+}
+.app-brand {
+  font-weight: 600;
+  margin-right: 10px;
+}
+.menu {
+  position: relative;
+}
+.menu-title {
+  padding: 6px 10px;
+  border-radius: 4px;
+}
+.menu-title:hover,
+.menu-title.open {
+  background: color-mix(in srgb, var(--accent) 15%, transparent);
+}
+.menu-list {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 10;
+  min-width: 240px;
+  margin: 0;
+  padding: 4px;
+  list-style: none;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18);
+}
+.menu-list button {
+  display: grid;
+  grid-template-columns: 14px 1fr auto;
+  gap: 6px;
+  width: 100%;
+  text-align: left;
+  padding: 5px 8px;
+  border-radius: 4px;
+}
+.menu-list button:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--accent) 18%, transparent);
+}
+.menu-list button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+.menu-shortcut {
+  opacity: 0.6;
+  font-size: 11px;
+}
+.app-main {
+  display: grid;
+  grid-template-columns: 240px 1fr 280px;
+  min-height: 0;
+}
+.app-dock {
+  background: var(--panel);
+  overflow: auto;
+  padding: 6px;
+}
+.app-dock-left {
+  border-right: 1px solid var(--border);
+}
+.app-dock-right {
+  border-left: 1px solid var(--border);
+}
+.app-viewport {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+}
+.viewport-canvas {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+.viewport-canvas canvas {
+  width: 100% !important;
+  height: 100% !important;
+  display: block;
+}
+.app-statusbar {
+  display: flex;
+  gap: 18px;
+  padding: 3px 10px;
+  border-top: 1px solid var(--border);
+  background: var(--panel);
+  font-variant-numeric: tabular-nums;
+}
+.status-error {
+  color: var(--error);
+  margin-left: auto;
+}

@@ -8,6 +8,8 @@ export type Structure = components['schemas']['Structure'];
 export type StructureSummary = components['schemas']['StructureSummary'];
 export type ProjectInfo = components['schemas']['ProjectInfo'];
 export type HealthResponse = components['schemas']['HealthResponse'];
+export type FormatDescription = components['schemas']['FormatDescription'];
+export type ExportResponse = components['schemas']['ExportResponse'];
 
 export class ApiError extends Error {
   constructor(
@@ -19,15 +21,19 @@ export class ApiError extends Error {
 }
 
 async function request<T>(url: string, init?: RequestInit): Promise<T> {
+  const isForm = init?.body instanceof FormData;
   const res = await fetch(url, {
     ...init,
-    headers: { 'content-type': 'application/json', ...(init?.headers ?? {}) },
+    headers: isForm
+      ? (init?.headers ?? {})
+      : { 'content-type': 'application/json', ...(init?.headers ?? {}) },
   });
   if (!res.ok) {
     let detail = res.statusText;
     try {
-      const body = (await res.json()) as { detail?: string };
-      if (body.detail) detail = body.detail;
+      const body = (await res.json()) as { detail?: string | { msg: string }[] };
+      if (typeof body.detail === 'string') detail = body.detail;
+      else if (Array.isArray(body.detail)) detail = body.detail.map((d) => d.msg).join('; ');
     } catch {
       /* non-JSON error body */
     }
@@ -37,18 +43,23 @@ async function request<T>(url: string, init?: RequestInit): Promise<T> {
   return (await res.json()) as T;
 }
 
-type CreateBody = paths['/api/project/create']['post']['requestBody']['content']['application/json'];
-type OpenBody = paths['/api/project/open']['post']['requestBody']['content']['application/json'];
+type Body<P extends keyof paths, M extends 'post' | 'put'> = paths[P][M] extends {
+  requestBody: { content: { 'application/json': infer B } };
+}
+  ? B
+  : never;
+
+const json = (body: unknown): RequestInit => ({ method: 'POST', body: JSON.stringify(body) });
 
 export const api = {
   health: () => request<HealthResponse>('/api/health'),
   project: {
     current: () => request<ProjectInfo | null>('/api/project'),
-    create: (body: CreateBody) =>
-      request<ProjectInfo>('/api/project/create', { method: 'POST', body: JSON.stringify(body) }),
-    open: (body: OpenBody) =>
-      request<ProjectInfo>('/api/project/open', { method: 'POST', body: JSON.stringify(body) }),
-    close: () => request<void>('/api/project/close', { method: 'POST' }),
+    create: (body: Body<'/api/project/create', 'post'>) =>
+      request<ProjectInfo>('/api/project/create', json(body)),
+    open: (body: Body<'/api/project/open', 'post'>) =>
+      request<ProjectInfo>('/api/project/open', json(body)),
+    close: () => request<undefined>('/api/project/close', { method: 'POST' }),
   },
   structures: {
     list: () => request<StructureSummary[]>('/api/structures'),
@@ -59,6 +70,20 @@ export const api = {
         body: JSON.stringify(s),
       }),
     delete: (id: string) =>
-      request<void>(`/api/structures/${encodeURIComponent(id)}`, { method: 'DELETE' }),
+      request<undefined>(`/api/structures/${encodeURIComponent(id)}`, { method: 'DELETE' }),
+  },
+  io: {
+    formats: () => request<FormatDescription[]>('/api/io/formats'),
+    importPath: (body: Body<'/api/io/import/path', 'post'>) =>
+      request<Structure>('/api/io/import/path', json(body)),
+    importUpload: (file: File) => {
+      const form = new FormData();
+      form.append('file', file, file.name);
+      return request<Structure>('/api/io/import/upload', { method: 'POST', body: form });
+    },
+    smiles: (body: Body<'/api/io/smiles', 'post'>) =>
+      request<Structure>('/api/io/smiles', json(body)),
+    export: (body: Body<'/api/io/export', 'post'>) =>
+      request<ExportResponse>('/api/io/export', json(body)),
   },
 };

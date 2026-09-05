@@ -23,7 +23,7 @@ export interface StructureDoc {
   properties: NonNullable<ApiStructure['properties']>;
   constraints: NonNullable<ApiStructure['constraints']>;
   residues: NonNullable<ApiStructure['residues']>;
-  provenance: ApiStructure['provenance'] | null;
+  provenance: NonNullable<ApiStructure['provenance']> | null;
 }
 
 export function newUid(): string {
@@ -68,7 +68,11 @@ export function formula(s: StructureDoc): string {
   for (const a of s.atoms) counts.set(a.element, (counts.get(a.element) ?? 0) + 1);
   let order = [...counts.keys()].sort();
   if (counts.has('C')) {
-    order = ['C', ...(counts.has('H') ? ['H'] : []), ...order.filter((e) => e !== 'C' && e !== 'H')];
+    order = [
+      'C',
+      ...(counts.has('H') ? ['H'] : []),
+      ...order.filter((e) => e !== 'C' && e !== 'H'),
+    ];
   }
   return order.map((e) => `${e}${(counts.get(e) ?? 0) > 1 ? counts.get(e) : ''}`).join('');
 }

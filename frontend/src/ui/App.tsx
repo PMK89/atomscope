@@ -1,6 +1,8 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { makeAtom, makeBond, normalizeStructure } from '../model/structure';
 import { useStructureStore } from '../state/structureStore';
+import { MenuBar } from './MenuBar';
+import { StatusBar } from './StatusBar';
 import { Viewport } from './Viewport';
 
 function demoWater() {
@@ -17,15 +19,21 @@ function demoWater() {
 }
 
 export function App(): JSX.Element {
-  const load = useStructureStore((s) => s.load);
-  const doc = useStructureStore((s) => s.doc);
+  const [error, setError] = useState<string | null>(null);
   useEffect(() => {
-    if (doc.atoms.length === 0) load(demoWater());
-  }, [doc.atoms.length, load]);
+    if (useStructureStore.getState().doc.atoms.length === 0) {
+      useStructureStore.getState().load(demoWater());
+    }
+  }, []);
+  useEffect(() => {
+    if (!error) return;
+    const t = setTimeout(() => setError(null), 6000);
+    return () => clearTimeout(t);
+  }, [error]);
 
   return (
     <div className="app-shell">
-      <header className="app-menubar">Atomscope</header>
+      <MenuBar onError={setError} />
       <main className="app-main">
         <aside className="app-dock app-dock-left">Project</aside>
         <section className="app-viewport">
@@ -33,7 +41,7 @@ export function App(): JSX.Element {
         </section>
         <aside className="app-dock app-dock-right">Properties</aside>
       </main>
-      <footer className="app-console">Console</footer>
+      <StatusBar message={error} />
     </div>
   );
 }
