@@ -11,6 +11,7 @@ import {
   bondedPosition,
   cycleBondOrder,
   remapAfterRemoval,
+  remapBondsAfterRemoval,
   removeAtoms,
   removeBond,
   setElement,
@@ -197,13 +198,19 @@ export class DrawTool implements Tool {
         .map((j) => doc.atoms[j]?.uid);
       let next = removeAtoms(doc, gone);
       if (adjust) next = adjustMany(next, neighbors);
-      sel.set(remapAfterRemoval(gone, sel.atoms));
+      // the bond list is renumbered too, so a selected bond must follow or point elsewhere
+      sel.set(remapAfterRemoval(gone, sel.atoms), remapBondsAfterRemoval(doc, gone, sel.bonds));
       st.commit(gone.size > 1 ? `Delete ${gone.size} atoms` : 'Delete atom', next);
     } else {
       const bond = doc.bonds[index];
       if (!bond) return;
       let next = removeBond(doc, index);
       if (adjust) next = adjustMany(next, [doc.atoms[bond.a]?.uid, doc.atoms[bond.b]?.uid]);
+      // the bonds after this one move down by one; the deleted one is simply gone
+      sel.set(
+        sel.atoms,
+        [...sel.bonds].filter((i) => i !== index).map((i) => (i > index ? i - 1 : i)),
+      );
       st.commit('Delete bond', next);
     }
   }

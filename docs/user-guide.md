@@ -285,7 +285,9 @@ undo history**.
   the first mode a bond clicked on is selected as itself — tinted whole, counted
   in the status bar beside the atoms — and a rubber band takes the bonds whose
   ends are both inside it; under the other two a bond stands for the residue or
-  fragment it belongs to. The `Select` menu adds
+  fragment it belongs to. `Edit ▸ Clear` (or Delete) on a bond selected by
+  itself removes the bond and leaves its atoms; `Cut` and `Copy` decline it,
+  because a bond on its own is not a fragment to put on a clipboard. The `Select` menu adds
   `Select residues…` — a comma-separated list of names, numbers, ranges or
   chain-qualified terms (`LYS`, `12`, `12-20`, `A:12-20`) — and
   `Select solvent`, which takes the waters and counter-ions by residue name.

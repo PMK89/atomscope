@@ -197,3 +197,27 @@ test('a paste that fails for any other reason is still an error', async () => {
   expect(errors[0]).toMatch(/cannot tell what format/);
   expect(usePasteStore.getState().pending).toBeNull();
 });
+
+test('a bond selected on its own is deleted, and does not mean "everything"', () => {
+  // acetone skeleton: C0=O1 and C0-C2. Select the second bond and nothing else.
+  useSelectionStore.getState().set([], [1]);
+  const before = useStructureStore.getState().doc;
+
+  expect(clearSelection()).toBe(true);
+  const after = useStructureStore.getState().doc;
+  // the bond went; every atom stayed, which is the whole point
+  expect(after.atoms).toHaveLength(before.atoms.length);
+  expect(after.bonds).toHaveLength(before.bonds.length - 1);
+  expect(useStructureStore.getState().undoStack.at(-1)?.label).toBe('Delete bond');
+
+  // and a bond is not a fragment, so there is nothing to copy or cut
+  useSelectionStore.getState().set([], [0]);
+  expect(copySelection()).toBeNull();
+  expect(cutSelection()).toBe(false);
+});
+
+test('with nothing at all selected an Edit command still means the whole document', () => {
+  useSelectionStore.getState().clear();
+  expect(clearSelection()).toBe(true);
+  expect(useStructureStore.getState().doc.atoms).toHaveLength(0);
+});

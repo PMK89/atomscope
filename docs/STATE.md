@@ -60,8 +60,9 @@ run against current code -- Playwright above all -- use the private-server recip
   a VASP 4 POSCAR is; named selections (uid-keyed, listed in the Select menu, cleared when another
   document is loaded); fetch by identifier from RCSB and PubChem, which is the first outbound
   request the backend makes and is bounded as `docs/architecture/security-model.md` now describes;
-  a recent-files list in the File menu, kept by the backend so it outlives a project; and any
-  background colour with View ▸ Centre beside Fit to structure.
+  a recent-files list in the File menu, kept by the backend so it outlives a project; any
+  background colour with View ▸ Centre beside Fit to structure; and bonds as selectable
+  primitives, which gave the selection store's long-unused `bonds` set a meaning.
   Fixes found on the way: Optimize geometry sent valueless force-field
   constraints and was rejected with a 422; `add_hydrogens` dropped every residue of a PDB
   structure; `tsc --noEmit` at the repository root checks nothing (the real check is

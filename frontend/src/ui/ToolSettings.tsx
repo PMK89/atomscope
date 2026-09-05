@@ -114,10 +114,12 @@ function SelectSettings(): JSX.Element {
   );
 }
 
+/** Same rule as the Edit commands: everything only when nothing at all is selected. */
 function targetAtoms(): number[] {
-  const sel = useSelectionStore.getState().atoms;
+  const sel = useSelectionStore.getState();
   const n = useStructureStore.getState().doc.atoms.length;
-  return sel.size ? [...sel] : Array.from({ length: n }, (_, i) => i);
+  if (sel.atoms.size) return [...sel.atoms];
+  return sel.bonds.size ? [] : Array.from({ length: n }, (_, i) => i);
 }
 
 function ManipulateSettings(): JSX.Element {

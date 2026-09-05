@@ -289,6 +289,19 @@ describe('select', () => {
     expect([...useSelectionStore.getState().bonds]).toEqual([0]);
   });
 
+  test('deleting an atom moves the bond selection with the bonds it leaves', () => {
+    // the skeleton has one bond (C0-C1) and a lone oxygen; add a second bond so indices shift
+    const doc = S().doc;
+    S().commit('bond', { ...doc, bonds: [...doc.bonds, makeBond(1, 2)] });
+    useSelectionStore.getState().set([], [1]);
+
+    // delete atom 0, which takes bond 0 with it: the selected bond is index 0 now, not 1
+    useToolStore.getState().setActive('draw');
+    click(host, ...at(0, 0), { button: 2 });
+    expect([...useSelectionStore.getState().bonds]).toEqual([0]);
+    expect(S().doc.bonds).toHaveLength(1);
+  });
+
   test('under molecule granularity a bond still stands for its atoms', () => {
     useToolStore.getState().update('select', { mode: 'molecules' });
     click(host, ...at(0.75, 0));

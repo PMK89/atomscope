@@ -65,6 +65,36 @@ export function removeBond(doc: StructureDoc, bond: number): StructureDoc {
   return { ...doc, bonds: doc.bonds.filter((_, i) => i !== bond) };
 }
 
+/** Remove several bonds at once, leaving every atom where it is. */
+export function removeBonds(doc: StructureDoc, bonds: ReadonlySet<number>): StructureDoc {
+  if (bonds.size === 0) return doc;
+  return { ...doc, bonds: doc.bonds.filter((_, i) => !bonds.has(i)) };
+}
+
+/**
+ * The selected bonds after `gone` atoms are removed, by index: a bond with an end in `gone` is
+ * gone with it, and the rest shift down. Without this a deletion leaves the *wrong* bond
+ * selected, because `removeAtoms` renumbers the bond list too.
+ */
+export function remapBondsAfterRemoval(
+  doc: StructureDoc,
+  gone: ReadonlySet<number>,
+  bonds: Iterable<number>,
+): number[] {
+  const survives = doc.bonds.map((b) => !gone.has(b.a) && !gone.has(b.b));
+  const newIndex = new Int32Array(doc.bonds.length).fill(-1);
+  let n = 0;
+  survives.forEach((ok, i) => {
+    if (ok) newIndex[i] = n++;
+  });
+  const out: number[] = [];
+  for (const i of bonds) {
+    const to = newIndex[i] ?? -1;
+    if (to >= 0) out.push(to);
+  }
+  return out;
+}
+
 export function setElement(doc: StructureDoc, atom: number, element: string): StructureDoc {
   const a = doc.atoms[atom];
   if (!a || a.element === element) return doc;

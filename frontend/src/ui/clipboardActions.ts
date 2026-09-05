@@ -14,17 +14,23 @@
 import { api, ApiError } from '../api/client';
 import { isEditableTarget } from '../editor/ToolHost';
 import { mergeFragment, selectionFragment, toXyz } from '../editor/fragment';
-import { removeAtoms } from '../editor/edits';
+import { remapBondsAfterRemoval, removeAtoms, removeBonds } from '../editor/edits';
 import { normalizeStructure, type StructureDoc } from '../model/structure';
 import { useClipboardStore } from '../state/clipboardStore';
 import { speciesCounts, usePasteStore } from '../state/pasteStore';
 import { useSelectionStore } from '../state/selectionStore';
 import { useStructureStore } from '../state/structureStore';
 
-/** The atoms an Edit command acts on: the selection, or the whole document when nothing is selected. */
+/**
+ * The atoms an Edit command acts on: the selected ones, or the whole document when *nothing at
+ * all* is selected. A selected bond counts as something: with one bond picked and no atoms,
+ * "the whole document" would delete the molecule to remove a bond.
+ */
 export function targetAtoms(doc: StructureDoc): number[] {
-  const selected = [...useSelectionStore.getState().atoms].sort((a, b) => a - b);
-  return selected.length ? selected : doc.atoms.map((_, i) => i);
+  const sel = useSelectionStore.getState();
+  const selected = [...sel.atoms].sort((a, b) => a - b);
+  if (selected.length) return selected;
+  return sel.bonds.size ? [] : doc.atoms.map((_, i) => i);
 }
 
 /** Put the current selection on the clipboard; returns the text written, or null if empty. */
@@ -42,6 +48,7 @@ export function copySelection(): string | null {
 export function cutSelection(): boolean {
   const store = useStructureStore.getState();
   const atoms = targetAtoms(store.doc);
+  // a bond on its own is not a fragment: there is nothing to put on a clipboard
   if (!copySelection()) return false;
   store.commit('Cut', removeAtoms(store.doc, atoms));
   useSelectionStore.getState().clear();
@@ -51,10 +58,15 @@ export function cutSelection(): boolean {
 /** Delete the selection without touching the clipboard (Avogadro's Clear). */
 export function clearSelection(): boolean {
   const store = useStructureStore.getState();
+  const sel = useSelectionStore.getState();
   const atoms = targetAtoms(store.doc);
-  if (!atoms.length) return false;
-  store.commit('Clear', removeAtoms(store.doc, atoms));
-  useSelectionStore.getState().clear();
+  const gone = new Set(atoms);
+  // the atoms go with their bonds; a bond selected on its own goes on its own, leaving its atoms
+  const bonds = new Set(remapBondsAfterRemoval(store.doc, gone, sel.bonds));
+  if (!atoms.length && bonds.size === 0) return false;
+  const next = removeBonds(removeAtoms(store.doc, gone), bonds);
+  store.commit(atoms.length ? 'Clear' : bonds.size > 1 ? 'Delete bonds' : 'Delete bond', next);
+  sel.clear();
   return true;
 }
 
