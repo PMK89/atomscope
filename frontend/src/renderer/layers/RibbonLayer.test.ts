@@ -55,7 +55,7 @@ test('the ribbon follows a displayed frame', () => {
   layer.visible = true;
   layer.setData(data);
   layer.update(ctx(doc));
-  const before = layer.object.children[0] as {
+  const before = layer.object.children[0] as unknown as {
     geometry: { attributes: { position: { array: Float32Array } } };
   };
   const x0 = before.geometry.attributes.position.array[0]!;
@@ -109,7 +109,7 @@ test('a hover-only update does not rebuild the ribbon', () => {
   layer.visible = true;
   layer.setData(data);
   layer.update(ctx(doc));
-  const geometry = (layer.object.children[0] as { geometry: unknown }).geometry;
+  const geometry = (layer.object.children[0] as unknown as { geometry: unknown }).geometry;
   const positions = (geometry as { attributes: { position: unknown } }).attributes.position;
 
   layer.update({ ...ctx(doc), hoveredAtom: 1, selectedAtoms: new Set([0]) });
@@ -119,8 +119,9 @@ test('a hover-only update does not rebuild the ribbon', () => {
   layer.setSettings({ style: 'ribbon' });
   layer.update(ctx(doc));
   // a real change does get through -- read the mesh the layer holds now, not the old one
-  const after = (layer.object.children[0] as { geometry: { attributes: { position: unknown } } })
-    .geometry.attributes.position;
+  const after = (
+    layer.object.children[0] as unknown as { geometry: { attributes: { position: unknown } } }
+  ).geometry.attributes.position;
   expect(after).not.toBe(positions);
   layer.dispose();
 });

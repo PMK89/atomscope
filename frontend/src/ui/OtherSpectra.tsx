@@ -68,7 +68,17 @@ export function OtherSpectra({ onError }: { onError: (m: string) => void }): JSX
               className="primary"
               disabled={busy}
               onClick={() =>
-                void run(() => api.analysis.nmr({ shieldings, element: nucleus, reference }))
+                void run(() =>
+                  // the backend's own defaults; the generated request type spells them out
+                  api.analysis.nmr({
+                    shieldings,
+                    element: nucleus,
+                    reference,
+                    width: 0.05,
+                    shape: 'lorentzian',
+                    points: 1000,
+                  }),
+                )
               }
             >
               Plot NMR
@@ -96,7 +106,13 @@ export function OtherSpectra({ onError }: { onError: (m: string) => void }): JSX
               disabled={busy}
               onClick={() =>
                 void run(() =>
-                  api.analysis.electronic({ transitions, circular_dichroism: circular }),
+                  api.analysis.electronic({
+                    transitions,
+                    circular_dichroism: circular,
+                    width: 20,
+                    shape: 'gaussian',
+                    points: 1000,
+                  }),
                 )
               }
             >

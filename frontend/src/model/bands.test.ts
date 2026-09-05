@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
 import { bandSeries, formatKPath } from './bands';
 
-const BANDS = {
+const BANDS: Parameters<typeof bandSeries>[0] = {
   k_distance: [0, 0.5, 1],
   labels: [],
   // energies[spin][k][band]: three k-points, two bands
@@ -12,7 +12,7 @@ const BANDS = {
       [-3, 3],
     ],
   ],
-} as never;
+};
 
 test('a band is a line across the path, not a line per k-point', () => {
   const series = bandSeries(BANDS, ['#000']);

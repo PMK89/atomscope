@@ -5,8 +5,7 @@
  * an electron-density isosurface is the standard picture of a molecule's reactivity, and it is
  * two grids -- the shape from one, the colour from the other.
  */
-import { invert3 } from '../model/geometry';
-import type { Mat3 } from '../model/structure';
+import { invert3, type Mat3 } from '../model/geometry';
 import type { GridGeometry } from './marchingCubes';
 
 /** Samples one grid at a world point. Three numbers, not a vector: it runs once per vertex. */

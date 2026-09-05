@@ -6,8 +6,9 @@
  * single atom selected the fragment is attached to it (replacing a hydrogen), otherwise it is
  * placed beside the existing molecule. The result is one labelled undo step.
  */
-import { useEffect, useState } from 'react';
-import { api, type FragmentInfo, type Structure } from '../api/client';
+import { useEffect, useRef, useState } from 'react';
+import { dialogKeyHandler } from './dialogKeys';
+import { api, type Body, type FragmentInfo, type Structure } from '../api/client';
 import { toApiStructure } from '../api/structureBody';
 import { normalizeStructure } from '../model/structure';
 import { useBuildStore } from '../state/buildStore';
@@ -38,19 +39,15 @@ function Dialog({
   onClose: () => void;
   children: React.ReactNode;
 }): JSX.Element {
+  const dialog = useRef<HTMLDivElement>(null);
   return (
     <div
       className="dialog-backdrop"
       role="dialog"
       aria-label={title}
-      onKeyDown={(e) => {
-        if (e.key === 'Escape') {
-          e.stopPropagation();
-          onClose();
-        }
-      }}
+      onKeyDown={dialogKeyHandler(dialog, onClose)}
     >
-      <div className="dialog panel">
+      <div className="dialog panel" ref={dialog}>
         <h3>{title}</h3>
         {children}
       </div>
@@ -182,8 +179,10 @@ function PeptideDialog({ onClose, onError }: DialogProps): JSX.Element {
   const [sequence, setSequence] = useState('AGA');
   // the preset names are the backend's (alpha_helix, not alpha-helix): take them from the API and
   // do not offer one that is not in the list, or Insert posts a name the schema rejects
-  const [presets, setPresets] = useState<string[]>([]);
-  const [preset, setPreset] = useState('');
+  type Preset = Body<'/api/build/peptide', 'post'>['preset'];
+  const [presets, setPresets] = useState<Preset[]>([]);
+  // the backend names the presets; the select is filled from its list, so the cast is safe
+  const [preset, setPreset] = useState<Preset>('alpha_helix');
   const [phi, setPhi] = useState(-57);
   const [psi, setPsi] = useState(-47);
 
@@ -191,9 +190,9 @@ function PeptideDialog({ onClose, onError }: DialogProps): JSX.Element {
     api.build
       .peptidePresets()
       .then((p) => {
-        const names = [...Object.keys(p.presets), 'custom'];
+        const names = [...Object.keys(p.presets), 'custom'] as Preset[];
         setPresets(names);
-        setPreset((current) => (names.includes(current) ? current : (names[0] ?? '')));
+        setPreset((current) => (names.includes(current) ? current : (names[0] ?? 'alpha_helix')));
       })
       .catch((e: Error) => onError(`Peptide presets: ${e.message}`));
   }, [onError]);
@@ -226,7 +225,11 @@ function PeptideDialog({ onClose, onError }: DialogProps): JSX.Element {
       </div>
       <div className="form-row">
         <label htmlFor="peptide-preset">Conformation</label>
-        <select id="peptide-preset" value={preset} onChange={(e) => setPreset(e.target.value)}>
+        <select
+          id="peptide-preset"
+          value={preset}
+          onChange={(e) => setPreset(e.target.value as Preset)}
+        >
           {presets.map((p) => (
             <option key={p} value={p}>
               {p}

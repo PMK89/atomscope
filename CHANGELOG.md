@@ -24,6 +24,10 @@
 - Fixed: Ctrl+C with text selected in a panel copied the molecule instead of the text; removing
   atoms in the editor left residues and constraints pointing at the old numbering; a copied
   fragment carried no residues.
+- The frontend type-checks again: the project references mean a bare `tsc --noEmit` checks nothing,
+  which had hidden 37 errors (`normalizeStructure` demanding fields it fills in itself, spectrum
+  requests missing fields the generated types require, a vibration trajectory without its
+  `structureId`, unchecked tuple indexing in the cell-extent maths, several test casts).
 - A bond properties table on the Properties tab: every bond (or every bond of the selection) with
   its order, whether it can rotate, and an editable length.
 - A Constraints dialog (Extensions > Constraints...): ignored and fixed atoms, fixed Cartesian

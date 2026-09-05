@@ -105,7 +105,8 @@ function reindexed(
     }))
     .filter((r) => r.atom_indices.length > 0);
   const kept = (i: number): boolean => remap[i] !== undefined && remap[i]! >= 0;
-  const constraints = doc.constraints.flatMap((c) => {
+  type Constraint = StructureDoc['constraints'][number];
+  const constraints = doc.constraints.flatMap((c): Constraint[] => {
     // a constraint over a set of atoms keeps those that remain; one that ties specific atoms
     // together (a bond, an angle, a torsion) goes as soon as one of them does
     if (c.kind === 'fix_atoms' || c.kind === 'ignore_atoms') {

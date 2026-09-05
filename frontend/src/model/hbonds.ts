@@ -39,7 +39,7 @@ class Grid {
   constructor(
     private readonly size: number,
     indices: number[],
-    private readonly at: PositionOf,
+    at: PositionOf,
   ) {
     for (const i of indices) {
       const key = this.key(at(i));

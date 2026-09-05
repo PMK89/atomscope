@@ -6,16 +6,19 @@
  * still refers to the same atoms after an operation that only moves them (optimize, charges).
  * Operations that add or remove atoms necessarily renumber, and the store handles that.
  */
-import { api, type Structure } from '../api/client';
+import { api, type Body } from '../api/client';
+
+/** The charge models the backend offers, as the route declares them. */
+export type ChargeModel = Body<'/api/chem/partial-charges', 'post'>['model'];
 import { toApiStructure } from '../api/structureBody';
-import { normalizeStructure, type StructureDoc } from '../model/structure';
+import { normalizeStructure, type ApiStructure, type StructureDoc } from '../model/structure';
 import { useSelectionStore } from '../state/selectionStore';
 import { useStructureStore } from '../state/structureStore';
 
 /** Run `call` on the current document and commit the result under `label`. */
 export async function commitChemOp(
   label: string,
-  call: (structure: ReturnType<typeof toApiStructure>) => Promise<Structure>,
+  call: (structure: ReturnType<typeof toApiStructure>) => Promise<ApiStructure>,
   onError: (m: string) => void,
 ): Promise<boolean> {
   const doc = useStructureStore.getState().doc;
@@ -104,7 +107,7 @@ export const optimizeGeometry = (
 
 export const assignPartialCharges = (
   onError: (m: string) => void,
-  model = 'gasteiger',
+  model: ChargeModel = 'gasteiger',
 ): Promise<boolean> =>
   commitChemOp(
     `Partial charges (${model})`,

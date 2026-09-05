@@ -146,7 +146,8 @@ export class StructureLayer implements DisplayLayer {
     }
     const span: [number, number, number] = [0, 0, 0];
     for (let axis = 0; axis < 3; axis++) {
-      for (let k = 0; k < 3; k++) span[k] += last[axis] * cell[axis][k];
+      for (let k = 0; k < 3; k++)
+        span[k] = (span[k] ?? 0) + (last[axis] ?? 0) * (cell[axis]?.[k] ?? 0);
     }
     return {
       center: [span[0] / 2, span[1] / 2, span[2] / 2],

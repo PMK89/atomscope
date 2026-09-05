@@ -4,7 +4,8 @@ import { useProjectStore } from '../state/projectStore';
 import { useStructureStore } from '../state/structureStore';
 import { promptSaveAs, saveStructure, saveStructureAs } from './fileActions';
 
-const put = vi.fn(async () => ({}));
+// the argument is what the assertions read back out of `put.mock.calls`
+const put = vi.fn(async (doc: unknown) => ({ doc }));
 vi.mock('../api/client', () => ({
   api: {
     structures: {

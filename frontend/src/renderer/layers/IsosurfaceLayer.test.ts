@@ -157,7 +157,9 @@ test('a colour source paints the vertices and reports the range it found', async
   layer.setSurfaces([{ ...spec(0.1), colorSource: colorSource([0, 1]) }]);
   await flush();
 
-  const mesh = layer.object.children[0] as { geometry: { getAttribute(n: string): unknown } };
+  const mesh = layer.object.children[0] as unknown as {
+    geometry: { getAttribute(n: string): unknown };
+  };
   const colors = mesh.geometry.getAttribute('color') as { array: Float32Array } | undefined;
   expect(colors).toBeTruthy();
   // blue at the low end, white in the middle, red at the high end
@@ -186,7 +188,9 @@ test('changing only the range repaints without meshing again', async () => {
   await flush();
   expect(calls).toHaveLength(1);
 
-  const mesh = layer.object.children[0] as { geometry: { getAttribute(n: string): unknown } };
+  const mesh = layer.object.children[0] as unknown as {
+    geometry: { getAttribute(n: string): unknown };
+  };
   const colors = mesh.geometry.getAttribute('color') as { array: Float32Array };
   // over [0, 2] the middle vertex (0.5) is a quarter of the way up, still on the blue side
   expect(colors.array[2]).toBe(1);
@@ -201,7 +205,7 @@ test('taking the colour source away restores the flat colour', async () => {
   layer.setSurfaces([{ ...spec(0.1), colorSource: null }]);
   await flush();
 
-  const mesh = layer.object.children[0] as {
+  const mesh = layer.object.children[0] as unknown as {
     geometry: { getAttribute(n: string): unknown };
     material: { vertexColors: boolean };
   };
@@ -237,7 +241,9 @@ test('an automatic scale is symmetric, so zero on the surface is white', async (
   layer.setSurfaces([{ ...spec(0.1), colorSource: signed }]);
   await flush();
 
-  const mesh = layer.object.children[0] as { geometry: { getAttribute(n: string): unknown } };
+  const mesh = layer.object.children[0] as unknown as {
+    geometry: { getAttribute(n: string): unknown };
+  };
   const colors = (mesh.geometry.getAttribute('color') as { array: Float32Array }).array;
   // the vertex sampling exactly 0 is white; the negative one is blue-ish, the positive one red-ish
   expect([...colors.slice(3, 6)].map((c) => Number(c.toFixed(3)))).toEqual([1, 1, 1]);
@@ -252,7 +258,9 @@ test('a grid reloaded under the same id repaints the surface', async () => {
   const layer = new IsosurfaceLayer('g1', new Float32Array(8), geometry, rampMesher);
   layer.setSurfaces([{ ...spec(0.1), colorSource: colorSource([0, 1]) }]);
   await flush();
-  const mesh = layer.object.children[0] as { geometry: { getAttribute(n: string): unknown } };
+  const mesh = layer.object.children[0] as unknown as {
+    geometry: { getAttribute(n: string): unknown };
+  };
   expect([
     ...(mesh.geometry.getAttribute('color') as { array: Float32Array }).array.slice(0, 3),
   ]).toEqual([0, 0, 1]);

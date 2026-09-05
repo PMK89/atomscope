@@ -155,7 +155,7 @@ export function SurfaceGenerator({
                 {info.orbitals.map((mo) => (
                   <option key={`${mo.spin}-${mo.index}`} value={mo.index}>
                     {mo.index + 1}. {mo.label}
-                    {mo.energy === null ? '' : ` (${(mo.energy * 27.2114).toFixed(2)} eV)`}
+                    {mo.energy == null ? '' : ` (${(mo.energy * 27.2114).toFixed(2)} eV)`}
                     {mo.occupation > 0 ? '' : ' - virtual'}
                   </option>
                 ))}

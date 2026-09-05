@@ -113,6 +113,8 @@ export function modeToTrajectory(
     id: `mode-${mode.frequency.toFixed(2)}`,
     name: options.name ?? `${formatFrequency(mode.frequency)} mode`,
     kind: 'vibration',
+    // the mode is animated from a structure the caller already has on screen
+    structureId: null,
     symbols: [...symbols],
     nFrames,
     nAtoms,

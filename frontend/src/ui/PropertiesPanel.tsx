@@ -92,7 +92,7 @@ export function PropertiesPanel({ onError }: { onError?: (m: string) => void }):
         <button onClick={() => openEditor(true)}>Cartesian editor…</button>
       </div>
 
-      <SymmetrySection onError={onError} />
+      <SymmetrySection {...(onError ? { onError } : {})} />
 
       <h3>Selection</h3>
       {idx.length === 0 && <p className="muted">No atoms selected.</p>}

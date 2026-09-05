@@ -32,7 +32,13 @@ export function newUid(): string {
   return Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('');
 }
 
-export function normalizeStructure(s: ApiStructure): StructureDoc {
+/**
+ * What a route, a file or a test can hand over: every field optional, because this is the
+ * function that fills the blanks in (ids, uids, empty collections).
+ */
+export type PartialStructure = Partial<ApiStructure>;
+
+export function normalizeStructure(s: PartialStructure): StructureDoc {
   return {
     id: s.id ?? newUid(),
     name: s.name ?? 'untitled',
