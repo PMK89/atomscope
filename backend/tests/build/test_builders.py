@@ -62,6 +62,23 @@ def test_insert_fragment_at_position(methane: Structure) -> None:
     assert merged.positions().max(axis=0)[0] > 8.0
 
 
+def test_inserting_a_peptide_keeps_its_residues(methane: Structure) -> None:
+    chain = peptide.build_peptide("AAA")
+    merged = fragments.insert_fragment(methane, chain, position=(10.0, 0.0, 0.0))
+    assert len(merged.residues) == len(chain.residues) == 3
+    # the residues point at the inserted atoms, not at the ones they had in the fragment
+    for r in merged.residues:
+        assert all(i >= methane.n_atoms for i in r.atom_indices)
+        assert [merged.atoms[i].element for i in r.atom_indices] == [
+            chain.atoms[i - methane.n_atoms].element for i in r.atom_indices
+        ]
+
+    # a second copy would collide with the first one's numbering, so it becomes another chain
+    twice = fragments.insert_fragment(merged, chain, position=(20.0, 0.0, 0.0))
+    assert len(twice.residues) == 6
+    assert len({r.chain for r in twice.residues}) == 2
+
+
 @pytest.mark.parametrize(
     "sequence,formula",
     [("A", "C3H7NO2"), ("AAA", "C9H17N3O4"), ("GG", "C4H8N2O3")],

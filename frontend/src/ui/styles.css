@@ -198,6 +198,10 @@ button {
   opacity: 0.5;
   cursor: default;
 }
+.error-text {
+  color: var(--error);
+  font-size: 12px;
+}
 .muted {
   opacity: 0.65;
   font-size: 12px;

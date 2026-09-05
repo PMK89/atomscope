@@ -153,3 +153,28 @@ test('copy, paste, and paste of text from another program', async ({ page }) => 
   await page.keyboard.press('Control+v');
   await expect(page.locator('.app-statusbar')).toContainText('16 atoms');
 });
+
+test('a built peptide is drawn as a cartoon with its helices', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Build' }).click();
+  await page.getByRole('menuitem', { name: 'Insert peptide…' }).click();
+  await page.getByLabel('Conformation').selectOption('alpha_helix');
+  await page.getByLabel('Sequence').fill('AAAAAAAAAA');
+  await page.getByRole('button', { name: 'Insert', exact: true }).click();
+  await expect(page.locator('.app-statusbar')).toContainText('atoms');
+
+  await page.getByRole('tab', { name: 'Display' }).click();
+  await page.getByLabel('Enabled').nth(1).check(); // Labels, Ribbons, Vectors in that order
+
+  const ribbon = async (): Promise<number> =>
+    page.evaluate(() => {
+      const renderer = (window as unknown as { __atomscopeRenderer?: unknown })
+        .__atomscopeRenderer as { getLayer(id: string): { triangles(): number } | undefined };
+      return renderer.getLayer('ribbon')?.triangles() ?? 0;
+    });
+  // the backend assigned the secondary structure and the layer turned it into geometry
+  await expect.poll(ribbon).toBeGreaterThan(50);
+
+  await page.getByLabel('Rendering').selectOption('backbone');
+  await expect.poll(ribbon).toBeGreaterThan(50);
+});

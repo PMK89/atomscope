@@ -62,6 +62,7 @@ export type Identifiers = components['schemas']['Identifiers'];
 export type OptimizeResult = components['schemas']['OptimizeResult'];
 export type ForceFieldInfo = components['schemas']['ForceFieldInfo'];
 export type PointGroupResult = components['schemas']['PointGroupResult'];
+export type SecondaryStructureResult = components['schemas']['SecondaryStructureResult'];
 export type ParameterValues = Record<string, unknown>;
 
 export class ApiError extends Error {
@@ -276,6 +277,8 @@ export const api = {
       request<PointGroupResult>('/api/chem/point-group', json(body)),
     symmetrize: (body: Body<'/api/chem/symmetrize', 'post'>) =>
       request<Structure>('/api/chem/symmetrize', json(body)),
+    secondaryStructure: (body: Body<'/api/chem/secondary-structure', 'post'>) =>
+      request<SecondaryStructureResult>('/api/chem/secondary-structure', json(body)),
   },
   wavefunction: {
     load: (body: Body<'/api/wavefunction/load', 'post'>) =>

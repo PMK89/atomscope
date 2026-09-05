@@ -7,7 +7,9 @@
  * turning a representation on and adjusting it -- without a layer registry the renderer does not
  * have. Isosurfaces keep their own panel because they are per-grid rather than per-structure.
  */
+import type { RibbonStyle } from '../model/ribbon';
 import { ATOM_LABEL_OPTIONS, BOND_LABEL_OPTIONS } from '../renderer/labels';
+import { useBioStore } from '../state/bioStore';
 import type { StructureStyle } from '../renderer/layers/StructureLayer';
 import { useStructureStore } from '../state/structureStore';
 import { useViewStore } from '../state/viewStore';
@@ -42,6 +44,7 @@ export function DisplayPanel(): JSX.Element {
   const view = useViewStore();
   const doc = useStructureStore((s) => s.doc);
   const vectorFields = Object.keys(doc.atomic_vectors ?? {});
+  const ribbonError = useBioStore((s) => (view.showRibbon ? s.error : null));
 
   return (
     <div className="panel display-panel">
@@ -184,6 +187,42 @@ export function DisplayPanel(): JSX.Element {
           ))}
         </div>
       </div>
+
+      <h3>Ribbons</h3>
+      <Toggle
+        id="display-ribbon"
+        label="Enabled"
+        checked={view.showRibbon}
+        onChange={view.toggleRibbon}
+      />
+      <div className="form-row">
+        <label htmlFor="display-ribbon-style">Rendering</label>
+        <select
+          id="display-ribbon-style"
+          value={view.ribbonStyle}
+          onChange={(e) => view.setRibbonStyle(e.target.value as RibbonStyle)}
+        >
+          <option value="cartoon">Cartoon (helix, sheet, coil)</option>
+          <option value="ribbon">Ribbon</option>
+          <option value="backbone">Backbone</option>
+        </select>
+      </div>
+      <div className="form-row">
+        <label htmlFor="display-ribbon-scale">Width</label>
+        <input
+          id="display-ribbon-scale"
+          type="range"
+          min="0.2"
+          max="3"
+          step="0.1"
+          value={view.ribbonScale}
+          onChange={(e) => view.setRibbonScale(Number(e.target.value))}
+        />
+      </div>
+      {doc.residues.length === 0 && (
+        <p className="muted">This structure has no residues, so it has no backbone to draw.</p>
+      )}
+      {ribbonError && <p className="error-text">{ribbonError}</p>}
 
       <h3>Vectors</h3>
       <Toggle

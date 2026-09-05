@@ -1,6 +1,6 @@
 # Project state (resume here)
 
-Branch: main; this file is updated in the commit that checkpoints the work, so `git log -1 -- docs/STATE.md` is the last checkpoint. Phases 0-1 done; Phase 2 (editor tools), 3 (volumetric, trajectories, vectors), 4-5 (CP-PAW setup/execution/forces), 6 (CP-PAW analysis: DOS, bands, orbitals), crystallography, molecular mechanics and wavefunction surfaces are merged and working. Parity matrix: 141 IMPLEMENTED, 45 PARTIAL, 125 NOT STARTED, 1 BLOCKED of 312 rows.
+Branch: main; this file is updated in the commit that checkpoints the work, so `git log -1 -- docs/STATE.md` is the last checkpoint. Phases 0-1 done; Phase 2 (editor tools), 3 (volumetric, trajectories, vectors), 4-5 (CP-PAW setup/execution/forces), 6 (CP-PAW analysis: DOS, bands, orbitals), crystallography, molecular mechanics and wavefunction surfaces are merged and working. Parity matrix: 146 IMPLEMENTED, 45 PARTIAL, 120 NOT STARTED, 1 BLOCKED of 312 rows.
 
 Tests: `pytest -q -m "not cppaw"` -> 351 passed, 1 skipped; `pytest -q -m cppaw` -> 7 passed (~90 s, needs the local CP-PAW install); `pnpm vitest run` -> 229 passed; `make test-e2e` -> 8 passed. `ruff check`, `mypy` and `tsc --noEmit` are clean. No known failing tests.
 
@@ -51,12 +51,14 @@ make dev-backend   # 127.0.0.1:8765 ; make dev-frontend -> 127.0.0.1:5173
   then `PLAYWRIGHT_BASE_URL=http://127.0.0.1:5191 pnpm exec playwright test`.
 
 ## Next actions
-1. Remaining CRITICAL parity gaps, all in the renderer: cartoon/ribbon rendering with
-   secondary-structure detection, ring and polygon engines, hydrogen-bond display, QTAIM. The label engine and the Display tab are done; the Display tab is where the label
+1. Remaining CRITICAL/HIGH parity gaps in the renderer: hydrogen-bond display (AV-VIS-020; the
+   backbone hydrogen bonds are already computed by chem/secondary.py), ring and polygon engines
+   (AV-VIS-021/022, both LOW), QTAIM. Cut/copy/paste, the label engine, the Display tab and
+   cartoon/ribbon rendering with DSSP detection are done. The label engine and the Display tab are done; the Display tab is where the label
    content is chosen (the View menu only switches labels on) and it can give the selection its own
    display type, which is what AV-VIS-001's "restricted to primitives" asks for.
 2. UI gaps recorded as PARTIAL: Extensions menu for the chem operations that only have API routes (add/remove hydrogens, pH, invert chirality, H->methyl, partial charges, Copy as SMILES/InChI), fragment/peptide/DNA/nanotube insert dialogs, Auto-Optimization tool, image export, constraints dialog.
-3. Remaining CRITICAL/HIGH parity gaps: label engine, Display Types dock, cut/copy/paste, cartoon/ribbon rendering with secondary-structure detection, SMARTS selection, molecular point groups, colour-by-second-cube (AV-SURF-013), QTAIM.
+3. Remaining HIGH parity gaps outside the renderer: colour-by-second-cube (AV-SURF-013), residue-based selection and colouring (AV-BIO-006), paste of crystal text with an identity mapping dialog (AV-XTAL-002).
 4. More wavefunction readers (MOPAC aux, GAMESS, ORCA, Molpro, Slater bases) for AV-SURF-006; ORCA/Gaussian/NWChem input-only plugins; desktop shell ADR.
 5. Known limits and hand-overs:
    - `applyColors` rewrites every instance colour on every hover change (~300k operations per

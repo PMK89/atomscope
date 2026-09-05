@@ -8,6 +8,7 @@ import { useTrajectoryStore } from '../state/trajectoryStore';
 import { frameCell, framePositions, isTrajectoryCompatible } from '../model/trajectory';
 import { installExtraLayers, syncExtraLayers } from './viewportLayers';
 import { BACKGROUND_HEX, useViewStore } from '../state/viewStore';
+import { useBioStore } from '../state/bioStore';
 import { useIsosurfaceLayers } from './useIsosurfaceLayers';
 import { ViewportOverlay } from './ViewportOverlay';
 
@@ -31,6 +32,7 @@ export function Viewport(): JSX.Element {
     [active, frame],
   );
   const cellOverride = useMemo(() => (active ? frameCell(active, frame) : null), [active, frame]);
+  const secondary = useBioStore((s) => s.data);
   const lastFitted = useRef<string | null>(null);
   const lastFitRequest = useRef(0);
   // renderer readiness as state, so surfaces already in the store mount into a new renderer
@@ -63,7 +65,7 @@ export function Viewport(): JSX.Element {
     });
     r.setBackground(BACKGROUND_HEX[view.background]);
     if (r.projection !== view.projection) r.setProjection(view.projection);
-    syncExtraLayers(r, view);
+    syncExtraLayers(r, view, view.showRibbon ? secondary : null);
     r.update({
       structure: doc,
       revision,
@@ -77,7 +79,13 @@ export function Viewport(): JSX.Element {
       lastFitRequest.current = view.fitRequest;
       r.fitToStructure();
     }
-  }, [doc, revision, selected, hovered, view, positionsOverride, cellOverride]);
+  }, [doc, revision, selected, hovered, view, positionsOverride, cellOverride, secondary]);
+
+  // the assignment depends on the geometry, so it is refetched per revision -- but only while
+  // something is drawing it
+  useEffect(() => {
+    if (view.showRibbon) void useBioStore.getState().load(doc, revision);
+  }, [view.showRibbon, doc, revision]);
 
   return (
     <div ref={ref} className="viewport-canvas" data-testid="viewport">

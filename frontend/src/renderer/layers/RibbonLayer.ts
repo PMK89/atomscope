@@ -1,0 +1,151 @@
+/**
+ * Protein ribbons and cartoons (Avogadro's Ribbon and Cartoon engines).
+ *
+ * The assignment comes from the backend (DSSP) and names its backbone atoms by uid, so the layer
+ * survives any edit that renumbers atoms: it maps uid to index once per rebuild and reads the
+ * positions of the frame being displayed, which makes a ribbon follow a trajectory.
+ */
+import {
+  BufferAttribute,
+  BufferGeometry,
+  DoubleSide,
+  Group,
+  Mesh,
+  MeshStandardMaterial,
+} from 'three';
+import type { Vec3 } from '../../model/structure';
+import {
+  chainFrames,
+  stripGeometry,
+  type GuideResidue,
+  type RibbonStyle,
+} from '../../model/ribbon';
+import type { DisplayLayer, LayerContext } from './Layer';
+
+/** One residue as the backend reports it: backbone atoms by uid. */
+export interface ResidueAssignment {
+  residue: number;
+  kind: GuideResidue['kind'];
+  ca: string;
+  o: string;
+}
+
+/** What the backend returned for the current document. */
+export interface SecondaryStructureData {
+  residues: ResidueAssignment[];
+  /** residue indices in backbone order, one list per chain */
+  chains: number[][];
+}
+
+export interface RibbonLayerSettings {
+  style: RibbonStyle;
+  /** Multiplies the widths the style defines. */
+  scale: number;
+}
+
+export const DEFAULT_RIBBON_SETTINGS: RibbonLayerSettings = { style: 'cartoon', scale: 1 };
+
+export class RibbonLayer implements DisplayLayer {
+  readonly id = 'ribbon';
+  readonly object = new Group();
+  visible = false;
+  settings: RibbonLayerSettings = { ...DEFAULT_RIBBON_SETTINGS };
+
+  private data: SecondaryStructureData | null = null;
+  private mesh: Mesh | null = null;
+  private readonly material = new MeshStandardMaterial({
+    vertexColors: true,
+    // a ribbon is a surface with no thickness: without this its back faces vanish
+    side: DoubleSide,
+    roughness: 0.6,
+  });
+  private lastKey = '';
+
+  setSettings(patch: Partial<RibbonLayerSettings>): void {
+    this.settings = { ...this.settings, ...patch };
+  }
+
+  /** The assignment to draw, or null when the document is not a protein. */
+  setData(data: SecondaryStructureData | null): void {
+    this.data = data;
+  }
+
+  update(ctx: LayerContext): void {
+    if (!this.visible || !this.data || this.data.residues.length === 0) {
+      this.clear();
+      return;
+    }
+    const s = ctx.structure;
+    const raw = ctx.positionsOverride ?? null;
+    const override = raw && raw.length === s.atoms.length * 3 ? raw : null;
+    const index = new Map(s.atoms.map((a, i) => [a.uid, i]));
+    const at = (uid: string): Vec3 | null => {
+      const i = index.get(uid);
+      if (i === undefined) return null;
+      if (override) return [override[3 * i]!, override[3 * i + 1]!, override[3 * i + 2]!];
+      return s.atoms[i]!.position as Vec3;
+    };
+
+    const byResidue = new Map(this.data.residues.map((r) => [r.residue, r]));
+    const chains: GuideResidue[][] = [];
+    for (const chain of this.data.chains) {
+      const guide: GuideResidue[] = [];
+      for (const residue of chain) {
+        const r = byResidue.get(residue);
+        if (!r) continue;
+        const ca = at(r.ca);
+        const o = at(r.o);
+        // an edit that deleted a backbone atom breaks the chain there rather than joining across
+        if (!ca || !o) {
+          if (guide.length > 1) chains.push([...guide]);
+          guide.length = 0;
+          continue;
+        }
+        guide.push({ ca, o, kind: r.kind });
+      }
+      if (guide.length > 1) chains.push(guide);
+    }
+
+    const frames = chains.map((c) => this.scaled(chainFrames(c, this.settings.style)));
+    const geometry = stripGeometry(frames);
+    // the mesh is rebuilt whenever the positions change, so a key over the sizes is not enough
+    const key = `${JSON.stringify(this.settings)}|${geometry.positions.length}`;
+    if (!this.mesh || key !== this.lastKey) {
+      this.clear();
+      this.mesh = new Mesh(new BufferGeometry(), this.material);
+      this.mesh.frustumCulled = false;
+      this.object.add(this.mesh);
+      this.lastKey = key;
+    }
+    const g = this.mesh.geometry;
+    g.setAttribute('position', new BufferAttribute(geometry.positions, 3));
+    g.setAttribute('color', new BufferAttribute(geometry.colors, 3));
+    g.setIndex(new BufferAttribute(geometry.indices, 1));
+    g.computeVertexNormals();
+    g.computeBoundingSphere();
+  }
+
+  private scaled(frames: ReturnType<typeof chainFrames>): ReturnType<typeof chainFrames> {
+    if (this.settings.scale === 1) return frames;
+    return frames.map((f) => ({ ...f, width: f.width * this.settings.scale }));
+  }
+
+  /** Triangle count of what is drawn (for tests and for the settings panel). */
+  triangles(): number {
+    const index = this.mesh?.geometry.getIndex();
+    return index ? index.count / 3 : 0;
+  }
+
+  private clear(): void {
+    if (!this.mesh) return;
+    this.object.remove(this.mesh);
+    this.mesh.geometry.dispose();
+    this.mesh = null;
+    this.lastKey = '';
+  }
+
+  dispose(): void {
+    this.clear();
+    this.material.dispose();
+  }
+}

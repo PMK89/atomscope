@@ -21,6 +21,11 @@
   Measurements and remaining limits: docs/performance.md.
 - Renderer: the sphere and cylinder tessellation is chosen from the atom count, which is what makes
   a large structure orbit at all.
+- Protein ribbons and cartoons: a spline through the alpha carbons, oriented by the carbonyls,
+  drawn from the secondary-structure assignment (helices red, strands yellow with an arrowhead,
+  coil thin) with Cartoon/Ribbon/Backbone rendering in the Display tab.
+- Fixed: inserting a fragment dropped every residue of the document, so an inserted peptide had no
+  residues to label, select or draw a ribbon for.
 - Protein secondary structure: a DSSP implementation (backbone perception from connectivity,
   Kabsch-Sander hydrogen bonds, turns and bridges) behind `POST /api/chem/secondary-structure`,
   verified against 1CRN's own HELIX/SHEET records. PDB import now fills residues and atom names.

@@ -14,9 +14,7 @@
             "$ref": "#/components/schemas/Structure"
           }
         },
-        "required": [
-          "structure"
-        ],
+        "required": ["structure"],
         "title": "AddCellRequest",
         "type": "object"
       },
@@ -55,9 +53,7 @@
             "$ref": "#/components/schemas/Structure"
           }
         },
-        "required": [
-          "structure"
-        ],
+        "required": ["structure"],
         "title": "AddHydrogensRequest",
         "type": "object"
       },
@@ -78,10 +74,7 @@
             "type": "object"
           }
         },
-        "required": [
-          "kind",
-          "job"
-        ],
+        "required": ["kind", "job"],
         "title": "AnalysisJob",
         "type": "object"
       },
@@ -108,12 +101,7 @@
             "description": "input with aromatic flags on bonds"
           }
         },
-        "required": [
-          "structure",
-          "ring_count",
-          "aromatic_ring_count",
-          "aromatic_atoms"
-        ],
+        "required": ["structure", "ring_count", "aromatic_ring_count", "aromatic_atoms"],
         "title": "AromaticityResult",
         "type": "object"
       },
@@ -166,10 +154,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "element",
-          "position"
-        ],
+        "required": ["element", "position"],
         "title": "Atom",
         "type": "object"
       },
@@ -193,10 +178,7 @@
             "type": "array"
           }
         },
-        "required": [
-          "values",
-          "unit"
-        ],
+        "required": ["values", "unit"],
         "title": "AtomicScalarProperty",
         "type": "object"
       },
@@ -234,10 +216,7 @@
             "type": "array"
           }
         },
-        "required": [
-          "values",
-          "unit"
-        ],
+        "required": ["values", "unit"],
         "title": "AtomicVectorProperty",
         "type": "object"
       },
@@ -263,9 +242,7 @@
             "$ref": "#/components/schemas/Structure"
           }
         },
-        "required": [
-          "structure"
-        ],
+        "required": ["structure"],
         "title": "AtomsRequest",
         "type": "object"
       },
@@ -288,11 +265,7 @@
             "type": "number"
           }
         },
-        "required": [
-          "donor",
-          "acceptor",
-          "energy"
-        ],
+        "required": ["donor", "acceptor", "energy"],
         "title": "BackboneHydrogenBond",
         "type": "object"
       },
@@ -387,12 +360,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "id",
-          "name",
-          "capabilities",
-          "executables"
-        ],
+        "required": ["id", "name", "capabilities", "executables"],
         "title": "BackendInfo",
         "type": "object"
       },
@@ -401,10 +369,7 @@
         "properties": {
           "mode": {
             "default": "interpolate",
-            "enum": [
-              "interpolate",
-              "diagonalize"
-            ],
+            "enum": ["interpolate", "diagonalize"],
             "title": "Mode",
             "type": "string"
           },
@@ -491,11 +456,7 @@
             "type": "array"
           }
         },
-        "required": [
-          "k_distance",
-          "labels",
-          "energies"
-        ],
+        "required": ["k_distance", "labels", "energies"],
         "title": "BandStructure",
         "type": "object"
       },
@@ -507,9 +468,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "file"
-        ],
+        "required": ["file"],
         "title": "Body_import_spectrum_upload_api_io_import_spectrum_upload_post",
         "type": "object"
       },
@@ -521,9 +480,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "file"
-        ],
+        "required": ["file"],
         "title": "Body_import_trajectory_upload_api_io_import_trajectory_upload_post",
         "type": "object"
       },
@@ -535,9 +492,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "file"
-        ],
+        "required": ["file"],
         "title": "Body_import_upload_api_io_import_upload_post",
         "type": "object"
       },
@@ -549,9 +504,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "file"
-        ],
+        "required": ["file"],
         "title": "Body_import_vibrations_upload_api_io_import_vibrations_upload_post",
         "type": "object"
       },
@@ -576,19 +529,12 @@
           },
           "order": {
             "default": 1,
-            "enum": [
-              1,
-              2,
-              3
-            ],
+            "enum": [1, 2, 3],
             "title": "Order",
             "type": "integer"
           }
         },
-        "required": [
-          "a",
-          "b"
-        ],
+        "required": ["a", "b"],
         "title": "Bond",
         "type": "object"
       },
@@ -637,10 +583,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "symbol",
-          "crystalstructure"
-        ],
+        "required": ["symbol", "crystalstructure"],
         "title": "BulkRequest",
         "type": "object"
       },
@@ -750,15 +693,7 @@
           },
           "status": {
             "default": "draft",
-            "enum": [
-              "draft",
-              "ready",
-              "queued",
-              "running",
-              "completed",
-              "failed",
-              "cancelled"
-            ],
+            "enum": ["draft", "ready", "queued", "running", "completed", "failed", "cancelled"],
             "title": "Status",
             "type": "string"
           },
@@ -774,11 +709,7 @@
             "type": "object"
           }
         },
-        "required": [
-          "name",
-          "backend_id",
-          "structure_id"
-        ],
+        "required": ["name", "backend_id", "structure_id"],
         "title": "Calculation",
         "type": "object"
       },
@@ -787,11 +718,7 @@
         "description": "Periodic cell: three lattice vectors (\u00c5) and periodicity flags.",
         "properties": {
           "pbc": {
-            "default": [
-              true,
-              true,
-              true
-            ],
+            "default": [true, true, true],
             "maxItems": 3,
             "minItems": 3,
             "prefixItems": [
@@ -869,9 +796,7 @@
             "type": "array"
           }
         },
-        "required": [
-          "vectors"
-        ],
+        "required": ["vectors"],
         "title": "Cell",
         "type": "object"
       },
@@ -880,13 +805,7 @@
         "properties": {
           "model": {
             "default": "gasteiger",
-            "enum": [
-              "gasteiger",
-              "mmff94",
-              "qeq",
-              "eem",
-              "qtpie"
-            ],
+            "enum": ["gasteiger", "mmff94", "qeq", "eem", "qtpie"],
             "title": "Model",
             "type": "string"
           },
@@ -894,9 +813,7 @@
             "$ref": "#/components/schemas/Structure"
           }
         },
-        "required": [
-          "structure"
-        ],
+        "required": ["structure"],
         "title": "ChargesRequest",
         "type": "object"
       },
@@ -919,12 +836,7 @@
             "type": "number"
           }
         },
-        "required": [
-          "structure",
-          "model",
-          "total_charge",
-          "dipole"
-        ],
+        "required": ["structure", "model", "total_charge", "dipole"],
         "title": "ChargesResult",
         "type": "object"
       },
@@ -958,10 +870,7 @@
             "title": "Value"
           }
         },
-        "required": [
-          "value",
-          "label"
-        ],
+        "required": ["value", "label"],
         "title": "Choice",
         "type": "object"
       },
@@ -982,11 +891,7 @@
           },
           "method": {
             "default": "weighted",
-            "enum": [
-              "systematic",
-              "random",
-              "weighted"
-            ],
+            "enum": ["systematic", "random", "weighted"],
             "title": "Method",
             "type": "string"
           },
@@ -1007,9 +912,7 @@
             "$ref": "#/components/schemas/Structure"
           }
         },
-        "required": [
-          "structure"
-        ],
+        "required": ["structure"],
         "title": "ConformerRequest",
         "type": "object"
       },
@@ -1025,10 +928,7 @@
             "description": "all conformers with energies (eV)"
           }
         },
-        "required": [
-          "structure",
-          "trajectory"
-        ],
+        "required": ["structure", "trajectory"],
         "title": "ConformerResult",
         "type": "object"
       },
@@ -1056,11 +956,7 @@
             "type": "object"
           }
         },
-        "required": [
-          "name",
-          "backend_id",
-          "structure_id"
-        ],
+        "required": ["name", "backend_id", "structure_id"],
         "title": "CreateCalculationRequest",
         "type": "object"
       },
@@ -1078,10 +974,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "path",
-          "name"
-        ],
+        "required": ["path", "name"],
         "title": "CreateProjectRequest",
         "type": "object"
       },
@@ -1110,10 +1003,7 @@
             "type": "array"
           }
         },
-        "required": [
-          "vector",
-          "magnitude"
-        ],
+        "required": ["vector", "magnitude"],
         "title": "Dipole",
         "type": "object"
       },
@@ -1142,11 +1032,7 @@
           },
           "projection": {
             "default": "element",
-            "enum": [
-              "none",
-              "element",
-              "atom"
-            ],
+            "enum": ["none", "element", "atom"],
             "title": "Projection",
             "type": "string"
           }
@@ -1183,21 +1069,12 @@
           },
           "spin": {
             "default": "none",
-            "enum": [
-              "up",
-              "down",
-              "none"
-            ],
+            "enum": ["up", "down", "none"],
             "title": "Spin",
             "type": "string"
           }
         },
-        "required": [
-          "id",
-          "label",
-          "dos",
-          "occupied_dos"
-        ],
+        "required": ["id", "label", "dos", "occupied_dos"],
         "title": "DosSeries",
         "type": "object"
       },
@@ -1256,10 +1133,7 @@
             "type": "array"
           }
         },
-        "required": [
-          "energies",
-          "series"
-        ],
+        "required": ["energies", "series"],
         "title": "DosSpectrum",
         "type": "object"
       },
@@ -1281,10 +1155,7 @@
           },
           "shape": {
             "default": "gaussian",
-            "enum": [
-              "gaussian",
-              "lorentzian"
-            ],
+            "enum": ["gaussian", "lorentzian"],
             "title": "Shape",
             "type": "string"
           },
@@ -1303,9 +1174,7 @@
             "type": "number"
           }
         },
-        "required": [
-          "transitions"
-        ],
+        "required": ["transitions"],
         "title": "ElectronicSpectrumRequest",
         "type": "object"
       },
@@ -1366,9 +1235,7 @@
             "type": "number"
           }
         },
-        "required": [
-          "wavelength"
-        ],
+        "required": ["wavelength"],
         "title": "ElectronicTransition",
         "type": "object"
       },
@@ -1391,9 +1258,7 @@
             "$ref": "#/components/schemas/Structure"
           }
         },
-        "required": [
-          "structure"
-        ],
+        "required": ["structure"],
         "title": "EnergyRequest",
         "type": "object"
       },
@@ -1443,12 +1308,7 @@
             "type": "object"
           }
         },
-        "required": [
-          "force_field",
-          "energy",
-          "energy_native",
-          "forces"
-        ],
+        "required": ["force_field", "energy", "energy_native", "forces"],
         "title": "EnergyResult",
         "type": "object"
       },
@@ -1475,9 +1335,7 @@
             "type": "array"
           }
         },
-        "required": [
-          "available"
-        ],
+        "required": ["available"],
         "title": "ExecutableReport",
         "type": "object"
       },
@@ -1505,10 +1363,7 @@
             "$ref": "#/components/schemas/Structure"
           }
         },
-        "required": [
-          "structure",
-          "format"
-        ],
+        "required": ["structure", "format"],
         "title": "ExportRequest",
         "type": "object"
       },
@@ -1562,9 +1417,7 @@
             "$ref": "#/components/schemas/Trajectory"
           }
         },
-        "required": [
-          "trajectory"
-        ],
+        "required": ["trajectory"],
         "title": "ExportTrajectoryRequest",
         "type": "object"
       },
@@ -1610,16 +1463,7 @@
             "type": "array"
           },
           "kind": {
-            "enum": [
-              "ignore",
-              "fix",
-              "fix_x",
-              "fix_y",
-              "fix_z",
-              "distance",
-              "angle",
-              "torsion"
-            ],
+            "enum": ["ignore", "fix", "fix_x", "fix_y", "fix_z", "distance", "angle", "torsion"],
             "title": "Kind",
             "type": "string"
           },
@@ -1636,10 +1480,7 @@
             "title": "Value"
           }
         },
-        "required": [
-          "kind",
-          "atoms"
-        ],
+        "required": ["kind", "atoms"],
         "title": "FFConstraint",
         "type": "object"
       },
@@ -1670,9 +1511,7 @@
             "type": "number"
           }
         },
-        "required": [
-          "structure"
-        ],
+        "required": ["structure"],
         "title": "FillRequest",
         "type": "object"
       },
@@ -1693,9 +1532,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "indices"
-        ],
+        "required": ["indices"],
         "title": "FixAtoms",
         "type": "object"
       },
@@ -1717,10 +1554,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "a",
-          "b"
-        ],
+        "required": ["a", "b"],
         "title": "FixBondLength",
         "type": "object"
       },
@@ -1739,11 +1573,7 @@
             "type": "string"
           },
           "mask": {
-            "default": [
-              true,
-              true,
-              true
-            ],
+            "default": [true, true, true],
             "maxItems": 3,
             "minItems": 3,
             "prefixItems": [
@@ -1761,9 +1591,7 @@
             "type": "array"
           }
         },
-        "required": [
-          "index"
-        ],
+        "required": ["index"],
         "title": "FixCartesian",
         "type": "object"
       },
@@ -1771,10 +1599,7 @@
         "additionalProperties": false,
         "properties": {
           "algorithms": {
-            "default": [
-              "steepest_descent",
-              "conjugate_gradients"
-            ],
+            "default": ["steepest_descent", "conjugate_gradients"],
             "items": {
               "type": "string"
             },
@@ -1789,11 +1614,7 @@
             "type": "array"
           },
           "conformer_methods": {
-            "default": [
-              "systematic",
-              "random",
-              "weighted"
-            ],
+            "default": ["systematic", "random", "weighted"],
             "items": {
               "type": "string"
             },
@@ -1808,10 +1629,7 @@
             "type": "array"
           }
         },
-        "required": [
-          "force_fields",
-          "charge_models"
-        ],
+        "required": ["force_fields", "charge_models"],
         "title": "ForceFieldInfo",
         "type": "object"
       },
@@ -1886,14 +1704,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "name",
-          "extensions",
-          "description",
-          "can_read",
-          "can_write",
-          "library"
-        ],
+        "required": ["name", "extensions", "description", "can_read", "can_write", "library"],
         "title": "FormatDescription",
         "type": "object"
       },
@@ -1925,10 +1736,7 @@
             "$ref": "#/components/schemas/Structure"
           }
         },
-        "required": [
-          "structure",
-          "fractional"
-        ],
+        "required": ["structure", "fractional"],
         "title": "FractionalRequest",
         "type": "object"
       },
@@ -1957,9 +1765,7 @@
             "type": "array"
           }
         },
-        "required": [
-          "fractional"
-        ],
+        "required": ["fractional"],
         "title": "FractionalResponse",
         "type": "object"
       },
@@ -1988,13 +1794,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "id",
-          "category",
-          "name",
-          "formula",
-          "n_atoms"
-        ],
+        "required": ["id", "category", "name", "formula", "n_atoms"],
         "title": "FragmentInfo",
         "type": "object"
       },
@@ -2174,9 +1974,7 @@
             "title": "Time"
           }
         },
-        "required": [
-          "positions"
-        ],
+        "required": ["positions"],
         "title": "Frame",
         "type": "object"
       },
@@ -2199,10 +1997,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "name",
-          "text"
-        ],
+        "required": ["name", "text"],
         "title": "GeneratedFile",
         "type": "object"
       },
@@ -2227,10 +2022,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "files",
-          "root_name"
-        ],
+        "required": ["files", "root_name"],
         "title": "GeneratedInputs",
         "type": "object"
       },
@@ -2245,10 +2037,7 @@
           },
           "kind": {
             "default": "armchair",
-            "enum": [
-              "armchair",
-              "zigzag"
-            ],
+            "enum": ["armchair", "zigzag"],
             "title": "Kind",
             "type": "string"
           },
@@ -2273,10 +2062,7 @@
             "type": "boolean"
           }
         },
-        "required": [
-          "n",
-          "m"
-        ],
+        "required": ["n", "m"],
         "title": "GrapheneRequest",
         "type": "object"
       },
@@ -2299,9 +2085,7 @@
             "$ref": "#/components/schemas/VolumetricGrid"
           }
         },
-        "required": [
-          "grid"
-        ],
+        "required": ["grid"],
         "title": "GridRef",
         "type": "object"
       },
@@ -2338,15 +2122,7 @@
             "type": "number"
           }
         },
-        "required": [
-          "min",
-          "max",
-          "mean",
-          "abs_max",
-          "has_negative",
-          "suggested_isovalue",
-          "rule"
-        ],
+        "required": ["min", "max", "mean", "abs_max", "has_negative", "suggested_isovalue", "rule"],
         "title": "GridStats",
         "type": "object"
       },
@@ -2380,10 +2156,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "version",
-          "ase_version"
-        ],
+        "required": ["version", "ase_version"],
         "title": "HealthResponse",
         "type": "object"
       },
@@ -2403,11 +2176,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "smiles",
-          "inchi",
-          "inchikey"
-        ],
+        "required": ["smiles", "inchi", "inchikey"],
         "title": "Identifiers",
         "type": "object"
       },
@@ -2434,9 +2203,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "path"
-        ],
+        "required": ["path"],
         "title": "ImportCubeRequest",
         "type": "object"
       },
@@ -2450,10 +2217,7 @@
             "$ref": "#/components/schemas/Structure"
           }
         },
-        "required": [
-          "grid",
-          "structure"
-        ],
+        "required": ["grid", "structure"],
         "title": "ImportCubeResponse",
         "type": "object"
       },
@@ -2477,9 +2241,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "path"
-        ],
+        "required": ["path"],
         "title": "ImportPathRequest",
         "type": "object"
       },
@@ -2488,16 +2250,7 @@
         "properties": {
           "kind": {
             "default": "experimental",
-            "enum": [
-              "ir",
-              "raman",
-              "nmr",
-              "uvvis",
-              "cd",
-              "dos",
-              "experimental",
-              "other"
-            ],
+            "enum": ["ir", "raman", "nmr", "uvvis", "cd", "dos", "experimental", "other"],
             "title": "Kind",
             "type": "string"
           },
@@ -2507,9 +2260,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "path"
-        ],
+        "required": ["path"],
         "title": "ImportSpectrumRequest",
         "type": "object"
       },
@@ -2535,9 +2286,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "text"
-        ],
+        "required": ["text"],
         "title": "ImportTextRequest",
         "type": "object"
       },
@@ -2562,9 +2311,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "path"
-        ],
+        "required": ["path"],
         "title": "ImportTrajectoryRequest",
         "type": "object"
       },
@@ -2635,9 +2382,7 @@
             "$ref": "#/components/schemas/Structure"
           }
         },
-        "required": [
-          "structure"
-        ],
+        "required": ["structure"],
         "title": "InsertRequest",
         "type": "object"
       },
@@ -2658,10 +2403,7 @@
           },
           "shape": {
             "default": "gaussian",
-            "enum": [
-              "gaussian",
-              "lorentzian"
-            ],
+            "enum": ["gaussian", "lorentzian"],
             "title": "Shape",
             "type": "string"
           },
@@ -2680,9 +2422,7 @@
             "type": "number"
           }
         },
-        "required": [
-          "vibrations"
-        ],
+        "required": ["vibrations"],
         "title": "IrSpectrumRequest",
         "type": "object"
       },
@@ -2771,20 +2511,12 @@
           },
           "status": {
             "default": "queued",
-            "enum": [
-              "queued",
-              "running",
-              "completed",
-              "failed",
-              "cancelled"
-            ],
+            "enum": ["queued", "running", "completed", "failed", "cancelled"],
             "title": "Status",
             "type": "string"
           }
         },
-        "required": [
-          "spec"
-        ],
+        "required": ["spec"],
         "title": "JobRecord",
         "type": "object"
       },
@@ -2800,9 +2532,7 @@
             "type": "array"
           }
         },
-        "required": [
-          "points"
-        ],
+        "required": ["points"],
         "title": "KPath",
         "type": "object"
       },
@@ -2819,10 +2549,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "label",
-          "distance"
-        ],
+        "required": ["label", "distance"],
         "title": "KPathLabel",
         "type": "object"
       },
@@ -2852,10 +2579,7 @@
             "type": "array"
           }
         },
-        "required": [
-          "label",
-          "xk"
-        ],
+        "required": ["label", "xk"],
         "title": "KPathPoint",
         "type": "object"
       },
@@ -2879,12 +2603,7 @@
             "type": "boolean"
           }
         },
-        "required": [
-          "category",
-          "name",
-          "formula",
-          "readable"
-        ],
+        "required": ["category", "name", "formula", "readable"],
         "title": "LibraryEntry",
         "type": "object"
       },
@@ -2897,9 +2616,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "path"
-        ],
+        "required": ["path"],
         "title": "LoadRequest",
         "type": "object"
       },
@@ -2918,10 +2635,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "stream",
-          "lines"
-        ],
+        "required": ["stream", "lines"],
         "title": "LogResponse",
         "type": "object"
       },
@@ -2961,10 +2675,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "n",
-          "m"
-        ],
+        "required": ["n", "m"],
         "title": "NanotubeRequest",
         "type": "object"
       },
@@ -2999,11 +2710,7 @@
             "type": "number"
           }
         },
-        "required": [
-          "index",
-          "element",
-          "isotropic"
-        ],
+        "required": ["index", "element", "isotropic"],
         "title": "NmrShielding",
         "type": "object"
       },
@@ -3030,10 +2737,7 @@
           },
           "shape": {
             "default": "lorentzian",
-            "enum": [
-              "gaussian",
-              "lorentzian"
-            ],
+            "enum": ["gaussian", "lorentzian"],
             "title": "Shape",
             "type": "string"
           },
@@ -3052,10 +2756,7 @@
             "type": "number"
           }
         },
-        "required": [
-          "shieldings",
-          "element"
-        ],
+        "required": ["shieldings", "element"],
         "title": "NmrSpectrumRequest",
         "type": "object"
       },
@@ -3081,20 +2782,13 @@
           },
           "form": {
             "default": "B",
-            "enum": [
-              "A",
-              "B",
-              "Z"
-            ],
+            "enum": ["A", "B", "Z"],
             "title": "Form",
             "type": "string"
           },
           "kind": {
             "default": "dna",
-            "enum": [
-              "dna",
-              "rna"
-            ],
+            "enum": ["dna", "rna"],
             "title": "Kind",
             "type": "string"
           },
@@ -3103,9 +2797,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "sequence"
-        ],
+        "required": ["sequence"],
         "title": "NucleicRequest",
         "type": "object"
       },
@@ -3119,9 +2811,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "path"
-        ],
+        "required": ["path"],
         "title": "OpenProjectRequest",
         "type": "object"
       },
@@ -3130,10 +2820,7 @@
         "properties": {
           "algorithm": {
             "default": "steepest_descent",
-            "enum": [
-              "steepest_descent",
-              "conjugate_gradients"
-            ],
+            "enum": ["steepest_descent", "conjugate_gradients"],
             "title": "Algorithm",
             "type": "string"
           },
@@ -3145,7 +2832,7 @@
             "type": "array"
           },
           "convergence": {
-            "default": 1e-06,
+            "default": 1e-6,
             "exclusiveMinimum": 0.0,
             "title": "Convergence",
             "type": "number"
@@ -3172,9 +2859,7 @@
             "$ref": "#/components/schemas/Structure"
           }
         },
-        "required": [
-          "structure"
-        ],
+        "required": ["structure"],
         "title": "OptimizeRequest",
         "type": "object"
       },
@@ -3206,12 +2891,7 @@
             ]
           }
         },
-        "required": [
-          "structure",
-          "energy",
-          "converged",
-          "steps"
-        ],
+        "required": ["structure", "energy", "converged", "steps"],
         "title": "OptimizeResult",
         "type": "object"
       },
@@ -3221,10 +2901,7 @@
         "properties": {
           "algorithm": {
             "default": "steepest_descent",
-            "enum": [
-              "steepest_descent",
-              "conjugate_gradients"
-            ],
+            "enum": ["steepest_descent", "conjugate_gradients"],
             "title": "Algorithm",
             "type": "string"
           },
@@ -3258,9 +2935,7 @@
             "$ref": "#/components/schemas/Structure"
           }
         },
-        "required": [
-          "structure"
-        ],
+        "required": ["structure"],
         "title": "OptimizeStepRequest",
         "type": "object"
       },
@@ -3278,11 +2953,7 @@
             "$ref": "#/components/schemas/Structure"
           }
         },
-        "required": [
-          "structure",
-          "energy",
-          "converged"
-        ],
+        "required": ["structure", "energy", "converged"],
         "title": "OptimizeStepResponse",
         "type": "object"
       },
@@ -3330,14 +3001,7 @@
             "type": "integer"
           }
         },
-        "required": [
-          "band",
-          "kpoint",
-          "spin",
-          "energy",
-          "occupation",
-          "label"
-        ],
+        "required": ["band", "kpoint", "spin", "energy", "occupation", "label"],
         "title": "OrbitalEntry",
         "type": "object"
       },
@@ -3353,9 +3017,7 @@
             "type": "array"
           }
         },
-        "required": [
-          "orbitals"
-        ],
+        "required": ["orbitals"],
         "title": "OrbitalExportOptions",
         "type": "object"
       },
@@ -3416,11 +3078,7 @@
           },
           "spin": {
             "default": "none",
-            "enum": [
-              "up",
-              "down",
-              "none"
-            ],
+            "enum": ["up", "down", "none"],
             "title": "Spin",
             "type": "string"
           },
@@ -3436,9 +3094,7 @@
             "title": "Symmetry"
           }
         },
-        "required": [
-          "index"
-        ],
+        "required": ["index"],
         "title": "OrbitalInfo",
         "type": "object"
       },
@@ -3461,11 +3117,7 @@
             "type": "array"
           }
         },
-        "required": [
-          "orbitals",
-          "n_spins",
-          "n_kpoints"
-        ],
+        "required": ["orbitals", "n_spins", "n_kpoints"],
         "title": "OrbitalList",
         "type": "object"
       },
@@ -3492,9 +3144,7 @@
             "type": "integer"
           }
         },
-        "required": [
-          "band"
-        ],
+        "required": ["band"],
         "title": "OrbitalRequest",
         "type": "object"
       },
@@ -3523,11 +3173,7 @@
             ]
           }
         },
-        "required": [
-          "structure",
-          "program_format",
-          "n_frames"
-        ],
+        "required": ["structure", "program_format", "n_frames"],
         "title": "OutputImport",
         "type": "object"
       },
@@ -3560,12 +3206,7 @@
             "type": "integer"
           }
         },
-        "required": [
-          "id",
-          "backend",
-          "title",
-          "sections"
-        ],
+        "required": ["id", "backend", "title", "sections"],
         "title": "ParameterSchema",
         "type": "object"
       },
@@ -3696,15 +3337,7 @@
             "type": "boolean"
           },
           "type": {
-            "enum": [
-              "integer",
-              "number",
-              "boolean",
-              "string",
-              "enum",
-              "vector",
-              "text"
-            ],
+            "enum": ["integer", "number", "boolean", "string", "enum", "vector", "text"],
             "title": "Type",
             "type": "string"
           },
@@ -3726,11 +3359,7 @@
             "type": "array"
           }
         },
-        "required": [
-          "key",
-          "label",
-          "type"
-        ],
+        "required": ["key", "label", "type"],
         "title": "ParameterSpec",
         "type": "object"
       },
@@ -3755,9 +3384,7 @@
             "type": "object"
           }
         },
-        "required": [
-          "presets"
-        ],
+        "required": ["presets"],
         "title": "PeptidePresets",
         "type": "object"
       },
@@ -3782,14 +3409,7 @@
           },
           "preset": {
             "default": "alpha_helix",
-            "enum": [
-              "straight",
-              "alpha_helix",
-              "beta_sheet",
-              "helix_3_10",
-              "pi_helix",
-              "custom"
-            ],
+            "enum": ["straight", "alpha_helix", "beta_sheet", "helix_3_10", "pi_helix", "custom"],
             "title": "Preset",
             "type": "string"
           },
@@ -3809,9 +3429,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "sequence"
-        ],
+        "required": ["sequence"],
         "title": "PeptideRequest",
         "type": "object"
       },
@@ -3827,9 +3445,7 @@
             "$ref": "#/components/schemas/Structure"
           }
         },
-        "required": [
-          "structure"
-        ],
+        "required": ["structure"],
         "title": "PerceiveRequest",
         "type": "object"
       },
@@ -3881,12 +3497,7 @@
             "type": "number"
           }
         },
-        "required": [
-          "symbol",
-          "order",
-          "operations",
-          "tolerance"
-        ],
+        "required": ["symbol", "order", "operations", "tolerance"],
         "title": "PointGroupResult",
         "type": "object"
       },
@@ -3917,11 +3528,7 @@
             "type": "object"
           }
         },
-        "required": [
-          "id",
-          "name",
-          "schema_id"
-        ],
+        "required": ["id", "name", "schema_id"],
         "title": "Preset",
         "type": "object"
       },
@@ -3937,10 +3544,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "path",
-          "manifest"
-        ],
+        "required": ["path", "manifest"],
         "title": "ProjectInfo",
         "type": "object"
       },
@@ -4046,9 +3650,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "source"
-        ],
+        "required": ["source"],
         "title": "Provenance",
         "type": "object"
       },
@@ -4064,10 +3666,7 @@
             "type": "number"
           }
         },
-        "required": [
-          "value",
-          "unit"
-        ],
+        "required": ["value", "unit"],
         "title": "Quantity",
         "type": "object"
       },
@@ -4096,11 +3695,7 @@
             "type": "integer"
           }
         },
-        "required": [
-          "name",
-          "number",
-          "atom_indices"
-        ],
+        "required": ["name", "number", "atom_indices"],
         "title": "Residue",
         "type": "object"
       },
@@ -4126,12 +3721,7 @@
             "type": "string"
           },
           "kind": {
-            "enum": [
-              "helix",
-              "sheet",
-              "turn",
-              "coil"
-            ],
+            "enum": ["helix", "sheet", "turn", "coil"],
             "title": "Kind",
             "type": "string"
           },
@@ -4157,18 +3747,7 @@
             "type": "integer"
           }
         },
-        "required": [
-          "residue",
-          "name",
-          "number",
-          "chain",
-          "kind",
-          "code",
-          "n",
-          "ca",
-          "c",
-          "o"
-        ],
+        "required": ["residue", "name", "number", "chain", "kind", "code", "n", "ca", "c", "o"],
         "title": "ResidueStructure",
         "type": "object"
       },
@@ -4329,10 +3908,7 @@
             "type": "array"
           }
         },
-        "required": [
-          "argv",
-          "cwd"
-        ],
+        "required": ["argv", "cwd"],
         "title": "RunSpec",
         "type": "object"
       },
@@ -4377,13 +3953,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "name",
-          "x_label",
-          "y_label",
-          "x",
-          "y"
-        ],
+        "required": ["name", "x_label", "y_label", "x", "y"],
         "title": "ScalarSeries",
         "type": "object"
       },
@@ -4394,9 +3964,7 @@
             "$ref": "#/components/schemas/Structure"
           }
         },
-        "required": [
-          "structure"
-        ],
+        "required": ["structure"],
         "title": "SecondaryStructureRequest",
         "type": "object"
       },
@@ -4429,11 +3997,7 @@
             "type": "array"
           }
         },
-        "required": [
-          "residues",
-          "chains",
-          "hbonds"
-        ],
+        "required": ["residues", "chains", "hbonds"],
         "title": "SecondaryStructureResult",
         "type": "object"
       },
@@ -4466,10 +4030,7 @@
             "type": "array"
           }
         },
-        "required": [
-          "id",
-          "label"
-        ],
+        "required": ["id", "label"],
         "title": "Section",
         "type": "object"
       },
@@ -4478,10 +4039,7 @@
         "properties": {
           "mode": {
             "default": "cartesian",
-            "enum": [
-              "cartesian",
-              "fractional"
-            ],
+            "enum": ["cartesian", "fractional"],
             "title": "Mode",
             "type": "string"
           },
@@ -4590,9 +4148,7 @@
             "title": "Vectors"
           }
         },
-        "required": [
-          "structure"
-        ],
+        "required": ["structure"],
         "title": "SetCellRequest",
         "type": "object"
       },
@@ -4631,11 +4187,7 @@
             "type": "number"
           }
         },
-        "required": [
-          "structure",
-          "miller",
-          "layers"
-        ],
+        "required": ["structure", "miller", "layers"],
         "title": "SlabRequest",
         "type": "object"
       },
@@ -4657,10 +4209,7 @@
             "type": "boolean"
           }
         },
-        "required": [
-          "structure",
-          "pattern"
-        ],
+        "required": ["structure", "pattern"],
         "title": "SmartsRequest",
         "type": "object"
       },
@@ -4686,10 +4235,7 @@
             "type": "array"
           }
         },
-        "required": [
-          "matches",
-          "atoms"
-        ],
+        "required": ["matches", "atoms"],
         "title": "SmartsResult",
         "type": "object"
       },
@@ -4706,9 +4252,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "smiles"
-        ],
+        "required": ["smiles"],
         "title": "SmilesRequest",
         "type": "object"
       },
@@ -4787,12 +4331,7 @@
             "type": "array"
           }
         },
-        "required": [
-          "symbols",
-          "basis",
-          "spacegroup",
-          "cellpar"
-        ],
+        "required": ["symbols", "basis", "spacegroup", "cellpar"],
         "title": "SpacegroupBuildRequest",
         "type": "object"
       },
@@ -4805,26 +4344,14 @@
             "type": "string"
           },
           "kind": {
-            "enum": [
-              "ir",
-              "raman",
-              "nmr",
-              "uvvis",
-              "cd",
-              "dos",
-              "experimental",
-              "other"
-            ],
+            "enum": ["ir", "raman", "nmr", "uvvis", "cd", "dos", "experimental", "other"],
             "title": "Kind",
             "type": "string"
           },
           "line_shape": {
             "anyOf": [
               {
-                "enum": [
-                  "gaussian",
-                  "lorentzian"
-                ],
+                "enum": ["gaussian", "lorentzian"],
                 "type": "string"
               },
               {
@@ -4890,13 +4417,7 @@
             "type": "array"
           }
         },
-        "required": [
-          "id",
-          "kind",
-          "name",
-          "x",
-          "y"
-        ],
+        "required": ["id", "kind", "name", "x", "y"],
         "title": "Spectrum",
         "type": "object"
       },
@@ -4921,10 +4442,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "label",
-          "unit"
-        ],
+        "required": ["label", "unit"],
         "title": "SpectrumAxis",
         "type": "object"
       },
@@ -4977,10 +4495,7 @@
             "type": "number"
           }
         },
-        "required": [
-          "x",
-          "intensity"
-        ],
+        "required": ["x", "intensity"],
         "title": "SpectrumPeak",
         "type": "object"
       },
@@ -4989,16 +4504,7 @@
         "properties": {
           "kind": {
             "default": "other",
-            "enum": [
-              "ir",
-              "raman",
-              "nmr",
-              "uvvis",
-              "cd",
-              "dos",
-              "experimental",
-              "other"
-            ],
+            "enum": ["ir", "raman", "nmr", "uvvis", "cd", "dos", "experimental", "other"],
             "title": "Kind",
             "type": "string"
           },
@@ -5023,10 +4529,7 @@
           },
           "shape": {
             "default": "gaussian",
-            "enum": [
-              "gaussian",
-              "lorentzian"
-            ],
+            "enum": ["gaussian", "lorentzian"],
             "title": "Shape",
             "type": "string"
           },
@@ -5056,11 +4559,7 @@
             "$ref": "#/components/schemas/SpectrumAxis"
           }
         },
-        "required": [
-          "peaks",
-          "x",
-          "y"
-        ],
+        "required": ["peaks", "x", "y"],
         "title": "SpectrumRequest",
         "type": "object"
       },
@@ -5194,9 +4693,7 @@
             "$ref": "#/components/schemas/Structure"
           }
         },
-        "required": [
-          "structure"
-        ],
+        "required": ["structure"],
         "title": "StructureBody",
         "type": "object"
       },
@@ -5207,9 +4704,7 @@
             "$ref": "#/components/schemas/Structure"
           }
         },
-        "required": [
-          "structure"
-        ],
+        "required": ["structure"],
         "title": "StructureRequest",
         "type": "object"
       },
@@ -5237,13 +4732,7 @@
             "type": "boolean"
           }
         },
-        "required": [
-          "id",
-          "name",
-          "formula",
-          "n_atoms",
-          "periodic"
-        ],
+        "required": ["id", "name", "formula", "n_atoms", "periodic"],
         "title": "StructureSummary",
         "type": "object"
       },
@@ -5345,9 +4834,7 @@
             "$ref": "#/components/schemas/Structure"
           }
         },
-        "required": [
-          "structure"
-        ],
+        "required": ["structure"],
         "title": "SupercellRequest",
         "type": "object"
       },
@@ -5356,13 +4843,7 @@
         "properties": {
           "kind": {
             "default": "orbital",
-            "enum": [
-              "orbital",
-              "density",
-              "spin_density",
-              "electrostatic_potential",
-              "vdw"
-            ],
+            "enum": ["orbital", "density", "spin_density", "electrostatic_potential", "vdw"],
             "title": "Kind",
             "type": "string"
           },
@@ -5408,9 +4889,7 @@
             "type": "number"
           }
         },
-        "required": [
-          "path"
-        ],
+        "required": ["path"],
         "title": "SurfaceRequest",
         "type": "object"
       },
@@ -5562,11 +5041,7 @@
             "type": "array"
           }
         },
-        "required": [
-          "id",
-          "name",
-          "symbols"
-        ],
+        "required": ["id", "name", "symbols"],
         "title": "Trajectory",
         "type": "object"
       },
@@ -5581,10 +5056,7 @@
             "$ref": "#/components/schemas/Trajectory"
           }
         },
-        "required": [
-          "trajectory",
-          "structure"
-        ],
+        "required": ["trajectory", "structure"],
         "title": "TrajectoryImport",
         "type": "object"
       },
@@ -5781,10 +5253,7 @@
           },
           "mode": {
             "default": "cartesian",
-            "enum": [
-              "cartesian",
-              "fractional"
-            ],
+            "enum": ["cartesian", "fractional"],
             "title": "Mode",
             "type": "string"
           },
@@ -5815,10 +5284,7 @@
             "type": "boolean"
           }
         },
-        "required": [
-          "structure",
-          "vector"
-        ],
+        "required": ["structure", "vector"],
         "title": "TranslateRequest",
         "type": "object"
       },
@@ -5862,9 +5328,7 @@
             "type": "object"
           }
         },
-        "required": [
-          "values"
-        ],
+        "required": ["values"],
         "title": "UpdateValuesRequest",
         "type": "object"
       },
@@ -5900,11 +5364,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "loc",
-          "msg",
-          "type"
-        ],
+        "required": ["loc", "msg", "type"],
         "title": "ValidationError",
         "type": "object"
       },
@@ -5928,18 +5388,12 @@
           },
           "severity": {
             "default": "error",
-            "enum": [
-              "error",
-              "warning"
-            ],
+            "enum": ["error", "warning"],
             "title": "Severity",
             "type": "string"
           }
         },
-        "required": [
-          "key",
-          "message"
-        ],
+        "required": ["key", "message"],
         "title": "ValidationIssue",
         "type": "object"
       },
@@ -6000,9 +5454,7 @@
             ]
           }
         },
-        "required": [
-          "program"
-        ],
+        "required": ["program"],
         "title": "VibrationImport",
         "type": "object"
       },
@@ -6103,10 +5555,7 @@
             "title": "Symmetry"
           }
         },
-        "required": [
-          "frequency",
-          "displacements"
-        ],
+        "required": ["frequency", "displacements"],
         "title": "VibrationalMode",
         "type": "object"
       },
@@ -6221,10 +5670,7 @@
             "title": "Zero Point Energy"
           }
         },
-        "required": [
-          "id",
-          "modes"
-        ],
+        "required": ["id", "modes"],
         "title": "VibrationalSpectrum",
         "type": "object"
       },
@@ -6267,9 +5713,7 @@
             "$ref": "#/components/schemas/Structure"
           }
         },
-        "required": [
-          "structure"
-        ],
+        "required": ["structure"],
         "title": "VibrationsRequest",
         "type": "object"
       },
@@ -6287,11 +5731,7 @@
             "$ref": "#/components/schemas/VibrationalSpectrum"
           }
         },
-        "required": [
-          "vibrations",
-          "structure",
-          "ir"
-        ],
+        "required": ["vibrations", "structure", "ir"],
         "title": "VibrationsResponse",
         "type": "object"
       },
@@ -6304,9 +5744,7 @@
             "type": "object"
           }
         },
-        "required": [
-          "settings"
-        ],
+        "required": ["settings"],
         "title": "ViewSettingsBody",
         "type": "object"
       },
@@ -6320,14 +5758,7 @@
           },
           "op": {
             "default": "eq",
-            "enum": [
-              "eq",
-              "ne",
-              "in",
-              "not_in",
-              "truthy",
-              "falsy"
-            ],
+            "enum": ["eq", "ne", "in", "not_in", "truthy", "falsy"],
             "title": "Op",
             "type": "string"
           },
@@ -6335,9 +5766,7 @@
             "title": "Value"
           }
         },
-        "required": [
-          "key"
-        ],
+        "required": ["key"],
         "title": "VisibleWhen",
         "type": "object"
       },
@@ -6354,10 +5783,7 @@
             "type": "number"
           }
         },
-        "required": [
-          "structure",
-          "volume"
-        ],
+        "required": ["structure", "volume"],
         "title": "VolumeRequest",
         "type": "object"
       },
@@ -6438,10 +5864,7 @@
           },
           "dtype": {
             "default": "float32",
-            "enum": [
-              "float32",
-              "float64"
-            ],
+            "enum": ["float32", "float64"],
             "title": "Dtype",
             "type": "string"
           },
@@ -6552,14 +5975,7 @@
             "$ref": "#/components/schemas/Unit"
           }
         },
-        "required": [
-          "id",
-          "name",
-          "origin",
-          "axes",
-          "shape",
-          "unit"
-        ],
+        "required": ["id", "name", "origin", "axes", "shape", "unit"],
         "title": "VolumetricGrid",
         "type": "object"
       },
@@ -6649,12 +6065,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "index",
-          "occupation",
-          "spin",
-          "label"
-        ],
+        "required": ["index", "occupation", "spin", "label"],
         "title": "WavefunctionOrbital",
         "type": "object"
       },
@@ -6666,18 +6077,12 @@
           },
           "tolerance": {
             "default": "normal",
-            "enum": [
-              "loose",
-              "normal",
-              "tight"
-            ],
+            "enum": ["loose", "normal", "tight"],
             "title": "Tolerance",
             "type": "string"
           }
         },
-        "required": [
-          "structure"
-        ],
+        "required": ["structure"],
         "title": "SymmetryRequest",
         "type": "object"
       },
@@ -6695,9 +6100,7 @@
             "type": "number"
           }
         },
-        "required": [
-          "structure"
-        ],
+        "required": ["structure"],
         "title": "SymmetryRequest",
         "type": "object"
       }
@@ -6746,9 +6149,7 @@
           }
         },
         "summary": "Electronic",
-        "tags": [
-          "analysis"
-        ]
+        "tags": ["analysis"]
       }
     },
     "/api/analysis/nmr": {
@@ -6788,9 +6189,7 @@
           }
         },
         "summary": "Nmr",
-        "tags": [
-          "analysis"
-        ]
+        "tags": ["analysis"]
       }
     },
     "/api/analysis/spectrum": {
@@ -6830,9 +6229,7 @@
           }
         },
         "summary": "Spectrum",
-        "tags": [
-          "analysis"
-        ]
+        "tags": ["analysis"]
       }
     },
     "/api/analysis/vibrations": {
@@ -6872,9 +6269,7 @@
           }
         },
         "summary": "Vibrations",
-        "tags": [
-          "analysis"
-        ]
+        "tags": ["analysis"]
       }
     },
     "/api/analysis/vibrations/spectrum": {
@@ -6914,9 +6309,7 @@
           }
         },
         "summary": "Vibrational Spectrum",
-        "tags": [
-          "analysis"
-        ]
+        "tags": ["analysis"]
       }
     },
     "/api/backends": {
@@ -6939,9 +6332,7 @@
           }
         },
         "summary": "List Backends",
-        "tags": [
-          "backends"
-        ]
+        "tags": ["backends"]
       }
     },
     "/api/backends/{backend_id}/presets": {
@@ -6985,9 +6376,7 @@
           }
         },
         "summary": "Backend Presets",
-        "tags": [
-          "backends"
-        ]
+        "tags": ["backends"]
       }
     },
     "/api/backends/{backend_id}/schema": {
@@ -7027,9 +6416,7 @@
           }
         },
         "summary": "Backend Schema",
-        "tags": [
-          "backends"
-        ]
+        "tags": ["backends"]
       }
     },
     "/api/build/fragments": {
@@ -7052,9 +6439,7 @@
           }
         },
         "summary": "List Fragments",
-        "tags": [
-          "build"
-        ]
+        "tags": ["build"]
       }
     },
     "/api/build/fragments/{fragment_id}": {
@@ -7094,9 +6479,7 @@
           }
         },
         "summary": "Get Fragment",
-        "tags": [
-          "build"
-        ]
+        "tags": ["build"]
       }
     },
     "/api/build/graphene": {
@@ -7135,9 +6518,7 @@
           }
         },
         "summary": "Build Graphene",
-        "tags": [
-          "build"
-        ]
+        "tags": ["build"]
       }
     },
     "/api/build/insert": {
@@ -7176,9 +6557,7 @@
           }
         },
         "summary": "Insert",
-        "tags": [
-          "build"
-        ]
+        "tags": ["build"]
       }
     },
     "/api/build/nanotube": {
@@ -7217,9 +6596,7 @@
           }
         },
         "summary": "Build Nanotube",
-        "tags": [
-          "build"
-        ]
+        "tags": ["build"]
       }
     },
     "/api/build/nucleic": {
@@ -7258,9 +6635,7 @@
           }
         },
         "summary": "Build Nucleic",
-        "tags": [
-          "build"
-        ]
+        "tags": ["build"]
       }
     },
     "/api/build/peptide": {
@@ -7299,9 +6674,7 @@
           }
         },
         "summary": "Build Peptide",
-        "tags": [
-          "build"
-        ]
+        "tags": ["build"]
       }
     },
     "/api/build/peptide/presets": {
@@ -7320,9 +6693,7 @@
           }
         },
         "summary": "Peptide Presets",
-        "tags": [
-          "build"
-        ]
+        "tags": ["build"]
       }
     },
     "/api/calculations": {
@@ -7345,9 +6716,7 @@
           }
         },
         "summary": "List Calculations",
-        "tags": [
-          "calculations"
-        ]
+        "tags": ["calculations"]
       },
       "post": {
         "operationId": "create_calculation_api_calculations_post",
@@ -7384,9 +6753,7 @@
           }
         },
         "summary": "Create Calculation",
-        "tags": [
-          "calculations"
-        ]
+        "tags": ["calculations"]
       }
     },
     "/api/calculations/{calc_id}": {
@@ -7426,9 +6793,7 @@
           }
         },
         "summary": "Get Calculation",
-        "tags": [
-          "calculations"
-        ]
+        "tags": ["calculations"]
       }
     },
     "/api/calculations/{calc_id}/cancel": {
@@ -7468,9 +6833,7 @@
           }
         },
         "summary": "Cancel Calculation",
-        "tags": [
-          "calculations"
-        ]
+        "tags": ["calculations"]
       }
     },
     "/api/calculations/{calc_id}/fork": {
@@ -7520,9 +6883,7 @@
           }
         },
         "summary": "Fork Calculation",
-        "tags": [
-          "calculations"
-        ]
+        "tags": ["calculations"]
       }
     },
     "/api/calculations/{calc_id}/generate": {
@@ -7562,9 +6923,7 @@
           }
         },
         "summary": "Generate Inputs",
-        "tags": [
-          "calculations"
-        ]
+        "tags": ["calculations"]
       }
     },
     "/api/calculations/{calc_id}/log": {
@@ -7625,9 +6984,7 @@
           }
         },
         "summary": "Read Log",
-        "tags": [
-          "calculations"
-        ]
+        "tags": ["calculations"]
       }
     },
     "/api/calculations/{calc_id}/results": {
@@ -7667,9 +7024,7 @@
           }
         },
         "summary": "Results",
-        "tags": [
-          "calculations"
-        ]
+        "tags": ["calculations"]
       }
     },
     "/api/calculations/{calc_id}/run": {
@@ -7710,9 +7065,7 @@
           }
         },
         "summary": "Run Calculation",
-        "tags": [
-          "calculations"
-        ]
+        "tags": ["calculations"]
       }
     },
     "/api/calculations/{calc_id}/trajectory": {
@@ -7752,9 +7105,7 @@
           }
         },
         "summary": "Trajectory",
-        "tags": [
-          "trajectory"
-        ]
+        "tags": ["trajectory"]
       }
     },
     "/api/calculations/{calc_id}/trajectory/positions": {
@@ -7791,9 +7142,7 @@
           }
         },
         "summary": "Trajectory Positions",
-        "tags": [
-          "trajectory"
-        ]
+        "tags": ["trajectory"]
       }
     },
     "/api/calculations/{calc_id}/trajectory/scalars": {
@@ -7833,9 +7182,7 @@
           }
         },
         "summary": "Trajectory Scalars",
-        "tags": [
-          "trajectory"
-        ]
+        "tags": ["trajectory"]
       }
     },
     "/api/calculations/{calc_id}/validate": {
@@ -7875,9 +7222,7 @@
           }
         },
         "summary": "Validate Calculation",
-        "tags": [
-          "calculations"
-        ]
+        "tags": ["calculations"]
       }
     },
     "/api/calculations/{calc_id}/values": {
@@ -7927,9 +7272,7 @@
           }
         },
         "summary": "Update Values",
-        "tags": [
-          "calculations"
-        ]
+        "tags": ["calculations"]
       }
     },
     "/api/chem/add-hydrogens": {
@@ -7968,9 +7311,7 @@
           }
         },
         "summary": "Add Hydrogens",
-        "tags": [
-          "chem"
-        ]
+        "tags": ["chem"]
       }
     },
     "/api/chem/aromaticity": {
@@ -8009,9 +7350,7 @@
           }
         },
         "summary": "Aromaticity",
-        "tags": [
-          "chem"
-        ]
+        "tags": ["chem"]
       }
     },
     "/api/chem/conformers": {
@@ -8050,9 +7389,7 @@
           }
         },
         "summary": "Conformers",
-        "tags": [
-          "chem"
-        ]
+        "tags": ["chem"]
       }
     },
     "/api/chem/energy": {
@@ -8091,9 +7428,7 @@
           }
         },
         "summary": "Energy",
-        "tags": [
-          "chem"
-        ]
+        "tags": ["chem"]
       }
     },
     "/api/chem/force-fields": {
@@ -8112,9 +7447,7 @@
           }
         },
         "summary": "Force Fields",
-        "tags": [
-          "chem"
-        ]
+        "tags": ["chem"]
       }
     },
     "/api/chem/h-to-methyl": {
@@ -8153,9 +7486,7 @@
           }
         },
         "summary": "H To Methyl",
-        "tags": [
-          "chem"
-        ]
+        "tags": ["chem"]
       }
     },
     "/api/chem/identifiers": {
@@ -8194,9 +7525,7 @@
           }
         },
         "summary": "Identifiers",
-        "tags": [
-          "chem"
-        ]
+        "tags": ["chem"]
       }
     },
     "/api/chem/invert-chirality": {
@@ -8235,9 +7564,7 @@
           }
         },
         "summary": "Invert Chirality",
-        "tags": [
-          "chem"
-        ]
+        "tags": ["chem"]
       }
     },
     "/api/chem/optimize": {
@@ -8276,9 +7603,7 @@
           }
         },
         "summary": "Optimize",
-        "tags": [
-          "chem"
-        ]
+        "tags": ["chem"]
       }
     },
     "/api/chem/optimize-step": {
@@ -8317,9 +7642,7 @@
           }
         },
         "summary": "Optimize Step",
-        "tags": [
-          "chem"
-        ]
+        "tags": ["chem"]
       }
     },
     "/api/chem/partial-charges": {
@@ -8358,9 +7681,7 @@
           }
         },
         "summary": "Partial Charges",
-        "tags": [
-          "chem"
-        ]
+        "tags": ["chem"]
       }
     },
     "/api/chem/perceive-bonds": {
@@ -8399,9 +7720,7 @@
           }
         },
         "summary": "Perceive Bonds",
-        "tags": [
-          "chem"
-        ]
+        "tags": ["chem"]
       }
     },
     "/api/chem/point-group": {
@@ -8440,9 +7759,7 @@
           }
         },
         "summary": "Point Group",
-        "tags": [
-          "chem"
-        ]
+        "tags": ["chem"]
       }
     },
     "/api/chem/remove-hydrogens": {
@@ -8481,9 +7798,7 @@
           }
         },
         "summary": "Remove Hydrogens",
-        "tags": [
-          "chem"
-        ]
+        "tags": ["chem"]
       }
     },
     "/api/chem/secondary-structure": {
@@ -8523,9 +7838,7 @@
           }
         },
         "summary": "Secondary Structure",
-        "tags": [
-          "chem"
-        ]
+        "tags": ["chem"]
       }
     },
     "/api/chem/smarts": {
@@ -8564,9 +7877,7 @@
           }
         },
         "summary": "Select Smarts",
-        "tags": [
-          "chem"
-        ]
+        "tags": ["chem"]
       }
     },
     "/api/chem/symmetrize": {
@@ -8605,9 +7916,7 @@
           }
         },
         "summary": "Symmetrize",
-        "tags": [
-          "chem"
-        ]
+        "tags": ["chem"]
       }
     },
     "/api/cppaw/calculations/{calc_id}/bands": {
@@ -8647,9 +7956,7 @@
           }
         },
         "summary": "Get Bands",
-        "tags": [
-          "cppaw"
-        ]
+        "tags": ["cppaw"]
       },
       "post": {
         "operationId": "request_bands_api_cppaw_calculations__calc_id__bands_post",
@@ -8697,9 +8004,7 @@
           }
         },
         "summary": "Request Bands",
-        "tags": [
-          "cppaw"
-        ]
+        "tags": ["cppaw"]
       }
     },
     "/api/cppaw/calculations/{calc_id}/bands/path": {
@@ -8739,9 +8044,7 @@
           }
         },
         "summary": "Default Band Path",
-        "tags": [
-          "cppaw"
-        ]
+        "tags": ["cppaw"]
       }
     },
     "/api/cppaw/calculations/{calc_id}/dos": {
@@ -8781,9 +8084,7 @@
           }
         },
         "summary": "Get Dos",
-        "tags": [
-          "cppaw"
-        ]
+        "tags": ["cppaw"]
       },
       "post": {
         "operationId": "request_dos_api_cppaw_calculations__calc_id__dos_post",
@@ -8831,9 +8132,7 @@
           }
         },
         "summary": "Request Dos",
-        "tags": [
-          "cppaw"
-        ]
+        "tags": ["cppaw"]
       }
     },
     "/api/cppaw/calculations/{calc_id}/orbitals": {
@@ -8873,9 +8172,7 @@
           }
         },
         "summary": "Orbitals",
-        "tags": [
-          "cppaw"
-        ]
+        "tags": ["cppaw"]
       }
     },
     "/api/cppaw/calculations/{calc_id}/orbitals/export": {
@@ -8926,9 +8223,7 @@
           }
         },
         "summary": "Export Orbitals",
-        "tags": [
-          "cppaw"
-        ]
+        "tags": ["cppaw"]
       }
     },
     "/api/crystal/asymmetric-unit": {
@@ -8967,9 +8262,7 @@
           }
         },
         "summary": "Asymmetric Unit",
-        "tags": [
-          "crystal"
-        ]
+        "tags": ["crystal"]
       }
     },
     "/api/crystal/bulk": {
@@ -9008,9 +8301,7 @@
           }
         },
         "summary": "Bulk",
-        "tags": [
-          "crystal"
-        ]
+        "tags": ["crystal"]
       }
     },
     "/api/crystal/cell/add": {
@@ -9049,9 +8340,7 @@
           }
         },
         "summary": "Add Cell",
-        "tags": [
-          "crystal"
-        ]
+        "tags": ["crystal"]
       }
     },
     "/api/crystal/cell/remove": {
@@ -9090,9 +8379,7 @@
           }
         },
         "summary": "Remove Cell",
-        "tags": [
-          "crystal"
-        ]
+        "tags": ["crystal"]
       }
     },
     "/api/crystal/cell/set": {
@@ -9131,9 +8418,7 @@
           }
         },
         "summary": "Set Cell",
-        "tags": [
-          "crystal"
-        ]
+        "tags": ["crystal"]
       }
     },
     "/api/crystal/fill": {
@@ -9172,9 +8457,7 @@
           }
         },
         "summary": "Fill",
-        "tags": [
-          "crystal"
-        ]
+        "tags": ["crystal"]
       }
     },
     "/api/crystal/fractional": {
@@ -9213,9 +8496,7 @@
           }
         },
         "summary": "Fractional",
-        "tags": [
-          "crystal"
-        ]
+        "tags": ["crystal"]
       }
     },
     "/api/crystal/fractional/set": {
@@ -9254,9 +8535,7 @@
           }
         },
         "summary": "Set Fractional",
-        "tags": [
-          "crystal"
-        ]
+        "tags": ["crystal"]
       }
     },
     "/api/crystal/library": {
@@ -9279,9 +8558,7 @@
           }
         },
         "summary": "Library",
-        "tags": [
-          "crystal"
-        ]
+        "tags": ["crystal"]
       }
     },
     "/api/crystal/library/{category}/{name}": {
@@ -9330,9 +8607,7 @@
           }
         },
         "summary": "Library Entry",
-        "tags": [
-          "crystal"
-        ]
+        "tags": ["crystal"]
       }
     },
     "/api/crystal/niggli": {
@@ -9371,9 +8646,7 @@
           }
         },
         "summary": "Niggli",
-        "tags": [
-          "crystal"
-        ]
+        "tags": ["crystal"]
       }
     },
     "/api/crystal/primitive": {
@@ -9412,9 +8685,7 @@
           }
         },
         "summary": "Primitive",
-        "tags": [
-          "crystal"
-        ]
+        "tags": ["crystal"]
       }
     },
     "/api/crystal/primitive-standardized": {
@@ -9453,9 +8724,7 @@
           }
         },
         "summary": "Primitive Standardized",
-        "tags": [
-          "crystal"
-        ]
+        "tags": ["crystal"]
       }
     },
     "/api/crystal/scale-volume": {
@@ -9494,9 +8763,7 @@
           }
         },
         "summary": "Scale Volume",
-        "tags": [
-          "crystal"
-        ]
+        "tags": ["crystal"]
       }
     },
     "/api/crystal/slab": {
@@ -9535,9 +8802,7 @@
           }
         },
         "summary": "Slab",
-        "tags": [
-          "crystal"
-        ]
+        "tags": ["crystal"]
       }
     },
     "/api/crystal/spacegroup": {
@@ -9576,9 +8841,7 @@
           }
         },
         "summary": "From Spacegroup",
-        "tags": [
-          "crystal"
-        ]
+        "tags": ["crystal"]
       }
     },
     "/api/crystal/standard-orientation": {
@@ -9617,9 +8880,7 @@
           }
         },
         "summary": "Standard Orientation",
-        "tags": [
-          "crystal"
-        ]
+        "tags": ["crystal"]
       }
     },
     "/api/crystal/supercell": {
@@ -9658,9 +8919,7 @@
           }
         },
         "summary": "Supercell",
-        "tags": [
-          "crystal"
-        ]
+        "tags": ["crystal"]
       }
     },
     "/api/crystal/symmetrize": {
@@ -9699,9 +8958,7 @@
           }
         },
         "summary": "Symmetrize",
-        "tags": [
-          "crystal"
-        ]
+        "tags": ["crystal"]
       }
     },
     "/api/crystal/symmetry": {
@@ -9740,9 +8997,7 @@
           }
         },
         "summary": "Symmetry",
-        "tags": [
-          "crystal"
-        ]
+        "tags": ["crystal"]
       }
     },
     "/api/crystal/translate": {
@@ -9781,9 +9036,7 @@
           }
         },
         "summary": "Translate",
-        "tags": [
-          "crystal"
-        ]
+        "tags": ["crystal"]
       }
     },
     "/api/crystal/wrap": {
@@ -9822,9 +9075,7 @@
           }
         },
         "summary": "Wrap",
-        "tags": [
-          "crystal"
-        ]
+        "tags": ["crystal"]
       }
     },
     "/api/grids": {
@@ -9847,9 +9098,7 @@
           }
         },
         "summary": "List All",
-        "tags": [
-          "grids"
-        ]
+        "tags": ["grids"]
       }
     },
     "/api/grids/{grid_id}": {
@@ -9889,9 +9138,7 @@
           }
         },
         "summary": "Get Grid",
-        "tags": [
-          "grids"
-        ]
+        "tags": ["grids"]
       }
     },
     "/api/grids/{grid_id}/data": {
@@ -9928,9 +9175,7 @@
           }
         },
         "summary": "Get Grid Data",
-        "tags": [
-          "grids"
-        ]
+        "tags": ["grids"]
       }
     },
     "/api/grids/{grid_id}/stats": {
@@ -9970,9 +9215,7 @@
           }
         },
         "summary": "Get Grid Stats",
-        "tags": [
-          "grids"
-        ]
+        "tags": ["grids"]
       }
     },
     "/api/health": {
@@ -9991,9 +9234,7 @@
           }
         },
         "summary": "Health",
-        "tags": [
-          "system"
-        ]
+        "tags": ["system"]
       }
     },
     "/api/io/export": {
@@ -10032,9 +9273,7 @@
           }
         },
         "summary": "Export Structure",
-        "tags": [
-          "io"
-        ]
+        "tags": ["io"]
       }
     },
     "/api/io/export/trajectory": {
@@ -10074,9 +9313,7 @@
           }
         },
         "summary": "Export Trajectory",
-        "tags": [
-          "trajectory"
-        ]
+        "tags": ["trajectory"]
       }
     },
     "/api/io/formats": {
@@ -10099,9 +9336,7 @@
           }
         },
         "summary": "List Formats",
-        "tags": [
-          "io"
-        ]
+        "tags": ["io"]
       }
     },
     "/api/io/import/cube": {
@@ -10141,9 +9376,7 @@
           }
         },
         "summary": "Import Cube File",
-        "tags": [
-          "io"
-        ]
+        "tags": ["io"]
       }
     },
     "/api/io/import/output": {
@@ -10183,9 +9416,7 @@
           }
         },
         "summary": "Import Output",
-        "tags": [
-          "io"
-        ]
+        "tags": ["io"]
       }
     },
     "/api/io/import/path": {
@@ -10225,9 +9456,7 @@
           }
         },
         "summary": "Import Path",
-        "tags": [
-          "io"
-        ]
+        "tags": ["io"]
       }
     },
     "/api/io/import/spectrum": {
@@ -10267,9 +9496,7 @@
           }
         },
         "summary": "Import Spectrum Path",
-        "tags": [
-          "analysis"
-        ]
+        "tags": ["analysis"]
       }
     },
     "/api/io/import/spectrum/upload": {
@@ -10309,9 +9536,7 @@
           }
         },
         "summary": "Import Spectrum Upload",
-        "tags": [
-          "analysis"
-        ]
+        "tags": ["analysis"]
       }
     },
     "/api/io/import/text": {
@@ -10351,9 +9576,7 @@
           }
         },
         "summary": "Import Text",
-        "tags": [
-          "io"
-        ]
+        "tags": ["io"]
       }
     },
     "/api/io/import/trajectory": {
@@ -10393,9 +9616,7 @@
           }
         },
         "summary": "Import Trajectory Path",
-        "tags": [
-          "trajectory"
-        ]
+        "tags": ["trajectory"]
       }
     },
     "/api/io/import/trajectory/upload": {
@@ -10435,9 +9656,7 @@
           }
         },
         "summary": "Import Trajectory Upload",
-        "tags": [
-          "trajectory"
-        ]
+        "tags": ["trajectory"]
       }
     },
     "/api/io/import/upload": {
@@ -10477,9 +9696,7 @@
           }
         },
         "summary": "Import Upload",
-        "tags": [
-          "io"
-        ]
+        "tags": ["io"]
       }
     },
     "/api/io/import/vibrations": {
@@ -10519,9 +9736,7 @@
           }
         },
         "summary": "Import Vibrations Path",
-        "tags": [
-          "analysis"
-        ]
+        "tags": ["analysis"]
       }
     },
     "/api/io/import/vibrations/upload": {
@@ -10561,9 +9776,7 @@
           }
         },
         "summary": "Import Vibrations Upload",
-        "tags": [
-          "analysis"
-        ]
+        "tags": ["analysis"]
       }
     },
     "/api/io/smiles": {
@@ -10602,9 +9815,7 @@
           }
         },
         "summary": "Build From Smiles",
-        "tags": [
-          "io"
-        ]
+        "tags": ["io"]
       }
     },
     "/api/project": {
@@ -10631,9 +9842,7 @@
           }
         },
         "summary": "Current Project",
-        "tags": [
-          "project"
-        ]
+        "tags": ["project"]
       }
     },
     "/api/project/close": {
@@ -10645,9 +9854,7 @@
           }
         },
         "summary": "Close Project",
-        "tags": [
-          "project"
-        ]
+        "tags": ["project"]
       }
     },
     "/api/project/create": {
@@ -10686,9 +9893,7 @@
           }
         },
         "summary": "Create Project",
-        "tags": [
-          "project"
-        ]
+        "tags": ["project"]
       }
     },
     "/api/project/open": {
@@ -10727,9 +9932,7 @@
           }
         },
         "summary": "Open Project",
-        "tags": [
-          "project"
-        ]
+        "tags": ["project"]
       }
     },
     "/api/project/view-settings": {
@@ -10750,9 +9953,7 @@
           }
         },
         "summary": "Get View Settings",
-        "tags": [
-          "project"
-        ]
+        "tags": ["project"]
       },
       "put": {
         "description": "Persist UI view settings (representation, background, layer toggles) with the project.",
@@ -10792,9 +9993,7 @@
           }
         },
         "summary": "Put View Settings",
-        "tags": [
-          "project"
-        ]
+        "tags": ["project"]
       }
     },
     "/api/structures": {
@@ -10817,9 +10016,7 @@
           }
         },
         "summary": "List Structures",
-        "tags": [
-          "structures"
-        ]
+        "tags": ["structures"]
       }
     },
     "/api/structures/{structure_id}": {
@@ -10852,9 +10049,7 @@
           }
         },
         "summary": "Delete Structure",
-        "tags": [
-          "structures"
-        ]
+        "tags": ["structures"]
       },
       "get": {
         "operationId": "get_structure_api_structures__structure_id__get",
@@ -10892,9 +10087,7 @@
           }
         },
         "summary": "Get Structure",
-        "tags": [
-          "structures"
-        ]
+        "tags": ["structures"]
       },
       "put": {
         "description": "Create or replace a structure. The path id must match the body id.",
@@ -10943,9 +10136,7 @@
           }
         },
         "summary": "Put Structure",
-        "tags": [
-          "structures"
-        ]
+        "tags": ["structures"]
       }
     },
     "/api/wavefunction/load": {
@@ -10985,9 +10176,7 @@
           }
         },
         "summary": "Load",
-        "tags": [
-          "wavefunction"
-        ]
+        "tags": ["wavefunction"]
       }
     },
     "/api/wavefunction/surface": {
@@ -11027,9 +10216,7 @@
           }
         },
         "summary": "Surface",
-        "tags": [
-          "wavefunction"
-        ]
+        "tags": ["wavefunction"]
       }
     }
   }

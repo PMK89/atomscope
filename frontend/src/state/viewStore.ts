@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import type { StructureStyle } from '../renderer/layers/StructureLayer';
 import type { Projection } from '../renderer/Renderer';
 import type { AtomLabelContent, BondLabelContent } from '../renderer/labels';
+import type { RibbonStyle } from '../model/ribbon';
 
 export interface ViewState {
   style: StructureStyle;
@@ -37,6 +38,13 @@ export interface ViewState {
     size?: number;
     shift?: [number, number, number];
   }) => void;
+  /** Protein ribbons: off by default, since only a protein has them. */
+  showRibbon: boolean;
+  ribbonStyle: RibbonStyle;
+  ribbonScale: number;
+  toggleRibbon: () => void;
+  setRibbonStyle: (style: RibbonStyle) => void;
+  setRibbonScale: (scale: number) => void;
   /** Structure engine settings that the Display panel exposes. */
   atomScale: number;
   bondRadius: number;
@@ -76,6 +84,12 @@ export const useViewStore = create<ViewState>((set) => ({
       labelSize: size ?? s.labelSize,
       labelShift: shift ?? s.labelShift,
     })),
+  showRibbon: false,
+  ribbonStyle: 'cartoon',
+  ribbonScale: 1,
+  toggleRibbon: () => set((s) => ({ showRibbon: !s.showRibbon })),
+  setRibbonStyle: (ribbonStyle) => set({ ribbonStyle }),
+  setRibbonScale: (ribbonScale) => set({ ribbonScale }),
   atomScale: 0.35,
   bondRadius: 0.12,
   selectionStyle: null,

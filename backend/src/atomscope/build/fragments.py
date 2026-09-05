@@ -12,6 +12,7 @@ from __future__ import annotations
 import xml.etree.ElementTree as ET  # noqa: S405 - shipped, trusted data files
 from functools import lru_cache
 from pathlib import Path
+from string import ascii_uppercase
 
 import numpy as np
 from openbabel import openbabel as ob
@@ -20,7 +21,7 @@ from pydantic import Field
 from atomscope.chem.hydrogens import hydrogens_of, neighbors, remove_atoms
 from atomscope.chem.obmol import OB_LOCK, from_obmol, to_obmol
 from atomscope.io import openbabel_io
-from atomscope.model import Atom, Bond, Provenance, Structure
+from atomscope.model import Atom, Bond, Provenance, Residue, Structure
 from atomscope.model.common import StrictModel, Vec3
 
 FRAGMENT_ROOT = Path(__file__).resolve().parent.parent / "data" / "fragments"
@@ -97,6 +98,19 @@ def load_fragment(fragment_id: str) -> Structure:
     return s
 
 
+def _fragment_chain(structure: Structure, fragment: Structure) -> str | None:
+    """A free chain id for the fragment's residues when its own would collide, else None.
+
+    Inserting a second peptide numbered from 1 into a document that already has residues 1..n
+    would otherwise produce two residues claiming the same chain and number.
+    """
+    taken = {(r.chain, r.number) for r in structure.residues}
+    if not any((r.chain, r.number) in taken for r in fragment.residues):
+        return None
+    used = {r.chain for r in structure.residues} | {r.chain for r in fragment.residues}
+    return next((c for c in ascii_uppercase if c not in used), "Z")
+
+
 def _append(structure: Structure, fragment: Structure, shift: np.ndarray) -> Structure:
     """Union of the two structures; fragment atoms get fresh uids and shifted positions."""
     n = structure.n_atoms
@@ -113,6 +127,7 @@ def _append(structure: Structure, fragment: Structure, shift: np.ndarray) -> Str
     bonds = list(structure.bonds) + [
         Bond(a=b.a + n, b=b.b + n, order=b.order, aromatic=b.aromatic) for b in fragment.bonds
     ]
+    chain = _fragment_chain(structure, fragment)
     return structure.model_copy(
         update={
             "atoms": atoms,
@@ -120,7 +135,17 @@ def _append(structure: Structure, fragment: Structure, shift: np.ndarray) -> Str
             "charge": structure.charge + fragment.charge,
             "atomic_scalars": {},
             "atomic_vectors": {},
-            "residues": [],
+            # residues are what makes a peptide a peptide: keep both sides, re-indexed
+            "residues": list(structure.residues)
+            + [
+                Residue(
+                    name=r.name,
+                    number=r.number,
+                    chain=chain if chain is not None else r.chain,
+                    atom_indices=[i + n for i in r.atom_indices],
+                )
+                for r in fragment.residues
+            ],
         }
     )
 
