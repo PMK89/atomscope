@@ -51,7 +51,7 @@ def test_vibrations_reject_an_unknown_calculator(client: TestClient, water: dict
 
 
 def test_vibrations_enforce_the_synchronous_size_limit(client: TestClient) -> None:
-    big = from_smiles("C" * 30).model_dump(mode="json")
+    big = from_smiles("C" * 45).model_dump(mode="json")
     r = client.post("/api/analysis/vibrations", json={"structure": big})
     assert r.status_code == 413
     assert "exceeds the synchronous limit" in r.json()["detail"]
@@ -154,6 +154,8 @@ def test_import_vibrations_detects_the_program(
     assert body["program"] == expected_program
     assert len(body["vibrations"]["modes"]) == expected_modes
     assert body["structure"] is not None
+    # imported geometries carry perceived bonds, so the viewport draws sticks
+    assert len(body["structure"]["bonds"]) > 0
 
 
 def test_import_vibrations_returns_nmr_shieldings(client: TestClient) -> None:
@@ -167,4 +169,35 @@ def test_import_vibrations_returns_nmr_shieldings(client: TestClient) -> None:
 
 def test_import_vibrations_of_an_unparsable_file_is_400(client: TestClient) -> None:
     r = client.post("/api/io/import/vibrations/upload", files={"file": ("x.log", b"hello world\n")})
+    assert r.status_code == 400
+
+
+def test_vibrations_with_an_ase_builtin_calculator(client: TestClient) -> None:
+    """Lennard-Jones has no dipole, so the modes come back without IR intensities."""
+    argon = {
+        "name": "ar2",
+        "atoms": [
+            {"element": "Ar", "position": [0.0, 0.0, 0.0]},
+            {"element": "Ar", "position": [0.0, 0.0, 3.4]},
+        ],
+    }
+    r = client.post(
+        "/api/analysis/vibrations", json={"structure": argon, "calculator": "lj", "delta": 0.005}
+    )
+    assert r.status_code == 200, r.text
+    body = r.json()
+    assert len(body["vibrations"]["modes"]) == 1  # 3N - 5 for a linear dimer
+    assert body["vibrations"]["linear"] is True
+    assert body["vibrations"]["modes"][0]["ir_intensity"] is None
+
+
+def test_emt_without_parameters_for_an_element_is_a_400(client: TestClient) -> None:
+    uranium = {
+        "name": "u2",
+        "atoms": [
+            {"element": "U", "position": [0.0, 0.0, 0.0]},
+            {"element": "U", "position": [0.0, 0.0, 2.8]},
+        ],
+    }
+    r = client.post("/api/analysis/vibrations", json={"structure": uranium, "calculator": "emt"})
     assert r.status_code == 400

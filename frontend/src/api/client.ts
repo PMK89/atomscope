@@ -41,6 +41,14 @@ export type BandStructure = components['schemas']['BandStructure'];
 export type BandOptions = components['schemas']['BandOptions'];
 export type KPathPoint = components['schemas']['KPathPoint'];
 export type KPath = components['schemas']['KPath'];
+export type Spectrum = components['schemas']['Spectrum'];
+export type SpectrumPeak = components['schemas']['SpectrumPeak'];
+export type SpectrumAxis = components['schemas']['SpectrumAxis'];
+export type VibrationalMode = components['schemas']['VibrationalMode'];
+export type VibrationalSpectrum = components['schemas']['VibrationalSpectrum'];
+export type VibrationsResponse = components['schemas']['VibrationsResponse'];
+export type VibrationImport = components['schemas']['VibrationImport'];
+export type NmrShielding = components['schemas']['NmrShielding'];
 export type ParameterValues = Record<string, unknown>;
 
 export class ApiError extends Error {
@@ -75,7 +83,7 @@ async function request<T>(url: string, init?: RequestInit): Promise<T> {
   return (await res.json()) as T;
 }
 
-type Body<P extends keyof paths, M extends 'post' | 'put'> = paths[P][M] extends {
+export type Body<P extends keyof paths, M extends 'post' | 'put'> = paths[P][M] extends {
   requestBody: { content: { 'application/json': infer B } };
 }
   ? B
@@ -137,6 +145,27 @@ export const api = {
     },
     exportTrajectory: (body: Body<'/api/io/export/trajectory', 'post'>) =>
       request<ExportTrajectoryResponse>('/api/io/export/trajectory', json(body)),
+    importSpectrumUpload: (file: File) => {
+      const form = new FormData();
+      form.append('file', file, file.name);
+      return request<Spectrum>('/api/io/import/spectrum/upload', { method: 'POST', body: form });
+    },
+    importVibrationsUpload: (file: File) => {
+      const form = new FormData();
+      form.append('file', file, file.name);
+      return request<VibrationImport>('/api/io/import/vibrations/upload', {
+        method: 'POST',
+        body: form,
+      });
+    },
+  },
+  analysis: {
+    vibrations: (body: Body<'/api/analysis/vibrations', 'post'>) =>
+      request<VibrationsResponse>('/api/analysis/vibrations', json(body)),
+    vibrationalSpectrum: (body: Body<'/api/analysis/vibrations/spectrum', 'post'>) =>
+      request<Spectrum>('/api/analysis/vibrations/spectrum', json(body)),
+    spectrum: (body: Body<'/api/analysis/spectrum', 'post'>) =>
+      request<Spectrum>('/api/analysis/spectrum', json(body)),
   },
   crystal: {
     symmetry: (body: Body<'/api/crystal/symmetry', 'post'>) =>

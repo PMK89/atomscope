@@ -39,17 +39,22 @@ class ParsedSpectra(StrictModel):
     transitions: list[ElectronicTransition] = Field(default_factory=list)
 
     def structure(self, name: str) -> Structure | None:
-        """The geometry as a Structure, or None when the file carried no coordinates."""
+        """The geometry as a Structure with perceived bonds, or None when the file had none."""
         if not self.symbols:
             return None
-        return Structure(
+        from atomscope.chem.bonds import perceive_bonds  # noqa: PLC0415
+
+        s = Structure(
             name=name,
             atoms=[
-                Atom(element=s, position=p)
-                for s, p in zip(self.symbols, self.positions, strict=True)
+                Atom(element=e, position=p)
+                for e, p in zip(self.symbols, self.positions, strict=True)
             ],
             provenance=Provenance(source=name, software=self.program),
         )
+        if s.n_atoms > 1:
+            s.bonds = perceive_bonds(s)
+        return s
 
 
 def normalized_modes(

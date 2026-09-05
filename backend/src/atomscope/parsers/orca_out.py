@@ -27,8 +27,9 @@ mode ``k``, row ``j`` is degree of freedom ``j`` (atom ``j // 3``, Cartesian com
 Cartesian displacements -- the same convention as :class:`atomscope.model.VibrationalMode`.
 
 The IR table lists only the modes ORCA considers vibrations (index 6 or 5 upwards). ORCA 4 and
-earlier print ``T**2`` in km/mol; ORCA 5 and later add an explicit ``Int`` column in km/mol,
-which is used when the header contains it. Modes missing from the table get ``ir_intensity =
+earlier print ``T**2`` in km/mol (``Mode freq T**2 TX TY TZ``); ORCA 5 and later print
+``Mode freq eps Int T**2 TX TY TZ`` and then the ``Int`` column -- also km/mol -- is
+used instead. Modes missing from the table get ``ir_intensity =
 None`` rather than zero.
 
 The geometry comes from the last ``CARTESIAN COORDINATES (ANGSTROEM)`` block. ORCA's TD-DFT
@@ -133,8 +134,9 @@ def _ir_table(lines: list[str]) -> dict[int, float]:
         if "Mode" in line and "freq" in line:
             header = line
             break
-    # ORCA >= 5: Mode freq eps Int T**2 TX TY TZ -> the intensity is the third number
-    column = 2 if " Int" in header else 0
+    # ORCA <= 4: "Mode freq T**2 (TX TY TZ)" -> the intensity is the first number after freq.
+    # ORCA >= 5: "Mode freq eps Int T**2 (TX TY TZ)" -> it is the second (eps comes first).
+    column = 1 if " Int" in header else 0
     out: dict[int, float] = {}
     for line in lines[start:]:
         m = IR_LINE.match(line)

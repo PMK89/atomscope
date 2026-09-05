@@ -33,6 +33,15 @@ export interface ChartMarker {
   color?: string;
 }
 
+/** A stick (spectral line) drawn from y = 0 to `y` at `x`. */
+export interface ChartStick {
+  x: number;
+  y: number;
+  color?: string;
+  /** highlighted (e.g. the mode currently animating) */
+  active?: boolean;
+}
+
 export interface LineChartProps {
   series: ChartSeries[];
   width?: number;
@@ -49,6 +58,12 @@ export interface LineChartProps {
   /** draw a horizontal line at y = 0 */
   zeroLine?: boolean;
   title?: string;
+  /** draw the x axis from high to low (IR wavenumbers, NMR shifts) */
+  xReversed?: boolean;
+  /** vertical lines from y = 0, for stick spectra; cheaper than one series per line */
+  sticks?: ChartStick[];
+  /** called with the data-space x of a click inside the plot area */
+  onPick?: (x: number) => void;
 }
 
 const MARGIN = { top: 12, right: 12, bottom: 34, left: 52 };
@@ -66,6 +81,9 @@ export function LineChart({
   markers = [],
   zeroLine = false,
   title,
+  xReversed = false,
+  sticks = [],
+  onPick,
 }: LineChartProps): JSX.Element {
   const svgRef = useRef<SVGSVGElement>(null);
   const [hover, setHover] = useState<number | null>(null);
@@ -80,25 +98,38 @@ export function LineChart({
     y0: height - MARGIN.bottom,
     y1: MARGIN.top,
   };
-  const xs = drawn.flatMap((s) => s.x);
-  const ys = drawn.flatMap((s) => s.y);
+  const xs = drawn.flatMap((s) => s.x).concat(sticks.map((s) => s.x));
+  const ys = drawn
+    .flatMap((s) => s.y)
+    .concat(
+      sticks.map((s) => s.y),
+      sticks.length ? [0] : [],
+    );
   const xd: Domain = xDomain ?? padDomain(extent(xs) ?? [0, 1], 0);
   const yd: Domain = yDomain ?? padDomain(extent(ys) ?? (logY ? [1e-3, 1] : [0, 1]));
   const yDom: Domain = logY && !(yd[0] > 0) ? [Math.max(yd[1] * 1e-6, 1e-12), yd[1] || 1] : yd;
-  const sx = makeScale(xd, [plot.x0, plot.x1]);
+  // a reversed axis flips the pixel range, never the domain: ticks and markers keep working
+  const xRange: Domain = xReversed ? [plot.x1, plot.x0] : [plot.x0, plot.x1];
+  const sx = makeScale(xd, xRange);
   const sy = makeScale(yDom, [plot.y0, plot.y1], logY);
   const xTickList = xTicks ?? linearTicks(xd).map((v) => ({ value: v, label: formatTick(v) }));
   const yTickList = logY ? logTicks(yDom) : linearTicks(yDom);
 
-  const onMove = (e: React.MouseEvent<SVGSVGElement>): void => {
+  const dataX = (e: { clientX: number }): number | null => {
     const rect = svgRef.current?.getBoundingClientRect();
-    if (!rect) return;
+    if (!rect) return null;
     const px = ((e.clientX - rect.left) / rect.width) * width;
-    if (px < plot.x0 || px > plot.x1) {
-      setHover(null);
-      return;
-    }
-    setHover(invertScale(xd, [plot.x0, plot.x1])(px));
+    if (px < plot.x0 || px > plot.x1) return null;
+    return invertScale(xd, xRange)(px);
+  };
+
+  const onMove = (e: React.MouseEvent<SVGSVGElement>): void => {
+    setHover(dataX(e));
+  };
+
+  const onClick = (e: React.MouseEvent<SVGSVGElement>): void => {
+    const x = dataX(e);
+    if (x !== null) onPick?.(x);
   };
 
   const readout =
@@ -120,6 +151,8 @@ export function LineChart({
       aria-label={title ?? yLabel ?? 'chart'}
       onMouseMove={onMove}
       onMouseLeave={() => setHover(null)}
+      onClick={onPick ? onClick : undefined}
+      style={onPick ? { cursor: 'crosshair' } : undefined}
     >
       {title && (
         <text x={plot.x0} y={MARGIN.top - 2} className="chart-title">
@@ -177,6 +210,17 @@ export function LineChart({
             )}
           </g>
         ))}
+      {sticks.map((s, i) => (
+        <line
+          key={`stick${i}`}
+          x1={sx(s.x)}
+          x2={sx(s.x)}
+          y1={sy(Math.max(yDom[0], Math.min(0, yDom[1])))}
+          y2={sy(s.y)}
+          className={s.active ? 'chart-stick active' : 'chart-stick'}
+          style={s.color ? { stroke: s.color } : undefined}
+        />
+      ))}
       {drawn.map((s) => (
         <polyline
           key={s.id}

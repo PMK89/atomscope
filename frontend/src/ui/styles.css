@@ -714,3 +714,18 @@ button {
 .orbital-table tr.frontier td {
   font-weight: 600;
 }
+
+/* ---- spectra panel ---- */
+.line-chart .chart-stick {
+  stroke: var(--fg);
+  stroke-width: 1;
+  opacity: 0.55;
+}
+.line-chart .chart-stick.active {
+  stroke: var(--accent);
+  stroke-width: 2;
+  opacity: 1;
+}
+.spectrum-panel .orbital-table-wrap {
+  max-height: 12rem;
+}

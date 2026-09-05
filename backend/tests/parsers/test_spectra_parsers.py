@@ -245,3 +245,80 @@ def test_ir_spectrum_scale_factor_shifts_every_peak() -> None:
     plain = ir_spectrum(parsed.vibrations, width=20.0)
     scaled = ir_spectrum(parsed.vibrations, width=20.0, scale_factor=0.96)
     assert scaled.peaks[0].x == pytest.approx(plain.peaks[0].x * 0.96)
+
+
+# ORCA 5 changed the IR table header; the intensity moved from the first to the second column
+ORCA5 = """
+CARTESIAN COORDINATES (ANGSTROEM)
+---------------------------------
+  O      0.000000    0.000000    0.117000
+  H      0.000000    0.757000   -0.469000
+  H      0.000000   -0.757000   -0.469000
+
+-----------------------
+VIBRATIONAL FREQUENCIES
+-----------------------
+
+   0:         0.00 cm**-1
+   1:         0.00 cm**-1
+   2:         0.00 cm**-1
+   3:         0.00 cm**-1
+   4:         0.00 cm**-1
+   5:         0.00 cm**-1
+   6:      1638.42 cm**-1
+   7:      3812.12 cm**-1
+   8:      3922.57 cm**-1
+
+NORMAL MODES
+------------
+
+                  0          1          2          3          4          5
+      0       0.000000   0.000000   0.000000   0.000000   0.000000   0.000000
+      1       0.000000   0.000000   0.000000   0.000000   0.000000   0.000000
+      2       0.000000   0.000000   0.000000   0.000000   0.000000   0.000000
+      3       0.000000   0.000000   0.000000   0.000000   0.000000   0.000000
+      4       0.000000   0.000000   0.000000   0.000000   0.000000   0.000000
+      5       0.000000   0.000000   0.000000   0.000000   0.000000   0.000000
+      6       0.000000   0.000000   0.000000   0.000000   0.000000   0.000000
+      7       0.000000   0.000000   0.000000   0.000000   0.000000   0.000000
+      8       0.000000   0.000000   0.000000   0.000000   0.000000   0.000000
+                  6          7          8
+      0       0.000000   0.000000   0.000000
+      1       0.000000   0.000000   0.000000
+      2      -0.066000   0.000000  -0.068000
+      3       0.000000   0.000000   0.000000
+      4      -0.417000   0.582000   0.524000
+      5       0.539000  -0.397000   0.000000
+      6       0.000000   0.000000   0.000000
+      7       0.417000   0.582000  -0.524000
+      8       0.539000   0.397000   0.000000
+
+-----------
+IR SPECTRUM
+-----------
+
+ Mode   freq       eps      Int      T**2          TX        TY        TZ
+       cm**-1   L/(mol*cm) km/mol    a.u.
+----------------------------------------------------------------------------
+   6:   1638.42   1.234567   67.23   0.002964  ( 0.000000  0.000000  0.054443)
+   7:   3812.12   0.098765    4.57   0.000201  ( 0.000000  0.014177  0.000000)
+   8:   3922.57   0.876543   42.11   0.001855  ( 0.043069  0.000000  0.000000)
+"""
+
+
+def test_orca5_ir_table_uses_the_int_column_not_t_squared() -> None:
+    parsed = parse_orca_output(ORCA5, source="orca5")
+    v = parsed.vibrations
+    assert v is not None
+    assert len(v.modes) == 9
+    assert v.modes[6].ir_intensity == pytest.approx(67.23)
+    assert v.modes[7].ir_intensity == pytest.approx(4.57)
+    assert v.modes[8].ir_intensity == pytest.approx(42.11)
+    assert all(m.ir_intensity is None for m in v.modes[:6])
+
+
+def test_parsed_geometries_carry_perceived_bonds() -> None:
+    structure = read_qchem_output(FIXTURES / "methane_qchem.out").structure("methane")
+    assert structure is not None
+    assert len(structure.bonds) == 4  # four C-H bonds
+    assert all(b.a == 0 for b in structure.bonds)
