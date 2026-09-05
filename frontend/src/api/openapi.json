@@ -1089,6 +1089,76 @@
         "title": "GeneratedInputs",
         "type": "object"
       },
+      "GridRef": {
+        "additionalProperties": false,
+        "description": "A grid and where it lives: a calculation's results or a standalone dataset.",
+        "properties": {
+          "calculation_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Calculation Id"
+          },
+          "grid": {
+            "$ref": "#/components/schemas/VolumetricGrid"
+          }
+        },
+        "required": [
+          "grid"
+        ],
+        "title": "GridRef",
+        "type": "object"
+      },
+      "GridStats": {
+        "additionalProperties": false,
+        "properties": {
+          "abs_max": {
+            "title": "Abs Max",
+            "type": "number"
+          },
+          "has_negative": {
+            "title": "Has Negative",
+            "type": "boolean"
+          },
+          "max": {
+            "title": "Max",
+            "type": "number"
+          },
+          "mean": {
+            "title": "Mean",
+            "type": "number"
+          },
+          "min": {
+            "title": "Min",
+            "type": "number"
+          },
+          "rule": {
+            "description": "how suggested_isovalue was chosen",
+            "title": "Rule",
+            "type": "string"
+          },
+          "suggested_isovalue": {
+            "title": "Suggested Isovalue",
+            "type": "number"
+          }
+        },
+        "required": [
+          "min",
+          "max",
+          "mean",
+          "abs_max",
+          "has_negative",
+          "suggested_isovalue",
+          "rule"
+        ],
+        "title": "GridStats",
+        "type": "object"
+      },
       "HTTPValidationError": {
         "properties": {
           "detail": {
@@ -1124,6 +1194,52 @@
           "ase_version"
         ],
         "title": "HealthResponse",
+        "type": "object"
+      },
+      "ImportCubeRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "kind": {
+            "default": "other",
+            "enum": [
+              "electron_density",
+              "spin_density",
+              "orbital",
+              "orbital_density",
+              "electrostatic_potential",
+              "density_difference",
+              "other"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "path": {
+            "format": "path",
+            "title": "Path",
+            "type": "string"
+          }
+        },
+        "required": [
+          "path"
+        ],
+        "title": "ImportCubeRequest",
+        "type": "object"
+      },
+      "ImportCubeResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "grid": {
+            "$ref": "#/components/schemas/VolumetricGrid"
+          },
+          "structure": {
+            "$ref": "#/components/schemas/Structure"
+          }
+        },
+        "required": [
+          "grid",
+          "structure"
+        ],
+        "title": "ImportCubeResponse",
         "type": "object"
       },
       "ImportPathRequest": {
@@ -1926,7 +2042,7 @@
           },
           "soft_stop_seconds": {
             "default": 5.0,
-            "description": "time given to the process itself (SIGTERM to its PID) before the whole group is signalled",
+            "description": "seconds given to the process itself (SIGTERM to its PID) before the whole process group is signalled",
             "title": "Soft Stop Seconds",
             "type": "number"
           },
@@ -3254,6 +3370,154 @@
         ]
       }
     },
+    "/api/grids": {
+      "get": {
+        "operationId": "list_all_api_grids_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/GridRef"
+                  },
+                  "title": "Response List All Api Grids Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List All",
+        "tags": [
+          "grids"
+        ]
+      }
+    },
+    "/api/grids/{grid_id}": {
+      "get": {
+        "operationId": "get_grid_api_grids__grid_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "grid_id",
+            "required": true,
+            "schema": {
+              "title": "Grid Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VolumetricGrid"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Grid",
+        "tags": [
+          "grids"
+        ]
+      }
+    },
+    "/api/grids/{grid_id}/data": {
+      "get": {
+        "description": "Raw little-endian float32 values in C order (shape in the X-Grid-Shape header).",
+        "operationId": "get_grid_data_api_grids__grid_id__data_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "grid_id",
+            "required": true,
+            "schema": {
+              "title": "Grid Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/octet-stream": {}
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Grid Data",
+        "tags": [
+          "grids"
+        ]
+      }
+    },
+    "/api/grids/{grid_id}/stats": {
+      "get": {
+        "operationId": "get_grid_stats_api_grids__grid_id__stats_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "grid_id",
+            "required": true,
+            "schema": {
+              "title": "Grid Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GridStats"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Grid Stats",
+        "tags": [
+          "grids"
+        ]
+      }
+    },
     "/api/health": {
       "get": {
         "operationId": "health_api_health_get",
@@ -3336,6 +3600,48 @@
           }
         },
         "summary": "List Formats",
+        "tags": [
+          "io"
+        ]
+      }
+    },
+    "/api/io/import/cube": {
+      "post": {
+        "description": "Import a Gaussian cube file (optionally gzipped) into the open project as a dataset.",
+        "operationId": "import_cube_file_api_io_import_cube_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ImportCubeRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImportCubeResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Import Cube File",
         "tags": [
           "io"
         ]

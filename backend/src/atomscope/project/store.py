@@ -8,7 +8,7 @@ import tempfile
 from datetime import UTC, datetime
 from pathlib import Path
 
-from atomscope.model import Structure
+from atomscope.model import Structure, VolumetricGrid
 from atomscope.project.manifest import FORMAT_VERSION, ProjectManifest, dump_json
 
 _ID_RE = re.compile(r"^[A-Za-z0-9_-]{1,64}$")
@@ -112,6 +112,26 @@ class ProjectStore:
 
     def list_structures(self) -> list[Structure]:
         return [self.load_structure(i) for i in self.manifest.structure_ids]
+
+    # ---- datasets (standalone imported grids: datasets/<id>.json + binary sidecar) ----------
+    def dataset_path(self, dataset_id: str) -> Path:
+        return self.path_in_project("datasets", f"{_check_id(dataset_id)}.json")
+
+    def save_dataset(self, grid: VolumetricGrid) -> None:
+        _atomic_write(self.dataset_path(grid.id), dump_json(grid))
+        if grid.id not in self.manifest.dataset_ids:
+            self.manifest.dataset_ids.append(grid.id)
+        self.save_manifest()
+
+    def load_dataset(self, dataset_id: str) -> VolumetricGrid:
+        path = self.dataset_path(dataset_id)
+        if not path.is_file():
+            msg = f"dataset {dataset_id} not found"
+            raise ProjectError(msg)
+        return VolumetricGrid.model_validate_json(path.read_text(encoding="utf-8"))
+
+    def list_datasets(self) -> list[VolumetricGrid]:
+        return [self.load_dataset(i) for i in self.manifest.dataset_ids]
 
     # ---- calculations (directories are created here; contents are owned by services) -------
     def calculation_dir(self, calculation_id: str) -> Path:

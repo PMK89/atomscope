@@ -102,7 +102,7 @@ def make_cubes(args: argparse.Namespace, work: Path, root: str) -> None:
             print(f"[atomscope] paw_wave.x failed with code {rc}", flush=True)
 
 
-def main(argv: list[str]) -> int:
+def main(argv: list[str]) -> int:  # noqa: PLR0911
     ap = argparse.ArgumentParser()
     ap.add_argument("work_dir")
     ap.add_argument("root")

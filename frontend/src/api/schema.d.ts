@@ -232,6 +232,77 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/grids": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List All */
+        get: operations["list_all_api_grids_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/grids/{grid_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Grid */
+        get: operations["get_grid_api_grids__grid_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/grids/{grid_id}/data": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Grid Data
+         * @description Raw little-endian float32 values in C order (shape in the X-Grid-Shape header).
+         */
+        get: operations["get_grid_data_api_grids__grid_id__data_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/grids/{grid_id}/stats": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Grid Stats */
+        get: operations["get_grid_stats_api_grids__grid_id__stats_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/health": {
         parameters: {
             query?: never;
@@ -277,6 +348,26 @@ export interface paths {
         get: operations["list_formats_api_io_formats_get"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/io/import/cube": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Import Cube File
+         * @description Import a Gaussian cube file (optionally gzipped) into the open project as a dataset.
+         */
+        post: operations["import_cube_file_api_io_import_cube_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -958,6 +1049,35 @@ export interface components {
              */
             summary: string;
         };
+        /**
+         * GridRef
+         * @description A grid and where it lives: a calculation's results or a standalone dataset.
+         */
+        GridRef: {
+            /** Calculation Id */
+            calculation_id?: string | null;
+            grid: components["schemas"]["VolumetricGrid"];
+        };
+        /** GridStats */
+        GridStats: {
+            /** Abs Max */
+            abs_max: number;
+            /** Has Negative */
+            has_negative: boolean;
+            /** Max */
+            max: number;
+            /** Mean */
+            mean: number;
+            /** Min */
+            min: number;
+            /**
+             * Rule
+             * @description how suggested_isovalue was chosen
+             */
+            rule: string;
+            /** Suggested Isovalue */
+            suggested_isovalue: number;
+        };
         /** HTTPValidationError */
         HTTPValidationError: {
             /** Detail */
@@ -974,6 +1094,25 @@ export interface components {
             status: string;
             /** Version */
             version: string;
+        };
+        /** ImportCubeRequest */
+        ImportCubeRequest: {
+            /**
+             * Kind
+             * @default other
+             * @enum {string}
+             */
+            kind: "electron_density" | "spin_density" | "orbital" | "orbital_density" | "electrostatic_potential" | "density_difference" | "other";
+            /**
+             * Path
+             * Format: path
+             */
+            path: string;
+        };
+        /** ImportCubeResponse */
+        ImportCubeResponse: {
+            grid: components["schemas"]["VolumetricGrid"];
+            structure: components["schemas"]["Structure"];
         };
         /** ImportPathRequest */
         ImportPathRequest: {
@@ -1355,7 +1494,7 @@ export interface components {
             };
             /**
              * Soft Stop Seconds
-             * @description time given to the process itself (SIGTERM to its PID) before the whole group is signalled
+             * @description seconds given to the process itself (SIGTERM to its PID) before the whole process group is signalled
              * @default 5
              */
             soft_stop_seconds: number;
@@ -2080,6 +2219,119 @@ export interface operations {
             };
         };
     };
+    list_all_api_grids_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GridRef"][];
+                };
+            };
+        };
+    };
+    get_grid_api_grids__grid_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                grid_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VolumetricGrid"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_grid_data_api_grids__grid_id__data_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                grid_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/octet-stream": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_grid_stats_api_grids__grid_id__stats_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                grid_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GridStats"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     health_api_health_get: {
         parameters: {
             query?: never;
@@ -2149,6 +2401,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["FormatDescription"][];
+                };
+            };
+        };
+    };
+    import_cube_file_api_io_import_cube_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ImportCubeRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ImportCubeResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

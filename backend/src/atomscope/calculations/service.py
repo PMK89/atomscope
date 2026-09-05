@@ -11,6 +11,7 @@ from pathlib import Path
 
 from atomscope.backends.base import GeneratedInputs, Resources, ResultBundle
 from atomscope.backends.registry import BackendRegistry
+from atomscope.calculations.grids import materialize_grids
 from atomscope.calculations.models import Calculation
 from atomscope.jobs import JobManager
 from atomscope.jobs.models import StatusEvent
@@ -253,6 +254,7 @@ class CalculationService:
         plugin = self.registry.get(calc.backend_id)
         assert calc.generated is not None  # noqa: S101
         results = plugin.parse_results(self._dir(calc.id) / "work", calc.generated)
+        materialize_grids(results, self._dir(calc.id) / "work", calc.id, self.project)
         (self._dir(calc.id) / "results" / "results.json").write_text(
             results.model_dump_json(indent=2), encoding="utf-8"
         )

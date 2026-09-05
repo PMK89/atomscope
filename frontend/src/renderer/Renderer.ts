@@ -72,6 +72,25 @@ export class Renderer {
     this.invalidate();
   }
 
+  /** Add a display layer (e.g. isosurfaces) on top of the structure layer. */
+  addLayer(layer: DisplayLayer): void {
+    if (this.layers.includes(layer)) return;
+    this.layers.push(layer);
+    this.scene.add(layer.object);
+    if (this.ctx) layer.update(this.ctx);
+    this.invalidate();
+  }
+
+  /** Remove and dispose a layer added with `addLayer`. */
+  removeLayer(layer: DisplayLayer): void {
+    const idx = this.layers.indexOf(layer);
+    if (idx < 0 || layer === this.structureLayer) return;
+    this.layers.splice(idx, 1);
+    this.scene.remove(layer.object);
+    layer.dispose();
+    this.invalidate();
+  }
+
   /** Push a new structure snapshot to all layers. */
   update(ctx: LayerContext): void {
     this.ctx = ctx;

@@ -3,6 +3,7 @@ import { Renderer } from '../renderer/Renderer';
 import { useSelectionStore } from '../state/selectionStore';
 import { useStructureStore } from '../state/structureStore';
 import { BACKGROUND_HEX, useViewStore } from '../state/viewStore';
+import { useIsosurfaceLayers } from './useIsosurfaceLayers';
 
 /** Owns one Renderer for its lifetime, feeds it store snapshots and routes pointer picks. */
 export function Viewport(): JSX.Element {
@@ -15,6 +16,7 @@ export function Viewport(): JSX.Element {
   const view = useViewStore();
   const lastFitted = useRef<string | null>(null);
   const lastFitRequest = useRef(0);
+  useIsosurfaceLayers(rendererRef);
 
   useEffect(() => {
     if (!ref.current) return;

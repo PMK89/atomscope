@@ -336,3 +336,38 @@ button {
 .stream-stderr {
   color: var(--error);
 }
+
+/* surfaces panel */
+.dock-tabs {
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 6px;
+}
+.grid-card,
+.surface-card {
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 6px;
+  margin: 6px 0;
+}
+.grid-card h4,
+.surface-card h4 {
+  margin: 0 0 4px;
+  font-size: 12px;
+  display: flex;
+  justify-content: space-between;
+  gap: 6px;
+}
+.surface-card .form-row {
+  grid-template-columns: 70px 1fr;
+}
+.surface-card input[type='range'] {
+  width: 100%;
+}
+.surface-swatch {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  margin-right: 4px;
+  vertical-align: middle;
+}

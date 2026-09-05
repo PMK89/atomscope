@@ -6,6 +6,7 @@ import { JobConsole } from './JobConsole';
 import { MenuBar } from './MenuBar';
 import { ProjectPanel } from './ProjectPanel';
 import { StatusBar } from './StatusBar';
+import { SurfacesPanel } from './SurfacesPanel';
 import { Viewport } from './Viewport';
 
 function demoWater() {
@@ -23,6 +24,7 @@ function demoWater() {
 
 export function App(): JSX.Element {
   const [error, setError] = useState<string | null>(null);
+  const [dock, setDock] = useState<'calculation' | 'surfaces'>('calculation');
   useEffect(() => {
     if (useStructureStore.getState().doc.atoms.length === 0) {
       useStructureStore.getState().load(demoWater());
@@ -48,7 +50,22 @@ export function App(): JSX.Element {
           <JobConsole />
         </section>
         <aside className="app-dock app-dock-right">
-          <CalculationPanel onError={setError} />
+          <div className="tabs dock-tabs">
+            {(['calculation', 'surfaces'] as const).map((t) => (
+              <button
+                key={t}
+                className={dock === t ? 'tab active' : 'tab'}
+                onClick={() => setDock(t)}
+              >
+                {t === 'calculation' ? 'Calculation' : 'Surfaces'}
+              </button>
+            ))}
+          </div>
+          {dock === 'calculation' ? (
+            <CalculationPanel onError={setError} />
+          ) : (
+            <SurfacesPanel onError={setError} />
+          )}
         </aside>
       </main>
       <StatusBar message={error} />
