@@ -195,6 +195,11 @@ class CppawPlugin:
             generated.root_name,
             str(exe),
         ]
+        stages = sorted(
+            f.name for f in generated.files if ".stage" in f.name and f.name.endswith(".cntl")
+        )
+        if stages:
+            argv += ["--stages", *stages]
         wave = self.settings.find("paw_wave.x")
         analysis = analysis_files(generated.root_name, values)
         if wave is not None and analysis:

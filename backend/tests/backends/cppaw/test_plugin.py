@@ -127,3 +127,42 @@ def test_runner_requires_program_finished(tmp_path: Path) -> None:
     prot.write_text("PROGRAM STARTED\nPROGRAM FINISHED\n")
     assert protocol_finished(prot)
     assert ROOT_RE.match("case") and not ROOT_RE.match("../case") and not ROOT_RE.match("a/b")
+
+
+@pytest.mark.cppaw
+async def test_real_forces_task_through_driver(tmp_path: Path) -> None:
+    """Two-stage force evaluation via the driver: electrons first, then damped atomic steps."""
+    p = CppawPlugin()
+    if not p.discover_executables().available:
+        pytest.skip("paw_fast.x not found")
+    atoms = bulk("Si")
+    atoms.positions[1] += [0.05, 0.0, 0.0]
+    s = from_atoms(atoms, name="si2")
+    values = {
+        "task": "forces",
+        "kpoint_r": 8.0,
+        "empty_bands": 2,
+        "nstep": 400,
+        "force_steps": 3,
+        "epwpsi": 25.0,
+    }
+    gen = p.generate_inputs(s, values, "case")
+    inp, work = tmp_path / "input", tmp_path / "work"
+    inp.mkdir()
+    work.mkdir()
+    (inp / "structure.json").write_text(s.model_dump_json())
+    (inp / "values.json").write_text(json.dumps(values))
+    for f in gen.files:
+        (inp / f.name).write_text(f.text)
+        (work / f.name).write_text(f.text)
+    spec = p.run_spec(inp, work, gen, Resources())
+    assert "--stages" in spec.argv
+    jm = JobManager()
+    rec = await jm.wait(jm.submit(spec).id)
+    assert rec.status == "completed", (work / "driver.log").read_text()
+    res = p.parse_results(work, gen)
+    forces = res.final_structure.atomic_vectors["forces"].values
+    assert abs(forces[0][0]) > 0.3 and abs(forces[0][0] + forces[1][0]) < 0.05
+    assert res.converged is True and res.complete is True
+    # the reported geometry is the input geometry (forces at the requested positions)
+    assert abs(res.final_structure.atoms[1].position[0] - s.atoms[1].position[0]) < 1e-9
