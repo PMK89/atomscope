@@ -5,6 +5,7 @@ import { normalizeStructure } from '../model/structure';
 import { useStructureStore } from '../state/structureStore';
 import { useTrajectoryStore } from '../state/trajectoryStore';
 import { useViewStore } from '../state/viewStore';
+import { useRendererStore } from '../state/rendererStore';
 import { useSelectionStore } from '../state/selectionStore';
 import { useToolStore } from '../editor/toolStore';
 import {
@@ -99,6 +100,24 @@ export function MenuBar({ onError }: { onError: (msg: string) => void }): JSX.El
     }
   };
 
+  /**
+   * Avogadro's POV-Ray export: the scene as a ray-tracer's source file, downloaded like an image.
+   * It is written from the renderer's own scene, so it is what the viewport shows.
+   */
+  const exportPov = (): void => {
+    const renderer = useRendererStore.getState().renderer;
+    if (!renderer) {
+      onError('No viewport to export');
+      return;
+    }
+    const blob = new Blob([renderer.exportPov()], { type: 'text/plain' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `${store.doc.name || 'structure'}.pov`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  };
+
   useEffect(() => {
     const onKey = (e: KeyboardEvent): void => {
       const mod = e.ctrlKey || e.metaKey;
@@ -166,6 +185,7 @@ export function MenuBar({ onError }: { onError: (msg: string) => void }): JSX.El
           { label: 'Import trajectory…', action: () => trajectoryInput.current?.click() },
           { label: 'Export…', action: () => setExportOpen(true) },
           { label: 'Export image…', action: () => setExportImage(true) },
+          { label: 'Export POV-Ray scene', action: exportPov },
         ]}
       />
       <Menu

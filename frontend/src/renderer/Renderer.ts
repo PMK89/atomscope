@@ -20,6 +20,7 @@ import { CameraController, type AnyCamera } from './CameraController';
 import type { DisplayLayer, LayerContext } from './layers/Layer';
 import { StructureLayer } from './layers/StructureLayer';
 import { imageDataUrl } from './imageData';
+import { povScene } from './pov';
 import { principalAxes } from './principalAxes';
 
 export type Projection = 'perspective' | 'orthographic';
@@ -319,6 +320,21 @@ export class Renderer {
       target.dispose();
     }
     return imageDataUrl(buffer, width, height, type, quality);
+  }
+
+  /**
+   * The scene as a POV-Ray file (Avogadro's POV-Ray export). Like `exportImage` this is what the
+   * viewport shows, tints and all; the labels, the unit-cell lines and the axes gizmo are not in
+   * it (sprites, line segments and a separate overlay pass have no POV-Ray primitive here).
+   */
+  exportPov(): string {
+    const canvas = this.gl.domElement;
+    return povScene(this.scene, this.camera, {
+      aspect: canvas.width / Math.max(1, canvas.height),
+      background:
+        this.scene.background instanceof Color ? this.scene.background : new Color(1, 1, 1),
+      light: this.keyLight.position.clone(),
+    });
   }
 
   invalidate(): void {

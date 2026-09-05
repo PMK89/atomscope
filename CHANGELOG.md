@@ -33,6 +33,10 @@
   residue colours survive `Add hydrogens`.
 - Deleting atoms now takes their per-atom properties with them: partial charges and forces used to
   keep the old length and were then silently ignored by everything that reads them.
+- `File ▸ Export POV-Ray scene`: the viewport as a ray-tracer's source file — spheres, cylinders,
+  cones and triangle meshes, the camera, one light and the background — written from the scene the
+  layers drew, so it is what is on screen. Labels, the unit-cell box and the axes gizmo are not in
+  it, and a mesh's per-vertex colours are flattened.
 - Angle and torsion tables on the Properties tab, both editable: typing an angle turns the far
   side about the vertex, typing a torsion turns it about the central bond, and a value inside a
   ring says why it cannot be driven.

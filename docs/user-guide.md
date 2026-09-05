@@ -464,7 +464,9 @@ one another: typing `water.cif` picks CIF, picking CIF renames the file to
 write over a file that is already there until the dialog asks again; `Download`
 saves it through the browser instead. Extended XYZ carries the cell and
 per-atom properties; plain XYZ does not. `Export image…` writes a picture of the
-viewport (see [§6](#6-visualization)), and trajectories are exported from the
+viewport (see [§6](#6-visualization)), `Export POV-Ray scene` writes the same
+picture as a `.pov` source file for POV-Ray (`povray +A +W1600 +H1200
+water.pov`), and trajectories are exported from the
 trajectory player's `Export XYZ` button as extended XYZ with per-frame energy,
 forces, cell and time.
 
@@ -564,7 +566,18 @@ to actually create the atoms.
 
 `File ▸ Export image…` writes what the viewport shows — including the axes
 gizmo — at one, two or four times its size, as a PNG (with an optional
-transparent background) or a JPEG.
+transparent background) or a JPEG. Depth cueing is turned off for a transparent
+PNG, where fading towards the background colour would leave a halo.
+
+`File ▸ Export POV-Ray scene` writes the same view as POV-Ray source instead of
+pixels: every atom is a `sphere`, every bond half a `cylinder`, a vector head a
+`cone`, and the ribbons and isosurfaces are `mesh2` objects, with the camera,
+one parallel light and the background. It is read from the scene the renderer
+drew, so it carries the periodic images, the multiple-bond offsets and the
+colours actually on screen — including the blue of a selection. What it does not
+carry: the labels (sprites), the unit-cell box (line segments), the axes gizmo
+(a separate overlay pass), and a mesh's per-vertex colours, which are flattened
+to their mean because POV-Ray would need one texture per vertex otherwise.
 
 ### 6.1 Isosurfaces
 

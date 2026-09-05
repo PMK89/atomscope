@@ -661,3 +661,23 @@ test('Export writes a file on this machine, in the format the name asks for', as
   await dialog.getByRole('button', { name: 'Overwrite' }).click();
   await expect(dialog).toBeHidden();
 });
+
+test('the viewport can be exported as a POV-Ray scene', async ({ page }) => {
+  await page.goto('/');
+  await expect(page.locator('.app-statusbar')).toContainText('H2O');
+  const download = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'File' }).click();
+  await page.getByRole('menuitem', { name: 'Export POV-Ray scene' }).click();
+  const file = await download;
+  expect(file.suggestedFilename()).toBe('water.pov');
+  const text = await readFile((await file.path()) ?? '', 'utf8');
+
+  // water is three spheres and four half-cylinders, on the white background the viewport shows
+  expect([...text.matchAll(/sphere \{/g)]).toHaveLength(3);
+  expect([...text.matchAll(/cylinder \{/g)]).toHaveLength(4);
+  expect(text).toContain('background { color rgb <1, 1, 1> }');
+  expect(text).toContain('camera {');
+  expect(text).toContain('light_source {');
+  // and no label sprite or axes gizmo made it in
+  expect(text).not.toContain('text {');
+});
