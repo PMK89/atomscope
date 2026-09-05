@@ -546,3 +546,27 @@ button {
   font-family: ui-monospace, monospace;
   font-size: 12px;
 }
+
+/* Crystal panel */
+.crystal-params {
+  flex-wrap: wrap;
+}
+.crystal-param {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 28%;
+  min-width: 70px;
+}
+.crystal-param input {
+  width: 100%;
+}
+.crystal-panel textarea {
+  width: 100%;
+  font-family: ui-monospace, monospace;
+  font-size: 12px;
+  box-sizing: border-box;
+}
+.crystal-library {
+  max-height: 50vh;
+  overflow-y: auto;
+}

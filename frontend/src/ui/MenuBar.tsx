@@ -9,6 +9,9 @@ import { useToolStore } from '../editor/toolStore';
 import { atomsOfElement, invertSelection } from '../editor/selectionMath';
 import { normalizeSymbol } from '../editor/cartesian';
 import { CartesianEditor } from './CartesianEditor';
+import { CrystalDialogs } from './CrystalDialogs';
+import { useCrystalStore } from '../state/crystalStore';
+import { toggleCell } from './crystalActions';
 import { isEditableTarget } from '../editor/ToolHost';
 import type { StructureStyle } from '../renderer/layers/StructureLayer';
 
@@ -65,6 +68,7 @@ export function MenuBar({ onError }: { onError: (msg: string) => void }): JSX.El
   const view = useViewStore();
   const selection = useSelectionStore();
   const openCartesian = useToolStore((s) => s.setCartesianEditorOpen);
+  const openCrystalDialog = useCrystalStore((s) => s.openDialog);
   const fileInput = useRef<HTMLInputElement>(null);
   const trajectoryInput = useRef<HTMLInputElement>(null);
 
@@ -194,6 +198,22 @@ export function MenuBar({ onError }: { onError: (msg: string) => void }): JSX.El
         ]}
       />
       <Menu
+        title="Build"
+        items={[
+          {
+            label: store.doc.cell ? 'Remove unit cell' : 'Add unit cell',
+            action: () => void toggleCell(onError),
+          },
+          {
+            label: 'Supercell…',
+            disabled: !store.doc.cell,
+            action: () => openCrystalDialog('supercell'),
+          },
+          { label: 'Slab…', disabled: !store.doc.cell, action: () => openCrystalDialog('slab') },
+          { label: 'Crystal library…', action: () => openCrystalDialog('library') },
+        ]}
+      />
+      <Menu
         title="View"
         items={[
           styleItem('Ball and stick', 'ball-and-stick'),
@@ -226,6 +246,7 @@ export function MenuBar({ onError }: { onError: (msg: string) => void }): JSX.El
         ]}
       />
       <CartesianEditor />
+      <CrystalDialogs onError={onError} />
       <input
         ref={fileInput}
         type="file"

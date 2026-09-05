@@ -7,6 +7,7 @@ import { useToolStore } from '../editor/toolStore';
 import { NumberField } from './NumberField';
 import { normalizeSymbol } from '../editor/cartesian';
 import { ELEMENT_BY_SYMBOL } from '../model/elements';
+import { cartToFrac } from '../model/crystal';
 
 function cellLengths(doc: StructureDoc): [number, number, number] | null {
   if (!doc.cell) return null;
@@ -137,6 +138,16 @@ export function PropertiesPanel(): JSX.Element {
               ))}
             </div>
           </div>
+          {doc.cell && (
+            <div className="form-row">
+              <label>Fractional</label>
+              <span>
+                {cartToFrac(atom.position, doc.cell)
+                  .map((f) => f.toFixed(4))
+                  .join(' ')}
+              </span>
+            </div>
+          )}
           <div className="form-row">
             <label>Formal charge</label>
             <NumberField

@@ -28,6 +28,8 @@ export type Trajectory = components['schemas']['Trajectory'];
 export type TrajectoryScalars = components['schemas']['TrajectoryScalars'];
 export type TrajectoryImport = components['schemas']['TrajectoryImport'];
 export type ExportTrajectoryResponse = components['schemas']['ExportTrajectoryResponse'];
+export type SymmetryInfo = components['schemas']['SymmetryInfo'];
+export type LibraryEntry = components['schemas']['LibraryEntry'];
 export type ParameterValues = Record<string, unknown>;
 
 export class ApiError extends Error {
@@ -118,6 +120,47 @@ export const api = {
     },
     exportTrajectory: (body: Body<'/api/io/export/trajectory', 'post'>) =>
       request<ExportTrajectoryResponse>('/api/io/export/trajectory', json(body)),
+  },
+  crystal: {
+    symmetry: (body: Body<'/api/crystal/symmetry', 'post'>) =>
+      request<SymmetryInfo>('/api/crystal/symmetry', json(body)),
+    setCell: (body: Body<'/api/crystal/cell/set', 'post'>) =>
+      request<Structure>('/api/crystal/cell/set', json(body)),
+    addCell: (body: Body<'/api/crystal/cell/add', 'post'>) =>
+      request<Structure>('/api/crystal/cell/add', json(body)),
+    removeCell: (body: Body<'/api/crystal/cell/remove', 'post'>) =>
+      request<Structure>('/api/crystal/cell/remove', json(body)),
+    wrap: (body: Body<'/api/crystal/wrap', 'post'>) =>
+      request<Structure>('/api/crystal/wrap', json(body)),
+    translate: (body: Body<'/api/crystal/translate', 'post'>) =>
+      request<Structure>('/api/crystal/translate', json(body)),
+    standardOrientation: (body: Body<'/api/crystal/standard-orientation', 'post'>) =>
+      request<Structure>('/api/crystal/standard-orientation', json(body)),
+    scaleVolume: (body: Body<'/api/crystal/scale-volume', 'post'>) =>
+      request<Structure>('/api/crystal/scale-volume', json(body)),
+    symmetrize: (body: Body<'/api/crystal/symmetrize', 'post'>) =>
+      request<Structure>('/api/crystal/symmetrize', json(body)),
+    primitive: (body: Body<'/api/crystal/primitive', 'post'>) =>
+      request<Structure>('/api/crystal/primitive', json(body)),
+    primitiveStandardized: (body: Body<'/api/crystal/primitive-standardized', 'post'>) =>
+      request<Structure>('/api/crystal/primitive-standardized', json(body)),
+    niggli: (body: Body<'/api/crystal/niggli', 'post'>) =>
+      request<Structure>('/api/crystal/niggli', json(body)),
+    fill: (body: Body<'/api/crystal/fill', 'post'>) =>
+      request<Structure>('/api/crystal/fill', json(body)),
+    asymmetricUnit: (body: Body<'/api/crystal/asymmetric-unit', 'post'>) =>
+      request<Structure>('/api/crystal/asymmetric-unit', json(body)),
+    supercell: (body: Body<'/api/crystal/supercell', 'post'>) =>
+      request<Structure>('/api/crystal/supercell', json(body)),
+    slab: (body: Body<'/api/crystal/slab', 'post'>) =>
+      request<Structure>('/api/crystal/slab', json(body)),
+    bulk: (body: Body<'/api/crystal/bulk', 'post'>) =>
+      request<Structure>('/api/crystal/bulk', json(body)),
+    library: () => request<LibraryEntry[]>('/api/crystal/library'),
+    libraryEntry: (category: string, name: string) =>
+      request<Structure>(
+        `/api/crystal/library/${encodeURIComponent(category)}/${encodeURIComponent(name)}`,
+      ),
   },
   grids: {
     list: () => request<GridRef[]>('/api/grids'),
