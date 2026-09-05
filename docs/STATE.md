@@ -1,8 +1,8 @@
 # Project state (resume here)
 
-Branch: main; this file is updated in the commit that checkpoints the work, so `git log -1 -- docs/STATE.md` is the last checkpoint. Phases 0-1 done; Phase 2 (editor tools), 3 (volumetric, trajectories, vectors), 4-5 (CP-PAW setup/execution/forces), 6 (CP-PAW analysis: DOS, bands, orbitals), crystallography, molecular mechanics and wavefunction surfaces are merged and working. Parity matrix: 171 IMPLEMENTED, 36 PARTIAL, 104 NOT STARTED, 1 BLOCKED of 312 rows.
+Branch: main; this file is updated in the commit that checkpoints the work, so `git log -1 -- docs/STATE.md` is the last checkpoint. Phases 0-1 done; Phase 2 (editor tools), 3 (volumetric, trajectories, vectors), 4-5 (CP-PAW setup/execution/forces), 6 (CP-PAW analysis: DOS, bands, orbitals), crystallography, molecular mechanics and wavefunction surfaces are merged and working. Parity matrix: 172 IMPLEMENTED, 36 PARTIAL, 103 NOT STARTED, 1 BLOCKED of 312 rows.
 
-Tests: `pytest -q -m "not cppaw"` -> 375 passed, 1 skipped; `pytest -q -m cppaw` -> 7 passed (~90 s, needs the local CP-PAW install); `pnpm vitest run` -> 371 passed; `pnpm exec playwright test` -> 23 passed (against private servers, see below; `make test-e2e` points at the user's 5173, which is stale). `ruff check`, `mypy` and `pnpm typecheck` are clean. No known failing tests. **Type-check the frontend with `pnpm typecheck` (`tsc -b --noEmit`), never with `pnpm exec tsc --noEmit`:** the root `tsconfig.json` is a solution file with `files: []`, so a bare `tsc --noEmit` checks nothing and exits 0.
+Tests: `pytest -q -m "not cppaw"` -> 375 passed, 1 skipped; `pytest -q -m cppaw` -> 7 passed (~90 s, needs the local CP-PAW install); `pnpm vitest run` -> 372 passed; `pnpm exec playwright test` -> 23 passed (against private servers, see below; `make test-e2e` points at the user's 5173, which is stale). `ruff check`, `mypy` and `pnpm typecheck` are clean. No known failing tests. **Type-check the frontend with `pnpm typecheck` (`tsc -b --noEmit`), never with `pnpm exec tsc --noEmit`:** the root `tsconfig.json` is a solution file with `files: []`, so a bare `tsc --noEmit` checks nothing and exits 0.
 
 ## Resume commands
 
@@ -50,7 +50,8 @@ run against current code -- Playwright above all -- use the private-server recip
   Settings dialog (quality, depth cueing, projection, background, backend list); Display scope
   (a display type per atom, keyed by uid, with hidden atoms dropped from the meshes, the labels
   and the picking); the colour maps Avogadro carries as colour plugins -- atom index, distance
-  from the first atom, partial charge and a single custom colour. Fixes found on the way: Optimize geometry sent valueless force-field
+  from the first atom, partial charge and a single custom colour; a colour map per engine (the
+  ribbon now has its own, next to the structure layer's and each isosurface's). Fixes found on the way: Optimize geometry sent valueless force-field
   constraints and was rejected with a 422; `add_hydrogens` dropped every residue of a PDB
   structure; `tsc --noEmit` at the repository root checks nothing (the real check is
   `pnpm typecheck`), which had hidden 37 type errors; depth cueing haloed a transparent image
@@ -84,8 +85,10 @@ run against current code -- Playwright above all -- use the private-server recip
    residue/chain/secondary-structure colour schemes.
 2. Rows still PARTIAL worth finishing: the angle and torsion property tables (AV-ANAL-004/005,
    they would reuse `BondTable`), MD at 300/600/900 K in the auto-optimize tool (AV-MM-010, the
-   backend has no MD minimizer), per-engine colour maps (AV-COLOR-008), the MOPAC input generator
-   (AV-QM-007).
+   backend has no MD minimizer) and the MOPAC input generator (AV-QM-007). The colour rows left
+   are the residue palettes Shapely and hydrophobicity (AV-COLOR-005), a SMARTS colour
+   (AV-COLOR-006), a per-atom colour override (AV-COLOR-010) and colours as plugins
+   (AV-COLOR-009).
 3. What is left at HIGH or CRITICAL, from the matrix itself (an earlier version of this list said
    AV-XTAL-002 was the last HIGH gap; it is MEDIUM -- re-derive the list, do not trust prose):
 
@@ -95,15 +98,16 @@ run against current code -- Playwright above all -- use the private-server recip
      docs/avogadro1-feature-parity.md
    ```
 
-   Today that is four HIGH `NOT STARTED` -- a painter abstraction for POV-Ray/VRML export
-   (AV-VIS-042), per-engine colour maps (AV-COLOR-008), the crystallography editor dock
-   (AV-XTAL-003), the MOPAC input generator (AV-QM-007) -- and two
+   Today that is three HIGH `NOT STARTED` -- a painter abstraction for POV-Ray/VRML export
+   (AV-VIS-042), the crystallography editor dock (AV-XTAL-003), the MOPAC input generator
+   (AV-QM-007) -- and two
    CRITICAL `PARTIAL` whose notes say the remaining difference is only the shape of a dialog
    (AV-MM-002 force-field setup, AV-FILE-003 Save As with a format chooser); decide once whether
    those two are done rather than leaving them to be re-read. The constraints dialog (AV-MM-005),
    the bond properties table (AV-ANAL-003), the auto-optimize tool (AV-EDIT-031), residue selection
    and colouring (AV-BIO-006), the Settings dialog (AV-UI-012), colour-by-second-cube
-   (AV-SURF-013) and engine primitive scoping (AV-VIS-029) are done.
+   (AV-SURF-013), engine primitive scoping (AV-VIS-029) and the colour maps (AV-COLOR-002/003/
+   004/007/008) are done.
 4. More wavefunction readers (MOPAC aux, GAMESS, ORCA, Molpro, Slater bases) for AV-SURF-006;
    ORCA/Gaussian/NWChem input-only plugins; desktop shell ADR.
 5. Known limits and hand-overs:

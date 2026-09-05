@@ -140,16 +140,24 @@ test('the colour schemes that need data say so, and one colour is chosen in the 
   render(<DisplayPanel />);
 
   // a plain molecule: no residues and no charges, and each scheme says what it is missing
-  fireEvent.change(screen.getByLabelText('Colour by'), { target: { value: 'chain' } });
+  fireEvent.change(screen.getByLabelText('Colour by', { selector: '#display-color-scheme' }), {
+    target: { value: 'chain' },
+  });
   expect(screen.getByText(/no residues, so its atoms keep/)).toBeInTheDocument();
-  fireEvent.change(screen.getByLabelText('Colour by'), { target: { value: 'charge' } });
+  fireEvent.change(screen.getByLabelText('Colour by', { selector: '#display-color-scheme' }), {
+    target: { value: 'charge' },
+  });
   expect(screen.getByText(/no partial charges/)).toBeInTheDocument();
 
   // the index scheme needs nothing, so it says nothing
-  fireEvent.change(screen.getByLabelText('Colour by'), { target: { value: 'index' } });
+  fireEvent.change(screen.getByLabelText('Colour by', { selector: '#display-color-scheme' }), {
+    target: { value: 'index' },
+  });
   expect(screen.queryByText(/no residues, so its atoms keep|no partial charges/)).toBeNull();
 
-  fireEvent.change(screen.getByLabelText('Colour by'), { target: { value: 'custom' } });
+  fireEvent.change(screen.getByLabelText('Colour by', { selector: '#display-color-scheme' }), {
+    target: { value: 'custom' },
+  });
   fireEvent.change(screen.getByLabelText('Colour', { selector: '#display-custom-color' }), {
     target: { value: '#ff8000' },
   });

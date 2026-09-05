@@ -16,6 +16,7 @@ import { assignStyle, assignmentCounts, displayOnly, NO_STYLES } from '../render
 import { useSelectionStore } from '../state/selectionStore';
 import { useBioStore } from '../state/bioStore';
 import { useRendererStore } from '../state/rendererStore';
+import type { RibbonColorScheme } from '../renderer/layers/RibbonLayer';
 import type { StructureStyle } from '../renderer/layers/StructureLayer';
 import { useStructureStore } from '../state/structureStore';
 import { useViewStore } from '../state/viewStore';
@@ -369,6 +370,18 @@ export function DisplayPanel(): JSX.Element {
           <option value="cartoon">Cartoon (helix, sheet, coil)</option>
           <option value="ribbon">Ribbon</option>
           <option value="backbone">Backbone</option>
+        </select>
+      </div>
+      <div className="form-row">
+        <label htmlFor="display-ribbon-colorby">Colour by</label>
+        <select
+          id="display-ribbon-colorby"
+          value={view.ribbonColorScheme}
+          onChange={(e) => view.setRibbonColorScheme(e.target.value as RibbonColorScheme)}
+        >
+          <option value="secondary">Secondary structure</option>
+          <option value="chain">Chain</option>
+          <option value="residue">Residue</option>
         </select>
       </div>
       <div className="form-row">

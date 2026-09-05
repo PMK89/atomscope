@@ -20,6 +20,7 @@ import {
   type GuideResidue,
   type RibbonStyle,
 } from '../../model/ribbon';
+import { CHAIN_COLORS, RESIDUE_COLOR, UNKNOWN_COLOR } from '../atomColors';
 import type { DisplayLayer, LayerContext } from './Layer';
 
 /** One residue as the backend reports it: backbone atoms by uid. */
@@ -37,13 +38,21 @@ export interface SecondaryStructureData {
   chains: number[][];
 }
 
+/** What paints the strip: this engine's own colour map (Avogadro gives every engine one). */
+export type RibbonColorScheme = 'secondary' | 'chain' | 'residue';
+
 export interface RibbonLayerSettings {
   style: RibbonStyle;
   /** Multiplies the widths the style defines. */
   scale: number;
+  colorScheme: RibbonColorScheme;
 }
 
-export const DEFAULT_RIBBON_SETTINGS: RibbonLayerSettings = { style: 'cartoon', scale: 1 };
+export const DEFAULT_RIBBON_SETTINGS: RibbonLayerSettings = {
+  style: 'cartoon',
+  scale: 1,
+  colorScheme: 'secondary',
+};
 
 export class RibbonLayer implements DisplayLayer {
   readonly id = 'ribbon';
@@ -108,6 +117,17 @@ export class RibbonLayer implements DisplayLayer {
     };
 
     const byResidue = new Map(this.data.residues.map((r) => [r.residue, r]));
+    // the chain order the atom colours use, so a cartoon and its atoms agree on which chain is blue
+    const chainOrder = [...new Set(s.residues.map((r) => r.chain))];
+    const colorOf = (residue: number): Vec3 | undefined => {
+      const { colorScheme } = this.settings;
+      if (colorScheme === 'secondary') return undefined;
+      const r = s.residues[residue];
+      if (!r) return UNKNOWN_COLOR;
+      if (colorScheme === 'chain')
+        return CHAIN_COLORS[chainOrder.indexOf(r.chain) % CHAIN_COLORS.length]!;
+      return RESIDUE_COLOR[r.name.trim().toUpperCase()] ?? UNKNOWN_COLOR;
+    };
     const chains: GuideResidue[][] = [];
     for (const chain of this.data.chains) {
       const guide: GuideResidue[] = [];
@@ -122,7 +142,8 @@ export class RibbonLayer implements DisplayLayer {
           guide.length = 0;
           continue;
         }
-        guide.push({ ca, o, kind: r.kind });
+        const color = colorOf(r.residue);
+        guide.push({ ca, o, kind: r.kind, ...(color ? { color } : {}) });
       }
       if (guide.length > 1) chains.push(guide);
     }

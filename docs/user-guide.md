@@ -466,7 +466,7 @@ of the right dock, which is Avogadro's Display Types dock:
 | Display scope | which atoms a display type applies to: assign one to the selection, show only the selection, hide the selection, or put everything back |
 | Labels | on/off, what atoms and bonds are labelled with (index, symbol, name, formal or partial charge, residue name or number, uid, custom; bond order or length), colour, size, offset |
 | Hydrogen bonds | on/off, cut-off distance and angle; drawn as dashed sticks from the geometry on screen |
-| Ribbons | cartoon, ribbon or backbone rendering of a protein, and a width; helices red, strands yellow with an arrowhead, coil thin |
+| Ribbons | cartoon, ribbon or backbone rendering of a protein, a **colour by** of its own (secondary structure, chain or residue) and a width; helices red, strands yellow with an arrowhead, coil thin |
 | Vectors | on/off, which field (forces, moments, mode displacements) and a scale |
 | Unit cell and axes | the cell box, the repeat counts, the corner gizmo |
 
@@ -497,6 +497,11 @@ and four that do not need residues at all:
   or take them from a calculation. The panel says so when there are none.
 * `One colour` — everything in a colour chosen next to the list, for a figure
   where the molecule is a shape rather than a set of elements.
+
+Each engine has a colour map of its own, as in Avogadro: the ribbon is coloured
+from the Ribbons section (secondary structure, chain or residue) and every
+isosurface from the Surfaces panel, so a cartoon can be coloured by chain over
+atoms coloured by element.
 
 A structure without residues keeps its element colours under the three residue
 schemes, and the panel says so. Double

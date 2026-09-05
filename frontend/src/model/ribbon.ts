@@ -19,6 +19,8 @@ export interface GuideResidue {
   /** carbonyl oxygen, which orients the ribbon */
   o: Vec3;
   kind: SecondaryKind;
+  /** the colour of this residue's part of the strip; the secondary-structure colour if absent */
+  color?: Vec3;
 }
 
 /** A point of the smoothed backbone with the frame and width the strip uses there. */
@@ -29,6 +31,7 @@ export interface Frame {
   up: Vec3;
   width: number;
   kind: SecondaryKind;
+  color: Vec3;
 }
 
 /** Samples per residue along the spline. Four is smooth enough at protein scale. */
@@ -126,6 +129,7 @@ export function chainFrames(residues: GuideResidue[], style: RibbonStyle): Frame
         up: normalize(cross(tangent, side), [0, 0, 1]),
         width: widths[kind] * arrowScale(residues, i, t, style),
         kind,
+        color: residues[i]!.color ?? KIND_COLOR[kind],
       });
     }
   }
@@ -166,7 +170,7 @@ export function stripGeometry(chains: Frame[][]): StripGeometry {
       const left = sub(f.center, half);
       const right = add(f.center, half);
       positions.push(left[0], left[1], left[2], right[0], right[1], right[2]);
-      const c = KIND_COLOR[f.kind];
+      const c = f.color;
       colors.push(c[0], c[1], c[2], c[0], c[1], c[2]);
       if (k > 0) {
         const a = base + 2 * (k - 1);

@@ -33,6 +33,8 @@
   residue colours survive `Add hydrogens`.
 - Deleting atoms now takes their per-atom properties with them: partial charges and forces used to
   keep the old length and were then silently ignored by everything that reads them.
+- A colour map per engine: the ribbon can be coloured by secondary structure, chain or residue,
+  independently of what the atoms are coloured by (isosurfaces already had one of their own).
 - More colour maps on the Display tab: atom index and distance from the first atom (the rainbow
   sweep Avogadro uses), partial charge (red negative, blue positive, scaled by the largest in the
   structure) and a single colour of one's own.

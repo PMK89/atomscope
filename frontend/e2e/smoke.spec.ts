@@ -182,6 +182,36 @@ test('a built peptide is drawn as a cartoon with its helices', async ({ page }) 
 
   await page.getByLabel('Rendering').selectOption('backbone');
   await expect.poll(ribbon).toBeGreaterThan(50);
+
+  // the ribbon has a colour map of its own, so a cartoon can be coloured by chain while the
+  // atoms keep their elements: the strip's vertex colours are what changes
+  await page.getByLabel('Rendering').selectOption('cartoon');
+  const stripColors = async (): Promise<string[]> =>
+    page.evaluate(() => {
+      const renderer = (window as unknown as { __atomscopeRenderer?: unknown })
+        .__atomscopeRenderer as {
+        getLayer(id: string): { object: { children: unknown[] } } | undefined;
+      };
+      const mesh = renderer.getLayer('ribbon')?.object.children[0] as {
+        geometry: {
+          getAttribute(name: string): {
+            count: number;
+            getX(i: number): number;
+            getY(i: number): number;
+            getZ(i: number): number;
+          };
+        };
+      };
+      const a = mesh.geometry.getAttribute('color');
+      const out = new Set<string>();
+      for (let i = 0; i < a.count; i++)
+        out.add([a.getX(i), a.getY(i), a.getZ(i)].map((v) => v.toFixed(3)).join(','));
+      return [...out].sort();
+    });
+  const bySecondary = await stripColors();
+  await page.locator('#display-ribbon-colorby').selectOption('residue');
+  await expect.poll(stripColors).not.toEqual(bySecondary);
+  await page.locator('canvas').screenshot({ path: '../.scratch/dev/cartoon-by-residue.png' });
 });
 
 test('a pasted second water is drawn with a hydrogen bond to the first', async ({ page }) => {
@@ -420,7 +450,7 @@ test('a peptide can be coloured by residue and selected by residue name', async 
   await expect(page.locator('.app-statusbar')).toContainText('atoms');
 
   await page.getByRole('tab', { name: 'Display' }).click();
-  await page.getByLabel('Colour by').selectOption('residue');
+  await page.locator('#display-color-scheme').selectOption('residue');
   // lysine is blue and aspartate red in the RasMol scheme the residue colours follow
   await page.locator('canvas').screenshot({ path: '../.scratch/dev/residue-colors.png' });
 
@@ -534,7 +564,7 @@ test('atoms can be coloured by partial charge and by one colour', async ({ page 
   await page.getByRole('tab', { name: 'Display' }).click();
 
   // without charges the scheme says what is missing and the picture keeps its element colours
-  await page.getByLabel('Colour by').selectOption('charge');
+  await page.locator('#display-color-scheme').selectOption('charge');
   await expect(page.getByText(/no partial charges/)).toBeVisible();
   const elementColors = await mean();
 
@@ -549,7 +579,7 @@ test('atoms can be coloured by partial charge and by one colour', async ({ page 
   await page.screenshot({ path: '../.scratch/dev/colour-by-charge.png' });
 
   // one colour paints everything, and it is the one the panel says
-  await page.getByLabel('Colour by').selectOption('custom');
+  await page.locator('#display-color-scheme').selectOption('custom');
   await page.locator('#display-custom-color').fill('#00ff00');
   const [r, g, b] = await mean();
   expect(g).toBeGreaterThan(r + 40);

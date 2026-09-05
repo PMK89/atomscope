@@ -5,6 +5,7 @@ import type { Quality, StructureStyle } from '../renderer/layers/StructureLayer'
 import type { Projection } from '../renderer/Renderer';
 import type { AtomLabelContent, BondLabelContent } from '../renderer/labels';
 import type { RibbonStyle } from '../model/ribbon';
+import type { RibbonColorScheme } from '../renderer/layers/RibbonLayer';
 import { DEFAULT_HBOND_SETTINGS } from '../model/hbonds';
 
 export interface ViewState {
@@ -56,6 +57,9 @@ export interface ViewState {
   showRibbon: boolean;
   ribbonStyle: RibbonStyle;
   ribbonScale: number;
+  /** The ribbon engine's own colour map (Avogadro gives every engine one). */
+  ribbonColorScheme: RibbonColorScheme;
+  setRibbonColorScheme: (scheme: RibbonColorScheme) => void;
   toggleRibbon: () => void;
   setRibbonStyle: (style: RibbonStyle) => void;
   setRibbonScale: (scale: number) => void;
@@ -133,6 +137,8 @@ export const useViewStore = create<ViewState>((set) => ({
   showRibbon: false,
   ribbonStyle: 'cartoon',
   ribbonScale: 1,
+  ribbonColorScheme: 'secondary',
+  setRibbonColorScheme: (ribbonColorScheme) => set({ ribbonColorScheme }),
   toggleRibbon: () => set((s) => ({ showRibbon: !s.showRibbon })),
   setRibbonStyle: (ribbonStyle) => set({ ribbonStyle }),
   setRibbonScale: (ribbonScale) => set({ ribbonScale }),

@@ -32,7 +32,11 @@ export function syncExtraLayers(
   if (ribbon instanceof RibbonLayer) {
     ribbon.visible = view.showRibbon;
     ribbon.setData(secondary);
-    ribbon.setSettings({ style: view.ribbonStyle, scale: view.ribbonScale });
+    ribbon.setSettings({
+      style: view.ribbonStyle,
+      scale: view.ribbonScale,
+      colorScheme: view.ribbonColorScheme,
+    });
   }
   const vectors = renderer.getLayer('vectors');
   if (vectors instanceof VectorLayer) {

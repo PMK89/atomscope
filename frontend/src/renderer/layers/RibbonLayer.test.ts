@@ -1,4 +1,7 @@
+import type { Mesh } from 'three';
 import { expect, test } from 'vitest';
+import { CHAIN_COLORS, RESIDUE_COLOR } from '../atomColors';
+import { KIND_COLOR } from '../../model/ribbon';
 import { makeAtom, normalizeStructure, type StructureDoc } from '../../model/structure';
 import { RibbonLayer, type SecondaryStructureData } from './RibbonLayer';
 import type { LayerContext } from './Layer';
@@ -123,5 +126,54 @@ test('a hover-only update does not rebuild the ribbon', () => {
     layer.object.children[0] as unknown as { geometry: { attributes: { position: unknown } } }
   ).geometry.attributes.position;
   expect(after).not.toBe(positions);
+  layer.dispose();
+});
+
+test('the ribbon has a colour map of its own: secondary structure, chain or residue', () => {
+  const { doc, data } = protein();
+  // two chains of two residues, so both the chain and the residue map have something to say
+  const withResidues: StructureDoc = {
+    ...doc,
+    residues: [
+      { name: 'LYS', number: 1, chain: 'A', atom_indices: [0, 1] },
+      { name: 'LYS', number: 2, chain: 'A', atom_indices: [2, 3] },
+      { name: 'ASP', number: 3, chain: 'B', atom_indices: [4, 5] },
+      { name: 'ASP', number: 4, chain: 'B', atom_indices: [6, 7] },
+    ],
+  };
+  const layer = new RibbonLayer();
+  layer.visible = true;
+  layer.setData(data);
+
+  /** the distinct vertex colours of the strip, rounded so float32 comparisons hold */
+  const colors = (): string[] => {
+    const mesh = layer.object.children[0] as Mesh;
+    const attribute = mesh.geometry.getAttribute('color');
+    const out = new Set<string>();
+    for (let i = 0; i < attribute.count; i++)
+      out.add(
+        [attribute.getX(i), attribute.getY(i), attribute.getZ(i)]
+          .map((v) => v.toFixed(3))
+          .join(','),
+      );
+    return [...out];
+  };
+  const key = (c: readonly number[]): string => c.map((v) => v.toFixed(3)).join(',');
+
+  layer.update(ctx(withResidues));
+  expect(colors()).toEqual([key(KIND_COLOR.helix)]);
+
+  layer.setSettings({ colorScheme: 'chain' });
+  layer.update(ctx(withResidues));
+  expect(colors().sort()).toEqual([key(CHAIN_COLORS[0]!), key(CHAIN_COLORS[1]!)].sort());
+
+  layer.setSettings({ colorScheme: 'residue' });
+  layer.update(ctx(withResidues));
+  expect(colors().sort()).toEqual([key(RESIDUE_COLOR['LYS']!), key(RESIDUE_COLOR['ASP']!)].sort());
+
+  // back to the structure's own colours
+  layer.setSettings({ colorScheme: 'secondary' });
+  layer.update(ctx(withResidues));
+  expect(colors()).toEqual([key(KIND_COLOR.helix)]);
   layer.dispose();
 });
