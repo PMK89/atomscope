@@ -46,7 +46,13 @@ def main(argv: list[str]) -> int:  # noqa: PLR0915
     ap.add_argument("--wave", default=None)
     ap.add_argument("--cube", action="append", default=[], help="KIND=WAVEFILE")
     ap.add_argument(
-        "--box", nargs=6, type=float, default=None, help="origin and box lengths in Bohr"
+        "--box", nargs=12, type=float, default=None, help="origin and three edge vectors (Bohr)"
+    )
+    ap.add_argument(
+        "--stages",
+        nargs="+",
+        default=None,
+        help="control files run in sequence (copied to <root>.cntl)",
     )
     args = ap.parse_args(argv[1:])
     work = Path(args.work_dir).resolve()
