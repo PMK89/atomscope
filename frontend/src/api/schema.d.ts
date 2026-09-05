@@ -2984,6 +2984,11 @@ export interface components {
        */
       format?: string | null;
       /**
+       * Species
+       * @description element of each species of a VASP 4 POSCAR, which does not name them
+       */
+      species?: string[] | null;
+      /**
        * Text
        * @description file content, e.g. a clipboard paste
        */

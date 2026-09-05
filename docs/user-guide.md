@@ -438,8 +438,18 @@ contents needs — a Gaussian output called `run.txt`, say. The file picker is
 filtered to the extensions the readers claim.
 
 Text can also be pasted straight in: `Edit ▸ Paste` (Ctrl+V) reads XYZ, CIF,
-PDB, molfiles, CML or SMILES from the clipboard, sniffing the format when it is
-not obvious (`POST /api/io/import/text`).
+PDB, molfiles, CML, SMILES or a VASP POSCAR from the clipboard, sniffing the
+format when it is not obvious (`POST /api/io/import/text`). This is Avogadro's
+*Import Crystal from Clipboard*, without a menu item of its own: a POSCAR is
+recognised by its lattice.
+
+A POSCAR written for VASP 4 counts its species but does not name them — the
+element symbols lived in the POTCAR beside the file, and a paste has no file.
+Atomscope then asks: **Elements of the pasted crystal** shows one field per
+species with the number of atoms it has (`Species 1 (2 atoms)`), and the paste
+finishes once they are filled in. A POSCAR whose *comment* line happens to be
+the species (`Si`, or `Ga As`) is read without asking. Opening such a file from
+disk rather than pasting it gets the reader's own error instead of the dialog.
 
 **Import of quantum-chemistry output logs** (`POST /api/io/import/output`,
 API only) reads Gaussian, ORCA, NWChem, Quantum ESPRESSO and GAMESS-US logs via

@@ -11,12 +11,13 @@
  * The keyboard path uses the DOM clipboard events rather than `navigator.clipboard`: their
  * `clipboardData` is synchronous and needs no permission, while `readText()` is permission-gated.
  */
-import { api } from '../api/client';
+import { api, ApiError } from '../api/client';
 import { isEditableTarget } from '../editor/ToolHost';
 import { mergeFragment, selectionFragment, toXyz } from '../editor/fragment';
 import { removeAtoms } from '../editor/edits';
 import { normalizeStructure, type StructureDoc } from '../model/structure';
 import { useClipboardStore } from '../state/clipboardStore';
+import { speciesCounts, usePasteStore } from '../state/pasteStore';
 import { useSelectionStore } from '../state/selectionStore';
 import { useStructureStore } from '../state/structureStore';
 
@@ -71,10 +72,36 @@ export async function pasteText(text: string, onError: (m: string) => void): Pro
     try {
       fragment = normalizeStructure(await api.io.importText({ text }));
     } catch (e) {
+      // a crystal that does not name its elements: ask which they are rather than failing
+      const counts = e instanceof ApiError && e.status === 422 ? speciesCounts(e.detail) : null;
+      if (counts) {
+        usePasteStore.getState().ask({ text, counts });
+        return false;
+      }
       onError(`Paste failed: ${(e as Error).message}`);
       return false;
     }
   }
+  return placeFragment(fragment, onError);
+}
+
+/** Finish a paste the species dialog was waiting on: read the same text again, with the answer. */
+export async function pasteWithSpecies(
+  text: string,
+  species: string[],
+  onError: (m: string) => void,
+): Promise<boolean> {
+  try {
+    const fragment = normalizeStructure(await api.io.importText({ text, species }));
+    return placeFragment(fragment, onError);
+  } catch (e) {
+    onError(`Paste failed: ${(e as Error).message}`);
+    return false;
+  }
+}
+
+/** Merge a pasted fragment into the document, in place and selected. */
+function placeFragment(fragment: StructureDoc | null, onError: (m: string) => void): boolean {
   if (!fragment || !fragment.atoms.length) {
     onError('Nothing to paste');
     return false;

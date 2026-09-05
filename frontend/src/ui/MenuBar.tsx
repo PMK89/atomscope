@@ -18,6 +18,7 @@ import { normalizeSymbol } from '../editor/cartesian';
 import { CartesianEditor } from './CartesianEditor';
 import { redoEdit, undoEdit } from './historyActions';
 import { ConstraintsDialog } from './ConstraintsDialog';
+import { SpeciesDialog } from './SpeciesDialog';
 import { SettingsDialog } from './SettingsDialog';
 import { BuildDialogs } from './BuildDialogs';
 import { CrystalDialogs } from './CrystalDialogs';
@@ -382,6 +383,7 @@ export function MenuBar({ onError }: { onError: (msg: string) => void }): JSX.El
       <HelpDialog topic={help} onClose={() => setHelp(null)} />
       <CartesianEditor />
       <ConstraintsDialog />
+      <SpeciesDialog onError={onError} />
       <SettingsDialog />
       <CrystalDialogs onError={onError} />
       <BuildDialogs onError={onError} />

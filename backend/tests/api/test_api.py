@@ -84,6 +84,12 @@ def test_io_routes(tmp_path: Path) -> None:
     r = c.post("/api/io/import/text", json={"text": "CCO", "format": "smi"})
     assert r.status_code == 200 and len(r.json()["atoms"]) == 9
     assert c.post("/api/io/import/text", json={"text": "not a molecule\nat all"}).status_code == 400
+    # a VASP 4 POSCAR: 422 with the counts, so the caller can ask which element each species is
+    poscar = "cubic\n1.0\n5.4 0 0\n0 5.4 0\n0 0 5.4\n1 1\nDirect\n0 0 0\n0.25 0.25 0.25\n"
+    r = c.post("/api/io/import/text", json={"text": poscar})
+    assert r.status_code == 422 and r.json()["detail"]["counts"] == [1, 1]
+    r = c.post("/api/io/import/text", json={"text": poscar, "species": ["Ga", "As"]})
+    assert r.status_code == 200 and [a["element"] for a in r.json()["atoms"]] == ["Ga", "As"]
     assert c.post("/api/io/smiles", json={"smiles": "C("}).status_code == 400
     assert (
         c.post("/api/io/import/path", json={"path": str(tmp_path / "nope.xyz")}).status_code == 404

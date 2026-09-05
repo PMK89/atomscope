@@ -2412,6 +2412,21 @@
             "description": "format name; sniffed when omitted",
             "title": "Format"
           },
+          "species": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "element of each species of a VASP 4 POSCAR, which does not name them",
+            "title": "Species"
+          },
           "text": {
             "description": "file content, e.g. a clipboard paste",
             "maxLength": 20000000,

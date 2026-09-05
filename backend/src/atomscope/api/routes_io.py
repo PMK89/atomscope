@@ -11,6 +11,7 @@ from pydantic import Field
 from atomscope.api.state import AppState
 from atomscope.calculations.grids import import_cube
 from atomscope.io import formats, read_structure, structure_from_string, write_structure
+from atomscope.io.poscar import MissingSpeciesError
 from atomscope.io.qc_outputs import OutputImport, read_output
 from atomscope.io.rdkit_io import from_smiles
 from atomscope.io.registry import FormatError, structure_to_string
@@ -53,6 +54,10 @@ class SmilesRequest(StrictModel):
 class ImportTextRequest(StrictModel):
     text: str = Field(max_length=20_000_000, description="file content, e.g. a clipboard paste")
     format: str | None = Field(default=None, description="format name; sniffed when omitted")
+    species: list[str] | None = Field(
+        default=None,
+        description="element of each species of a VASP 4 POSCAR, which does not name them",
+    )
 
 
 class ExportRequest(StrictModel):
@@ -129,7 +134,14 @@ async def import_upload(
 def import_text(body: ImportTextRequest) -> Structure:
     """Read a structure from text: a clipboard paste, or an editor buffer. No file involved."""
     try:
-        return structure_from_string(body.text, body.format)
+        return structure_from_string(body.text, body.format, species=body.species)
+    except MissingSpeciesError as exc:
+        # 422 rather than 400: the request is well formed, it is the *text* that is missing
+        # something only the user can supply. The counts travel so the dialog can ask per species.
+        raise HTTPException(
+            status.HTTP_422_UNPROCESSABLE_CONTENT,
+            {"message": str(exc), "counts": exc.counts},
+        ) from exc
     except (FormatError, ValueError) as exc:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, str(exc)) from exc
 

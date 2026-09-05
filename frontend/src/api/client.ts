@@ -70,6 +70,8 @@ export class ApiError extends Error {
   constructor(
     public readonly status: number,
     message: string,
+    /** the `detail` the backend sent, when it was an object rather than a message */
+    public readonly detail: unknown = null,
   ) {
     super(message);
   }
@@ -84,15 +86,23 @@ async function request<T>(url: string, init?: RequestInit): Promise<T> {
       : { 'content-type': 'application/json', ...(init?.headers ?? {}) },
   });
   if (!res.ok) {
-    let detail = res.statusText;
+    let message = res.statusText;
+    let structured: unknown = null;
     try {
-      const body = (await res.json()) as { detail?: string | { msg: string }[] };
-      if (typeof body.detail === 'string') detail = body.detail;
-      else if (Array.isArray(body.detail)) detail = body.detail.map((d) => d.msg).join('; ');
+      const body = (await res.json()) as {
+        detail?: string | { msg: string }[] | { message?: string };
+      };
+      if (typeof body.detail === 'string') message = body.detail;
+      else if (Array.isArray(body.detail)) message = body.detail.map((d) => d.msg).join('; ');
+      else if (body.detail) {
+        // a route that has more to say than a sentence: the object travels whole
+        structured = body.detail;
+        message = body.detail.message ?? message;
+      }
     } catch {
       /* non-JSON error body */
     }
-    throw new ApiError(res.status, detail);
+    throw new ApiError(res.status, message, structured);
   }
   if (res.status === 204) return undefined as T;
   return (await res.json()) as T;

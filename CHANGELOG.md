@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Pasting a VASP POSCAR: recognised by its lattice, and when it does not name
+  its elements (VASP 4 kept them in the POTCAR) a dialog asks which element each species is.
+
 - Display scope: a colour per atom as well as a display type, painted over whatever colour scheme
   is chosen, and hidden atoms are now left out of the ribbon and the hydrogen bonds too.
 

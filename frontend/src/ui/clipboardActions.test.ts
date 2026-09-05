@@ -2,6 +2,7 @@ import { beforeEach, expect, test, vi } from 'vitest';
 import { makeAtom, makeBond, normalizeStructure, type StructureDoc } from '../model/structure';
 import { useClipboardStore } from '../state/clipboardStore';
 import { useSelectionStore } from '../state/selectionStore';
+import { usePasteStore } from '../state/pasteStore';
 import { useStructureStore } from '../state/structureStore';
 import {
   clearSelection,
@@ -9,23 +10,46 @@ import {
   cutSelection,
   installClipboardEvents,
   pasteText,
+  pasteWithSpecies,
   targetAtoms,
 } from './clipboardActions';
 
-vi.mock('../api/client', () => ({
-  api: {
-    io: {
-      importText: vi.fn(async ({ text }: { text: string }) => {
-        if (!text.startsWith('2')) throw new Error('cannot tell what format this text is');
-        return {
-          name: 'pasted',
-          atoms: [makeAtom('H', [0, 0, 0]), makeAtom('H', [0, 0, 0.74])],
-          bonds: [makeBond(0, 1)],
-        };
-      }),
+vi.mock('../api/client', () => {
+  // the module is mocked whole, so the error class the paste path checks with lives here too
+  class ApiError extends Error {
+    constructor(
+      readonly status: number,
+      message: string,
+      readonly detail: unknown = null,
+    ) {
+      super(message);
+    }
+  }
+  return {
+    ApiError,
+    api: {
+      io: {
+        importText: vi.fn(async ({ text, species }: { text: string; species?: string[] }) => {
+          // a POSCAR that does not name its elements: the backend answers 422 with the counts
+          if (text.startsWith('POSCAR') && !species)
+            throw new ApiError(422, 'does not name its elements', { counts: [2] });
+          if (text.startsWith('POSCAR'))
+            return {
+              name: 'pasted',
+              atoms: [makeAtom(species![0]!, [0, 0, 0]), makeAtom(species![0]!, [1.4, 1.4, 1.4])],
+              bonds: [],
+            };
+          if (!text.startsWith('2')) throw new Error('cannot tell what format this text is');
+          return {
+            name: 'pasted',
+            atoms: [makeAtom('H', [0, 0, 0]), makeAtom('H', [0, 0, 0.74])],
+            bonds: [makeBond(0, 1)],
+          };
+        }),
+      },
     },
-  },
-}));
+  };
+});
 
 const doc = (): StructureDoc =>
   normalizeStructure({
@@ -42,6 +66,7 @@ beforeEach(() => {
   useStructureStore.getState().load(doc());
   useSelectionStore.getState().clear();
   useClipboardStore.setState({ fragment: null, text: '' });
+  usePasteStore.getState().cancel();
 });
 
 test('an empty selection means the whole molecule, as in Avogadro', () => {
@@ -147,4 +172,28 @@ test('with nothing selected in the page the molecule is copied', () => {
 
   expect(setData).toHaveBeenCalledWith('text/plain', expect.stringContaining('C '));
   cleanup();
+});
+
+test('a crystal that does not name its elements asks instead of failing', async () => {
+  const before = useStructureStore.getState().doc.atoms.length;
+  expect(await pasteText('POSCAR without species', onError)).toBe(false);
+  // not an error: a question, with the counts the dialog needs
+  expect(errors).toEqual([]);
+  expect(usePasteStore.getState().pending).toEqual({
+    text: 'POSCAR without species',
+    counts: [2],
+  });
+  expect(useStructureStore.getState().doc.atoms).toHaveLength(before);
+
+  expect(await pasteWithSpecies('POSCAR without species', ['Ge'], onError)).toBe(true);
+  const doc = useStructureStore.getState().doc;
+  expect(doc.atoms).toHaveLength(before + 2);
+  expect(doc.atoms.slice(before).map((a) => a.element)).toEqual(['Ge', 'Ge']);
+  expect(useStructureStore.getState().undoStack.at(-1)?.label).toBe('Paste');
+});
+
+test('a paste that fails for any other reason is still an error', async () => {
+  expect(await pasteText('this is not a structure', onError)).toBe(false);
+  expect(errors[0]).toMatch(/cannot tell what format/);
+  expect(usePasteStore.getState().pending).toBeNull();
 });

@@ -90,6 +90,7 @@ Constraint = Annotated[
     Field(discriminator="kind"),
 ]
 
+
 def remap(c: Constraint, new_index: Mapping[int, int]) -> Constraint | None:
     """``c`` after atoms were removed or renumbered, or None when it no longer applies.
 

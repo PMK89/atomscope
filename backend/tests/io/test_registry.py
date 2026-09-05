@@ -6,6 +6,7 @@ from ase.build import bulk, molecule
 
 from atomscope.ase_bridge import from_atoms
 from atomscope.io import read_structure, write_structure
+from atomscope.io.poscar import MissingSpeciesError
 from atomscope.io.rdkit_io import from_smiles
 from atomscope.io.registry import (
     FormatError,
@@ -109,6 +110,60 @@ def test_sniff_text_recognizes_what_a_user_pastes() -> None:
     assert sniff_text("\n  Mrv  \n\n  1  0  0\nM  END\n") == "mol"
     with pytest.raises(FormatError):
         sniff_text("this is not a structure\nand neither is this\n")
+
+
+POSCAR_5 = """silicon
+1.0
+5.43 0.00 0.00
+0.00 5.43 0.00
+0.00 0.00 5.43
+Si
+2
+Direct
+0.00 0.00 0.00
+0.25 0.25 0.25
+"""
+# VASP 4: the species line is gone, and the elements lived in the POTCAR beside the file
+POSCAR_4 = POSCAR_5.replace("Si\n2\n", "2\n", 1)
+POSCAR_4_NAMED = POSCAR_4.replace("silicon\n", "Si\n", 1)
+
+
+def test_a_pasted_poscar_is_recognized_before_an_xyz() -> None:
+    assert sniff_text(POSCAR_5) == "vasp"
+    assert sniff_text(POSCAR_4) == "vasp"
+    # a comment line that is a bare number is what an xyz starts with; the lattice decides
+    assert sniff_text(POSCAR_5.replace("silicon", "2", 1)) == "vasp"
+    assert sniff_text("2\nwater\nO 0 0 0\nH 0 0.96 0\n") == "xyz"
+    # an xyz written with atomic numbers: four tokens a line, so not a lattice
+    numbers = "5\n2\n8 0.0 0.0 0.0\n1 0.0 0.9 0.0\n1 0.9 0.0 0.0\n6 2.0 0.0 0.0\n8 3.0 0 0\n"
+    assert sniff_text(numbers) == "xyz"
+
+
+def test_a_poscar_that_names_its_species_reads_without_help() -> None:
+    s = structure_from_string(POSCAR_5)
+    assert s.symbols() == ["Si", "Si"]
+    assert s.cell is not None
+    # VASP 4 whose comment line happens to be the species: the same, from the comment
+    assert structure_from_string(POSCAR_4_NAMED).symbols() == ["Si", "Si"]
+
+
+def test_a_poscar_without_species_asks_rather_than_guessing() -> None:
+    # ASE would send this one looking for a POTCAR beside a file that does not exist
+    with pytest.raises(MissingSpeciesError) as caught:
+        structure_from_string(POSCAR_4)
+    assert caught.value.counts == [2]
+
+    assert structure_from_string(POSCAR_4, species=["Ge"]).symbols() == ["Ge", "Ge"]
+    # and the answer has to fit the counts, and be elements
+    with pytest.raises(ValueError, match="1 species, but 2"):
+        structure_from_string(POSCAR_4, species=["Ge", "Si"])
+    with pytest.raises(ValueError, match="not an element symbol: Xx"):
+        structure_from_string(POSCAR_4, species=["Xx"])
+
+
+def test_two_species_keep_their_order_and_counts() -> None:
+    text = POSCAR_4.replace("2\nDirect", "1 1\nDirect", 1)
+    assert structure_from_string(text, species=["Ga", "As"]).symbols() == ["Ga", "As"]
 
 
 def test_read_pasted_xyz_perceives_bonds() -> None:

@@ -19,6 +19,7 @@ from ase.io.formats import filetype
 from atomscope.ase_bridge.convert import from_atoms, to_atoms
 from atomscope.chem.bonds import perceive_bonds
 from atomscope.io import rdkit_io
+from atomscope.io.poscar import as_vasp5, looks_like_poscar
 from atomscope.model import Provenance, Structure
 
 Library = Literal["ase", "rdkit", "openbabel"]
@@ -189,25 +190,39 @@ def sniff_text(text: str) -> str:
         msg = "nothing to read"
         raise FormatError(msg)
     lines = stripped.splitlines()
-    if "M  END" in text:
-        return "mol"
-    if lines[0].startswith("data_"):
-        return "cif"
-    if any(line.startswith(("ATOM  ", "HETATM")) for line in lines):
-        return "pdb"
-    if "<molecule" in text or "<cml" in text:
-        return "cml"
     first = lines[0].split()
-    if len(first) == 1 and first[0].isdigit():
-        return "xyz"
-    if len(lines) == 1 and len(first) == 1:
-        return "smi"
+    # in order: a POSCAR comes before xyz, because a POSCAR whose comment line is a bare number
+    # would otherwise look like an atom count. The reverse cannot happen -- line 3 of an xyz has
+    # four tokens, not three floats.
+    tests: list[tuple[str, bool]] = [
+        ("mol", "M  END" in text),
+        ("cif", lines[0].startswith("data_")),
+        ("pdb", any(line.startswith(("ATOM  ", "HETATM")) for line in lines)),
+        ("cml", "<molecule" in text or "<cml" in text),
+        ("vasp", looks_like_poscar(stripped)),
+        ("xyz", len(first) == 1 and first[0].isdigit()),
+        ("smi", len(lines) == 1 and len(first) == 1),
+    ]
+    for name, matched in tests:
+        if matched:
+            return name
     msg = "cannot tell what format this text is"
     raise FormatError(msg)
 
 
-def structure_from_string(text: str, fmt: str | None = None, *, perceive: bool = True) -> Structure:
-    """Read a structure from text (a paste or an editor buffer) instead of a file."""
+def structure_from_string(
+    text: str,
+    fmt: str | None = None,
+    *,
+    perceive: bool = True,
+    species: list[str] | None = None,
+) -> Structure:
+    """
+    Read a structure from text (a paste or an editor buffer) instead of a file.
+
+    `species` names the elements of a VASP 4 POSCAR, which does not carry them; it is ignored by
+    every other format.
+    """
     info = _by_name(fmt or sniff_text(text))
     if not info.can_read:
         msg = f"format {info.name} is write-only"
@@ -219,9 +234,12 @@ def structure_from_string(text: str, fmt: str | None = None, *, perceive: bool =
 
         structure = openbabel_io.read_text(text, info.name)
     else:
+        # a POSCAR that does not name its species sends ASE looking for a POTCAR beside a file
+        # that does not exist, so it is rewritten into the VASP 5 form first
+        source = as_vasp5(text, species) if info.name == "vasp" else text
         try:
             atoms = ase.io.read(
-                _io.StringIO(text), format=_ASE_NAME.get(info.name, info.name), index=-1
+                _io.StringIO(source), format=_ASE_NAME.get(info.name, info.name), index=-1
             )
         except Exception as exc:
             msg = f"ASE could not read the text as {info.name}: {exc}"
