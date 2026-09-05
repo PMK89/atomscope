@@ -188,6 +188,38 @@ export function DisplayPanel(): JSX.Element {
         </div>
       </div>
 
+      <h3>Hydrogen bonds</h3>
+      <Toggle
+        id="display-hbonds"
+        label="Enabled"
+        checked={view.showHBonds}
+        onChange={view.toggleHBonds}
+      />
+      <div className="form-row">
+        <label htmlFor="display-hbond-distance">Cut-off distance (Å)</label>
+        <input
+          id="display-hbond-distance"
+          type="number"
+          min="1.5"
+          max="5"
+          step="0.1"
+          value={view.hbondDistance}
+          onChange={(e) => view.setHBondCutoffs({ distance: Number(e.target.value) })}
+        />
+      </div>
+      <div className="form-row">
+        <label htmlFor="display-hbond-angle">Cut-off angle (°)</label>
+        <input
+          id="display-hbond-angle"
+          type="number"
+          min="90"
+          max="180"
+          step="5"
+          value={view.hbondAngle}
+          onChange={(e) => view.setHBondCutoffs({ angle: Number(e.target.value) })}
+        />
+      </div>
+
       <h3>Ribbons</h3>
       <Toggle
         id="display-ribbon"

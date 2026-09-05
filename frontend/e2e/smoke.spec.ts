@@ -164,7 +164,7 @@ test('a built peptide is drawn as a cartoon with its helices', async ({ page }) 
   await expect(page.locator('.app-statusbar')).toContainText('atoms');
 
   await page.getByRole('tab', { name: 'Display' }).click();
-  await page.getByLabel('Enabled').nth(1).check(); // Labels, Ribbons, Vectors in that order
+  await page.locator('#display-ribbon').check();
 
   const ribbon = async (): Promise<number> =>
     page.evaluate(() => {
@@ -177,4 +177,30 @@ test('a built peptide is drawn as a cartoon with its helices', async ({ page }) 
 
   await page.getByLabel('Rendering').selectOption('backbone');
   await expect.poll(ribbon).toBeGreaterThan(50);
+});
+
+test('a pasted second water is drawn with a hydrogen bond to the first', async ({ page }) => {
+  await page.goto('/');
+  // a water 2.8 A below the demo molecule, donating straight at its oxygen
+  await page.evaluate(() =>
+    navigator.clipboard.writeText('3\n\nO 0 -2.8 0\nH 0 -1.82 0\nH 0.76 -3.39 0\n'),
+  );
+  await page.getByRole('button', { name: 'Edit' }).click();
+  await page.getByRole('menuitem', { name: 'Paste Ctrl+V' }).click();
+  await expect(page.locator('.app-statusbar')).toContainText('6 atoms');
+
+  await page.getByRole('tab', { name: 'Display' }).click();
+  await page.locator('#display-hbonds').check();
+
+  const hbonds = async (): Promise<number> =>
+    page.evaluate(() => {
+      const renderer = (window as unknown as { __atomscopeRenderer?: unknown })
+        .__atomscopeRenderer as { getLayer(id: string): { bonds(): number } | undefined };
+      return renderer.getLayer('hbonds')?.bonds() ?? 0;
+    });
+  await expect.poll(hbonds).toBeGreaterThan(0);
+
+  // tightening the cut-off below the separation takes it away again
+  await page.getByLabel('Cut-off distance (Å)').fill('2.0');
+  await expect.poll(hbonds).toBe(0);
 });

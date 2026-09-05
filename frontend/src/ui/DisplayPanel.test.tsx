@@ -11,6 +11,7 @@ beforeEach(() => {
     selectionStyle: null,
     showRibbon: false,
     ribbonStyle: 'cartoon',
+    showHBonds: false,
     showLabels: false,
     atomLabels: 'symbol_index',
     bondLabels: 'none',
@@ -69,6 +70,18 @@ test('label style controls are per-axis and independent', () => {
   expect(view.labelSize).toBe(1.2);
   expect(view.labelShift).toEqual([0, 0.5, 0]);
   expect(view.labelColor).toBe('#ff0000');
+});
+
+test('hydrogen bonds have their own cut-offs', () => {
+  render(<DisplayPanel />);
+  fireEvent.click(screen.getByLabelText('Enabled', { selector: '#display-hbonds' }));
+  expect(useViewStore.getState().showHBonds).toBe(true);
+
+  fireEvent.change(screen.getByLabelText('Cut-off distance (Å)'), { target: { value: '3.5' } });
+  fireEvent.change(screen.getByLabelText('Cut-off angle (°)'), { target: { value: '140' } });
+  const view = useViewStore.getState();
+  expect(view.hbondDistance).toBe(3.5);
+  expect(view.hbondAngle).toBe(140);
 });
 
 test('ribbons can be switched on and given a rendering', () => {

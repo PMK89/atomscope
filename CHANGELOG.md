@@ -21,6 +21,8 @@
   Measurements and remaining limits: docs/performance.md.
 - Renderer: the sphere and cylinder tessellation is chosen from the atom count, which is what makes
   a large structure orbit at all.
+- Hydrogen bonds as dashed sticks, with cut-off distance and angle in the Display tab, computed
+  from the displayed geometry so they follow a trajectory.
 - Protein ribbons and cartoons: a spline through the alpha carbons, oriented by the carbonyls,
   drawn from the secondary-structure assignment (helices red, strands yellow with an arrowhead,
   coil thin) with Cartoon/Ribbon/Backbone rendering in the Display tab.

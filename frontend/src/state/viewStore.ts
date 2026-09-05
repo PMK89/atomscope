@@ -3,6 +3,7 @@ import type { StructureStyle } from '../renderer/layers/StructureLayer';
 import type { Projection } from '../renderer/Renderer';
 import type { AtomLabelContent, BondLabelContent } from '../renderer/labels';
 import type { RibbonStyle } from '../model/ribbon';
+import { DEFAULT_HBOND_SETTINGS } from '../model/hbonds';
 
 export interface ViewState {
   style: StructureStyle;
@@ -45,6 +46,12 @@ export interface ViewState {
   toggleRibbon: () => void;
   setRibbonStyle: (style: RibbonStyle) => void;
   setRibbonScale: (scale: number) => void;
+  /** Hydrogen bonds, drawn from the displayed geometry. */
+  showHBonds: boolean;
+  hbondDistance: number;
+  hbondAngle: number;
+  toggleHBonds: () => void;
+  setHBondCutoffs: (patch: { distance?: number; angle?: number }) => void;
   /** Structure engine settings that the Display panel exposes. */
   atomScale: number;
   bondRadius: number;
@@ -83,6 +90,15 @@ export const useViewStore = create<ViewState>((set) => ({
       labelColor: color ?? s.labelColor,
       labelSize: size ?? s.labelSize,
       labelShift: shift ?? s.labelShift,
+    })),
+  showHBonds: false,
+  hbondDistance: DEFAULT_HBOND_SETTINGS.maxDistance,
+  hbondAngle: DEFAULT_HBOND_SETTINGS.minAngle,
+  toggleHBonds: () => set((s) => ({ showHBonds: !s.showHBonds })),
+  setHBondCutoffs: ({ distance, angle }) =>
+    set((s) => ({
+      hbondDistance: distance ?? s.hbondDistance,
+      hbondAngle: angle ?? s.hbondAngle,
     })),
   showRibbon: false,
   ribbonStyle: 'cartoon',

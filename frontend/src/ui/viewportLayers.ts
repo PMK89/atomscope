@@ -2,6 +2,7 @@
 import type { Renderer } from '../renderer/Renderer';
 import { AxesLayer } from '../renderer/layers/AxesLayer';
 import { LabelLayer } from '../renderer/layers/LabelLayer';
+import { HBondLayer } from '../renderer/layers/HBondLayer';
 import { RibbonLayer, type SecondaryStructureData } from '../renderer/layers/RibbonLayer';
 import { UnitCellLayer } from '../renderer/layers/UnitCellLayer';
 import { VectorLayer } from '../renderer/layers/VectorLayer';
@@ -13,6 +14,7 @@ export function installExtraLayers(renderer: Renderer): void {
   renderer.addLayer(new AxesLayer());
   renderer.addLayer(new LabelLayer());
   renderer.addLayer(new RibbonLayer());
+  renderer.addLayer(new HBondLayer());
 }
 
 export function syncExtraLayers(
@@ -20,6 +22,11 @@ export function syncExtraLayers(
   view: ViewState,
   secondary: SecondaryStructureData | null = null,
 ): void {
+  const hbonds = renderer.getLayer('hbonds');
+  if (hbonds instanceof HBondLayer) {
+    hbonds.visible = view.showHBonds;
+    hbonds.setSettings({ maxDistance: view.hbondDistance, minAngle: view.hbondAngle });
+  }
   const ribbon = renderer.getLayer('ribbon');
   if (ribbon instanceof RibbonLayer) {
     ribbon.visible = view.showRibbon;
