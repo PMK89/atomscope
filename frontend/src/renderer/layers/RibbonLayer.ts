@@ -60,6 +60,9 @@ export class RibbonLayer implements DisplayLayer {
     roughness: 0.6,
   });
   private lastKey = '';
+  /** What the last geometry was built from: a hover does not change any of it. */
+  private lastInput: { atoms: unknown; override: unknown; data: unknown; settings: string } | null =
+    null;
 
   setSettings(patch: Partial<RibbonLayerSettings>): void {
     this.settings = { ...this.settings, ...patch };
@@ -78,6 +81,24 @@ export class RibbonLayer implements DisplayLayer {
     const s = ctx.structure;
     const raw = ctx.positionsOverride ?? null;
     const override = raw && raw.length === s.atoms.length * 3 ? raw : null;
+    const input = {
+      atoms: s.atoms,
+      override,
+      data: this.data,
+      settings: JSON.stringify(this.settings),
+    };
+    // the spline, the strip and the normals are none of them cheap, and a pointer move changes
+    // neither the atoms nor the assignment
+    if (
+      this.mesh &&
+      this.lastInput &&
+      this.lastInput.atoms === input.atoms &&
+      this.lastInput.override === input.override &&
+      this.lastInput.data === input.data &&
+      this.lastInput.settings === input.settings
+    ) {
+      return;
+    }
     const index = new Map(s.atoms.map((a, i) => [a.uid, i]));
     const at = (uid: string): Vec3 | null => {
       const i = index.get(uid);
@@ -123,6 +144,8 @@ export class RibbonLayer implements DisplayLayer {
     g.setIndex(new BufferAttribute(geometry.indices, 1));
     g.computeVertexNormals();
     g.computeBoundingSphere();
+    // set last, because a rebuild clears it on the way through
+    this.lastInput = input;
   }
 
   private scaled(frames: ReturnType<typeof chainFrames>): ReturnType<typeof chainFrames> {
@@ -137,6 +160,7 @@ export class RibbonLayer implements DisplayLayer {
   }
 
   private clear(): void {
+    this.lastInput = null;
     if (!this.mesh) return;
     this.object.remove(this.mesh);
     this.mesh.geometry.dispose();

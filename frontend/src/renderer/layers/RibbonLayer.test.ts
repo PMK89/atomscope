@@ -102,3 +102,25 @@ test('the style changes the geometry and the layer stays disposable', () => {
   expect(layer.object.children).toHaveLength(0);
   layer.dispose();
 });
+
+test('a hover-only update does not rebuild the ribbon', () => {
+  const { doc, data } = protein();
+  const layer = new RibbonLayer();
+  layer.visible = true;
+  layer.setData(data);
+  layer.update(ctx(doc));
+  const geometry = (layer.object.children[0] as { geometry: unknown }).geometry;
+  const positions = (geometry as { attributes: { position: unknown } }).attributes.position;
+
+  layer.update({ ...ctx(doc), hoveredAtom: 1, selectedAtoms: new Set([0]) });
+  // the very same attribute object: no spline, no strip, no upload
+  expect((geometry as { attributes: { position: unknown } }).attributes.position).toBe(positions);
+
+  layer.setSettings({ style: 'ribbon' });
+  layer.update(ctx(doc));
+  // a real change does get through -- read the mesh the layer holds now, not the old one
+  const after = (layer.object.children[0] as { geometry: { attributes: { position: unknown } } })
+    .geometry.attributes.position;
+  expect(after).not.toBe(positions);
+  layer.dispose();
+});

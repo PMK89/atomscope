@@ -44,6 +44,8 @@ export class HBondLayer implements DisplayLayer {
   private geometry: CylinderGeometry | null = null;
   private readonly material = new MeshStandardMaterial({ color: COLOR, roughness: 0.5 });
   private count = 0;
+  /** What the last search ran on: a hover changes none of it. */
+  private lastInput: { atoms: unknown; override: unknown; settings: string } | null = null;
 
   setSettings(patch: Partial<HBondLayerSettings>): void {
     this.settings = { ...this.settings, ...patch };
@@ -62,6 +64,17 @@ export class HBondLayer implements DisplayLayer {
         ? [override[3 * i]!, override[3 * i + 1]!, override[3 * i + 2]!]
         : (s.atoms[i]!.position as Vec3);
 
+    const input = { atoms: s.atoms, override, settings: JSON.stringify(this.settings) };
+    // the search builds a grid over every polar atom; a pointer move must not pay for it
+    if (
+      this.lastInput &&
+      this.lastInput.atoms === input.atoms &&
+      this.lastInput.override === input.override &&
+      this.lastInput.settings === input.settings
+    ) {
+      return;
+    }
+
     const bonds = hydrogenBonds(s, at, this.settings);
     if (bonds.length !== this.count) {
       this.clear();
@@ -72,6 +85,8 @@ export class HBondLayer implements DisplayLayer {
       this.mesh.frustumCulled = false;
       this.object.add(this.mesh);
     }
+    // set after the rebuild, which clears it on the way through
+    this.lastInput = input;
     if (!this.mesh) return;
 
     const m = new Matrix4();
@@ -98,6 +113,7 @@ export class HBondLayer implements DisplayLayer {
   }
 
   private clear(): void {
+    this.lastInput = null;
     if (this.mesh) {
       this.object.remove(this.mesh);
       this.mesh.dispose();

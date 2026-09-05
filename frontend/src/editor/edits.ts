@@ -86,7 +86,36 @@ export function removeAtoms(doc: StructureDoc, indices: Iterable<number>): Struc
   const bonds = doc.bonds
     .filter((b) => !gone.has(b.a) && !gone.has(b.b))
     .map((b) => ({ ...b, a: remap[b.a]!, b: remap[b.b]! }));
-  return { ...doc, atoms, bonds };
+  return { ...doc, atoms, bonds, ...reindexed(doc, remap) };
+}
+
+/**
+ * Residues and constraints after a removal: everything that refers to an atom by index has to be
+ * renumbered with it, or it starts describing a different atom. A residue that lost every atom
+ * and a constraint that lost any of its atoms are dropped.
+ */
+function reindexed(
+  doc: StructureDoc,
+  remap: Int32Array,
+): Pick<StructureDoc, 'residues' | 'constraints'> {
+  const residues = doc.residues
+    .map((r) => ({
+      ...r,
+      atom_indices: r.atom_indices.map((i) => remap[i]!).filter((i) => i >= 0),
+    }))
+    .filter((r) => r.atom_indices.length > 0);
+  const kept = (i: number): boolean => remap[i] !== undefined && remap[i]! >= 0;
+  const constraints = doc.constraints.flatMap((c) => {
+    if (c.kind === 'fix_atoms') {
+      const kept_indices = c.indices.filter(kept).map((i) => remap[i]!);
+      return kept_indices.length ? [{ ...c, indices: kept_indices }] : [];
+    }
+    if (c.kind === 'fix_cartesian') {
+      return kept(c.index) ? [{ ...c, index: remap[c.index]! }] : [];
+    }
+    return kept(c.a) && kept(c.b) ? [{ ...c, a: remap[c.a]!, b: remap[c.b]! }] : [];
+  });
+  return { residues, constraints };
 }
 
 /** Map old atom indices to new ones after `removeAtoms(doc, removed)`; removed ones are dropped. */

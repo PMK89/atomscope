@@ -77,3 +77,22 @@ test('a displayed frame decides what is bonded', () => {
   expect(layer.object.children).toHaveLength(0);
   layer.dispose();
 });
+
+test('a hover-only update does not run the search again', () => {
+  const doc = dimer();
+  const layer = new HBondLayer();
+  layer.visible = true;
+  layer.update(ctx(doc));
+  const mesh = layer.object.children[0];
+
+  // same atoms, different hover: nothing to recompute
+  layer.update({ ...ctx(doc), hoveredAtom: 3 });
+  expect(layer.object.children[0]).toBe(mesh);
+  expect(layer.bonds()).toBe(1);
+
+  // a real change still gets through
+  layer.setSettings({ maxDistance: 1.5 });
+  layer.update(ctx(doc));
+  expect(layer.bonds()).toBe(0);
+  layer.dispose();
+});

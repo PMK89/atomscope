@@ -21,6 +21,13 @@ export function selectionFragment(doc: StructureDoc, selected: Iterable<number>)
     .map((b) => ({ ...b, a: index.get(b.a)!, b: index.get(b.b)! }));
   frag.cell = doc.cell;
   frag.charge = 0;
+  // a copied peptide keeps its residues, or the paste would have no backbone to label or draw
+  frag.residues = doc.residues
+    .map((r) => ({
+      ...r,
+      atom_indices: r.atom_indices.map((i) => index.get(i) ?? -1).filter((i) => i >= 0),
+    }))
+    .filter((r) => r.atom_indices.length > 0);
   return frag;
 }
 
@@ -44,8 +51,17 @@ export function mergeFragment(
     ] as Vec3,
   }));
   const bonds = fragment.bonds.map((b) => ({ ...b, a: b.a + base, b: b.b + base }));
+  const residues = fragment.residues.map((r) => ({
+    ...r,
+    atom_indices: r.atom_indices.map((i) => i + base),
+  }));
   return {
-    doc: { ...doc, atoms: [...doc.atoms, ...atoms], bonds: [...doc.bonds, ...bonds] },
+    doc: {
+      ...doc,
+      atoms: [...doc.atoms, ...atoms],
+      bonds: [...doc.bonds, ...bonds],
+      residues: [...doc.residues, ...residues],
+    },
     added: atoms.map((_, k) => base + k),
   };
 }

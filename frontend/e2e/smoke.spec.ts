@@ -175,6 +175,9 @@ test('a built peptide is drawn as a cartoon with its helices', async ({ page }) 
   // the backend assigned the secondary structure and the layer turned it into geometry
   await expect.poll(ribbon).toBeGreaterThan(50);
 
+  // a picture of the cartoon, so the geometry can be looked at and not only counted
+  await page.locator('canvas').screenshot({ path: 'test-results/cartoon.png' });
+
   await page.getByLabel('Rendering').selectOption('backbone');
   await expect.poll(ribbon).toBeGreaterThan(50);
 });

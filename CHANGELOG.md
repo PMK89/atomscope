@@ -21,6 +21,9 @@
   Measurements and remaining limits: docs/performance.md.
 - Renderer: the sphere and cylinder tessellation is chosen from the atom count, which is what makes
   a large structure orbit at all.
+- Fixed: Ctrl+C with text selected in a panel copied the molecule instead of the text; removing
+  atoms in the editor left residues and constraints pointing at the old numbering; a copied
+  fragment carried no residues.
 - Hydrogen bonds as dashed sticks, with cut-off distance and angle in the Display tab, computed
   from the displayed geometry so they follow a trajectory.
 - Protein ribbons and cartoons: a spline through the alpha carbons, oriented by the carbonyls,

@@ -42,6 +42,8 @@ make dev-backend   # 127.0.0.1:8765 ; make dev-frontend -> 127.0.0.1:5173
 - pnpm wrote to the global store `~/.local/share/pnpm/store` once before `.npmrc` was placed in `frontend/`; nothing else outside PROJECT_ROOT was modified. Not deleted (outside boundary).
 - Installed CP-PAW binaries need `LD_LIBRARY_PATH` to a libgfortran 13 (auto-detected in conda pkgs); a rebuild with the one-character `paw_trace.f90` fix is the permanent remedy (patched tree prepared in `.scratch/cppaw/build/cp-paw`, not built).
 - `ase-cp-paw` declares MIT but has no LICENSE file (author = project owner).
+- Hydrogen bonds are found without a minimum-image convention, so one across a periodic boundary
+  is missed (AV-VIS-020's note says so).
 - `backend/pyproject.toml` sets `--basetemp=../.scratch/pytest`, which is relative to the working
   directory: run pytest from `backend/`, as the Makefile does. From the repository root it resolves
   outside PROJECT_ROOT and every tmp_path test errors out.

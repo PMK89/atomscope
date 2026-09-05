@@ -79,6 +79,18 @@ def test_inserting_a_peptide_keeps_its_residues(methane: Structure) -> None:
     assert len({r.chain for r in twice.residues}) == 2
 
 
+def test_attaching_to_a_peptide_keeps_its_residues() -> None:
+    chain = peptide.build_peptide("AAA")
+    hydrogen = next(i for i, a in enumerate(chain.atoms) if a.element == "H")
+    merged = fragments.insert_fragment(
+        chain, fragments.load_fragment("alcohols/methanol"), attach_atom=hydrogen
+    )
+    # the hydrogen was replaced, so the residues had to be renumbered rather than kept as they were
+    assert len(merged.residues) == 3
+    assert max(i for r in merged.residues for i in r.atom_indices) < merged.n_atoms
+    assert [merged.atoms[i].element for i in merged.residues[0].atom_indices].count("N") == 1
+
+
 @pytest.mark.parametrize(
     "sequence,formula",
     [("A", "C3H7NO2"), ("AAA", "C9H17N3O4"), ("GG", "C4H8N2O3")],

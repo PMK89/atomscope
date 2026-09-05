@@ -55,3 +55,25 @@ test('XYZ text is what another program expects', () => {
   expect(lines[2]).toBe('C 0.000000 0.000000 0.000000');
   expect(lines[3]).toBe('O 1.200000 0.000000 0.000000');
 });
+
+test('a copied fragment carries the residues of the atoms in it', () => {
+  const base = normalizeStructure({
+    name: 'dipeptide',
+    atoms: [makeAtom('N', [0, 0, 0]), makeAtom('C', [1.4, 0, 0]), makeAtom('C', [2.8, 0, 0])],
+    bonds: [makeBond(0, 1), makeBond(1, 2)],
+    residues: [
+      { name: 'ALA', number: 1, chain: 'A', atom_indices: [0, 1] },
+      { name: 'GLY', number: 2, chain: 'A', atom_indices: [2] },
+    ],
+  } as never);
+
+  const frag = selectionFragment(base, [1, 2]);
+  expect(frag.residues).toEqual([
+    expect.objectContaining({ name: 'ALA', atom_indices: [0] }),
+    expect.objectContaining({ name: 'GLY', atom_indices: [1] }),
+  ]);
+
+  const { doc: merged } = mergeFragment(base, frag);
+  expect(merged.residues).toHaveLength(4);
+  expect(merged.residues.at(-1)!.atom_indices).toEqual([4]);
+});

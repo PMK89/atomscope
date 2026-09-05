@@ -359,6 +359,15 @@ measurable wall-time change**, because at 1e5 atoms the request is dominated by
 `model_validate_json` of the file on disk (~620 ms). Peak RSS, however, drops from 631 MB to
 518 MB (-18 %), reproducibly. The change is kept for that reason and reported honestly.
 
+### 10. Secondary structure: the bridge search was a full residue pair loop
+
+`_assign_codes` tested every residue pair for a beta bridge, which is O(residues^2) in Python.
+Every bridge pattern needs a hydrogen bond between the pair or their immediate neighbours, so the
+candidates now follow from the hydrogen bonds that were found. Measured on 1CRN (46 residues)
+tiled to 1012 residues, 7194 atoms: **0.66 s -> 0.19 s** for `secondary.analyse`, with the same
+assignment string for 1CRN. The remainder is the hydrogen-bond search itself, which is vectorised
+per donor with a 9 A alpha-carbon prefilter.
+
 ### A/B rows
 
 Some 1e5 rows in the big table are within run-to-run noise or were disturbed by the preceding
