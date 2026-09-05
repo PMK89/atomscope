@@ -11,3 +11,4 @@ file-level record.
 | CP-PAW example deck si2 (P. E. Blöchl) | GPL-3.0 | CP-PAW health check | `backend/src/atomscope/backends/cppaw/data/si2.{cntl,strc}` |
 | CP-PAW manual (schema extraction) | GPL-3.0 | machine-readable input reference | `backend/src/atomscope/backends/cppaw/data/manual-schema.json` |
 | ASE data tables (Jmol colors, covalent/vdW radii, masses) | LGPL-2.1+ (ASE); scientific constants | element data for the renderer | `frontend/src/model/elements.ts` (generated) |
+| Avogadro 1 crystal library (507 CIF files, mostly COD/AMCSD public-domain data) | GPL-2.0-or-later (Avogadro); see `LICENSE-avogadro.txt` and `README.md` there | crystal library browser | `backend/src/atomscope/data/crystals/` |
