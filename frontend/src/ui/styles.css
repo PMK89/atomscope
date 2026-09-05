@@ -152,7 +152,7 @@ button {
   min-height: 0;
 }
 .app-dock-right {
-  width: 340px;
+  width: 360px;
 }
 .app-main {
   grid-template-columns: 260px 1fr auto;
@@ -341,6 +341,12 @@ button {
 .dock-tabs {
   border-bottom: 1px solid var(--border);
   padding-bottom: 6px;
+  /* five panels have to fit a 360px dock: let the strip wrap instead of clipping */
+  flex-wrap: wrap;
+  row-gap: 4px;
+}
+.dock-tabs .tab {
+  padding: 3px 7px;
 }
 .grid-card,
 .surface-card {
