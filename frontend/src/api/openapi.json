@@ -20,6 +20,79 @@
         "title": "AddCellRequest",
         "type": "object"
       },
+      "AddHydrogensRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "indices": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "integer"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "None = whole structure",
+            "title": "Indices"
+          },
+          "ph": {
+            "anyOf": [
+              {
+                "maximum": 14.0,
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ph"
+          },
+          "structure": {
+            "$ref": "#/components/schemas/Structure"
+          }
+        },
+        "required": [
+          "structure"
+        ],
+        "title": "AddHydrogensRequest",
+        "type": "object"
+      },
+      "AromaticityResult": {
+        "additionalProperties": false,
+        "properties": {
+          "aromatic_atoms": {
+            "items": {
+              "type": "integer"
+            },
+            "title": "Aromatic Atoms",
+            "type": "array"
+          },
+          "aromatic_ring_count": {
+            "title": "Aromatic Ring Count",
+            "type": "integer"
+          },
+          "ring_count": {
+            "title": "Ring Count",
+            "type": "integer"
+          },
+          "structure": {
+            "$ref": "#/components/schemas/Structure",
+            "description": "input with aromatic flags on bonds"
+          }
+        },
+        "required": [
+          "structure",
+          "ring_count",
+          "aromatic_ring_count",
+          "aromatic_atoms"
+        ],
+        "title": "AromaticityResult",
+        "type": "object"
+      },
       "Atom": {
         "additionalProperties": false,
         "description": "One atom. Positions are Cartesian in \u00c5.",
@@ -142,6 +215,34 @@
           "unit"
         ],
         "title": "AtomicVectorProperty",
+        "type": "object"
+      },
+      "AtomsRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "indices": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "integer"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "None = whole structure",
+            "title": "Indices"
+          },
+          "structure": {
+            "$ref": "#/components/schemas/Structure"
+          }
+        },
+        "required": [
+          "structure"
+        ],
+        "title": "AtomsRequest",
         "type": "object"
       },
       "BackendCapabilities": {
@@ -585,6 +686,59 @@
         "title": "Cell",
         "type": "object"
       },
+      "ChargesRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "model": {
+            "default": "gasteiger",
+            "enum": [
+              "gasteiger",
+              "mmff94",
+              "qeq",
+              "eem",
+              "qtpie"
+            ],
+            "title": "Model",
+            "type": "string"
+          },
+          "structure": {
+            "$ref": "#/components/schemas/Structure"
+          }
+        },
+        "required": [
+          "structure"
+        ],
+        "title": "ChargesRequest",
+        "type": "object"
+      },
+      "ChargesResult": {
+        "additionalProperties": false,
+        "properties": {
+          "dipole": {
+            "$ref": "#/components/schemas/Dipole"
+          },
+          "model": {
+            "title": "Model",
+            "type": "string"
+          },
+          "structure": {
+            "$ref": "#/components/schemas/Structure",
+            "description": "input with atomic_scalars['partial_charges']"
+          },
+          "total_charge": {
+            "title": "Total Charge",
+            "type": "number"
+          }
+        },
+        "required": [
+          "structure",
+          "model",
+          "total_charge",
+          "dipole"
+        ],
+        "title": "ChargesResult",
+        "type": "object"
+      },
       "Choice": {
         "additionalProperties": false,
         "properties": {
@@ -620,6 +774,73 @@
           "label"
         ],
         "title": "Choice",
+        "type": "object"
+      },
+      "ConformerRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "constraints": {
+            "items": {
+              "$ref": "#/components/schemas/FFConstraint"
+            },
+            "title": "Constraints",
+            "type": "array"
+          },
+          "force_field": {
+            "default": "MMFF94",
+            "title": "Force Field",
+            "type": "string"
+          },
+          "method": {
+            "default": "weighted",
+            "enum": [
+              "systematic",
+              "random",
+              "weighted"
+            ],
+            "title": "Method",
+            "type": "string"
+          },
+          "n_conformers": {
+            "default": 10,
+            "maximum": 1000.0,
+            "minimum": 1.0,
+            "title": "N Conformers",
+            "type": "integer"
+          },
+          "steps": {
+            "default": 100,
+            "minimum": 1.0,
+            "title": "Steps",
+            "type": "integer"
+          },
+          "structure": {
+            "$ref": "#/components/schemas/Structure"
+          }
+        },
+        "required": [
+          "structure"
+        ],
+        "title": "ConformerRequest",
+        "type": "object"
+      },
+      "ConformerResult": {
+        "additionalProperties": false,
+        "properties": {
+          "structure": {
+            "$ref": "#/components/schemas/Structure",
+            "description": "lowest-energy conformer"
+          },
+          "trajectory": {
+            "$ref": "#/components/schemas/Trajectory",
+            "description": "all conformers with energies (eV)"
+          }
+        },
+        "required": [
+          "structure",
+          "trajectory"
+        ],
+        "title": "ConformerResult",
         "type": "object"
       },
       "CreateCalculationRequest": {
@@ -673,6 +894,118 @@
           "name"
         ],
         "title": "CreateProjectRequest",
+        "type": "object"
+      },
+      "Dipole": {
+        "additionalProperties": false,
+        "properties": {
+          "magnitude": {
+            "$ref": "#/components/schemas/Quantity"
+          },
+          "vector": {
+            "description": "Debye",
+            "maxItems": 3,
+            "minItems": 3,
+            "prefixItems": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              }
+            ],
+            "title": "Vector",
+            "type": "array"
+          }
+        },
+        "required": [
+          "vector",
+          "magnitude"
+        ],
+        "title": "Dipole",
+        "type": "object"
+      },
+      "EnergyRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "constraints": {
+            "items": {
+              "$ref": "#/components/schemas/FFConstraint"
+            },
+            "title": "Constraints",
+            "type": "array"
+          },
+          "force_field": {
+            "default": "MMFF94",
+            "title": "Force Field",
+            "type": "string"
+          },
+          "structure": {
+            "$ref": "#/components/schemas/Structure"
+          }
+        },
+        "required": [
+          "structure"
+        ],
+        "title": "EnergyRequest",
+        "type": "object"
+      },
+      "EnergyResult": {
+        "additionalProperties": false,
+        "properties": {
+          "energy": {
+            "$ref": "#/components/schemas/Quantity",
+            "description": "total energy in eV"
+          },
+          "energy_native": {
+            "$ref": "#/components/schemas/Quantity",
+            "description": "the same energy in the force field's unit"
+          },
+          "force_field": {
+            "title": "Force Field",
+            "type": "string"
+          },
+          "forces": {
+            "description": "eV/\u00c5",
+            "items": {
+              "description": "3-vector",
+              "maxItems": 3,
+              "minItems": 3,
+              "prefixItems": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                }
+              ],
+              "type": "array"
+            },
+            "title": "Forces",
+            "type": "array"
+          },
+          "terms": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "description": "energy breakdown in eV",
+            "title": "Terms",
+            "type": "object"
+          }
+        },
+        "required": [
+          "force_field",
+          "energy",
+          "energy_native",
+          "forces"
+        ],
+        "title": "EnergyResult",
         "type": "object"
       },
       "ExecutableReport": {
@@ -821,6 +1154,51 @@
         "title": "ExportTrajectoryResponse",
         "type": "object"
       },
+      "FFConstraint": {
+        "additionalProperties": false,
+        "description": "One Open Babel force-field constraint on 0-based atom indices.",
+        "properties": {
+          "atoms": {
+            "items": {
+              "type": "integer"
+            },
+            "title": "Atoms",
+            "type": "array"
+          },
+          "kind": {
+            "enum": [
+              "ignore",
+              "fix",
+              "fix_x",
+              "fix_y",
+              "fix_z",
+              "distance",
+              "angle",
+              "torsion"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "value": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "\u00c5 for distance, degrees for angles",
+            "title": "Value"
+          }
+        },
+        "required": [
+          "kind",
+          "atoms"
+        ],
+        "title": "FFConstraint",
+        "type": "object"
+      },
       "FillRequest": {
         "additionalProperties": false,
         "properties": {
@@ -943,6 +1321,54 @@
           "index"
         ],
         "title": "FixCartesian",
+        "type": "object"
+      },
+      "ForceFieldInfo": {
+        "additionalProperties": false,
+        "properties": {
+          "algorithms": {
+            "default": [
+              "steepest_descent",
+              "conjugate_gradients"
+            ],
+            "items": {
+              "type": "string"
+            },
+            "title": "Algorithms",
+            "type": "array"
+          },
+          "charge_models": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Charge Models",
+            "type": "array"
+          },
+          "conformer_methods": {
+            "default": [
+              "systematic",
+              "random",
+              "weighted"
+            ],
+            "items": {
+              "type": "string"
+            },
+            "title": "Conformer Methods",
+            "type": "array"
+          },
+          "force_fields": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Force Fields",
+            "type": "array"
+          }
+        },
+        "required": [
+          "force_fields",
+          "charge_models"
+        ],
+        "title": "ForceFieldInfo",
         "type": "object"
       },
       "ForkRequest": {
@@ -1091,6 +1517,41 @@
           "fractional"
         ],
         "title": "FractionalResponse",
+        "type": "object"
+      },
+      "FragmentInfo": {
+        "additionalProperties": false,
+        "properties": {
+          "category": {
+            "title": "Category",
+            "type": "string"
+          },
+          "formula": {
+            "title": "Formula",
+            "type": "string"
+          },
+          "id": {
+            "description": "'category/name' relative CML path without extension",
+            "title": "Id",
+            "type": "string"
+          },
+          "n_atoms": {
+            "title": "N Atoms",
+            "type": "integer"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "category",
+          "name",
+          "formula",
+          "n_atoms"
+        ],
+        "title": "FragmentInfo",
         "type": "object"
       },
       "Frame": {
@@ -1329,6 +1790,52 @@
         "title": "GeneratedInputs",
         "type": "object"
       },
+      "GrapheneRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "bond": {
+            "default": 1.42,
+            "exclusiveMinimum": 0.0,
+            "title": "Bond",
+            "type": "number"
+          },
+          "kind": {
+            "default": "armchair",
+            "enum": [
+              "armchair",
+              "zigzag"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "m": {
+            "minimum": 1.0,
+            "title": "M",
+            "type": "integer"
+          },
+          "n": {
+            "minimum": 1.0,
+            "title": "N",
+            "type": "integer"
+          },
+          "periodic": {
+            "default": true,
+            "title": "Periodic",
+            "type": "boolean"
+          },
+          "saturated": {
+            "default": true,
+            "title": "Saturated",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "n",
+          "m"
+        ],
+        "title": "GrapheneRequest",
+        "type": "object"
+      },
       "GridRef": {
         "additionalProperties": false,
         "description": "A grid and where it lives: a calculation's results or a standalone dataset.",
@@ -1436,6 +1943,30 @@
         "title": "HealthResponse",
         "type": "object"
       },
+      "Identifiers": {
+        "additionalProperties": false,
+        "properties": {
+          "inchi": {
+            "title": "Inchi",
+            "type": "string"
+          },
+          "inchikey": {
+            "title": "Inchikey",
+            "type": "string"
+          },
+          "smiles": {
+            "title": "Smiles",
+            "type": "string"
+          }
+        },
+        "required": [
+          "smiles",
+          "inchi",
+          "inchikey"
+        ],
+        "title": "Identifiers",
+        "type": "object"
+      },
       "ImportCubeRequest": {
         "additionalProperties": false,
         "properties": {
@@ -1533,6 +2064,79 @@
           "path"
         ],
         "title": "ImportTrajectoryRequest",
+        "type": "object"
+      },
+      "InsertRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "attach_atom": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "bond the fragment to this atom",
+            "title": "Attach Atom"
+          },
+          "fragment": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Structure"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "explicit fragment instead"
+          },
+          "fragment_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "library id 'category/name'",
+            "title": "Fragment Id"
+          },
+          "position": {
+            "anyOf": [
+              {
+                "description": "3-vector",
+                "maxItems": 3,
+                "minItems": 3,
+                "prefixItems": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ],
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Position"
+          },
+          "structure": {
+            "$ref": "#/components/schemas/Structure"
+          }
+        },
+        "required": [
+          "structure"
+        ],
+        "title": "InsertRequest",
         "type": "object"
       },
       "JobRecord": {
@@ -1688,6 +2292,99 @@
         "title": "LogResponse",
         "type": "object"
       },
+      "NanotubeRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "bond": {
+            "default": 1.42,
+            "exclusiveMinimum": 0.0,
+            "title": "Bond",
+            "type": "number"
+          },
+          "length": {
+            "default": 1,
+            "minimum": 1.0,
+            "title": "Length",
+            "type": "integer"
+          },
+          "m": {
+            "minimum": 0.0,
+            "title": "M",
+            "type": "integer"
+          },
+          "n": {
+            "minimum": 1.0,
+            "title": "N",
+            "type": "integer"
+          },
+          "periodic": {
+            "default": true,
+            "title": "Periodic",
+            "type": "boolean"
+          },
+          "symbol": {
+            "default": "C",
+            "title": "Symbol",
+            "type": "string"
+          }
+        },
+        "required": [
+          "n",
+          "m"
+        ],
+        "title": "NanotubeRequest",
+        "type": "object"
+      },
+      "NucleicRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "bases_per_turn": {
+            "anyOf": [
+              {
+                "exclusiveMinimum": 0.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Bases Per Turn"
+          },
+          "double_strand": {
+            "default": true,
+            "title": "Double Strand",
+            "type": "boolean"
+          },
+          "form": {
+            "default": "B",
+            "enum": [
+              "A",
+              "B",
+              "Z"
+            ],
+            "title": "Form",
+            "type": "string"
+          },
+          "kind": {
+            "default": "dna",
+            "enum": [
+              "dna",
+              "rna"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "sequence": {
+            "title": "Sequence",
+            "type": "string"
+          }
+        },
+        "required": [
+          "sequence"
+        ],
+        "title": "NucleicRequest",
+        "type": "object"
+      },
       "OpenProjectRequest": {
         "additionalProperties": false,
         "properties": {
@@ -1702,6 +2399,167 @@
           "path"
         ],
         "title": "OpenProjectRequest",
+        "type": "object"
+      },
+      "OptimizeRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "algorithm": {
+            "default": "steepest_descent",
+            "enum": [
+              "steepest_descent",
+              "conjugate_gradients"
+            ],
+            "title": "Algorithm",
+            "type": "string"
+          },
+          "constraints": {
+            "items": {
+              "$ref": "#/components/schemas/FFConstraint"
+            },
+            "title": "Constraints",
+            "type": "array"
+          },
+          "convergence": {
+            "default": 1e-06,
+            "exclusiveMinimum": 0.0,
+            "title": "Convergence",
+            "type": "number"
+          },
+          "force_field": {
+            "default": "MMFF94",
+            "title": "Force Field",
+            "type": "string"
+          },
+          "max_steps": {
+            "default": 500,
+            "minimum": 1.0,
+            "title": "Max Steps",
+            "type": "integer"
+          },
+          "record_every": {
+            "default": 0,
+            "description": "0 = no trajectory",
+            "minimum": 0.0,
+            "title": "Record Every",
+            "type": "integer"
+          },
+          "structure": {
+            "$ref": "#/components/schemas/Structure"
+          }
+        },
+        "required": [
+          "structure"
+        ],
+        "title": "OptimizeRequest",
+        "type": "object"
+      },
+      "OptimizeResult": {
+        "additionalProperties": false,
+        "properties": {
+          "converged": {
+            "title": "Converged",
+            "type": "boolean"
+          },
+          "energy": {
+            "$ref": "#/components/schemas/Quantity"
+          },
+          "steps": {
+            "title": "Steps",
+            "type": "integer"
+          },
+          "structure": {
+            "$ref": "#/components/schemas/Structure"
+          },
+          "trajectory": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Trajectory"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "structure",
+          "energy",
+          "converged",
+          "steps"
+        ],
+        "title": "OptimizeResult",
+        "type": "object"
+      },
+      "OptimizeStepRequest": {
+        "additionalProperties": false,
+        "description": "A few steps for interactive auto-optimization; ``fixed_atoms`` are pinned this round.",
+        "properties": {
+          "algorithm": {
+            "default": "steepest_descent",
+            "enum": [
+              "steepest_descent",
+              "conjugate_gradients"
+            ],
+            "title": "Algorithm",
+            "type": "string"
+          },
+          "constraints": {
+            "items": {
+              "$ref": "#/components/schemas/FFConstraint"
+            },
+            "title": "Constraints",
+            "type": "array"
+          },
+          "fixed_atoms": {
+            "items": {
+              "type": "integer"
+            },
+            "title": "Fixed Atoms",
+            "type": "array"
+          },
+          "force_field": {
+            "default": "MMFF94",
+            "title": "Force Field",
+            "type": "string"
+          },
+          "steps": {
+            "default": 4,
+            "maximum": 1000.0,
+            "minimum": 1.0,
+            "title": "Steps",
+            "type": "integer"
+          },
+          "structure": {
+            "$ref": "#/components/schemas/Structure"
+          }
+        },
+        "required": [
+          "structure"
+        ],
+        "title": "OptimizeStepRequest",
+        "type": "object"
+      },
+      "OptimizeStepResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "converged": {
+            "title": "Converged",
+            "type": "boolean"
+          },
+          "energy": {
+            "$ref": "#/components/schemas/Quantity"
+          },
+          "structure": {
+            "$ref": "#/components/schemas/Structure"
+          }
+        },
+        "required": [
+          "structure",
+          "energy",
+          "converged"
+        ],
+        "title": "OptimizeStepResponse",
         "type": "object"
       },
       "OrbitalInfo": {
@@ -2021,6 +2879,105 @@
           "type"
         ],
         "title": "ParameterSpec",
+        "type": "object"
+      },
+      "PeptidePresets": {
+        "additionalProperties": false,
+        "properties": {
+          "presets": {
+            "additionalProperties": {
+              "maxItems": 2,
+              "minItems": 2,
+              "prefixItems": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                }
+              ],
+              "type": "array"
+            },
+            "title": "Presets",
+            "type": "object"
+          }
+        },
+        "required": [
+          "presets"
+        ],
+        "title": "PeptidePresets",
+        "type": "object"
+      },
+      "PeptideRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "omega": {
+            "default": 180.0,
+            "title": "Omega",
+            "type": "number"
+          },
+          "phi": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Phi"
+          },
+          "preset": {
+            "default": "alpha_helix",
+            "enum": [
+              "straight",
+              "alpha_helix",
+              "beta_sheet",
+              "helix_3_10",
+              "pi_helix",
+              "custom"
+            ],
+            "title": "Preset",
+            "type": "string"
+          },
+          "psi": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Psi"
+          },
+          "sequence": {
+            "title": "Sequence",
+            "type": "string"
+          }
+        },
+        "required": [
+          "sequence"
+        ],
+        "title": "PeptideRequest",
+        "type": "object"
+      },
+      "PerceiveRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "bond_orders": {
+            "default": true,
+            "title": "Bond Orders",
+            "type": "boolean"
+          },
+          "structure": {
+            "$ref": "#/components/schemas/Structure"
+          }
+        },
+        "required": [
+          "structure"
+        ],
+        "title": "PerceiveRequest",
         "type": "object"
       },
       "Preset": {
@@ -2891,6 +3848,19 @@
           "structure"
         ],
         "title": "StructureBody",
+        "type": "object"
+      },
+      "StructureRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "structure": {
+            "$ref": "#/components/schemas/Structure"
+          }
+        },
+        "required": [
+          "structure"
+        ],
+        "title": "StructureRequest",
         "type": "object"
       },
       "StructureSummary": {
@@ -3983,6 +4953,299 @@
         ]
       }
     },
+    "/api/build/fragments": {
+      "get": {
+        "operationId": "list_fragments_api_build_fragments_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/FragmentInfo"
+                  },
+                  "title": "Response List Fragments Api Build Fragments Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List Fragments",
+        "tags": [
+          "build"
+        ]
+      }
+    },
+    "/api/build/fragments/{fragment_id}": {
+      "get": {
+        "operationId": "get_fragment_api_build_fragments__fragment_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "fragment_id",
+            "required": true,
+            "schema": {
+              "title": "Fragment Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Structure"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Fragment",
+        "tags": [
+          "build"
+        ]
+      }
+    },
+    "/api/build/graphene": {
+      "post": {
+        "operationId": "build_graphene_api_build_graphene_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GrapheneRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Structure"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Build Graphene",
+        "tags": [
+          "build"
+        ]
+      }
+    },
+    "/api/build/insert": {
+      "post": {
+        "operationId": "insert_api_build_insert_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InsertRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Structure"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Insert",
+        "tags": [
+          "build"
+        ]
+      }
+    },
+    "/api/build/nanotube": {
+      "post": {
+        "operationId": "build_nanotube_api_build_nanotube_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NanotubeRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Structure"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Build Nanotube",
+        "tags": [
+          "build"
+        ]
+      }
+    },
+    "/api/build/nucleic": {
+      "post": {
+        "operationId": "build_nucleic_api_build_nucleic_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NucleicRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Structure"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Build Nucleic",
+        "tags": [
+          "build"
+        ]
+      }
+    },
+    "/api/build/peptide": {
+      "post": {
+        "operationId": "build_peptide_api_build_peptide_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PeptideRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Structure"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Build Peptide",
+        "tags": [
+          "build"
+        ]
+      }
+    },
+    "/api/build/peptide/presets": {
+      "get": {
+        "operationId": "peptide_presets_api_build_peptide_presets_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PeptidePresets"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Peptide Presets",
+        "tags": [
+          "build"
+        ]
+      }
+    },
     "/api/calculations": {
       "get": {
         "operationId": "list_calculations_api_calculations_get",
@@ -4587,6 +5850,519 @@
         "summary": "Update Values",
         "tags": [
           "calculations"
+        ]
+      }
+    },
+    "/api/chem/add-hydrogens": {
+      "post": {
+        "operationId": "add_hydrogens_api_chem_add_hydrogens_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddHydrogensRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Structure"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Add Hydrogens",
+        "tags": [
+          "chem"
+        ]
+      }
+    },
+    "/api/chem/aromaticity": {
+      "post": {
+        "operationId": "aromaticity_api_chem_aromaticity_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StructureRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AromaticityResult"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Aromaticity",
+        "tags": [
+          "chem"
+        ]
+      }
+    },
+    "/api/chem/conformers": {
+      "post": {
+        "operationId": "conformers_api_chem_conformers_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConformerRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConformerResult"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Conformers",
+        "tags": [
+          "chem"
+        ]
+      }
+    },
+    "/api/chem/energy": {
+      "post": {
+        "operationId": "energy_api_chem_energy_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EnergyRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EnergyResult"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Energy",
+        "tags": [
+          "chem"
+        ]
+      }
+    },
+    "/api/chem/force-fields": {
+      "get": {
+        "operationId": "force_fields_api_chem_force_fields_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ForceFieldInfo"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Force Fields",
+        "tags": [
+          "chem"
+        ]
+      }
+    },
+    "/api/chem/h-to-methyl": {
+      "post": {
+        "operationId": "h_to_methyl_api_chem_h_to_methyl_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AtomsRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Structure"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "H To Methyl",
+        "tags": [
+          "chem"
+        ]
+      }
+    },
+    "/api/chem/identifiers": {
+      "post": {
+        "operationId": "identifiers_api_chem_identifiers_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StructureRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Identifiers"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Identifiers",
+        "tags": [
+          "chem"
+        ]
+      }
+    },
+    "/api/chem/invert-chirality": {
+      "post": {
+        "operationId": "invert_chirality_api_chem_invert_chirality_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AtomsRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Structure"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Invert Chirality",
+        "tags": [
+          "chem"
+        ]
+      }
+    },
+    "/api/chem/optimize": {
+      "post": {
+        "operationId": "optimize_api_chem_optimize_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OptimizeRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OptimizeResult"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Optimize",
+        "tags": [
+          "chem"
+        ]
+      }
+    },
+    "/api/chem/optimize-step": {
+      "post": {
+        "operationId": "optimize_step_api_chem_optimize_step_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OptimizeStepRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OptimizeStepResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Optimize Step",
+        "tags": [
+          "chem"
+        ]
+      }
+    },
+    "/api/chem/partial-charges": {
+      "post": {
+        "operationId": "partial_charges_api_chem_partial_charges_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChargesRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChargesResult"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Partial Charges",
+        "tags": [
+          "chem"
+        ]
+      }
+    },
+    "/api/chem/perceive-bonds": {
+      "post": {
+        "operationId": "perceive_bonds_api_chem_perceive_bonds_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PerceiveRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Structure"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Perceive Bonds",
+        "tags": [
+          "chem"
+        ]
+      }
+    },
+    "/api/chem/remove-hydrogens": {
+      "post": {
+        "operationId": "remove_hydrogens_api_chem_remove_hydrogens_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AtomsRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Structure"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Remove Hydrogens",
+        "tags": [
+          "chem"
         ]
       }
     },

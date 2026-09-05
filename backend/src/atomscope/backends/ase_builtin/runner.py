@@ -40,6 +40,12 @@ def make_calculator(p: dict[str, Any], work: Path) -> Any:
             return LennardJones(epsilon=p["lj_epsilon"], sigma=p["lj_sigma"], rc=p["lj_rc"])
         case "morse":
             return MorsePotential()
+        case "openbabel":
+            from atomscope.ase_bridge.openbabel_calculator import (  # noqa: PLC0415
+                OpenBabelCalculator,
+            )
+
+            return OpenBabelCalculator(force_field=p.get("ob_force_field", "MMFF94"))
         case "cppaw":
             from atomscope.ase_bridge.cppaw_calculator import CppawCalculator  # noqa: PLC0415
 

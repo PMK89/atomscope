@@ -55,6 +55,142 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/build/fragments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Fragments */
+        get: operations["list_fragments_api_build_fragments_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/build/fragments/{fragment_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Fragment */
+        get: operations["get_fragment_api_build_fragments__fragment_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/build/graphene": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Build Graphene */
+        post: operations["build_graphene_api_build_graphene_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/build/insert": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Insert */
+        post: operations["insert_api_build_insert_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/build/nanotube": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Build Nanotube */
+        post: operations["build_nanotube_api_build_nanotube_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/build/nucleic": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Build Nucleic */
+        post: operations["build_nucleic_api_build_nucleic_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/build/peptide": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Build Peptide */
+        post: operations["build_peptide_api_build_peptide_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/build/peptide/presets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Peptide Presets */
+        get: operations["peptide_presets_api_build_peptide_presets_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/calculations": {
         parameters: {
             query?: never;
@@ -280,6 +416,227 @@ export interface paths {
         /** Update Values */
         put: operations["update_values_api_calculations__calc_id__values_put"];
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/chem/add-hydrogens": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Add Hydrogens */
+        post: operations["add_hydrogens_api_chem_add_hydrogens_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/chem/aromaticity": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Aromaticity */
+        post: operations["aromaticity_api_chem_aromaticity_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/chem/conformers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Conformers */
+        post: operations["conformers_api_chem_conformers_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/chem/energy": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Energy */
+        post: operations["energy_api_chem_energy_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/chem/force-fields": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Force Fields */
+        get: operations["force_fields_api_chem_force_fields_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/chem/h-to-methyl": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** H To Methyl */
+        post: operations["h_to_methyl_api_chem_h_to_methyl_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/chem/identifiers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Identifiers */
+        post: operations["identifiers_api_chem_identifiers_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/chem/invert-chirality": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Invert Chirality */
+        post: operations["invert_chirality_api_chem_invert_chirality_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/chem/optimize": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Optimize */
+        post: operations["optimize_api_chem_optimize_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/chem/optimize-step": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Optimize Step */
+        post: operations["optimize_step_api_chem_optimize_step_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/chem/partial-charges": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Partial Charges */
+        post: operations["partial_charges_api_chem_partial_charges_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/chem/perceive-bonds": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Perceive Bonds */
+        post: operations["perceive_bonds_api_chem_perceive_bonds_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/chem/remove-hydrogens": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Remove Hydrogens */
+        post: operations["remove_hydrogens_api_chem_remove_hydrogens_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1081,6 +1438,28 @@ export interface components {
             padding: number;
             structure: components["schemas"]["Structure"];
         };
+        /** AddHydrogensRequest */
+        AddHydrogensRequest: {
+            /**
+             * Indices
+             * @description None = whole structure
+             */
+            indices?: number[] | null;
+            /** Ph */
+            ph?: number | null;
+            structure: components["schemas"]["Structure"];
+        };
+        /** AromaticityResult */
+        AromaticityResult: {
+            /** Aromatic Atoms */
+            aromatic_atoms: number[];
+            /** Aromatic Ring Count */
+            aromatic_ring_count: number;
+            /** Ring Count */
+            ring_count: number;
+            /** @description input with aromatic flags on bonds */
+            structure: components["schemas"]["Structure"];
+        };
         /**
          * Atom
          * @description One atom. Positions are Cartesian in Å.
@@ -1144,6 +1523,15 @@ export interface components {
                 number,
                 number
             ][];
+        };
+        /** AtomsRequest */
+        AtomsRequest: {
+            /**
+             * Indices
+             * @description None = whole structure
+             */
+            indices?: number[] | null;
+            structure: components["schemas"]["Structure"];
         };
         /** BackendCapabilities */
         BackendCapabilities: {
@@ -1375,6 +1763,26 @@ export interface components {
                 ]
             ];
         };
+        /** ChargesRequest */
+        ChargesRequest: {
+            /**
+             * Model
+             * @default gasteiger
+             * @enum {string}
+             */
+            model: "gasteiger" | "mmff94" | "qeq" | "eem" | "qtpie";
+            structure: components["schemas"]["Structure"];
+        };
+        /** ChargesResult */
+        ChargesResult: {
+            dipole: components["schemas"]["Dipole"];
+            /** Model */
+            model: string;
+            /** @description input with atomic_scalars['partial_charges'] */
+            structure: components["schemas"]["Structure"];
+            /** Total Charge */
+            total_charge: number;
+        };
         /** Choice */
         Choice: {
             /**
@@ -1386,6 +1794,40 @@ export interface components {
             label: string;
             /** Value */
             value: string | number | boolean;
+        };
+        /** ConformerRequest */
+        ConformerRequest: {
+            /** Constraints */
+            constraints?: components["schemas"]["FFConstraint"][];
+            /**
+             * Force Field
+             * @default MMFF94
+             */
+            force_field: string;
+            /**
+             * Method
+             * @default weighted
+             * @enum {string}
+             */
+            method: "systematic" | "random" | "weighted";
+            /**
+             * N Conformers
+             * @default 10
+             */
+            n_conformers: number;
+            /**
+             * Steps
+             * @default 100
+             */
+            steps: number;
+            structure: components["schemas"]["Structure"];
+        };
+        /** ConformerResult */
+        ConformerResult: {
+            /** @description lowest-energy conformer */
+            structure: components["schemas"]["Structure"];
+            /** @description all conformers with energies (eV) */
+            trajectory: components["schemas"]["Trajectory"];
         };
         /** CreateCalculationRequest */
         CreateCalculationRequest: {
@@ -1411,6 +1853,55 @@ export interface components {
              * @description absolute path of a new (empty or missing) directory
              */
             path: string;
+        };
+        /** Dipole */
+        Dipole: {
+            magnitude: components["schemas"]["Quantity"];
+            /**
+             * Vector
+             * @description Debye
+             */
+            vector: [
+                number,
+                number,
+                number
+            ];
+        };
+        /** EnergyRequest */
+        EnergyRequest: {
+            /** Constraints */
+            constraints?: components["schemas"]["FFConstraint"][];
+            /**
+             * Force Field
+             * @default MMFF94
+             */
+            force_field: string;
+            structure: components["schemas"]["Structure"];
+        };
+        /** EnergyResult */
+        EnergyResult: {
+            /** @description total energy in eV */
+            energy: components["schemas"]["Quantity"];
+            /** @description the same energy in the force field's unit */
+            energy_native: components["schemas"]["Quantity"];
+            /** Force Field */
+            force_field: string;
+            /**
+             * Forces
+             * @description eV/Å
+             */
+            forces: [
+                number,
+                number,
+                number
+            ][];
+            /**
+             * Terms
+             * @description energy breakdown in eV
+             */
+            terms?: {
+                [key: string]: number;
+            };
         };
         /** ExecutableReport */
         ExecutableReport: {
@@ -1459,6 +1950,24 @@ export interface components {
             path?: string | null;
             /** Text */
             text?: string | null;
+        };
+        /**
+         * FFConstraint
+         * @description One Open Babel force-field constraint on 0-based atom indices.
+         */
+        FFConstraint: {
+            /** Atoms */
+            atoms: number[];
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "ignore" | "fix" | "fix_x" | "fix_y" | "fix_z" | "distance" | "angle" | "torsion";
+            /**
+             * Value
+             * @description Å for distance, degrees for angles
+             */
+            value?: number | null;
         };
         /** FillRequest */
         FillRequest: {
@@ -1520,6 +2029,30 @@ export interface components {
                 boolean
             ];
         };
+        /** ForceFieldInfo */
+        ForceFieldInfo: {
+            /**
+             * Algorithms
+             * @default [
+             *       "steepest_descent",
+             *       "conjugate_gradients"
+             *     ]
+             */
+            algorithms: string[];
+            /** Charge Models */
+            charge_models: string[];
+            /**
+             * Conformer Methods
+             * @default [
+             *       "systematic",
+             *       "random",
+             *       "weighted"
+             *     ]
+             */
+            conformer_methods: string[];
+            /** Force Fields */
+            force_fields: string[];
+        };
         /** ForkRequest */
         ForkRequest: {
             /** Name */
@@ -1572,6 +2105,22 @@ export interface components {
                 number,
                 number
             ][];
+        };
+        /** FragmentInfo */
+        FragmentInfo: {
+            /** Category */
+            category: string;
+            /** Formula */
+            formula: string;
+            /**
+             * Id
+             * @description 'category/name' relative CML path without extension
+             */
+            id: string;
+            /** N Atoms */
+            n_atoms: number;
+            /** Name */
+            name: string;
         };
         /**
          * Frame
@@ -1664,6 +2213,34 @@ export interface components {
              */
             summary: string;
         };
+        /** GrapheneRequest */
+        GrapheneRequest: {
+            /**
+             * Bond
+             * @default 1.42
+             */
+            bond: number;
+            /**
+             * Kind
+             * @default armchair
+             * @enum {string}
+             */
+            kind: "armchair" | "zigzag";
+            /** M */
+            m: number;
+            /** N */
+            n: number;
+            /**
+             * Periodic
+             * @default true
+             */
+            periodic: boolean;
+            /**
+             * Saturated
+             * @default true
+             */
+            saturated: boolean;
+        };
         /**
          * GridRef
          * @description A grid and where it lives: a calculation's results or a standalone dataset.
@@ -1710,6 +2287,15 @@ export interface components {
             /** Version */
             version: string;
         };
+        /** Identifiers */
+        Identifiers: {
+            /** Inchi */
+            inchi: string;
+            /** Inchikey */
+            inchikey: string;
+            /** Smiles */
+            smiles: string;
+        };
         /** ImportCubeRequest */
         ImportCubeRequest: {
             /**
@@ -1751,6 +2337,28 @@ export interface components {
              * Format: path
              */
             path: string;
+        };
+        /** InsertRequest */
+        InsertRequest: {
+            /**
+             * Attach Atom
+             * @description bond the fragment to this atom
+             */
+            attach_atom?: number | null;
+            /** @description explicit fragment instead */
+            fragment?: components["schemas"]["Structure"] | null;
+            /**
+             * Fragment Id
+             * @description library id 'category/name'
+             */
+            fragment_id?: string | null;
+            /** Position */
+            position?: [
+                number,
+                number,
+                number
+            ] | null;
+            structure: components["schemas"]["Structure"];
         };
         /** JobRecord */
         JobRecord: {
@@ -1799,6 +2407,57 @@ export interface components {
             /** Stream */
             stream: string;
         };
+        /** NanotubeRequest */
+        NanotubeRequest: {
+            /**
+             * Bond
+             * @default 1.42
+             */
+            bond: number;
+            /**
+             * Length
+             * @default 1
+             */
+            length: number;
+            /** M */
+            m: number;
+            /** N */
+            n: number;
+            /**
+             * Periodic
+             * @default true
+             */
+            periodic: boolean;
+            /**
+             * Symbol
+             * @default C
+             */
+            symbol: string;
+        };
+        /** NucleicRequest */
+        NucleicRequest: {
+            /** Bases Per Turn */
+            bases_per_turn?: number | null;
+            /**
+             * Double Strand
+             * @default true
+             */
+            double_strand: boolean;
+            /**
+             * Form
+             * @default B
+             * @enum {string}
+             */
+            form: "A" | "B" | "Z";
+            /**
+             * Kind
+             * @default dna
+             * @enum {string}
+             */
+            kind: "dna" | "rna";
+            /** Sequence */
+            sequence: string;
+        };
         /** OpenProjectRequest */
         OpenProjectRequest: {
             /**
@@ -1807,6 +2466,83 @@ export interface components {
              * @description absolute path of an existing project directory
              */
             path: string;
+        };
+        /** OptimizeRequest */
+        OptimizeRequest: {
+            /**
+             * Algorithm
+             * @default steepest_descent
+             * @enum {string}
+             */
+            algorithm: "steepest_descent" | "conjugate_gradients";
+            /** Constraints */
+            constraints?: components["schemas"]["FFConstraint"][];
+            /**
+             * Convergence
+             * @default 0.000001
+             */
+            convergence: number;
+            /**
+             * Force Field
+             * @default MMFF94
+             */
+            force_field: string;
+            /**
+             * Max Steps
+             * @default 500
+             */
+            max_steps: number;
+            /**
+             * Record Every
+             * @description 0 = no trajectory
+             * @default 0
+             */
+            record_every: number;
+            structure: components["schemas"]["Structure"];
+        };
+        /** OptimizeResult */
+        OptimizeResult: {
+            /** Converged */
+            converged: boolean;
+            energy: components["schemas"]["Quantity"];
+            /** Steps */
+            steps: number;
+            structure: components["schemas"]["Structure"];
+            trajectory?: components["schemas"]["Trajectory"] | null;
+        };
+        /**
+         * OptimizeStepRequest
+         * @description A few steps for interactive auto-optimization; ``fixed_atoms`` are pinned this round.
+         */
+        OptimizeStepRequest: {
+            /**
+             * Algorithm
+             * @default steepest_descent
+             * @enum {string}
+             */
+            algorithm: "steepest_descent" | "conjugate_gradients";
+            /** Constraints */
+            constraints?: components["schemas"]["FFConstraint"][];
+            /** Fixed Atoms */
+            fixed_atoms?: number[];
+            /**
+             * Force Field
+             * @default MMFF94
+             */
+            force_field: string;
+            /**
+             * Steps
+             * @default 4
+             */
+            steps: number;
+            structure: components["schemas"]["Structure"];
+        };
+        /** OptimizeStepResponse */
+        OptimizeStepResponse: {
+            /** Converged */
+            converged: boolean;
+            energy: components["schemas"]["Quantity"];
+            structure: components["schemas"]["Structure"];
         };
         /**
          * OrbitalInfo
@@ -1943,6 +2679,45 @@ export interface components {
             unit?: components["schemas"]["Unit"] | null;
             /** Visible When */
             visible_when?: components["schemas"]["VisibleWhen"][];
+        };
+        /** PeptidePresets */
+        PeptidePresets: {
+            /** Presets */
+            presets: {
+                [key: string]: [
+                    number,
+                    number
+                ];
+            };
+        };
+        /** PeptideRequest */
+        PeptideRequest: {
+            /**
+             * Omega
+             * @default 180
+             */
+            omega: number;
+            /** Phi */
+            phi?: number | null;
+            /**
+             * Preset
+             * @default alpha_helix
+             * @enum {string}
+             */
+            preset: "straight" | "alpha_helix" | "beta_sheet" | "helix_3_10" | "pi_helix" | "custom";
+            /** Psi */
+            psi?: number | null;
+            /** Sequence */
+            sequence: string;
+        };
+        /** PerceiveRequest */
+        PerceiveRequest: {
+            /**
+             * Bond Orders
+             * @default true
+             */
+            bond_orders: boolean;
+            structure: components["schemas"]["Structure"];
         };
         /** Preset */
         Preset: {
@@ -2346,6 +3121,10 @@ export interface components {
         };
         /** StructureBody */
         StructureBody: {
+            structure: components["schemas"]["Structure"];
+        };
+        /** StructureRequest */
+        StructureRequest: {
             structure: components["schemas"]["Structure"];
         };
         /** StructureSummary */
@@ -2780,6 +3559,242 @@ export interface operations {
             };
         };
     };
+    list_fragments_api_build_fragments_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FragmentInfo"][];
+                };
+            };
+        };
+    };
+    get_fragment_api_build_fragments__fragment_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                fragment_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Structure"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    build_graphene_api_build_graphene_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GrapheneRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Structure"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    insert_api_build_insert_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["InsertRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Structure"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    build_nanotube_api_build_nanotube_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["NanotubeRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Structure"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    build_nucleic_api_build_nucleic_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["NucleicRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Structure"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    build_peptide_api_build_peptide_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PeptideRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Structure"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    peptide_presets_api_build_peptide_presets_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PeptidePresets"];
+                };
+            };
+        };
+    };
     list_calculations_api_calculations_get: {
         parameters: {
             query?: never;
@@ -3203,6 +4218,422 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Calculation"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    add_hydrogens_api_chem_add_hydrogens_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AddHydrogensRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Structure"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    aromaticity_api_chem_aromaticity_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StructureRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AromaticityResult"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    conformers_api_chem_conformers_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ConformerRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConformerResult"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    energy_api_chem_energy_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EnergyRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EnergyResult"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    force_fields_api_chem_force_fields_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ForceFieldInfo"];
+                };
+            };
+        };
+    };
+    h_to_methyl_api_chem_h_to_methyl_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AtomsRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Structure"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    identifiers_api_chem_identifiers_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StructureRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Identifiers"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    invert_chirality_api_chem_invert_chirality_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AtomsRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Structure"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    optimize_api_chem_optimize_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OptimizeRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OptimizeResult"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    optimize_step_api_chem_optimize_step_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OptimizeStepRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OptimizeStepResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    partial_charges_api_chem_partial_charges_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChargesRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChargesResult"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    perceive_bonds_api_chem_perceive_bonds_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PerceiveRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Structure"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    remove_hydrogens_api_chem_remove_hydrogens_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AtomsRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Structure"];
                 };
             };
             /** @description Validation Error */

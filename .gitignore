@@ -15,7 +15,10 @@ __pycache__/
 .ruff_cache/
 .mypy_cache/
 dist/
-build/
+# only top-level build output; backend/src/atomscope/build/ is source code
+/build/
+backend/build/
+frontend/build/
 coverage/
 .coverage
 *.pyc

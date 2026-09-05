@@ -59,6 +59,11 @@ SCHEMA = ParameterSchema(
                             label="CP-PAW (DFT forces via CppawCalculator)",
                             help="Each optimizer step runs a CP-PAW force evaluation (two stages: electrons, then damped atomic steps)",
                         ),
+                        Choice(
+                            value="openbabel",
+                            label="Open Babel force field (MMFF94, UFF, GAFF ...)",
+                            help="Molecular mechanics energies/forces from Open Babel; molecules only",
+                        ),
                     ],
                     help="Analytic potentials shipped with ASE; no external program needed.",
                     reference="https://wiki.fysik.dtu.dk/ase/ase/calculators/calculators.html",
@@ -93,6 +98,17 @@ SCHEMA = ParameterSchema(
                     exclusive_minimum=True,
                     advanced=True,
                     visible_when=[VisibleWhen(key="calculator", value="lj")],
+                ),
+                ParameterSpec(
+                    key="ob_force_field",
+                    label="Force field",
+                    type="enum",
+                    default="MMFF94",
+                    choices=[
+                        Choice(value=n, label=n)
+                        for n in ("MMFF94", "MMFF94s", "UFF", "GAFF", "Ghemical")
+                    ],
+                    visible_when=[VisibleWhen(key="calculator", value="openbabel")],
                 ),
                 ParameterSpec(
                     key="cppaw_epwpsi",
@@ -266,6 +282,14 @@ class AseBuiltinPlugin:
                 report.issues.append(
                     ValidationIssue(key="calculator", message=f"EMT has no parameters for {bad}")
                 )
+        if merged.get("calculator") == "openbabel" and structure.is_periodic():
+            report.issues.append(
+                ValidationIssue(
+                    key="calculator",
+                    message="Open Babel force fields ignore the periodic cell",
+                    severity="warning",
+                )
+            )
         if merged.get("calculator") == "cppaw":
             from atomscope.backends.cppaw import plugin as cppaw_plugin  # noqa: PLC0415
 

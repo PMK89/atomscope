@@ -44,10 +44,12 @@ class BackendRegistry:
 
 def default_registry() -> BackendRegistry:
     from atomscope.backends.ase_builtin import plugin as ase_plugin  # noqa: PLC0415
+    from atomscope.backends.openbabel_ff import plugin as openbabel_plugin  # noqa: PLC0415
     from atomscope.backends.qc_inputs import plugin as qc_plugin  # noqa: PLC0415
 
     reg = BackendRegistry()
     reg.register(ase_plugin)
+    reg.register(openbabel_plugin)
     reg.register(qc_plugin)
     reg.load_entry_points()
     return reg
