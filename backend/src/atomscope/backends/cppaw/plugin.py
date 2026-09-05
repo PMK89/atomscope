@@ -19,7 +19,7 @@ from atomscope.backends.base import (
     Values,
 )
 from atomscope.backends.cppaw import settings as cppaw_settings
-from atomscope.backends.cppaw.cntl import analysis_files, cntl_text
+from atomscope.backends.cppaw.cntl import analysis_files, cntl_text, force_stage_values
 from atomscope.backends.cppaw.results import collect
 from atomscope.backends.cppaw.schema import PRESETS, SCHEMA
 from atomscope.backends.cppaw.strc import StrcOptions, molecule_box, strc_text
@@ -128,17 +128,32 @@ class CppawPlugin:
         merged = merge_values(SCHEMA, values)
         opts = StrcOptions.from_values(merged)
         strc = strc_text(structure, opts)
-        cntl = cntl_text(root_name, merged)
         task = merged.get("task")
+        files = [GeneratedFile(name=f"{root_name}.strc", text=strc, role="structure")]
+        if task == "forces":
+            # Two stages: converge the electrons, then a few damped atomic steps for forces.
+            files.append(
+                GeneratedFile(
+                    name=f"{root_name}.stage1.cntl",
+                    text=cntl_text(root_name, merged),
+                    role="control",
+                )
+            )
+            files.append(
+                GeneratedFile(
+                    name=f"{root_name}.stage2.cntl",
+                    text=cntl_text(root_name, force_stage_values(merged)),
+                    role="control",
+                )
+            )
+        else:
+            files.append(
+                GeneratedFile(
+                    name=f"{root_name}.cntl", text=cntl_text(root_name, merged), role="control"
+                )
+            )
         summary = f"CP-PAW {task} on {structure.formula()} ({'periodic' if structure.is_periodic() else 'molecule'})"
-        return GeneratedInputs(
-            files=[
-                GeneratedFile(name=f"{root_name}.cntl", text=cntl, role="control"),
-                GeneratedFile(name=f"{root_name}.strc", text=strc, role="structure"),
-            ],
-            root_name=root_name,
-            summary=summary,
-        )
+        return GeneratedInputs(files=files, root_name=root_name, summary=summary)
 
     def _structure_from_inputs(self, input_dir: Path) -> Structure:
         return Structure.model_validate_json(
@@ -232,6 +247,7 @@ class CppawPlugin:
             structure,
             expect_forces=task in ("forces", "relax", "md"),
             analysis=analysis_files(generated.root_name, values),
+            forces_at_input_geometry=task == "forces",
         )
 
 

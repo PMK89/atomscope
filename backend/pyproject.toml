@@ -51,6 +51,8 @@ packages = ["src/atomscope"]
 testpaths = ["tests"]
 asyncio_mode = "auto"
 markers = ["cppaw: runs the real CP-PAW executable (slow; skipped when unavailable)"]
+# keep temporary test directories inside the project tree
+addopts = "--basetemp=../.scratch/pytest"
 
 [tool.ruff]
 line-length = 100

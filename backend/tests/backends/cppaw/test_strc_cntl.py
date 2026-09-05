@@ -6,7 +6,13 @@ from ase.build import bulk, molecule
 from ase.units import Bohr
 
 from atomscope.ase_bridge import from_atoms
-from atomscope.backends.cppaw.cntl import analysis_files, build_cntl, cntl_text, orbital_band_list
+from atomscope.backends.cppaw.cntl import (
+    analysis_files,
+    build_cntl,
+    cntl_text,
+    force_stage_values,
+    orbital_band_list,
+)
 from atomscope.backends.cppaw.deck import parse_deck
 from atomscope.backends.cppaw.strc import (
     StrcOptions,
@@ -82,11 +88,14 @@ def test_cntl_tasks() -> None:
     single = parse_deck(cntl_text("case", {"task": "single_point"})).child("CONTROL")
     assert single.path("GENERIC").get("START") is True and single.child("RDYN") is None
     assert single.path("PSIDYN", "AUTO") is not None
+    stage1 = parse_deck(cntl_text("case", {"task": "forces", "nstep": 100})).child("CONTROL")
+    assert stage1.child("RDYN") is None and stage1.path("GENERIC").get("START") is True
     forces = parse_deck(
-        cntl_text("case", {"task": "forces", "nstep": 100, "force_steps": 5})
+        cntl_text("case", force_stage_values({"task": "forces", "nstep": 100, "force_steps": 5}))
     ).child("CONTROL")
     assert forces.path("RDYN").get("FRIC") == 1.0 and forces.path("GENERIC").get("NWRITE") == 1
-    assert forces.path("GENERIC").get("NSTEP") == 105
+    assert forces.path("GENERIC").get("NSTEP") == 5 and forces.path("GENERIC").get("START") is False
+    assert forces.path("PSIDYN", "AUTO") is None
     relax = parse_deck(
         cntl_text("case", {"task": "relax", "start": "restart_new_structure"})
     ).child("CONTROL")

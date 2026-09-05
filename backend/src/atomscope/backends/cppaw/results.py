@@ -42,10 +42,18 @@ def _mat3(m: object) -> tuple[Vec3, Vec3, Vec3]:
     return (_v3(rows[0]), _v3(rows[1]), _v3(rows[2]))
 
 
+def split_runs(text: str) -> list[str]:
+    """CP-PAW appends to .prot; split the protocol into individual runs."""
+    marker = "PROGRAM STARTED"
+    parts = text.split(marker)
+    if len(parts) <= 1:
+        return [text]
+    return [marker + p for p in parts[1:]]
+
+
 def last_run(text: str) -> str:
-    """CP-PAW appends to .prot; keep only the last run (from the last PROGRAM STARTED)."""
-    idx = text.rfind("PROGRAM STARTED")
-    return text[idx:] if idx > 0 else text
+    """Keep only the last run (from the last PROGRAM STARTED)."""
+    return split_runs(text)[-1]
 
 
 def collect(
@@ -55,21 +63,31 @@ def collect(
     *,
     expect_forces: bool,
     analysis: list[tuple[str, str]],
+    forces_at_input_geometry: bool = False,
 ) -> ResultBundle:  # noqa: PLR0912, PLR0915
     bundle = ResultBundle()
     prot_path = work / f"{root}.prot"
     if not prot_path.is_file():
         bundle.warnings.append(f"{root}.prot not found")
         return bundle
-    text = last_run(prot_path.read_text(errors="replace"))
+    runs = split_runs(prot_path.read_text(errors="replace"))
+    text = runs[-1]
     prot: ProtocolData = parse_protocol_text_cached(text)
     finished = "PROGRAM FINISHED" in text
     if not finished:
         bundle.warnings.append("protocol does not contain PROGRAM FINISHED (run incomplete)")
     if prot.error_lines:
         bundle.warnings.extend(prot.error_lines[:5])
-    autopilot = "STOP SIGNAL FROM AUTOPILOT" in text
+    # Electronic convergence is judged on the wave-function optimization run: the previous run
+    # for the two-stage 'forces' task, otherwise the last one.
+    electron_run = runs[-2] if forces_at_input_geometry and len(runs) >= 2 else text
+    autopilot = "STOP SIGNAL FROM AUTOPILOT" in electron_run
     bundle.converged = autopilot if finished else False
+    if finished and not autopilot:
+        bundle.warnings.append(
+            "wave functions did not reach the autopilot convergence criterion within NSTEP; "
+            "energies and forces may be unconverged"
+        )
 
     if prot.final_energy_h is not None:
         bundle.properties["energy"] = Quantity(value=prot.final_energy_h * Hartree, unit=Unit.EV)
@@ -96,6 +114,11 @@ def collect(
         except ValueError as exc:
             bundle.warnings.append(f"could not read {strc_out.name}: {exc}")
     al = prot.final_atom_list
+    if forces_at_input_geometry:
+        # 'forces' task: report the input geometry with the forces of the first propagated step.
+        al = prot.first_forces_atom_list or al
+        positions = structure.positions()
+        cell = None
     if positions is None and al is not None and len(al.atoms) == structure.n_atoms:
         positions = np.array([a.position_ang for a in al.atoms])
         cell = np.array(al.lattice_ang) if len(al.lattice_ang) == 3 else None

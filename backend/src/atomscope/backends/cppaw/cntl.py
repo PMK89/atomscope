@@ -44,9 +44,23 @@ def analysis_files(root_name: str, v: Values) -> list[tuple[str, str]]:
     return out
 
 
+def force_stage_values(v: Values) -> Values:
+    """Second stage of the 'forces' task: continue from the converged restart file and
+    propagate the atoms for a few damped steps so that the protocol reports forces."""
+    stage = dict(v)
+    stage["task"] = "_force_stage"
+    stage["start"] = "restart"
+    stage["nstep"] = _i(v, "force_steps", 5)
+    stage["nwrite"] = 1
+    return stage
+
+
 def build_cntl(root_name: str, v: Values) -> Block:  # noqa: PLR0912, PLR0915
     task = str(v.get("task", "single_point"))
     start = str(v.get("start", "scratch"))
+    if task == "forces":
+        # Stage 1 of the forces task is a plain wave-function optimization (see force_stage_values).
+        task = "single_point"
     root = Block("__ROOT__")
     ctl = Block("CONTROL")
     root.children.append(ctl)
@@ -55,12 +69,9 @@ def build_cntl(root_name: str, v: Values) -> Block:  # noqa: PLR0912, PLR0915
     gen.set("START", start == "scratch")
     if start == "restart_new_structure":
         gen.set("NEWSTRC", True)
-    nstep = _i(v, "nstep", 300)
-    if task == "forces":
-        nstep = nstep + _i(v, "force_steps", 5)
-    gen.set("NSTEP", nstep)
+    gen.set("NSTEP", _i(v, "nstep", 300))
     gen.set("DT", _f(v, "dt", 5.0))
-    gen.set("NWRITE", 1 if task == "forces" else _i(v, "nwrite", 50))
+    gen.set("NWRITE", _i(v, "nwrite", 50))
     gen.set("ETOL", _f(v, "etol", 1e-5))
     gen.set("AUTOCONV", _i(v, "autoconv", 20))
 
@@ -84,6 +95,8 @@ def build_cntl(root_name: str, v: Values) -> Block:  # noqa: PLR0912, PLR0915
             th.set("FREQ[THZ]", 100.0)
             th.set("FRIC", 0.1)
             th.set("STOP", True)
+    elif task == "_force_stage":
+        psi.set("FRIC", max(_f(v, "psi_friction", 0.05), 0.05))
     elif _b(v, "psi_auto", True):
         auto = psi.ensure_child("AUTO")
         auto.set("FRIC(-)", _f(v, "psi_auto_fric_minus", 0.3))
@@ -92,11 +105,11 @@ def build_cntl(root_name: str, v: Values) -> Block:  # noqa: PLR0912, PLR0915
         auto.set("FACT(+)", 1.0)
         auto.set("MINFRIC", _f(v, "psi_auto_minfric", 0.01))
 
-    if task in ("forces", "relax", "md"):
+    if task in ("_force_stage", "relax", "md"):
         rdyn = ctl.ensure_child("RDYN")
         rdyn.set("STOP", True)
-        if task == "forces":
-            rdyn.set("FRIC", 1.0)
+        if task == "_force_stage":
+            rdyn.set("FRIC", 1.0)  # steepest descent: atoms barely move during the few steps
         elif task == "relax":
             rdyn.set("FRIC", _f(v, "atom_friction", 0.1))
             if _b(v, "atom_auto", True):

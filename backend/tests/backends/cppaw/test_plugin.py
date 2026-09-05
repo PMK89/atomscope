@@ -24,9 +24,11 @@ def test_conformance_and_registration() -> None:
 def test_generate_inputs_and_validation() -> None:
     s = from_atoms(molecule("H2O"))
     gen = plugin.generate_inputs(s, {"task": "relax"}, "case")
-    names = sorted(f.name for f in gen.files)
-    assert names == ["case.cntl", "case.strc"]
-    assert "!RDYN" in gen.files[0].text and "!ISOLATE" in gen.files[1].text
+    files = {f.name: f.text for f in gen.files}
+    assert set(files) == {"case.cntl", "case.strc"}
+    assert "!RDYN" in files["case.cntl"] and "!ISOLATE" in files["case.strc"]
+    forces = {f.name for f in plugin.generate_inputs(s, {"task": "forces"}, "case").files}
+    assert forces == {"case.strc", "case.stage1.cntl", "case.stage2.cntl"}
     rep = plugin.validate(s, {"task": "md", "start": "scratch", "write_spin_density": True})
     assert rep.ok and {i.key for i in rep.issues} == {"start", "write_spin_density"}
     assert not plugin.validate(

@@ -126,6 +126,11 @@ class ProtocolData:
     def final_atom_list(self) -> AtomListReport | None:
         return self.atom_lists[-1] if self.atom_lists else None
 
+    @property
+    def first_forces_atom_list(self) -> AtomListReport | None:
+        """First ATOMLIST carrying forces: closest to the input geometry in a force run."""
+        return next((al for al in self.atom_lists if al.has_forces), None)
+
 
 def parse_protocol_text(text: str) -> ProtocolData:  # noqa: PLR0912, PLR0915
     data = ProtocolData()

@@ -43,6 +43,13 @@ def test_tra_records_h2o() -> None:
 def test_last_run_splits_appended_protocols() -> None:
     text = "PROGRAM STARTED A\nfoo\nPROGRAM STARTED B\nbar\n"
     assert last_run(text).startswith("PROGRAM STARTED B")
+    from atomscope.backends.cppaw.results import split_runs
+
+    assert [r.splitlines()[0] for r in split_runs(text)] == [
+        "PROGRAM STARTED A",
+        "PROGRAM STARTED B",
+    ]
+    assert split_runs("no marker") == ["no marker"]
 
 
 def test_collect_si2_rdyn(tmp_path: Path) -> None:
