@@ -5,7 +5,6 @@ import { useSelectionStore } from '../state/selectionStore';
 import { useStructureStore } from '../state/structureStore';
 import {
   addHydrogens,
-  forceFieldConstraints,
   copyIdentifier,
   optimizeGeometry,
   removeHydrogens,
@@ -103,40 +102,29 @@ test('copy as SMILES puts the identifier on the clipboard', async () => {
   expect(notify).toHaveBeenCalledWith('Copied O');
 });
 
-test('document constraints reach the force field', () => {
-  const doc = {
-    ...water(),
-    constraints: [
-      { kind: 'fix_atoms', indices: [0] },
-      { kind: 'fix_cartesian', index: 1, mask: [true, false, true] },
-      { kind: 'fix_cartesian', index: 2, mask: [true, true, true] },
-      { kind: 'fix_bond_length', a: 0, b: 1 },
-    ],
-  } as never;
-  expect(forceFieldConstraints(doc)).toEqual([
-    { kind: 'fix', atoms: [0] },
-    { kind: 'fix_x', atoms: [1] },
-    { kind: 'fix_z', atoms: [1] },
-    { kind: 'fix', atoms: [2] },
-    { kind: 'distance', atoms: [0, 1] },
-  ]);
-  expect(forceFieldConstraints(water())).toEqual([]);
-});
-
-test('optimize passes the constraints instead of dropping them', async () => {
+test('optimize sends the constraints with the structure, not as a second list', async () => {
   const optimize = vi.spyOn(api.chem, 'optimize').mockResolvedValue({
     structure: water(),
     energy: { value: -1, unit: 'kcal/mol' },
     steps: 1,
     converged: true,
   } as never);
+  const constraints = [
+    { kind: 'fix_atoms', indices: [0] },
+    { kind: 'fix_bond_length', a: 0, b: 1 },
+  ];
   useStructureStore.getState().commit('fix', {
     ...useStructureStore.getState().doc,
-    constraints: [{ kind: 'fix_atoms', indices: [0] }],
+    constraints,
   } as never);
 
   await optimizeGeometry(() => {});
+  // a `distance` force-field constraint needs a target value, which only the geometry has: the
+  // backend derives them from `structure.constraints` rather than trusting a second, valueless list
   expect(optimize).toHaveBeenCalledWith(
-    expect.objectContaining({ constraints: [{ kind: 'fix', atoms: [0] }] }),
+    expect.objectContaining({
+      constraints: [],
+      structure: expect.objectContaining({ constraints }),
+    }),
   );
 });
