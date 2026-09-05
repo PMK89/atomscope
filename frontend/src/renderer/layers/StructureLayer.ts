@@ -72,8 +72,22 @@ export class StructureLayer implements DisplayLayer {
     return this.atomOfInstance[instanceId] ?? null;
   }
 
+  /** Index into `structure.bonds` for an intersected instance of the bond mesh, or null. */
+  bondIndexForInstance(mesh: Object3D, instanceId: number | undefined): number | null {
+    if (mesh !== this.bondMesh || instanceId === undefined) return null;
+    return this.bondMeshBondIndices[Math.floor(instanceId / 2)] ?? null;
+  }
+
+  /** True when `obj` is the atom mesh (as opposed to the bond mesh). */
+  isAtomMesh(obj: Object3D): boolean {
+    return obj === this.atomMesh;
+  }
+
   get pickables(): Object3D[] {
-    return this.atomMesh ? [this.atomMesh] : [];
+    const out: Object3D[] = [];
+    if (this.atomMesh) out.push(this.atomMesh);
+    if (this.bondMesh) out.push(this.bondMesh);
+    return out;
   }
 
   update(ctx: LayerContext): void {
@@ -118,9 +132,13 @@ export class StructureLayer implements DisplayLayer {
 
     // bonds: split each bond into two half-cylinders colored by their atom
     if (style !== 'vdw') {
-      const bonds = s.bonds.filter(
-        (b) => this.instanceOfAtom[b.a]! >= 0 && this.instanceOfAtom[b.b]! >= 0,
-      );
+      const bondIndices: number[] = [];
+      const bonds = s.bonds.filter((b, i) => {
+        const visible = this.instanceOfAtom[b.a]! >= 0 && this.instanceOfAtom[b.b]! >= 0;
+        if (visible) bondIndices.push(i);
+        return visible;
+      });
+      this.bondMeshBondIndices = bondIndices;
       const bondMesh = new InstancedMesh(this.cylinderGeometry, this.material, bonds.length * 2);
       const a = new Vector3();
       const b = new Vector3();
@@ -145,6 +163,8 @@ export class StructureLayer implements DisplayLayer {
   }
 
   private bondMeshBonds: StructureDoc['bonds'] = [];
+  /** original bond index for each entry of bondMeshBonds */
+  private bondMeshBondIndices: number[] = [];
 
   private atomRadius(covalent: number, vdw: number, style: StructureStyle): number {
     switch (style) {

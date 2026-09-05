@@ -16,8 +16,17 @@ export interface StructureState {
   revision: number;
   undoStack: HistoryEntry[];
   redoStack: HistoryEntry[];
+  /** Document before the current preview sequence, or null when not previewing. */
+  previewBase: StructureDoc | null;
   /** Replace the document without recording history (loading a file, switching structures). */
   load: (doc: StructureDoc) => void;
+  /**
+   * Show `next` without recording history (live drag feedback). The document before the first
+   * preview is remembered and becomes the undo entry of the following `commit`.
+   */
+  preview: (next: StructureDoc) => void;
+  /** Drop a pending preview and restore the document it started from. */
+  cancelPreview: () => void;
   /** Record `label` and switch to `next`. */
   commit: (label: string, next: StructureDoc) => void;
   undo: () => void;
@@ -35,13 +44,31 @@ export const useStructureStore = create<StructureState>((set, get) => ({
   revision: 0,
   undoStack: [],
   redoStack: [],
-  load: (doc) => set((s) => ({ doc, revision: s.revision + 1, undoStack: [], redoStack: [] })),
+  previewBase: null,
+  load: (doc) =>
+    set((s) => ({
+      doc,
+      revision: s.revision + 1,
+      undoStack: [],
+      redoStack: [],
+      previewBase: null,
+    })),
+  preview: (next) =>
+    set((s) => ({ doc: next, revision: s.revision + 1, previewBase: s.previewBase ?? s.doc })),
+  cancelPreview: () =>
+    set((s) =>
+      s.previewBase ? { doc: s.previewBase, revision: s.revision + 1, previewBase: null } : s,
+    ),
   commit: (label, next) =>
     set((s) => ({
       doc: next,
       revision: s.revision + 1,
-      undoStack: [...s.undoStack.slice(-(MAX_HISTORY - 1)), { label, doc: s.doc }],
+      undoStack: [
+        ...s.undoStack.slice(-(MAX_HISTORY - 1)),
+        { label, doc: s.previewBase ?? s.doc },
+      ],
       redoStack: [],
+      previewBase: null,
     })),
   undo: () =>
     set((s) => {
