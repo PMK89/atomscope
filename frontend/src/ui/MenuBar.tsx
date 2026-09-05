@@ -119,16 +119,19 @@ export function MenuBar({ onError }: { onError: (msg: string) => void }): JSX.El
     const onKey = (e: KeyboardEvent): void => {
       const mod = e.ctrlKey || e.metaKey;
       if (!mod) return;
-      if (e.key === 'z' && !e.shiftKey) {
+      const key = e.key.toLowerCase();
+      // text fields keep their native undo/redo/select-all
+      if ((key === 'z' || key === 'y' || key === 'a') && isEditableTarget(e.target)) return;
+      if (key === 'z' && !e.shiftKey) {
         e.preventDefault();
         store.undo();
-      } else if ((e.key === 'z' && e.shiftKey) || e.key === 'y') {
+      } else if ((key === 'z' && e.shiftKey) || key === 'y') {
         e.preventDefault();
         store.redo();
-      } else if (e.key === 'o') {
+      } else if (key === 'o') {
         e.preventDefault();
         fileInput.current?.click();
-      } else if (e.key === 'a' && !isEditableTarget(e.target)) {
+      } else if (key === 'a') {
         e.preventDefault();
         if (e.shiftKey) useSelectionStore.getState().clear();
         else useSelectionStore.getState().set(store.doc.atoms.map((_, i) => i));
