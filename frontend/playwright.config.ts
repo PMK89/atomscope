@@ -5,7 +5,7 @@ export default defineConfig({
   testDir: './e2e',
   timeout: 60_000,
   use: {
-    baseURL: 'http://127.0.0.1:5173',
+    baseURL: process.env['PLAYWRIGHT_BASE_URL'] ?? 'http://127.0.0.1:5173',
     headless: true,
     launchOptions: { args: ['--use-gl=swiftshader', '--enable-unsafe-swiftshader'] },
   },
