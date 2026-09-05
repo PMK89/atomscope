@@ -451,8 +451,16 @@ test('a peptide can be coloured by residue and selected by residue name', async 
 
   await page.getByRole('tab', { name: 'Display' }).click();
   await page.locator('#display-color-scheme').selectOption('residue');
-  // lysine is blue and aspartate red in the RasMol scheme the residue colours follow
+  // lysine is blue and aspartate red in the amino colours the residue scheme follows
   await page.locator('canvas').screenshot({ path: '../.scratch/dev/residue-colors.png' });
+
+  // the three residue palettes are Avogadro's Residue Color settings, and they differ
+  const amino = await page.locator('.viewport-canvas canvas').screenshot();
+  await page.locator('#display-residue-palette').selectOption('shapely');
+  await expect
+    .poll(async () => (await page.locator('.viewport-canvas canvas').screenshot()).equals(amino))
+    .toBe(false);
+  await page.locator('canvas').screenshot({ path: '../.scratch/dev/residue-shapely.png' });
 
   // the menu bar's Select, not the Select tool button
   await page.locator('button.menu-title', { hasText: 'Select' }).click();

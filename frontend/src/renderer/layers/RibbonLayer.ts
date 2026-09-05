@@ -20,7 +20,13 @@ import {
   type GuideResidue,
   type RibbonStyle,
 } from '../../model/ribbon';
-import { CHAIN_COLORS, RESIDUE_COLOR, UNKNOWN_COLOR } from '../atomColors';
+import {
+  CHAIN_COLORS,
+  PALETTE_UNKNOWN,
+  RESIDUE_PALETTES,
+  UNKNOWN_COLOR,
+  type ResiduePalette,
+} from '../atomColors';
 import type { DisplayLayer, LayerContext } from './Layer';
 
 /** One residue as the backend reports it: backbone atoms by uid. */
@@ -46,12 +52,15 @@ export interface RibbonLayerSettings {
   /** Multiplies the widths the style defines. */
   scale: number;
   colorScheme: RibbonColorScheme;
+  /** Which residue table the `residue` scheme paints with; shared with the atom colours. */
+  residuePalette: ResiduePalette;
 }
 
 export const DEFAULT_RIBBON_SETTINGS: RibbonLayerSettings = {
   style: 'cartoon',
   scale: 1,
   colorScheme: 'secondary',
+  residuePalette: 'amino',
 };
 
 export class RibbonLayer implements DisplayLayer {
@@ -126,7 +135,8 @@ export class RibbonLayer implements DisplayLayer {
       if (!r) return UNKNOWN_COLOR;
       if (colorScheme === 'chain')
         return CHAIN_COLORS[chainOrder.indexOf(r.chain) % CHAIN_COLORS.length]!;
-      return RESIDUE_COLOR[r.name.trim().toUpperCase()] ?? UNKNOWN_COLOR;
+      const palette = this.settings.residuePalette;
+      return RESIDUE_PALETTES[palette][r.name.trim().toUpperCase()] ?? PALETTE_UNKNOWN[palette];
     };
     const chains: GuideResidue[][] = [];
     for (const chain of this.data.chains) {

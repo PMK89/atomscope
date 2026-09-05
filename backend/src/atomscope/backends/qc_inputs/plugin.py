@@ -47,7 +47,17 @@ MOLECULAR = ("orca", "gaussian", "nwchem", "gamess", "mopac")
 """Semi-empirical Hamiltonians MOPAC understands; the method is the first keyword of the deck."""
 MOPAC_METHODS = ("AM1", "PM3", "PM6", "PM7", "RM1", "MNDO", "MNDOD")
 """MOPAC spells the multiplicity as a word (a closed shell is SINGLET and needs no UHF)."""
-MOPAC_MULTIPLICITY = {1: "SINGLET", 2: "DOUBLET", 3: "TRIPLET", 4: "QUARTET", 5: "QUINTET"}
+MOPAC_MULTIPLICITY = {
+    1: "SINGLET",
+    2: "DOUBLET",
+    3: "TRIPLET",
+    4: "QUARTET",
+    5: "QUINTET",
+    6: "SEXTET",
+    7: "SEPTET",
+    8: "OCTET",
+    9: "NONET",
+}
 """Programs with a method and a basis set to choose; MOPAC has a Hamiltonian instead."""
 _AB_INITIO = ("orca", "gaussian", "nwchem", "gamess")
 PERIODIC = ("espresso", "abinit")
@@ -108,7 +118,11 @@ SCHEMA = ParameterSchema(
                     label="Hamiltonian",
                     type="enum",
                     default="PM7",
-                    choices=[Choice(value=m, label=m) for m in MOPAC_METHODS],
+                    # MOPAC's keyword is MNDOD; everyone writes the method MNDO-d
+                    choices=[
+                        Choice(value=m, label="MNDO-d" if m == "MNDOD" else m)
+                        for m in MOPAC_METHODS
+                    ],
                     help="MOPAC's semi-empirical Hamiltonian; there is no basis set to choose.",
                     visible_when=[VisibleWhen(key="program", value="mopac")],
                 ),
@@ -226,16 +240,20 @@ def _mopac_deck(
     extra: str,
 ) -> str:
     """
-    A MOPAC deck: one keyword line, a title line, a comment line, then the atoms with a
-    optimization flag after each coordinate (1 = optimize it, which is what MOPAC expects even
-    for a single point). An open shell needs UHF next to the multiplicity word.
+    A MOPAC deck: one keyword line, a title line, a comment line, then the atoms with an
+    optimization flag after each coordinate (1 = this coordinate may move; the flags are read but
+    inert for a 1SCF deck). An open shell needs UHF next to the multiplicity word.
     """
     words = [hamiltonian]
     if keyword:
         words.append(keyword)
     if charge:
         words.append(f"CHARGE={charge}")
-    words.append(MOPAC_MULTIPLICITY.get(mult, "SINGLET"))
+    word = MOPAC_MULTIPLICITY.get(mult)
+    if word is None:
+        msg = f"MOPAC spells the multiplicity up to a nonet; this structure says {mult}"
+        raise ValueError(msg)
+    words.append(word)
     if mult > 1:
         words.append("UHF")
     if extra:

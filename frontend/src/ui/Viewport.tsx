@@ -52,14 +52,16 @@ export function Viewport(): JSX.Element {
     return charges.length ? charges : null;
   }, [scheme, doc]);
   const custom = view.customColor;
+  const palette = view.residuePalette;
   const atomColorOverride = useMemo(
     () =>
       atomColors(residues, atomCount, scheme, secondary, {
         atoms: colorAtoms,
         charges: colorCharges,
         custom,
+        palette,
       }),
-    [residues, atomCount, scheme, secondary, colorAtoms, colorCharges, custom],
+    [residues, atomCount, scheme, secondary, colorAtoms, colorCharges, custom, palette],
   );
   // engine primitive scoping: uid-keyed in the store, resolved to one entry per atom here, and
   // stable while neither the atoms nor the assignment change (a new array rebuilds the meshes)

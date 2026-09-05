@@ -486,10 +486,15 @@ Atom colours come from the built-in element table (generated from ASE);
 selected atoms are tinted towards blue, hovered atoms towards yellow.
 **Colour by** replaces the element colours with what an atom is *part of*:
 
-* `Residue` — the RasMol amino-acid colours Avogadro uses (acidic red, basic
-  blue, aliphatic green, aromatic indigo, polar orange or cyan…), with the four
-  bases coloured too. A residue name the table does not know is grey, so it is visible as
-  unknown.
+* `Residue` — one of Jmol's three tables, chosen in the `Residue colours` list
+  that appears with the scheme (the same three Avogadro offers):
+  **Amino colours** (acidic red, basic blue, aliphatic green, aromatic indigo,
+  polar orange or cyan), **Shapely colours** (one colour per residue type, the
+  RasMol/Shapely scheme) or **Hydrophobicity** (blue where a residue is
+  hydrophobic, red where it is not). The nucleic bases are coloured too, and are
+  the same in all three. A residue name the table does not know takes that
+  palette's own *other* colour — tan under the amino colours, magenta under the
+  other two — so it is visible as unknown. The ribbon follows the same choice.
 * `Chain` — a fixed cycle of eight colours in the order the chains appear.
 * `Secondary structure` — the cartoon colours (helices red, strands yellow, the
   rest pale), fetched from the same DSSP assignment the ribbons use, so it works

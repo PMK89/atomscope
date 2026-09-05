@@ -36,35 +36,126 @@ type RGB = [number, number, number];
 /** Anything the scheme does not recognise, so an unknown residue is visible as unknown. */
 export const UNKNOWN_COLOR: RGB = [0.6, 0.6, 0.6];
 
-/** RasMol's amino-acid colours, which is what Avogadro 1's residue colour scheme uses. */
+/** Jmol's "protein amino" colours, which is what Avogadro 1's residue colour scheme uses (acidic red, basic blue, aliphatic green, aromatic indigo, polar orange or cyan). */
 export const RESIDUE_COLOR: Record<string, RGB> = {
-  ASP: [0.9, 0.04, 0.04],
-  GLU: [0.9, 0.04, 0.04],
-  LYS: [0.08, 0.35, 1.0],
-  ARG: [0.08, 0.35, 1.0],
-  HIS: [0.51, 0.51, 0.82],
-  PHE: [0.2, 0.2, 0.67],
-  TYR: [0.2, 0.2, 0.67],
-  GLY: [0.92, 0.92, 0.92],
-  ALA: [0.78, 0.78, 0.78],
-  VAL: [0.06, 0.51, 0.06],
-  LEU: [0.06, 0.51, 0.06],
-  ILE: [0.06, 0.51, 0.06],
-  SER: [0.98, 0.59, 0.0],
-  THR: [0.98, 0.59, 0.0],
-  ASN: [0.0, 0.86, 0.86],
-  GLN: [0.0, 0.86, 0.86],
-  MET: [0.9, 0.9, 0.0],
-  CYS: [0.9, 0.9, 0.0],
-  TRP: [0.71, 0.35, 0.71],
-  PRO: [0.86, 0.59, 0.51],
-  // nucleic acids, so a DNA or RNA model is not entirely grey
-  A: [0.65, 0.14, 0.14],
-  T: [0.14, 0.65, 0.14],
-  G: [0.14, 0.14, 0.65],
-  C: [0.65, 0.65, 0.14],
-  U: [0.65, 0.14, 0.65],
+  ALA: [0.7843, 0.7843, 0.7843],
+  ARG: [0.0784, 0.3529, 1],
+  ASN: [0, 0.8627, 0.8627],
+  ASP: [0.902, 0.0392, 0.0392],
+  CYS: [0.902, 0.902, 0],
+  GLN: [0, 0.8627, 0.8627],
+  GLU: [0.902, 0.0392, 0.0392],
+  GLY: [0.9216, 0.9216, 0.9216],
+  HIS: [0.5098, 0.5098, 0.8235],
+  ILE: [0.0588, 0.5098, 0.0588],
+  LEU: [0.0588, 0.5098, 0.0588],
+  LYS: [0.0784, 0.3529, 1],
+  MET: [0.902, 0.902, 0],
+  PHE: [0.1961, 0.1961, 0.6667],
+  PRO: [0.8627, 0.5882, 0.5098],
+  SER: [0.9804, 0.5882, 0],
+  THR: [0.9804, 0.5882, 0],
+  TRP: [0.7059, 0.3529, 0.7059],
+  TYR: [0.1961, 0.1961, 0.6667],
+  VAL: [0.0588, 0.5098, 0.0588],
+  ASX: [1, 0.4118, 0.7059],
+  GLX: [1, 0.4118, 0.7059],
+  // the nucleic bases, the same in all three of Jmol's tables
+  A: [0.6275, 0.6275, 1],
+  G: [1, 0.4392, 0.4392],
+  I: [0.502, 1, 1],
+  C: [1, 0.549, 0.2941],
+  T: [0.6275, 1, 0.6275],
+  U: [1, 0.502, 0.502],
 };
+
+/** Jmol's "protein shapely" colours, the RasMol/Shapely scheme: one colour per residue type, not per class. */
+export const SHAPELY_COLOR: Record<string, RGB> = {
+  ALA: [0.549, 1, 0.549],
+  ARG: [0, 0, 0.4863],
+  ASN: [1, 0.4863, 0.4392],
+  ASP: [0.6275, 0, 0.2588],
+  CYS: [1, 1, 0.4392],
+  GLN: [1, 0.298, 0.298],
+  GLU: [0.4, 0, 0],
+  GLY: [1, 1, 1],
+  HIS: [0.4392, 0.4392, 1],
+  ILE: [0, 0.298, 0],
+  LEU: [0.2706, 0.3686, 0.2706],
+  LYS: [0.2784, 0.2784, 0.7216],
+  MET: [0.7216, 0.6275, 0.2588],
+  PHE: [0.3255, 0.298, 0.3216],
+  PRO: [0.3216, 0.3216, 0.3216],
+  SER: [1, 0.4392, 0.2588],
+  THR: [0.7216, 0.298, 0],
+  TRP: [0.3098, 0.2745, 0],
+  TYR: [0.549, 0.4392, 0.298],
+  VAL: [1, 0.549, 1],
+  ASX: [1, 0, 1],
+  GLX: [1, 0, 1],
+  // the nucleic bases, the same in all three of Jmol's tables
+  A: [0.6275, 0.6275, 1],
+  G: [1, 0.4392, 0.4392],
+  I: [0.502, 1, 1],
+  C: [1, 0.549, 0.2941],
+  T: [0.6275, 1, 0.6275],
+  U: [1, 0.502, 0.502],
+};
+
+/** Jmol's hydrophobicity colours: blue where a residue is hydrophobic, red where it is not. */
+export const HYDROPHOBIC_COLOR: Record<string, RGB> = {
+  ALA: [0.6, 0.6, 1],
+  ARG: [1, 0, 0],
+  ASN: [1, 0.2196, 0.2196],
+  ASP: [1, 0.2196, 0.2196],
+  CYS: [0.4431, 0.4431, 1],
+  GLN: [1, 0.2196, 0.2196],
+  GLU: [1, 0.2196, 0.2196],
+  GLY: [1, 0.9098, 0.9098],
+  HIS: [1, 0.2863, 0.2863],
+  ILE: [0, 0, 1],
+  LEU: [0.1529, 0.1529, 1],
+  LYS: [1, 0.1333, 0.1333],
+  MET: [0.5765, 0.5765, 1],
+  PHE: [0.3765, 0.3765, 1],
+  PRO: [1, 0.6431, 0.6431],
+  SER: [1, 0.8196, 0.8196],
+  THR: [1, 0.8431, 0.8431],
+  TRP: [1, 0.8, 0.8],
+  TYR: [1, 0.7098, 0.7098],
+  VAL: [0.0627, 0.0627, 1],
+  ASX: [1, 0, 1],
+  GLX: [1, 0, 1],
+  // the nucleic bases, the same in all three of Jmol's tables
+  A: [0.6275, 0.6275, 1],
+  G: [1, 0.4392, 0.4392],
+  I: [0.502, 1, 1],
+  C: [1, 0.549, 0.2941],
+  T: [0.6275, 1, 0.6275],
+  U: [1, 0.502, 0.502],
+};
+
+/** What each palette paints a residue it does not know (Avogadro's "other" entry). */
+export const PALETTE_UNKNOWN: Record<ResiduePalette, RGB> = {
+  amino: [0.7451, 0.6275, 0.4314],
+  shapely: [1, 0, 1],
+  hydrophobicity: [1, 0, 1],
+};
+
+/** Avogadro's Residue Color settings: which of the three tables paints the residues. */
+export const RESIDUE_PALETTES = {
+  amino: RESIDUE_COLOR,
+  shapely: SHAPELY_COLOR,
+  hydrophobicity: HYDROPHOBIC_COLOR,
+} as const;
+
+export type ResiduePalette = keyof typeof RESIDUE_PALETTES;
+
+export const PALETTE_LABELS: { id: ResiduePalette; label: string }[] = [
+  { id: 'amino', label: 'Amino colours' },
+  { id: 'shapely', label: 'Shapely colours' },
+  { id: 'hydrophobicity', label: 'Hydrophobicity' },
+];
 
 /** A fixed cycle, so the same chain keeps its colour between documents and sessions. */
 export const CHAIN_COLORS: RGB[] = [
@@ -140,6 +231,8 @@ export function atomColors(
     charges?: readonly number[] | null;
     /** the colour of the `custom` scheme, as `#rrggbb` */
     custom?: string;
+    /** which residue table the `residue` scheme paints with */
+    palette?: ResiduePalette;
   } = {},
 ): Float32Array | null {
   if (scheme === 'element') return null;
@@ -179,8 +272,10 @@ export function atomColors(
     return out;
   }
   if (scheme === 'residue') {
+    const palette = extra.palette ?? 'amino';
+    const table = RESIDUE_PALETTES[palette];
     for (const r of residues) {
-      const c = RESIDUE_COLOR[r.name.trim().toUpperCase()] ?? UNKNOWN_COLOR;
+      const c = table[r.name.trim().toUpperCase()] ?? PALETTE_UNKNOWN[palette];
       for (const i of r.atom_indices) write(out, i, c);
     }
     return out;

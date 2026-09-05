@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { ColorScheme } from '../renderer/atomColors';
+import type { ColorScheme, ResiduePalette } from '../renderer/atomColors';
 import { NO_STYLES, type StyleAssignment } from '../renderer/atomStyles';
 import type { Quality, StructureStyle } from '../renderer/layers/StructureLayer';
 import type { Projection } from '../renderer/Renderer';
@@ -13,6 +13,9 @@ export interface ViewState {
   /** What decides an atom's colour: its element, or what it is part of. */
   colorScheme: ColorScheme;
   setColorScheme: (scheme: ColorScheme) => void;
+  /** Which residue table the `residue` scheme paints with (Avogadro's Residue Color settings). */
+  residuePalette: ResiduePalette;
+  setResiduePalette: (palette: ResiduePalette) => void;
   /** The single colour of the `custom` colour scheme, as `#rrggbb`. */
   customColor: string;
   setCustomColor: (hex: string) => void;
@@ -98,6 +101,8 @@ export const useViewStore = create<ViewState>((set) => ({
   style: 'ball-and-stick',
   colorScheme: 'element',
   setColorScheme: (colorScheme) => set({ colorScheme }),
+  residuePalette: 'amino',
+  setResiduePalette: (residuePalette) => set({ residuePalette }),
   customColor: '#4aa3ff',
   setCustomColor: (customColor) => set({ customColor }),
   quality: 'auto',

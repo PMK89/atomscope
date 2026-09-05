@@ -10,7 +10,12 @@
 import { useState } from 'react';
 import type { RibbonStyle } from '../model/ribbon';
 import { ATOM_LABEL_OPTIONS, BOND_LABEL_OPTIONS } from '../renderer/labels';
-import { COLOR_SCHEMES, type ColorScheme } from '../renderer/atomColors';
+import {
+  COLOR_SCHEMES,
+  PALETTE_LABELS,
+  type ColorScheme,
+  type ResiduePalette,
+} from '../renderer/atomColors';
 import { partialCharges } from '../renderer/labels';
 import { assignStyle, assignmentCounts, displayOnly, NO_STYLES } from '../renderer/atomStyles';
 import { useSelectionStore } from '../state/selectionStore';
@@ -167,6 +172,22 @@ export function DisplayPanel(): JSX.Element {
           ))}
         </select>
       </div>
+      {view.colorScheme === 'residue' && (
+        <div className="form-row">
+          <label htmlFor="display-residue-palette">Residue colours</label>
+          <select
+            id="display-residue-palette"
+            value={view.residuePalette}
+            onChange={(e) => view.setResiduePalette(e.target.value as ResiduePalette)}
+          >
+            {PALETTE_LABELS.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.label}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
       {RESIDUE_SCHEMES.has(view.colorScheme) && doc.residues.length === 0 && (
         <p className="muted">
           This structure has no residues, so its atoms keep their element colours.

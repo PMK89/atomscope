@@ -36,6 +36,7 @@ export function syncExtraLayers(
       style: view.ribbonStyle,
       scale: view.ribbonScale,
       colorScheme: view.ribbonColorScheme,
+      residuePalette: view.residuePalette,
     });
   }
   const vectors = renderer.getLayer('vectors');

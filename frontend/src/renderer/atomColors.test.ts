@@ -2,9 +2,12 @@ import { expect, test } from 'vitest';
 import {
   atomColors,
   CHAIN_COLORS,
+  HYDROPHOBIC_COLOR,
+  PALETTE_UNKNOWN,
   parseHexColor,
   rainbow,
   RESIDUE_COLOR,
+  SHAPELY_COLOR,
   UNKNOWN_COLOR,
 } from './atomColors';
 import { KIND_COLOR } from '../model/ribbon';
@@ -31,15 +34,39 @@ test('the element scheme leaves the colours to the layer', () => {
   expect(atomColors(plain.residues, plain.atoms.length, 'residue')).toBe(null);
 });
 
-test('residues take the RasMol colours, and an unknown one is grey', () => {
+test("residues take Jmol's amino colours, and an unknown one the palette's own", () => {
   const c = atomColors(doc.residues, doc.atoms.length, 'residue')!;
   expect(rgb(c, 0)).toEqual(RESIDUE_COLOR['LYS']);
   expect(rgb(c, 2)).toEqual(RESIDUE_COLOR['GLY']);
-  expect(rgb(c, 3)).toEqual(UNKNOWN_COLOR);
-  // the aliphatic residues are RasMol's green (15, 130, 15), not black
-  expect(RESIDUE_COLOR['LEU']).toEqual([0.06, 0.51, 0.06]);
+  expect(rgb(c, 3)).toEqual(PALETTE_UNKNOWN.amino);
+  // the aliphatic residues are the amino table's green (15, 130, 15), not black
+  expect(RESIDUE_COLOR['LEU']).toEqual([0.0588, 0.5098, 0.0588]);
   expect(RESIDUE_COLOR['VAL']).toEqual(RESIDUE_COLOR['LEU']);
   expect(RESIDUE_COLOR['ILE']).toEqual(RESIDUE_COLOR['LEU']);
+});
+
+test('the three residue palettes are three different pictures', () => {
+  const amino = atomColors(doc.residues, doc.atoms.length, 'residue', null, { palette: 'amino' })!;
+  const shapely = atomColors(doc.residues, doc.atoms.length, 'residue', null, {
+    palette: 'shapely',
+  })!;
+  const water = atomColors(doc.residues, doc.atoms.length, 'residue', null, {
+    palette: 'hydrophobicity',
+  })!;
+  // lysine: pale blue in the amino table, a darker blue in shapely, red as the least hydrophobic
+  expect(rgb(amino, 0)).toEqual(RESIDUE_COLOR['LYS']);
+  expect(rgb(shapely, 0)).toEqual(SHAPELY_COLOR['LYS']);
+  expect(rgb(water, 0)).toEqual(HYDROPHOBIC_COLOR['LYS']);
+  expect(rgb(shapely, 0)).not.toEqual(rgb(amino, 0));
+  expect(rgb(water, 0)[0]).toBeGreaterThan(rgb(water, 0)[2]!);
+  // isoleucine is the most hydrophobic there is: pure blue
+  expect(HYDROPHOBIC_COLOR['ILE']).toEqual([0, 0, 1]);
+  // and an unknown residue takes each palette's own 'other' colour
+  expect(rgb(shapely, 3)).toEqual(PALETTE_UNKNOWN.shapely);
+  expect(PALETTE_UNKNOWN.shapely).not.toEqual(PALETTE_UNKNOWN.amino);
+  // the nucleic bases are the same in all three, as they are in Jmol
+  for (const base of ['A', 'G', 'C', 'T', 'U'])
+    expect(SHAPELY_COLOR[base]).toEqual(RESIDUE_COLOR[base]);
 });
 
 test('chains take the cycle in the order they appear', () => {

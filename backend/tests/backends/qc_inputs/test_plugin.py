@@ -21,7 +21,7 @@ def test_registered_and_non_executing() -> None:
         ("gaussian", ".gjf", ["b3lyp", "def2-SVP".lower(), "-1 2", "opt"]),
         ("nwchem", ".nw", ["charge -1", "xc B3LYP".lower(), "mult 2", "task dft optimize"]),
         ("gamess", ".inp", ["runtyp=optimize", "icharg=-1", "mult=2", "dfttyp=b3lyp"]),
-        ("mopac", ".mop", ["pm7", "charge=-1", "doublet uhf", "o "]),
+        ("mopac", ".mop", ["pm7", "charge=-1", "doublet uhf", "\n o "]),
     ],
 )
 def test_molecular_inputs(program: str, ext: str, tokens: list[str]) -> None:
@@ -64,6 +64,18 @@ def test_mopac_deck_layout() -> None:
         water, {"program": "mopac", "task": "energy", "extra_keywords": "PRECISE EPS=78.4"}, "c"
     )
     assert extra.files[0].text.split("\n")[0] == "PM7 1SCF SINGLET PRECISE EPS=78.4"
+
+
+def test_mopac_multiplicity_is_a_word_it_has() -> None:
+    water = from_atoms(molecule("H2O"), name="water")
+    water.multiplicity = 6
+    deck = plugin.generate_inputs(water, {"program": "mopac"}, "case").files[0].text
+    # the default task is a single point, hence 1SCF
+    assert deck.split("\n")[0] == "PM7 1SCF SEXTET UHF"
+    # beyond a nonet MOPAC has no word, and writing SINGLET instead would be a deck that runs
+    water.multiplicity = 12
+    with pytest.raises(ValueError, match="nonet"):
+        plugin.generate_inputs(water, {"program": "mopac"}, "case")
 
 
 def test_periodic_inputs_and_warnings() -> None:
