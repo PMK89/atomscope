@@ -42,3 +42,39 @@ test('Ctrl+Z / Ctrl+Y / Ctrl+A inside a text field are left to the browser', () 
   expect(after.undoStack.length).toBe(before.undoStack.length);
   expect(after.redoStack.length).toBe(before.redoStack.length);
 });
+
+test('menu titles announce their popup and items carry checkable roles', () => {
+  render(<MenuBar onError={() => {}} />);
+  const view = screen.getByRole('button', { name: 'View' });
+  expect(view).toHaveAttribute('aria-haspopup', 'menu');
+  expect(view).toHaveAttribute('aria-expanded', 'false');
+  fireEvent.click(view);
+  expect(view).toHaveAttribute('aria-expanded', 'true');
+  const menu = screen.getByRole('menu');
+  expect(menu).toHaveAttribute('aria-labelledby', view.id);
+  // checkable entries are menuitemcheckbox with a state, plain commands stay menuitem
+  const hydrogens = screen.getByRole('menuitemcheckbox', { name: /Show hydrogens/ });
+  expect(hydrogens).toHaveAttribute('aria-checked', 'true');
+  expect(screen.getByRole('menuitem', { name: /Fit to structure/ })).toBeInTheDocument();
+});
+
+test('menus support arrow-key navigation, skip disabled items and close on Escape', () => {
+  render(<MenuBar onError={() => {}} />);
+  const edit = screen.getByRole('button', { name: 'Edit' });
+  const label = (): string => (document.activeElement as HTMLElement).textContent ?? '';
+  fireEvent.keyDown(edit, { key: 'ArrowDown' });
+  // beforeEach committed one edit, so Undo is available but Redo is not
+  expect(label()).toContain('Undo rename');
+  const menu = screen.getByRole('menu');
+  fireEvent.keyDown(menu, { key: 'ArrowDown' });
+  expect(label()).toContain('Select all'); // the disabled Redo entry was skipped
+  fireEvent.keyDown(menu, { key: 'ArrowUp' });
+  expect(label()).toContain('Undo rename');
+  fireEvent.keyDown(menu, { key: 'End' });
+  expect(label()).toContain('Cartesian editor');
+  fireEvent.keyDown(menu, { key: 'ArrowDown' });
+  expect(label()).toContain('Undo rename'); // wraps around
+  fireEvent.keyDown(menu, { key: 'Escape' });
+  expect(screen.queryByRole('menu')).toBeNull();
+  expect(document.activeElement).toBe(edit);
+});

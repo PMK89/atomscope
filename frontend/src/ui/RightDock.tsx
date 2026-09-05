@@ -14,9 +14,24 @@ const TABS: { id: Tab; label: string }[] = [
   { id: 'properties', label: 'Properties' },
 ];
 
+const tabId = (id: Tab): string => `dock-tab-${id}`;
+const panelId = (id: Tab): string => `dock-panel-${id}`;
+
 /** Tab strip for the right dock. Panels stay mounted (hidden) so form state survives switching. */
 export function RightDock({ onError }: { onError: (m: string) => void }): JSX.Element {
   const [tab, setTab] = useState<Tab>('calculation');
+  /** Wraps a panel so screen readers pair it with its tab; only the selected one is a tab stop. */
+  const panel = (id: Tab, content: JSX.Element): JSX.Element => (
+    <div
+      role="tabpanel"
+      id={panelId(id)}
+      aria-labelledby={tabId(id)}
+      tabIndex={tab === id ? 0 : -1}
+      hidden={tab !== id}
+    >
+      {content}
+    </div>
+  );
   return (
     <>
       <div className="tabs dock-tabs" role="tablist">
@@ -24,29 +39,22 @@ export function RightDock({ onError }: { onError: (m: string) => void }): JSX.El
           <button
             key={t.id}
             role="tab"
+            id={tabId(t.id)}
             className={tab === t.id ? 'tab active' : 'tab'}
             aria-selected={tab === t.id}
+            aria-controls={panelId(t.id)}
+            tabIndex={tab === t.id ? 0 : -1}
             onClick={() => setTab(t.id)}
           >
             {t.label}
           </button>
         ))}
       </div>
-      <div hidden={tab !== 'calculation'}>
-        <CalculationPanel onError={onError} />
-      </div>
-      <div hidden={tab !== 'analysis'}>
-        <AnalysisPanel onError={onError} />
-      </div>
-      <div hidden={tab !== 'surfaces'}>
-        <SurfacesPanel onError={onError} />
-      </div>
-      <div hidden={tab !== 'crystal'}>
-        <CrystalPanel onError={onError} />
-      </div>
-      <div hidden={tab !== 'properties'}>
-        <PropertiesPanel />
-      </div>
+      {panel('calculation', <CalculationPanel onError={onError} />)}
+      {panel('analysis', <AnalysisPanel onError={onError} />)}
+      {panel('surfaces', <SurfacesPanel onError={onError} />)}
+      {panel('crystal', <CrystalPanel onError={onError} />)}
+      {panel('properties', <PropertiesPanel />)}
     </>
   );
 }
