@@ -496,7 +496,8 @@ thing is a display type *per atom*, plus atoms that nothing draws:
 * **Assign to selection** — the selected atoms take the display type chosen
   above the buttons; everything else keeps the global one. Van der Waals
   spheres on a ligand over a wireframe protein is this, twice.
-* **Display only selection** — the selection stays, every other atom is hidden.
+* **Display only selection** — the selection takes the chosen display type and
+  every other atom is hidden.
 * **Hide selection** — the selection is hidden and nothing else changes.
 * **Show all** — every atom goes back to the global display type.
 

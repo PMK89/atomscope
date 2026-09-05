@@ -44,6 +44,23 @@ test('a coordinate-only update rewrites instance matrices without recreating mes
   layer.dispose();
 });
 
+test('an unchanged scope in a new array does not rebuild the meshes', () => {
+  const layer = new StructureLayer();
+  const base = doc();
+  layer.setSettings({ atomStyles: [null, 'vdw', null] });
+  layer.update(ctx(base));
+  const [atomMesh] = meshes(layer);
+  const dispose = vi.spyOn(atomMesh!, 'dispose');
+
+  // what a drag frame looks like: a new document, and a new array saying the same thing
+  layer.setSettings({ atomStyles: [null, 'vdw', null] });
+  layer.update(ctx(setPositions(base, new Map([[1, [2.5, 0, 0]]]))));
+
+  expect(meshes(layer)[0]).toBe(atomMesh);
+  expect(dispose).not.toHaveBeenCalled();
+  layer.dispose();
+});
+
 test('a bond, an element or a settings change does recreate the meshes', () => {
   const layer = new StructureLayer();
   const base = doc();

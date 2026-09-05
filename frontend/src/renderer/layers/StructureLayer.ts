@@ -107,6 +107,16 @@ interface BondHalf {
   image: number;
 }
 
+/** Whether two per-atom style arrays say the same thing (both null counts as the same). */
+function sameStyles(
+  a: ReadonlyArray<AtomStyle | null> | null,
+  b: ReadonlyArray<AtomStyle | null> | null,
+): boolean {
+  if (a === b) return true;
+  if (!a || !b || a.length !== b.length) return false;
+  return a.every((s, i) => s === b[i]);
+}
+
 const ORIGIN = new Vector3();
 const SELECTION_COLOR = new Color(0.2, 0.6, 1.0);
 const HOVER_COLOR = new Color(1.0, 0.85, 0.2);
@@ -227,8 +237,10 @@ export class StructureLayer implements DisplayLayer {
     const { atomColors, atomStyles, ...keyed } = this.settings;
     const settingsKey = JSON.stringify(keyed);
     const colorsChanged = atomColors !== this.lastAtomColors;
-    // one entry per atom: stringifying it would cost more than the rebuild it guards
-    const stylesChanged = atomStyles !== this.lastAtomStyles;
+    // one entry per atom, and compared element-wise: a drag or an optimizer round hands the
+    // viewport a new document every frame, and with it a new array of the same display types --
+    // taking that for a change would dispose and rebuild both meshes at the frame rate
+    const stylesChanged = !sameStyles(atomStyles, this.lastAtomStyles);
     // the selection only changes what is drawn when it has a style of its own
     const selectionChanged =
       this.settings.selectionStyle !== null && ctx.selectedAtoms !== this.lastSelected;
