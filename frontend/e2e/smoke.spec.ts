@@ -1,5 +1,5 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
-import { join } from 'node:path';
+import { dirname, join } from 'node:path';
 import { expect, test } from '@playwright/test';
 
 test('app renders the demo molecule into the WebGL canvas', async ({ page }) => {
@@ -574,14 +574,59 @@ test('atoms can be coloured by partial charge and by one colour', async ({ page 
   // water: a negative oxygen (red) and two positive hydrogens (pale blue). The oxygen sphere is
   // the larger part of what is drawn, so the picture goes red where the element colours were not
   await expect.poll(mean).not.toEqual(elementColors);
-  const [cr, , cb] = await mean();
-  expect(cr).toBeGreaterThan(cb);
+  await expect
+    .poll(async () => {
+      const [cr, , cb] = await mean();
+      return cr - cb;
+    })
+    .toBeGreaterThan(0);
   await page.screenshot({ path: '../.scratch/dev/colour-by-charge.png' });
 
   // one colour paints everything, and it is the one the panel says
   await page.locator('#display-color-scheme').selectOption('custom');
   await page.locator('#display-custom-color').fill('#00ff00');
-  const [r, g, b] = await mean();
-  expect(g).toBeGreaterThan(r + 40);
-  expect(g).toBeGreaterThan(b + 40);
+  // the next frame is what carries the new colour, so poll rather than read once
+  await expect
+    .poll(async () => {
+      const [r, g, b] = await mean();
+      return g - Math.max(r, b);
+    })
+    .toBeGreaterThan(40);
+});
+
+test('Export writes a file on this machine, in the format the name asks for', async ({
+  page,
+  request,
+}) => {
+  const base = process.env['PLAYWRIGHT_BASE_URL'] ?? 'http://127.0.0.1:5173';
+  // inside frontend/test-results/, never outside the repository
+  const target = join(test.info().outputPath('export'), 'water.pdb');
+  await mkdir(dirname(target), { recursive: true });
+
+  await page.goto('/');
+  await expect(page.locator('.app-statusbar')).toContainText('H2O');
+  await page.getByRole('button', { name: 'File' }).click();
+  await page.getByRole('menuitem', { name: 'Export…', exact: true }).click();
+  const dialog = page.getByRole('dialog', { name: 'Export' });
+  await expect(dialog).toBeVisible();
+
+  // the extension chooses the writer: .pdb is Protein Data Bank, whatever the list started on
+  await dialog.getByLabel('Path on this machine').fill(target);
+  await expect(dialog.getByLabel('Format')).toHaveValue('pdb');
+  await dialog.getByRole('button', { name: 'Save' }).click();
+  await expect(dialog).toBeHidden();
+
+  // the file is really there, and really a PDB the backend can read back
+  const back = await request.post(`${base}/api/io/import/path`, { data: { path: target } });
+  expect(back.ok()).toBeTruthy();
+  expect(((await back.json()) as { atoms: unknown[] }).atoms).toHaveLength(3);
+
+  // writing over it again is refused until the dialog asks
+  await page.getByRole('button', { name: 'File' }).click();
+  await page.getByRole('menuitem', { name: 'Export…', exact: true }).click();
+  await dialog.getByLabel('Path on this machine').fill(target);
+  await dialog.getByRole('button', { name: 'Save' }).click();
+  await expect(dialog.getByRole('alert')).toContainText('exists already');
+  await dialog.getByRole('button', { name: 'Overwrite' }).click();
+  await expect(dialog).toBeHidden();
 });

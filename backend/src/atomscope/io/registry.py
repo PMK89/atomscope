@@ -247,9 +247,16 @@ def structure_to_string(structure: Structure, fmt: str) -> str:
         from atomscope.io import openbabel_io  # noqa: PLC0415 (optional dependency)
 
         return openbabel_io.write_text(structure, info.name)
-    buf = _io.StringIO()
     atoms = to_atoms(structure)
     if info.name == "xyz":
         atoms.info = {}
-    ase.io.write(buf, atoms, format=info.name)
+    name = _ASE_NAME.get(info.name, info.name)
+    buf = _io.StringIO()
+    try:
+        ase.io.write(buf, atoms, format=name)
+    except TypeError:
+        # some ASE writers (cif) only write bytes; they are still text formats
+        raw = _io.BytesIO()
+        ase.io.write(raw, atoms, format=name)
+        return raw.getvalue().decode()
     return buf.getvalue()

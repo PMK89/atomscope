@@ -33,6 +33,11 @@
   residue colours survive `Add hydrogens`.
 - Deleting atoms now takes their per-atom properties with them: partial charges and forces used to
   keep the old length and were then silently ignored by everything that reads them.
+- `File ▸ Export…`: one dialog over every format the backend can write (ASE, RDKit and Open Babel
+  -- xyz, extxyz, cif, pdb, vasp, mol, sdf, xsf, json, gaussian-in, turbomole, espresso-in, cml,
+  smi), with the format and the file name following one another, and a write to a path on this
+  machine or a download. It replaces the three fixed Export items, and it will not write over an
+  existing file until asked a second time.
 - A colour map per engine: the ribbon can be coloured by secondary structure, chain or residue,
   independently of what the atoms are coloured by (isosurfaces already had one of their own).
 - More colour maps on the Display tab: atom index and distance from the first atom (the rainbow

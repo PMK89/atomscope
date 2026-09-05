@@ -441,15 +441,27 @@ the copy, so an optimized or supercelled structure does not overwrite the one
 it came from. Unsaved work is marked with a bullet in the window title and the
 status bar, and leaving the page then asks first.
 
-**Export.** `File ▸ Export XYZ`, `Export extended XYZ` and `Export CIF` (the
-last is disabled without a unit cell) download the current structure;
-`Export image…` writes a picture of the viewport (see [§6](#6-visualization)).
-Extended XYZ carries the cell and per-atom properties; plain XYZ does not.
-Trajectories are exported from the trajectory player's `Export XYZ` button as
-extended XYZ with per-frame energy, forces, cell and time.
+**Export.** `File ▸ Export…` writes the current structure in any format the
+backend can write — xyz, extended xyz, cif, pdb, VASP POSCAR, MDL mol, sdf,
+xsf, ASE json, Gaussian input, Turbomole coord, Quantum ESPRESSO input, cml and
+SMILES, through ASE, RDKit or Open Babel. The format and the file name follow
+one another: typing `water.cif` picks CIF, picking CIF renames the file to
+`water.cif`. It opens on the format the structure was read from, or CML.
 
-`POST /api/io/export` can write any writable format to a path on the backend
-machine. Returning the text inline (no `path`) works for the ASE formats only.
+`Save` writes to a path on this machine (the backend is local), and refuses to
+write over a file that is already there until the dialog asks again; `Download`
+saves it through the browser instead. Extended XYZ carries the cell and
+per-atom properties; plain XYZ does not. `Export image…` writes a picture of the
+viewport (see [§6](#6-visualization)), and trajectories are exported from the
+trajectory player's `Export XYZ` button as extended XYZ with per-frame energy,
+forces, cell and time.
+
+`POST /api/io/export` is what it calls: any writable format to a path on the
+backend machine (409 when the file exists and `overwrite` is not set, 400 for a
+directory), or the text inline when no `path` is given, which is what `Download`
+uses. Two formats have nothing to serialize for a bare molecule and report it:
+VASP POSCAR needs a unit cell, and Quantum ESPRESSO input needs
+pseudopotentials.
 
 ---
 

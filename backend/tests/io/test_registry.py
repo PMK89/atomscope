@@ -92,6 +92,15 @@ def test_string_export() -> None:
     assert text.splitlines()[0].strip() == "2"
 
 
+def test_string_export_covers_the_writers_that_are_not_plain_text_streams() -> None:
+    """CIF is written as bytes by ASE and PDB is called `proteindatabank` there; both are text."""
+    water = from_atoms(molecule("H2O"))
+    assert "data_" in structure_to_string(water, "cif")
+    assert "\nATOM      1" in structure_to_string(water, "pdb")
+    # and the formats of the other two libraries still go through their own writers
+    assert "<molecule" in structure_to_string(water, "cml")
+
+
 def test_sniff_text_recognizes_what_a_user_pastes() -> None:
     assert sniff_text("3\n\nO 0 0 0\nH 0 0.8 0.6\nH 0 -0.8 0.6\n") == "xyz"
     assert sniff_text("CCO") == "smi"

@@ -45,6 +45,7 @@ import { promptSaveAs, saveStructure } from './fileActions';
 import { isEditableTarget } from '../editor/ToolHost';
 import { ExportImageDialog } from './ExportImageDialog';
 import { HelpDialog, type HelpTopic } from './HelpDialog';
+import { ExportDialog } from './ExportDialog';
 import { ImportDialog } from './ImportDialog';
 import { Menu, type MenuItem } from './Menu';
 import type { StructureStyle } from '../renderer/layers/StructureLayer';
@@ -53,6 +54,7 @@ export function MenuBar({ onError }: { onError: (msg: string) => void }): JSX.El
   const [help, setHelp] = useState<HelpTopic | null>(null);
   const [exportImage, setExportImage] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
+  const [exportOpen, setExportOpen] = useState(false);
   const store = useStructureStore();
   const view = useViewStore();
   const selection = useSelectionStore();
@@ -94,20 +96,6 @@ export function MenuBar({ onError }: { onError: (msg: string) => void }): JSX.El
       store.load(normalizeStructure(await api.io.smiles({ smiles, add_hydrogens: true })));
     } catch (e) {
       onError(`SMILES failed: ${(e as Error).message}`);
-    }
-  };
-
-  const exportText = async (format: string): Promise<void> => {
-    try {
-      const res = await api.io.export({ structure: store.doc, format, overwrite: false });
-      const blob = new Blob([res.text ?? ''], { type: 'text/plain' });
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = `${store.doc.name || 'structure'}.${format === 'extxyz' ? 'xyz' : format}`;
-      a.click();
-      URL.revokeObjectURL(a.href);
-    } catch (e) {
-      onError(`Export failed: ${(e as Error).message}`);
     }
   };
 
@@ -176,10 +164,8 @@ export function MenuBar({ onError }: { onError: (msg: string) => void }): JSX.El
           },
           { label: 'Build from SMILES…', action: () => void buildSmiles() },
           { label: 'Import trajectory…', action: () => trajectoryInput.current?.click() },
+          { label: 'Export…', action: () => setExportOpen(true) },
           { label: 'Export image…', action: () => setExportImage(true) },
-          { label: 'Export XYZ', action: () => void exportText('xyz') },
-          { label: 'Export extended XYZ', action: () => void exportText('extxyz') },
-          { label: 'Export CIF', disabled: !store.doc.cell, action: () => void exportText('cif') },
         ]}
       />
       <Menu
@@ -367,6 +353,7 @@ export function MenuBar({ onError }: { onError: (msg: string) => void }): JSX.El
         ]}
       />
       <ImportDialog open={importOpen} onClose={() => setImportOpen(false)} onError={onError} />
+      <ExportDialog open={exportOpen} onClose={() => setExportOpen(false)} onError={onError} />
       <ExportImageDialog
         open={exportImage}
         onClose={() => setExportImage(false)}
