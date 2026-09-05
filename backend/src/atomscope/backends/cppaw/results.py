@@ -200,6 +200,9 @@ def collect(
                 )
             )
     bundle.extra["homo_band_index"] = prot.homo_band_index
+    bundle.extra["homo_band_index_by_spin"] = {
+        str(k): v for k, v in sorted(prot.homo_band_index_by_spin.items())
+    }
     if prot.eigenvalues:
         bundle.extra["eigenvalues_ev"] = [
             {"kpoint": e.kpoint, "spin": e.spin, "energies": e.energies_ev}

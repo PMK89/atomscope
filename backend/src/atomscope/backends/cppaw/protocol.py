@@ -22,7 +22,7 @@ outputs in ``tests/fixtures/cppaw``):
 
 * ``EIGENVALUES [EV] FOR K-POINT n [AND SPIN s]`` blocks with rows ``offset: e1 e2 ...`` in eV
   (the prefix is the band offset of the row), and the
-  scalar lines ``BAND INDEX OF HOMO``, ``SMALLEST DIRECT GAP``, ``ABSOLUTE GAP``.
+  scalar lines ``BAND INDEX OF HOMO[ FOR SPIN s]``, ``SMALLEST DIRECT GAP``, ``ABSOLUTE GAP``.
 
 Every report block is kept (the protocol may hold several: initial, periodic NWRITE reports,
 final), so trajectories of the reported quantities can be reconstructed.
@@ -44,7 +44,7 @@ _ATOM = re.compile(
 )
 _EIG_HEAD = re.compile(r"^EIGENVALUES \[EV\] FOR K-POINT\s+(\d+)(?:\s+AND SPIN\s+(\d+))?")
 _EIG_ROW = re.compile(r"^\s*(\d+):\s+(.*)$")
-_HOMO = re.compile(r"^BAND INDEX OF HOMO\.*:\s*(\d+)")
+_HOMO = re.compile(r"^BAND INDEX OF HOMO(?: FOR SPIN\s+(\d+))?\.*:\s*(\d+)")
 _GAP = re.compile(r"^(SMALLEST DIRECT GAP|ABSOLUTE GAP)\.*:\s*([-\d.]+)\s*EV")
 _ERROR = re.compile(r"ERROR|STOP IN|ERRORMESSAGE", re.IGNORECASE)
 
@@ -110,6 +110,7 @@ class ProtocolData:
     atom_lists: list[AtomListReport] = field(default_factory=list)
     eigenvalues: list[list[Eigenvalues]] = field(default_factory=list)  # one list per report
     homo_band_index: int | None = None
+    homo_band_index_by_spin: dict[int, int] = field(default_factory=dict)  # spin (1-based) -> band
     direct_gap_ev: float | None = None
     absolute_gap_ev: float | None = None
     error_lines: list[str] = field(default_factory=list)
@@ -218,7 +219,10 @@ def parse_protocol_text(text: str) -> ProtocolData:  # noqa: PLR0912, PLR0915
             continue
         hb = _HOMO.match(stripped)
         if hb:
-            data.homo_band_index = int(hb.group(1))
+            spin = int(hb.group(1) or 1)
+            data.homo_band_index_by_spin[spin] = int(hb.group(2))
+            if spin == 1:
+                data.homo_band_index = int(hb.group(2))
         gm = _GAP.match(stripped)
         if gm:
             if gm.group(1).startswith("SMALLEST"):

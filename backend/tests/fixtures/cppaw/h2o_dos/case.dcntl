@@ -1,0 +1,23 @@
+!DCNTL
+  !GENERIC PREFIX='case_dos_' !END
+  !GRID DE[EV]=0.05 BROADENING[EV]=0.2 !END
+  !WEIGHT ID='total' LEGEND='total' TYPE='TOTAL' !END
+  !WEIGHT ID='O' LEGEND='O'
+    !ATOM NAME='O_1' TYPE='ALL' !END
+  !END
+  !WEIGHT ID='O_s' LEGEND='O s'
+    !ATOM NAME='O_1' TYPE='S' !END
+  !END
+  !WEIGHT ID='O_p' LEGEND='O p'
+    !ATOM NAME='O_1' TYPE='P' !END
+  !END
+  !WEIGHT ID='H' LEGEND='H'
+    !ATOM NAME='H_2' TYPE='ALL' !END
+    !ATOM NAME='H_3' TYPE='ALL' !END
+  !END
+  !WEIGHT ID='H_s' LEGEND='H s'
+    !ATOM NAME='H_2' TYPE='S' !END
+    !ATOM NAME='H_3' TYPE='S' !END
+  !END
+!END
+!EOB

@@ -68,7 +68,9 @@ export const useCalculationStore = create<CalculationState>((set, get) => ({
           return { logs: { ...s.logs, [msg.job_id]: next.slice(-MAX_LOG_LINES) } };
         });
       } else {
-        const calc = get().calculations.find((c) => c.job?.id === msg.job_id);
+        const calc = get().calculations.find(
+          (c) => c.job?.id === msg.job_id || c.analysis_jobs?.some((a) => a.job.id === msg.job_id),
+        );
         if (calc) void api.calculations.get(calc.id).then((c) => get().upsert(c));
       }
     };

@@ -15,6 +15,15 @@ CalculationStatus = Literal[
 ]
 
 
+class AnalysisJob(StrictModel):
+    """A post-processing job (DOS, band structure, orbital export) run in the work directory of
+    a completed calculation; outputs are read back through the backend plugin."""
+
+    kind: str
+    options: dict[str, object] = Field(default_factory=dict)
+    job: JobRecord
+
+
 class Calculation(StrictModel):
     """Persisted as ``calculations/<id>/calculation.json`` inside the project."""
 
@@ -34,5 +43,6 @@ class Calculation(StrictModel):
     results: ResultBundle | None = None
     result_structure_id: str | None = None
     parent_calculation_id: str | None = Field(default=None, description="for reruns/restarts")
+    analysis_jobs: list[AnalysisJob] = Field(default_factory=list)
     notes: str = ""
     provenance: Provenance | None = None
