@@ -1,4 +1,6 @@
 import numpy as np
+import pytest
+from ase import Atoms
 from ase.build import bulk, molecule
 
 from atomscope.ase_bridge import from_atoms, to_atoms
@@ -83,3 +85,24 @@ def test_constraints_map_to_ase_classes() -> None:
     atoms = to_atoms(rich_structure())
     names = sorted(type(c).__name__ for c in atoms.constraints)
     assert names == ["FixAtoms", "FixBondLengths", "FixCartesian"]
+
+
+def test_from_atoms_rejects_non_finite_positions() -> None:
+    """from_atoms validates positions in bulk; a NaN must still be refused."""
+    atoms = molecule("H2O")
+    atoms.positions[1, 0] = np.nan
+    with pytest.raises(ValueError, match="finite"):
+        from_atoms(atoms)
+
+
+def test_from_atoms_rejects_placeholder_element() -> None:
+    atoms = Atoms(numbers=[0, 1], positions=[(0.0, 0.0, 0.0), (0.0, 0.0, 1.0)])
+    with pytest.raises(ValueError, match="unknown element symbol"):
+        from_atoms(atoms)
+
+
+def test_from_atoms_positions_are_tuples() -> None:
+    """Atoms are built without per-model validation, so the tuple shape must be built by hand."""
+    s = from_atoms(molecule("H2O"))
+    assert all(isinstance(a.position, tuple) and len(a.position) == 3 for a in s.atoms)
+    assert s == Structure.model_validate_json(s.model_dump_json())

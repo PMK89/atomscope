@@ -90,6 +90,15 @@ def structure(family: str, size: str) -> Structure:
     return from_atoms(atoms, name=f"{family}-{size}")
 
 
+def bonded_structure(size: str) -> Structure:
+    """The periodic bulk structure with real perceived bonds (~12 per atom, the worst case)."""
+    from atomscope.chem.bonds import perceive_bonds  # noqa: PLC0415 - avoids an import cycle
+
+    s = structure("bulk", size)
+    s.bonds = perceive_bonds(s)
+    return s
+
+
 # ---- structure files ----------------------------------------------------------------------
 
 #: format -> (extension, family) for the file IO benchmarks
@@ -228,6 +237,7 @@ __all__ = [
     "IO_FORMATS",
     "PROTEIN_COPIES",
     "SIZES",
+    "bonded_structure",
     "bulk_atoms",
     "cube_file",
     "extxyz_trajectory",

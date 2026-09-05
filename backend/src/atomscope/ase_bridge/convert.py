@@ -13,6 +13,7 @@ from typing import Any
 
 import numpy as np
 from ase import Atoms
+from ase.data import atomic_numbers
 from ase.constraints import FixAtoms as AseFixAtoms
 from ase.constraints import FixBondLengths as AseFixBondLengths
 from ase.constraints import FixCartesian as AseFixCartesian
@@ -31,10 +32,12 @@ from atomscope.model import (
     Quantity,
     Residue,
     Structure,
+    new_uid,
 )
 from atomscope.units import Unit
 
 INFO_KEY = "atomscope"
+_BOND_FIELDS = tuple(Bond.model_fields)
 INITIAL_CHARGES_PROPERTY = "initial_charges"
 INITIAL_MAGMOMS_PROPERTY = "initial_magmoms"
 
@@ -68,7 +71,9 @@ def to_atoms(structure: Structure) -> Atoms:
         "uids": [a.uid for a in structure.atoms],
         "labels": [a.label for a in structure.atoms],
         "formal_charges": [a.formal_charge for a in structure.atoms],
-        "bonds": [b.model_dump() for b in structure.bonds],
+        # model_dump() per bond costs ~0.8 s for a 1e5-atom crystal; the fields are plain
+        # scalars, so read them directly (still driven by the model's field list).
+        "bonds": [{f: getattr(b, f) for f in _BOND_FIELDS} for b in structure.bonds],
         "residues": [r.model_dump() for r in structure.residues],
         "properties": {k: v.model_dump() for k, v in structure.properties.items()},
         "atomic_scalars": {k: v.model_dump() for k, v in structure.atomic_scalars.items()},
@@ -91,17 +96,29 @@ def from_atoms(atoms: Atoms, *, name: str | None = None) -> Structure:
     symbols = atoms.get_chemical_symbols()
     positions = atoms.get_positions()
 
-    atom_models = []
-    for i in range(n):
-        kwargs: dict[str, Any] = {
-            "element": symbols[i],
-            "position": _vec3(positions[i]),
-            "formal_charge": int(formal[i]),
-            "label": labels[i],
-        }
-        if uids[i]:
-            kwargs["uid"] = uids[i]
-        atom_models.append(Atom(**kwargs))
+    # Atom's own validators run once per atom, which dominates every large file read. The same
+    # two invariants are checked here in bulk (once per array) and the models are then built
+    # without re-validating; Atom itself is untouched, so every other code path still validates.
+    if not np.isfinite(positions).all():
+        msg = "position must be finite"
+        raise ValueError(msg)
+    unknown = sorted({s for s in set(symbols) if s == "X" or s not in atomic_numbers})
+    if unknown:
+        msg = f"unknown element symbol {unknown[0]!r}"
+        raise ValueError(msg)
+    if any(lab is not None and not isinstance(lab, str) for lab in labels):
+        msg = "atom labels must be strings or None"
+        raise ValueError(msg)
+    atom_models = [
+        Atom.model_construct(
+            element=symbols[i],
+            position=(p[0], p[1], p[2]),
+            formal_charge=int(formal[i]),
+            label=labels[i],
+            uid=uids[i] or new_uid(),
+        )
+        for i, p in enumerate(positions.tolist())
+    ]
 
     cell = None
     if atoms.cell.rank > 0 or any(atoms.pbc):

@@ -164,11 +164,13 @@ def _client(name: str) -> tuple[Any, Any]:
 def _api_put(size: str) -> tuple[Callable[[], Any], int, str]:
     client, _ = _client(f"put-{size}")
     s = fixtures.structure("bulk", size)
-    payload = s.model_dump(mode="json")
+    # pre-serialised so the measurement is the server's work, not the test client's json encoder
+    body = s.model_dump_json().encode()
+    headers = {"content-type": "application/json"}
     return (
-        lambda: client.put(f"/api/structures/{s.id}", json=payload),
+        lambda: client.put(f"/api/structures/{s.id}", content=body, headers=headers),
         s.n_atoms,
-        "PUT /api/structures (validate + save to disk)",
+        f"PUT /api/structures (parse + validate + save), {len(body) / 1e6:.1f} MB body",
     )
 
 

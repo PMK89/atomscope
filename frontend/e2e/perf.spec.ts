@@ -20,6 +20,8 @@ import { mkdirSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import type { Renderer } from '../src/renderer/Renderer';
+import { adjacency, fragments, perceiveBondsForAtom } from '../src/model/connectivity';
+import type { StructureDoc } from '../src/model/structure';
 
 /** The dev-only handle installed by `Renderer` (see its `declare global`). */
 type PerfWindow = Window & { __atomscopeRenderer?: Renderer };
@@ -186,6 +188,38 @@ async function orbitFps(
   );
 }
 
+/**
+ * Re-tessellate the atom mesh in place (same class, fewer segments) and orbit again. This does
+ * not change any production code: it measures what a level-of-detail sphere would buy, so the
+ * report can quantify the cost of the fixed 32x24 sphere instead of guessing.
+ */
+async function retessellate(page: Page, width: number, height: number): Promise<number> {
+  return page.evaluate(
+    ([w, h]) => {
+      const r = (window as unknown as PerfWindow).__atomscopeRenderer;
+      if (!r) throw new Error('renderer handle missing');
+      let triangles = 0;
+      r.scene.traverse((o) => {
+        const mesh = o as unknown as {
+          isInstancedMesh?: boolean;
+          count?: number;
+          geometry?: { index?: { count: number } | null; constructor: unknown; dispose(): void };
+        };
+        if (!mesh.isInstancedMesh || !mesh.geometry) return;
+        const Ctor = mesh.geometry.constructor as new (...a: number[]) => object;
+        if (Ctor.name !== 'SphereGeometry') return;
+        const next = new Ctor(1, w!, h!) as typeof mesh.geometry;
+        mesh.geometry.dispose();
+        mesh.geometry = next;
+        triangles = ((next.index?.count ?? 0) / 3) * (mesh.count ?? 0);
+      });
+      r.invalidate();
+      return triangles;
+    },
+    [width, height] as const,
+  );
+}
+
 /** Duration of the `/api/structures/<id>` fetch that the click triggered, in ms. */
 async function fetchMs(page: Page, structureId: string): Promise<number> {
   return page.evaluate((id) => {
@@ -255,8 +289,48 @@ test.describe('@perf renderer', () => {
         unit: 'fps',
         note: `${shape}, ${orbit.frames} frames in ${(orbit.elapsed / 1000).toFixed(1)} s of continuous orbit`,
       });
+      const triangles = await retessellate(page, 8, 6);
+      const lod = await orbitFps(page, ORBIT_MS);
+      record({
+        case: `structure.orbit_fps_lowpoly.${label}`,
+        value: lod.fps,
+        unit: 'fps',
+        note: `same scene with an 8x6 sphere (${triangles.toLocaleString('en-US')} sphere triangles), ${lod.frames} frames in ${(lod.elapsed / 1000).toFixed(1)} s`,
+      });
     }
     expect(errors).toEqual([]);
+  });
+
+  test('model helpers on a large document (node)', () => {
+    const n = 100_000;
+    const doc = {
+      atoms: [] as { element: string; position: [number, number, number] }[],
+      bonds: [] as { a: number; b: number; order: number; aromatic: boolean }[],
+    };
+    const side = Math.ceil(Math.cbrt(n));
+    for (let i = 0; i < n; i++) {
+      const x = i % side;
+      doc.atoms.push({
+        element: 'C',
+        position: [x * 1.6, (Math.floor(i / side) % side) * 1.6, Math.floor(i / (side * side)) * 1.6],
+      });
+      if (x > 0) doc.bonds.push({ a: i - 1, b: i, order: 1, aromatic: false });
+    }
+    const structure = doc as unknown as StructureDoc;
+    for (const [name, fn] of [
+      ['model.perceive_bonds_for_atom', () => perceiveBondsForAtom(structure, 0)],
+      ['model.adjacency', () => adjacency(structure)],
+      ['model.fragments', () => fragments(structure)],
+    ] as const) {
+      const t0 = performance.now();
+      fn();
+      record({
+        case: `${name}.1e5`,
+        value: performance.now() - t0,
+        unit: 'ms',
+        note: `${n.toLocaleString('en-US')} atoms, ${doc.bonds.length.toLocaleString('en-US')} bonds`,
+      });
+    }
   });
 
   test('isosurface from a 128^3 grid', async ({ page, request }) => {

@@ -162,6 +162,35 @@ def _load_structure(size: str) -> tuple[Callable[[], Any], int, str]:
     return (lambda: store.load_structure(s.id), s.n_atoms, "ProjectStore.load_structure (disk)")
 
 
+def _validate_bonded(size: str) -> tuple[Callable[[], Any], int, str]:
+    from atomscope.model import Structure  # noqa: PLC0415
+
+    s = fixtures.bonded_structure(size)
+    payload = s.model_dump(mode="json")
+    return (
+        lambda: Structure.model_validate(payload),
+        s.n_atoms,
+        f"structure with {len(s.bonds):,} bonds (Structure._consistent runs over all of them)",
+    )
+
+
+def _assign_bonds(size: str) -> tuple[Callable[[], Any], int, str]:
+    s = fixtures.bonded_structure(size)
+    bonds = list(s.bonds)
+
+    def assign() -> None:
+        s.bonds = bonds
+
+    return (assign, s.n_atoms, f"validate_assignment re-check of {len(bonds):,} bonds")
+
+
+def _to_atoms_bonded(size: str) -> tuple[Callable[[], Any], int, str]:
+    from atomscope.ase_bridge.convert import to_atoms  # noqa: PLC0415
+
+    s = fixtures.bonded_structure(size)
+    return (lambda: to_atoms(s), s.n_atoms, f"Structure -> ase.Atoms with {len(s.bonds):,} bonds")
+
+
 def _import_baseline() -> tuple[Callable[[], Any], int, str]:
     """Baseline: the RSS and time cost of importing the backend at all."""
     import atomscope.api.app  # noqa: PLC0415, F401
@@ -239,6 +268,9 @@ def register_all() -> None:
             quick=quick,
         )
         for name, fn in (
+            ("model.validate_bonded", _validate_bonded),
+            ("model.assign_bonds", _assign_bonds),
+            ("bridge.to_atoms_bonded", _to_atoms_bonded),
             ("model.validate_dict", _model_validate),
             ("model.model_dump", _model_dump),
             ("model.dump_json", _model_dump_json),

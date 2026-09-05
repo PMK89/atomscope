@@ -25,6 +25,9 @@ from atomscope.model import Atom, Provenance, Structure, VolumetricGrid, new_uid
 from atomscope.model.grid import GridKind
 from atomscope.units import Unit
 
+#: values per data line, as written by every cube producer
+VALUES_PER_LINE = 6
+
 
 class CubeData:
     """Result of reading a cube: grid metadata, values (C-order, shape) and atoms."""
@@ -102,6 +105,13 @@ def write_cube(path: Path, grid: VolumetricGrid, values: np.ndarray, structure: 
             p = np.array(a.position) / Bohr
             z = a.atomic_number
             fh.write(f"{z:5d} {float(z):12.6f} {p[0]:12.6f} {p[1]:12.6f} {p[2]:12.6f}\n")
-        flat = np.asarray(values, dtype=float).reshape(-1)
-        for i in range(0, flat.size, 6):
-            fh.write(" ".join(f"{x:13.5E}" for x in flat[i : i + 6]) + "\n")
+        # One %-format call per line instead of six f-strings plus a join: a 256^3 grid is
+        # 2.8 million lines and the per-value formatting dominated the write (see
+        # docs/performance.md). The bytes produced are identical.
+        flat = np.asarray(values, dtype=float).reshape(-1).tolist()
+        full = len(flat) - len(flat) % VALUES_PER_LINE
+        row = " ".join(["%13.5E"] * VALUES_PER_LINE) + "\n"
+        fh.writelines(row % tuple(flat[i : i + VALUES_PER_LINE]) for i in range(0, full, VALUES_PER_LINE))
+        if full != len(flat):
+            tail = flat[full:]
+            fh.write(" ".join(["%13.5E"] * len(tail)) % tuple(tail) + "\n")

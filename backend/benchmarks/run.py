@@ -120,7 +120,24 @@ def _fmt_rate(m: Measurement) -> str:
     return f"{rate:.0f} {m.items_label}/s"
 
 
-def _markdown(results: list[Measurement], baseline: dict[str, float] | None) -> str:
+def _before_column(before: Measurement | None, m: Measurement) -> str:
+    """The 'before' and 'speed-up' cells of a comparison table."""
+    if before is None:
+        return " - | - |"
+    if before.error:
+        # a baseline that failed outright is the headline: show why
+        return f" {before.error} | now {_fmt_time(m.wall_s)} |"
+    if math.isnan(before.wall_s) or m.wall_s <= 0:
+        return " - | - |"
+    return f" {_fmt_time(before.wall_s)} | {before.wall_s / m.wall_s:.1f}x |"
+
+
+def _load_results(path: Path) -> dict[str, Measurement]:
+    raw: list[dict[str, Any]] = json.loads(path.read_text(encoding="utf-8"))
+    return {r["name"]: Measurement(**r) for r in raw}
+
+
+def _markdown(results: list[Measurement], baseline: dict[str, Measurement] | None) -> str:
     lines: list[str] = []
     groups: dict[str, list[Measurement]] = {}
     for m in results:
@@ -136,6 +153,8 @@ def _markdown(results: list[Measurement], baseline: dict[str, float] | None) -> 
         for m in entries:
             if m.error:
                 row = f"| `{m.name}` | - | **{m.error}** | - | - | - |"
+                if baseline is not None:
+                    row = row[:-1] + " - | - |"
                 lines.append(row)
                 continue
             row = (
@@ -143,11 +162,7 @@ def _markdown(results: list[Measurement], baseline: dict[str, float] | None) -> 
                 f"| {m.peak_rss_mb:.0f} MB | {m.note} |"
             )
             if baseline is not None:
-                before = baseline.get(m.name)
-                if before is None or math.isnan(before) or m.wall_s <= 0:
-                    row = row[:-1] + " - | - |"
-                else:
-                    row = row[:-1] + f" {_fmt_time(before)} | {before / m.wall_s:.1f}x |"
+                row = row[:-1] + _before_column(baseline.get(m.name), m)
             lines.append(row)
         lines.append("")
     return "\n".join(lines)
@@ -170,6 +185,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--compare", default=None, help="results JSON to compare against")
     parser.add_argument("--list", action="store_true", help="print case names and exit")
     parser.add_argument("--no-prepare", action="store_true", help="skip fixture generation")
+    parser.add_argument("--report", default=None, help="re-render Markdown from a results JSON")
     parser.add_argument("--child", action="store_true", help=argparse.SUPPRESS)
     parser.add_argument("--case", default=None, help=argparse.SUPPRESS)
     args = parser.parse_args(argv)
@@ -190,10 +206,12 @@ def main(argv: list[str] | None = None) -> int:
     out_dir = Path(args.out)
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    baseline: dict[str, float] | None = None
+    baseline: dict[str, Measurement] | None = None
     if args.compare:
-        raw: list[dict[str, Any]] = json.loads(Path(args.compare).read_text(encoding="utf-8"))
-        baseline = {r["name"]: r["wall_s"] for r in raw}
+        baseline = _load_results(Path(args.compare))
+
+    if args.report:
+        return _write(list(_load_results(Path(args.report)).values()), out_dir, tag, baseline)
 
     if not args.no_prepare:
         _prepare(full=bool(args.full))
@@ -205,6 +223,16 @@ def main(argv: list[str] | None = None) -> int:
         results.append(m)
         print(m.error or f"{_fmt_time(m.wall_s)}  {m.peak_rss_mb:.0f} MB")  # noqa: T201
 
+    return _write(results, out_dir, tag, baseline)
+
+
+def _write(
+    results: list[Measurement],
+    out_dir: Path,
+    tag: str,
+    baseline: dict[str, Measurement] | None,
+) -> int:
+    """Write results-<tag>.json and summary-<tag>.md."""
     (out_dir / f"results-{tag}.json").write_text(
         json.dumps([asdict(m) for m in results], indent=2) + "\n", encoding="utf-8"
     )

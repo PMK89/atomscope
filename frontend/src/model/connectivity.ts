@@ -100,9 +100,16 @@ export function perceiveBondsForAtom(
   const me = doc.atoms[atom];
   if (!me) return [];
   const rMe = elementBySymbol(me.element).covalentRadius;
+  // Collect the existing partners once. Calling findBond() inside the loop made this
+  // O(atoms x bonds): 58 s for one atom placed in a 100k-atom document (docs/performance.md).
+  const bonded = new Set<number>();
+  for (const b of doc.bonds) {
+    if (b.a === atom) bonded.add(b.b);
+    else if (b.b === atom) bonded.add(b.a);
+  }
   const out: Bond[] = [];
   doc.atoms.forEach((other, j) => {
-    if (j === atom || findBond(doc, atom, j) >= 0) return;
+    if (j === atom || bonded.has(j)) return;
     const cutoff = tolerance * (rMe + elementBySymbol(other.element).covalentRadius);
     if (distance(me.position, other.position) < cutoff) {
       out.push({ a: Math.min(atom, j), b: Math.max(atom, j), order: 1, aromatic: false });
