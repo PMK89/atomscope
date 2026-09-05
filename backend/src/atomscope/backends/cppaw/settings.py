@@ -38,6 +38,7 @@ class CppawSettings:
     mpirun: str | None = None
     library_path_candidates: list[str] = field(default_factory=list)
     runtime_verified: bool = False
+    setups_file: Path | None = None
 
     @classmethod
     def from_env(cls) -> CppawSettings:
@@ -52,8 +53,10 @@ class CppawSettings:
         candidates = [c for c in candidates if "13." in c] + [
             c for c in candidates if "13." not in c
         ]
+        setups_env = os.environ.get("ATOMSCOPE_CPPAW_SETUPS_FILE")
         return cls(
             paw_dir=paw_dir,
+            setups_file=Path(setups_env).expanduser() if setups_env else None,
             library_path=os.environ.get("ATOMSCOPE_CPPAW_LIBRARY_PATH"),
             mpirun=shutil.which("mpirun"),
             library_path_candidates=candidates,

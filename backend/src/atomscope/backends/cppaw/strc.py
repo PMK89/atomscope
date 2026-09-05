@@ -19,6 +19,7 @@ from ase.data import atomic_numbers
 from ase.units import Bohr
 
 from atomscope.backends.cppaw.deck import Block, format_deck, parse_deck
+from atomscope.backends.cppaw.setups import SetupsLibrary
 from atomscope.model import Cell, FixAtoms, FixBondLength, FixCartesian, Structure
 
 Values = dict[str, object]
@@ -71,6 +72,7 @@ class StrcOptions:
     kpoint_r: float = 12.0
     kpoint_div: tuple[int, int, int] = (2, 2, 2)
     occupation_states: str = ""
+    library: SetupsLibrary | None = None
 
     @classmethod
     def from_values(cls, v: Values) -> StrcOptions:
@@ -189,15 +191,24 @@ def build_strc(structure: Structure, opts: StrcOptions) -> Block:
         if sym in seen:
             continue
         seen.append(sym)
-        sp = Block("SPECIES")
-        sp.set("NAME", species_name(sym))
-        # CP-PAW splits the ID at the FIRST underscore: 'O_.75_6.0' -> element O, type .75_6.0
-        sp.set("ID", setup_id(sym, opts.setup_type))
-        if sym == "H" and opts.hydrogen_mass > 0:
-            sp.set("M", opts.hydrogen_mass)
-        sp.set("NPRO", list(overrides.get(sym, default_npro(sym))))
-        sp.set("LRHOX", opts.lrhox)
-        sp.set("RAD/RCOV", opts.rad_rcov)
+        library_block = opts.library.block_for(species_name(sym)) if opts.library else None
+        if library_block is not None:
+            # inline !SPECIES (with !AUGMENT) from the external library, as paw_resolve does
+            sp = library_block
+            if sym == "H" and opts.hydrogen_mass > 0:
+                sp.set("M", opts.hydrogen_mass)
+            if sym in overrides:
+                sp.set("NPRO", list(overrides[sym]))
+        else:
+            sp = Block("SPECIES")
+            sp.set("NAME", species_name(sym))
+            # CP-PAW splits the ID at the FIRST underscore: 'O_.75_6.0' -> element O, type .75_6.0
+            sp.set("ID", setup_id(sym, opts.setup_type))
+            if sym == "H" and opts.hydrogen_mass > 0:
+                sp.set("M", opts.hydrogen_mass)
+            sp.set("NPRO", list(overrides.get(sym, default_npro(sym))))
+            sp.set("LRHOX", opts.lrhox)
+            sp.set("RAD/RCOV", opts.rad_rcov)
         strc.children.append(sp)
     if not seen:  # CP-PAW insists on at least one species
         sp = Block("SPECIES")

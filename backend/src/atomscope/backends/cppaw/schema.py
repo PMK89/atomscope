@@ -476,6 +476,23 @@ SCHEMA = ParameterSchema(
             advanced=True,
             parameters=[
                 ParameterSpec(
+                    key="setup_source",
+                    label="Setup source",
+                    type="enum",
+                    default="internal",
+                    choices=[
+                        Choice(
+                            value="internal", label="Internal setup families (ID='<EL>_<type>')"
+                        ),
+                        Choice(
+                            value="library",
+                            label="External setups library (setups.rslv)",
+                            help="File configured by ATOMSCOPE_CPPAW_SETUPS_FILE; species blocks with !AUGMENT are inlined",
+                        ),
+                    ],
+                    backend_path="STRUCTURE/SPECIES",
+                ),
+                ParameterSpec(
                     key="setup_type",
                     label="Setup family",
                     type="enum",

@@ -22,6 +22,7 @@ from atomscope.backends.cppaw import settings as cppaw_settings
 from atomscope.backends.cppaw.cntl import analysis_files, cntl_text, force_stage_values
 from atomscope.backends.cppaw.results import collect
 from atomscope.backends.cppaw.schema import PRESETS, SCHEMA
+from atomscope.backends.cppaw.setups import SetupsLibrary
 from atomscope.backends.cppaw.strc import (
     StrcOptions,
     molecule_box,
@@ -81,6 +82,13 @@ class CppawPlugin:
             )
         return report
 
+    def _setups_library(self) -> SetupsLibrary:
+        path = self.settings.setups_file
+        if path is None or not path.is_file():
+            msg = "setups library requested but ATOMSCOPE_CPPAW_SETUPS_FILE is not set or missing"
+            raise ValueError(msg)
+        return SetupsLibrary.from_file(path)
+
     def restart_values(self, values: Values) -> Values:
         """Values for a calculation continuing from a copied restart file."""
         out = dict(values)
@@ -130,6 +138,21 @@ class CppawPlugin:
                     severity="warning",
                 )
             )
+        if merged.get("setup_source") == "library":
+            try:
+                lib = self._setups_library()
+            except ValueError as exc:
+                report.issues.append(ValidationIssue(key="setup_source", message=str(exc)))
+            else:
+                missing = sorted(set(structure.symbols()) - set(lib.elements()))
+                if missing:
+                    report.issues.append(
+                        ValidationIssue(
+                            key="setup_source",
+                            message=f"library has no setups for {missing}; internal setups will be used for them",
+                            severity="warning",
+                        )
+                    )
         states_text = str(merged.get("occupation_states", "") or "")
         if states_text.strip():
             try:
@@ -160,6 +183,8 @@ class CppawPlugin:
     ) -> GeneratedInputs:
         merged = merge_values(SCHEMA, values)
         opts = StrcOptions.from_values(merged)
+        if merged.get("setup_source") == "library":
+            opts.library = self._setups_library()
         strc = strc_text(structure, opts)
         task = merged.get("task")
         files = [GeneratedFile(name=f"{root_name}.strc", text=strc, role="structure")]
