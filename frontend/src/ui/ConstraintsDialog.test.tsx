@@ -72,16 +72,33 @@ test('a row is selected by clicking it and deleted, and Delete all clears the ta
   expect(screen.getByText('No constraints yet.')).toBeTruthy();
 });
 
-test('the value of an existing constraint can be typed into its row', () => {
+test('the value of an existing constraint is typed into its row and committed on Enter', () => {
+  const doc = useStructureStore.getState().doc;
   useStructureStore.getState().commit('fix', {
-    ...useStructureStore.getState().doc,
-    constraints: [{ kind: 'fix_angle', a: 1, b: 0, c: 2, value: null }],
+    ...doc,
+    atoms: [...doc.atoms, makeAtom('H', [0, 0, 1])],
+    constraints: [{ kind: 'fix_dihedral', a: 1, b: 0, c: 2, d: 3, value: null }],
   } as never);
   render(<ConstraintsDialog />);
-  expect(screen.getByText('90.000 °')).toBeTruthy();
+  const field = screen.getByLabelText('value of constraint 1');
 
-  fireEvent.change(screen.getByLabelText('value of constraint 1'), { target: { value: '104.5' } });
-  expect(constraints()).toEqual([{ kind: 'fix_angle', a: 1, b: 0, c: 2, value: 104.5 }]);
+  // a torsion is negative and fractional: the intermediate "-" and "-60." are not numbers yet,
+  // and committing per keystroke would eat them (and fill the undo stack)
+  for (const text of ['-', '-6', '-60', '-60.', '-60.5']) {
+    fireEvent.change(field, { target: { value: text } });
+    expect((field as HTMLInputElement).value).toBe(text);
+  }
+  expect(constraints()[0]).toMatchObject({ value: null });
+
+  fireEvent.keyDown(field, { key: 'Enter' });
+  expect(constraints()).toEqual([{ kind: 'fix_dihedral', a: 1, b: 0, c: 2, d: 3, value: -60.5 }]);
+  expect(useStructureStore.getState().undoLabel()).toBe('Constraint value');
+
+  // nonsense is reported instead of being committed
+  fireEvent.change(field, { target: { value: 'x' } });
+  fireEvent.blur(field);
+  expect(screen.getByText(/x is not a number/)).toBeTruthy();
+  expect(constraints()[0]).toMatchObject({ value: -60.5 });
 });
 
 test('Escape closes the dialog', () => {

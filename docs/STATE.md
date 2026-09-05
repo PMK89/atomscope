@@ -2,7 +2,7 @@
 
 Branch: main; this file is updated in the commit that checkpoints the work, so `git log -1 -- docs/STATE.md` is the last checkpoint. Phases 0-1 done; Phase 2 (editor tools), 3 (volumetric, trajectories, vectors), 4-5 (CP-PAW setup/execution/forces), 6 (CP-PAW analysis: DOS, bands, orbitals), crystallography, molecular mechanics and wavefunction surfaces are merged and working. Parity matrix: 162 IMPLEMENTED, 37 PARTIAL, 112 NOT STARTED, 1 BLOCKED of 312 rows.
 
-Tests: `pytest -q -m "not cppaw"` -> 374 passed, 1 skipped; `pytest -q -m cppaw` -> 7 passed (~90 s, needs the local CP-PAW install); `pnpm vitest run` -> 330 passed; `make test-e2e` -> 17 passed (against private servers, see below). `ruff check`, `mypy` and `tsc --noEmit` are clean. No known failing tests.
+Tests: `pytest -q -m "not cppaw"` -> 374 passed, 1 skipped; `pytest -q -m cppaw` -> 7 passed (~90 s, needs the local CP-PAW install); `pnpm vitest run` -> 330 passed; `pnpm exec playwright test` -> 17 passed (against private servers, see below; `make test-e2e` points at the user's 5173, which is stale). `ruff check`, `mypy` and `tsc --noEmit` are clean. No known failing tests.
 
 ## Resume commands
 
@@ -51,9 +51,11 @@ make dev-backend   # 127.0.0.1:8765 ; make dev-frontend -> 127.0.0.1:5173
   routes existed when they were started. E2E tests that need a new route want private servers:
   `python -m atomscope.api.server --host 127.0.0.1 --port 8791`, `ATOMSCOPE_API_URL=http://127.0.0.1:8791 pnpm dev --host 127.0.0.1 --port 5191`,
   then `PLAYWRIGHT_BASE_URL=http://127.0.0.1:5191 pnpm exec playwright test`.
+  Playwright needs `PLAYWRIGHT_BROWSERS_PATH=$(pwd)/.playwright-browsers` too (the Makefile exports
+  it; a bare `pnpm exec playwright test` looks in ~/.cache and finds nothing).
   Stop them again with `kill $(lsof -ti tcp:8791) $(lsof -ti tcp:5191)` -- never `pkill -f "port 8791"`,
-  which matches the invoking shell's own command line and kills it. Both were stopped at this
-  checkpoint; nothing of ours is listening.
+  which matches the invoking shell's own command line and kills it. Both were stopped at the end of
+  this checkpoint; nothing of ours is listening.
 
 ## Next actions
 1. Remaining renderer parity gaps: ring and polygon engines (AV-VIS-021/022, both LOW) and QTAIM.

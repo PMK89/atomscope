@@ -2,7 +2,7 @@
  * Avogadro's Constraints dialog: the geometric constraints the force field has to respect,
  * added from the current selection and held with the document (File ▸ Save keeps them).
  */
-import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   CONSTRAINT_KINDS,
   constraintRows,
@@ -19,6 +19,7 @@ import {
 import { useToolStore } from '../editor/toolStore';
 import { useSelectionStore } from '../state/selectionStore';
 import { useStructureStore } from '../state/structureStore';
+import { dialogKeyHandler } from './dialogKeys';
 
 const FOCUSABLE = 'input, select, button:not([disabled])';
 
@@ -38,6 +39,8 @@ export function ConstraintsDialog(): JSX.Element | null {
   const [atomText, setAtomText] = useState<string[]>(['']);
   const [valueText, setValueText] = useState('');
   const [picked, setPicked] = useState<ReadonlySet<number>>(new Set());
+  // what is being typed into a row's value field, until Enter or blur commits it
+  const [drafts, setDrafts] = useState<Record<string, string>>({});
   const [error, setError] = useState<string | null>(null);
   const dialog = useRef<HTMLDivElement>(null);
   const file = useRef<HTMLInputElement>(null);
@@ -95,6 +98,28 @@ export function ConstraintsDialog(): JSX.Element | null {
     setValueText('');
   };
 
+  const draft = (row: ConstraintRow, text: string): void =>
+    setDrafts((d) => ({ ...d, [rowKey(row)]: text }));
+
+  /**
+   * Commit what was typed into a row. Committing on every keystroke instead would make "-60"
+   * and "1.54" impossible to type: the intermediate "-" and "1." are not numbers, and each
+   * keystroke that did parse would be its own undo step.
+   */
+  const commitDraft = (row: ConstraintRow): void => {
+    const text = drafts[rowKey(row)];
+    if (text === undefined) return;
+    const raw = text.trim();
+    const value = raw === '' ? null : Number(raw);
+    setDrafts((d) => Object.fromEntries(Object.entries(d).filter(([key]) => key !== rowKey(row))));
+    if (value !== null && !Number.isFinite(value)) {
+      setError(`${raw} is not a number`);
+      return;
+    }
+    setError(null);
+    if (value !== row.value) commit('Constraint value', withRowValue(doc, row, value));
+  };
+
   const toggle = (i: number): void =>
     setPicked((p) => {
       const next = new Set(p);
@@ -123,26 +148,7 @@ export function ConstraintsDialog(): JSX.Element | null {
     }
   };
 
-  /** Keep Tab inside the dialog and let Escape close it. */
-  const onKeyDown = (e: KeyboardEvent<HTMLDivElement>): void => {
-    if (e.key === 'Escape') {
-      e.stopPropagation();
-      setOpen(false);
-      return;
-    }
-    if (e.key !== 'Tab') return;
-    const items = [...(dialog.current?.querySelectorAll<HTMLElement>(FOCUSABLE) ?? [])];
-    const first = items[0];
-    const last = items.at(-1);
-    if (!first || !last) return;
-    if (e.shiftKey && document.activeElement === first) {
-      e.preventDefault();
-      last.focus();
-    } else if (!e.shiftKey && document.activeElement === last) {
-      e.preventDefault();
-      first.focus();
-    }
-  };
+  const onKeyDown = dialogKeyHandler(dialog, () => setOpen(false));
 
   return (
     <div className="dialog-backdrop" role="presentation" onKeyDown={onKeyDown}>
@@ -186,15 +192,14 @@ export function ConstraintsDialog(): JSX.Element | null {
                       ) : (
                         <input
                           aria-label={`value of constraint ${i + 1}`}
-                          value={row.value === null ? '' : String(row.value)}
+                          value={
+                            drafts[rowKey(row)] ?? (row.value === null ? '' : String(row.value))
+                          }
                           placeholder="as built"
                           onClick={(e) => e.stopPropagation()}
-                          onChange={(e) => {
-                            const raw = e.target.value.trim();
-                            const v = raw === '' ? null : Number(raw);
-                            if (v !== null && !Number.isFinite(v)) return;
-                            commit('Constraint value', withRowValue(doc, row, v));
-                          }}
+                          onChange={(e) => draft(row, e.target.value)}
+                          onBlur={() => commitDraft(row)}
+                          onKeyDown={(e) => e.key === 'Enter' && commitDraft(row)}
                         />
                       )}
                     </td>
@@ -273,7 +278,11 @@ export function ConstraintsDialog(): JSX.Element | null {
             type="file"
             accept="application/json,.json"
             hidden
-            onChange={(e) => void load(e.target.files?.[0])}
+            onChange={(e) => {
+              void load(e.target.files?.[0]);
+              // let the same file be chosen again after it was edited on disk
+              e.target.value = '';
+            }}
           />
           <button className="primary" onClick={() => setOpen(false)}>
             Close

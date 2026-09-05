@@ -4,7 +4,8 @@
  * The guides are Markdown files in the repository rather than pages in the app; this dialog names
  * them so that a user who opened Atomscope without reading the README can find them.
  */
-import { useEffect, useRef, type KeyboardEvent } from 'react';
+import { useEffect, useRef } from 'react';
+import { dialogKeyHandler } from './dialogKeys';
 
 export type HelpTopic = 'user-guide' | 'tutorials' | 'shortcuts' | 'about';
 
@@ -56,12 +57,7 @@ export function HelpDialog({
   }, [topic]);
   if (!topic) return null;
 
-  const onKeyDown = (e: KeyboardEvent<HTMLDivElement>): void => {
-    if (e.key === 'Escape') {
-      e.stopPropagation();
-      onClose();
-    }
-  };
+  const onKeyDown = dialogKeyHandler(dialog, onClose);
 
   const guide = topic === 'user-guide' || topic === 'tutorials' ? GUIDES[topic] : null;
   const title = guide

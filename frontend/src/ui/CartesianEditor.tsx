@@ -1,9 +1,8 @@
-import { useEffect, useRef, useState, type KeyboardEvent } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { applyCartesian, formatCartesian, parseCartesian } from '../editor/cartesian';
 import { useToolStore } from '../editor/toolStore';
+import { dialogKeyHandler } from './dialogKeys';
 import { useStructureStore } from '../state/structureStore';
-
-const FOCUSABLE = 'textarea, button:not([disabled])';
 
 /** Modal text editor for atom coordinates ("El x y z" per line). */
 export function CartesianEditor(): JSX.Element | null {
@@ -38,26 +37,7 @@ export function CartesianEditor(): JSX.Element | null {
       setError((e as Error).message);
     }
   };
-  /** Keep Tab inside the dialog and let Escape close it. */
-  const onKeyDown = (e: KeyboardEvent<HTMLDivElement>): void => {
-    if (e.key === 'Escape') {
-      e.stopPropagation();
-      setOpen(false);
-      return;
-    }
-    if (e.key !== 'Tab') return;
-    const items = [...(dialog.current?.querySelectorAll<HTMLElement>(FOCUSABLE) ?? [])];
-    const first = items[0];
-    const last = items.at(-1);
-    if (!first || !last) return;
-    if (e.shiftKey && document.activeElement === first) {
-      e.preventDefault();
-      last.focus();
-    } else if (!e.shiftKey && document.activeElement === last) {
-      e.preventDefault();
-      first.focus();
-    }
-  };
+  const onKeyDown = dialogKeyHandler(dialog, () => setOpen(false));
   return (
     <div className="dialog-backdrop" role="presentation" onKeyDown={onKeyDown}>
       <div

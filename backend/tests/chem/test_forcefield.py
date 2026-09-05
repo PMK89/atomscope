@@ -176,3 +176,6 @@ def test_structure_constraints_cover_every_kind() -> None:
     assert got[0].value == pytest.approx(angle_deg(pos[0], pos[1], pos[2]))
     assert got[1].value == pytest.approx(60.0)
     assert [c.atoms for c in got[2:]] == [[3], [4]]
+    # and Open Babel sets the force field up with them: an ignored atom is not a rejected one
+    assert np.isfinite(ffm.single_point(s, "MMFF94").energy.value)
+    assert ffm.optimize(s, "MMFF94", max_steps=50).converged
