@@ -17,6 +17,8 @@ import type {
 import { useToolStore } from './toolStore';
 
 const CAMERA_TOOLS: ReadonlySet<ToolId> = new Set(['navigate', 'auto-rotate']);
+/** Pointer travel below this (CSS pixels) does not trigger another hover pick. */
+const HOVER_MIN_MOVE_PX = 2;
 
 export class ToolHost {
   readonly ctx: ToolContext;
@@ -25,6 +27,10 @@ export class ToolHost {
   private dragging = false;
   /** True between an aborted gesture and its pointer-up: further events of that drag are dropped. */
   private gestureAborted = false;
+  /** Throttling state of hover picking: pending pointer position, frame handle, last pick. */
+  private pendingHover: { x: number; y: number } | null = null;
+  private hoverFrame: number | null = null;
+  private lastHoverPick: { x: number; y: number } | null = null;
 
   constructor(
     renderer: ToolRenderer,
@@ -102,14 +108,31 @@ export class ToolHost {
 
   pointerMove(e: PointerLike): void {
     if (this.gestureAborted) return;
-    if (!this.dragging && e.buttons === 0) {
-      const hit = this.ctx.renderer.pick(e.clientX, e.clientY);
+    if (!this.dragging && e.buttons === 0) this.scheduleHover(e.clientX, e.clientY);
+    this.active.onPointerMove?.(e, this.ctx);
+  }
+
+  /**
+   * Hover picking raycasts every atom and bond instance, so it runs at most once per animation
+   * frame and only after the pointer has actually travelled a couple of pixels.
+   */
+  private scheduleHover(x: number, y: number): void {
+    const last = this.lastHoverPick;
+    if (last && Math.hypot(x - last.x, y - last.y) < HOVER_MIN_MOVE_PX) return;
+    this.pendingHover = { x, y };
+    if (this.hoverFrame !== null) return;
+    this.hoverFrame = requestAnimationFrame(() => {
+      this.hoverFrame = null;
+      const p = this.pendingHover;
+      this.pendingHover = null;
+      if (!p || this.dragging) return;
+      this.lastHoverPick = p;
+      const hit = this.ctx.renderer.pick(p.x, p.y);
       const idx = hit?.kind === 'atom' ? hit.index : null;
       if (idx !== useSelectionStore.getState().hoveredAtom) {
         useSelectionStore.getState().setHovered(idx);
       }
-    }
-    this.active.onPointerMove?.(e, this.ctx);
+    });
   }
 
   pointerUp(e: PointerLike): void {
@@ -178,6 +201,9 @@ export class ToolHost {
   }
 
   dispose(): void {
+    if (this.hoverFrame !== null) cancelAnimationFrame(this.hoverFrame);
+    this.hoverFrame = null;
+    this.pendingHover = null;
     this.active.deactivate?.(this.ctx);
     for (const u of this.unsubscribe) u();
     this.unsubscribe.length = 0;

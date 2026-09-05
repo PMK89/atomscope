@@ -45,7 +45,9 @@ class FakeCamera implements ToolCamera {
 class FakeRenderer implements ToolRenderer {
   controller = new FakeCamera();
   fitted = 0;
+  picks = 0;
   pick(cx: number, cy: number): PickResult | null {
+    this.picks++;
     const doc = useStructureStore.getState().doc;
     for (let i = 0; i < doc.atoms.length; i++) {
       const p = this.project(new Vector3(...doc.atoms[i]!.position));
@@ -133,14 +135,28 @@ function loadSkeleton(): void {
   });
 }
 
+/** Hover picking is throttled to animation frames; tests run them by hand. */
+let frames: (() => void)[] = [];
+const flushFrames = (): void => {
+  const due = frames;
+  frames = [];
+  for (const cb of due) cb();
+};
+
 let renderer: FakeRenderer;
 let host: ToolHost;
 beforeEach(() => {
+  frames = [];
+  vi.stubGlobal('requestAnimationFrame', (cb: () => void) => frames.push(cb));
+  vi.stubGlobal('cancelAnimationFrame', () => undefined);
   loadSkeleton();
   renderer = new FakeRenderer();
   host = new ToolHost(renderer, createTools());
 });
-afterEach(() => host.dispose());
+afterEach(() => {
+  host.dispose();
+  vi.unstubAllGlobals();
+});
 
 const S = () => useStructureStore.getState();
 const sel = () => [...useSelectionStore.getState().atoms].sort();
@@ -158,11 +174,34 @@ describe('host', () => {
       host.keyDown({ key: 'z', shiftKey: false, ctrlKey: true, altKey: false, metaKey: false }),
     ).toBe(false);
   });
-  test('hover updates the selection store for every tool', () => {
+  test('hover updates the selection store for every tool, once per frame', () => {
     host.pointerMove(ev(...at(1.5, 0)));
+    // the pick waits for the next animation frame
+    expect(useSelectionStore.getState().hoveredAtom).toBeNull();
+    flushFrames();
     expect(useSelectionStore.getState().hoveredAtom).toBe(1);
     host.pointerMove(ev(10, 10));
+    flushFrames();
     expect(useSelectionStore.getState().hoveredAtom).toBeNull();
+  });
+  test('hover picks at most once per frame and ignores sub-pixel movement', () => {
+    const picks = () => renderer.picks;
+    host.pointerMove(ev(...at(1.5, 0)));
+    host.pointerMove(ev(300, 300));
+    host.pointerMove(ev(...at(0, 0)));
+    expect(picks()).toBe(0);
+    flushFrames();
+    // only the newest position was picked
+    expect(picks()).toBe(1);
+    expect(useSelectionStore.getState().hoveredAtom).toBe(0);
+    // a move of one pixel is not worth another raycast
+    const [x, y] = at(0, 0);
+    host.pointerMove(ev(x + 1, y));
+    flushFrames();
+    expect(picks()).toBe(1);
+    host.pointerMove(ev(x + 40, y));
+    flushFrames();
+    expect(picks()).toBe(2);
   });
   test('switching tools mid-drag cancels the preview', () => {
     useToolStore.getState().setActive('manipulate');
