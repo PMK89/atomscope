@@ -7,7 +7,7 @@ export npm_config_cache := $(ROOT)/.npm-cache
 export PLAYWRIGHT_BROWSERS_PATH := $(ROOT)/.playwright-browsers
 PY := $(ROOT)/.venv/bin/python
 
-.PHONY: test-e2e setup backend-sync frontend-install test test-backend test-frontend lint typecheck dev-backend dev-frontend contracts
+.PHONY: bench bench-full test-perf test-e2e setup backend-sync frontend-install test test-backend test-frontend lint typecheck dev-backend dev-frontend contracts
 
 setup: backend-sync frontend-install
 
@@ -46,3 +46,14 @@ contracts:
 
 test-e2e:
 	cd frontend && pnpm exec playwright test
+
+# Performance harness (see docs/performance.md). Results go to .scratch/bench/.
+bench:
+	cd backend && PYTHONPATH=$(ROOT)/backend/src $(PY) -m benchmarks.run --quick
+
+bench-full:
+	cd backend && PYTHONPATH=$(ROOT)/backend/src $(PY) -m benchmarks.run --full
+
+# Renderer benchmark; needs dev-backend and dev-frontend running.
+test-perf:
+	cd frontend && ATOMSCOPE_PERF=1 pnpm exec playwright test

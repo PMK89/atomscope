@@ -75,5 +75,5 @@ module = ["atomscope.analysis.*", "atomscope.ase_bridge.*", "atomscope.io.*", "a
 disallow_untyped_calls = false
 
 [[tool.mypy.overrides]]
-module = ["openbabel.*", "rdkit.*"]
+module = ["openbabel.*", "rdkit.*", "scipy.*"]
 ignore_missing_imports = true

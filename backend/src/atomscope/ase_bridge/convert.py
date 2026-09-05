@@ -35,6 +35,7 @@ from atomscope.model import (
 from atomscope.units import Unit
 
 INFO_KEY = "atomscope"
+_BOND_FIELDS = tuple(Bond.model_fields)
 INITIAL_CHARGES_PROPERTY = "initial_charges"
 INITIAL_MAGMOMS_PROPERTY = "initial_magmoms"
 
@@ -68,7 +69,9 @@ def to_atoms(structure: Structure) -> Atoms:
         "uids": [a.uid for a in structure.atoms],
         "labels": [a.label for a in structure.atoms],
         "formal_charges": [a.formal_charge for a in structure.atoms],
-        "bonds": [b.model_dump() for b in structure.bonds],
+        # model_dump() per bond costs ~0.8 s for a 1e5-atom crystal; the fields are plain
+        # scalars, so read them directly (still driven by the model's field list).
+        "bonds": [{f: getattr(b, f) for f in _BOND_FIELDS} for b in structure.bonds],
         "residues": [r.model_dump() for r in structure.residues],
         "properties": {k: v.model_dump() for k, v in structure.properties.items()},
         "atomic_scalars": {k: v.model_dump() for k, v in structure.atomic_scalars.items()},
@@ -91,11 +94,14 @@ def from_atoms(atoms: Atoms, *, name: str | None = None) -> Structure:
     symbols = atoms.get_chemical_symbols()
     positions = atoms.get_positions()
 
+    # One tolist() instead of three float() calls per atom; the models themselves are still
+    # validated one by one, which measurement showed to be the irreducible part of the cost
+    # (model_construct is no faster -- see docs/performance.md).
     atom_models = []
-    for i in range(n):
+    for i, p in enumerate(positions.tolist()):
         kwargs: dict[str, Any] = {
             "element": symbols[i],
-            "position": _vec3(positions[i]),
+            "position": (p[0], p[1], p[2]),
             "formal_charge": int(formal[i]),
             "label": labels[i],
         }

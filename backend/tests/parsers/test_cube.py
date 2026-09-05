@@ -46,3 +46,28 @@ def test_roundtrip(tmp_path: Path) -> None:
     np.testing.assert_allclose(back.values, vals, rtol=1e-5)
     np.testing.assert_allclose(back.grid.axes, g.axes, atol=1e-6)
     assert back.structure.symbols() == ["He"]
+
+
+def test_write_cube_bytes_match_the_elementwise_writer(tmp_path: Path) -> None:
+    """The block writer must produce exactly the bytes the per-value f-string loop produced."""
+    rng = np.random.default_rng(3)
+    shape = (5, 4, 7)  # 140 values: not a multiple of 6, so the tail line is exercised
+    values = rng.normal(size=shape)
+    structure = Structure(name="ref", atoms=[Atom(element="O", position=(0.1, 0.2, 0.3))])
+    grid = VolumetricGrid(
+        id="g",
+        name="ref",
+        origin=(0.0, 0.0, 0.0),
+        axes=((0.2, 0.0, 0.0), (0.0, 0.3, 0.0), (0.0, 0.0, 0.4)),
+        shape=shape,
+        unit=Unit.E_PER_BOHR3,
+        inline_values=values.reshape(-1).tolist(),
+    )
+    out = tmp_path / "block.cube"
+    write_cube(out, grid, values, structure)
+    flat = values.reshape(-1)
+    expected = "".join(
+        " ".join(f"{x:13.5E}" for x in flat[i : i + 6]) + "\n" for i in range(0, flat.size, 6)
+    )
+    assert out.read_text().endswith(expected)
+    assert read_cube(out).values.shape == shape

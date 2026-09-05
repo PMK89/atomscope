@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from fastapi import APIRouter, HTTPException, Request, status
+from fastapi import APIRouter, HTTPException, Request, Response, status
 
 from atomscope.api.schemas import StructureSummary
 from atomscope.api.state import AppState
@@ -30,12 +30,18 @@ def list_structures(request: Request) -> list[StructureSummary]:
 
 
 @router.get("/{structure_id}", response_model=Structure)
-def get_structure(structure_id: str, request: Request) -> Structure:
+def get_structure(structure_id: str, request: Request) -> Response:
+    # The model serialises itself instead of being handed to FastAPI: returning a Structure
+    # makes FastAPI dump it, re-validate the dump against response_model and encode it again,
+    # three passes over every atom. response_model still documents the schema, so the OpenAPI
+    # document -- and with it the generated frontend types -- is byte-identical.
+    # (No docstring: FastAPI would turn it into an endpoint description and change the schema.)
     store = _store(request).require_project()
     try:
-        return store.load_structure(structure_id)
+        structure = store.load_structure(structure_id)
     except ProjectError as exc:
         raise HTTPException(status.HTTP_404_NOT_FOUND, str(exc)) from exc
+    return Response(content=structure.model_dump_json(), media_type="application/json")
 
 
 @router.put("/{structure_id}", response_model=StructureSummary)

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import math
-import uuid
+import os
 from typing import Literal
 
 import numpy as np
@@ -18,8 +18,12 @@ BondOrder = Literal[1, 2, 3]
 
 
 def new_uid() -> str:
-    """Short random identifier used for atoms and structures."""
-    return uuid.uuid4().hex[:12]
+    """Short random identifier used for atoms and structures: 48 random bits as 12 hex digits.
+
+    ``uuid.uuid4().hex[:12]`` produced the same 48 bits but built a UUID object first, which
+    cost 0.23 s of the 0.93 s spent reading a 1e5-atom file (docs/performance.md).
+    """
+    return os.urandom(6).hex()
 
 
 class Atom(StrictModel):
@@ -127,6 +131,39 @@ class Residue(StrictModel):
     atom_indices: list[int]
 
 
+def _raise_bond_error(bonds: list[Bond], n: int) -> None:
+    """Find the offending bond and raise; only reached when the vectorised check fails."""
+    seen: set[tuple[int, int]] = set()
+    for bond in bonds:
+        if bond.a >= n or bond.b >= n:
+            msg = f"bond ({bond.a},{bond.b}) references atom outside 0..{n - 1}"
+            raise ValueError(msg)
+        k = bond.key()
+        if k in seen:
+            msg = f"duplicate bond {k}"
+            raise ValueError(msg)
+        seen.add(k)
+
+
+def _check_bonds(bonds: list[Bond], n: int) -> None:
+    """Every bond index inside 0..n-1 and no unordered pair twice.
+
+    Vectorised because this runs on every construction *and* every attribute assignment
+    (``validate_assignment``): a 1e5-atom crystal has ~6e5 bonds and the element-wise loop cost
+    around half a second each time. Bond endpoints are non-negative by field constraint.
+    """
+    if not bonds:
+        return
+    a = np.fromiter((b.a for b in bonds), dtype=np.int64, count=len(bonds))
+    b = np.fromiter((b.b for b in bonds), dtype=np.int64, count=len(bonds))
+    hi = np.maximum(a, b)
+    if int(hi.max()) >= n:
+        _raise_bond_error(bonds, n)
+    keys = np.minimum(a, b) * n + hi
+    if np.unique(keys).size != keys.size:
+        _raise_bond_error(bonds, n)
+
+
 class Structure(StrictModel):
     """The central editable object: atoms, bonds, cell and attached properties."""
 
@@ -147,16 +184,7 @@ class Structure(StrictModel):
     @model_validator(mode="after")
     def _consistent(self) -> Structure:
         n = len(self.atoms)
-        seen: set[tuple[int, int]] = set()
-        for bond in self.bonds:
-            if bond.a >= n or bond.b >= n:
-                msg = f"bond ({bond.a},{bond.b}) references atom outside 0..{n - 1}"
-                raise ValueError(msg)
-            k = bond.key()
-            if k in seen:
-                msg = f"duplicate bond {k}"
-                raise ValueError(msg)
-            seen.add(k)
+        _check_bonds(self.bonds, n)
         lengths = {k: len(v.values) for k, v in self.atomic_scalars.items()}
         lengths.update({k: len(v.values) for k, v in self.atomic_vectors.items()})
         for name, count in lengths.items():

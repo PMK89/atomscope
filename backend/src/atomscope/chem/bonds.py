@@ -6,41 +6,77 @@ criterion Avogadro 1 / Open Babel use for connectivity guesses (Avogadro uses 0.
 the radius sum; the multiplicative form used here behaves better for heavy elements). Periodic
 images are considered when a cell with periodic directions is present, but only bonds to the
 minimum-image partner are recorded, which is what a viewer needs.
+
+Two neighbour searches are used for the same criterion:
+
+* periodic structures go through ``ase.neighborlist``, which handles the minimum image of an
+  arbitrary triclinic cell correctly;
+* non-periodic structures use a ``scipy.spatial.cKDTree``. ASE's neighbour list degenerates to
+  an all-pairs search without a cell and allocates an N x N index array - 142 GiB at 1e5 atoms
+  and a hard MemoryError (measured; see ``docs/performance.md``).
+
+Both paths return the same bonds; ``tests/chem/test_bonds.py`` pins that by comparing a molecule
+read with and without a large surrounding cell.
 """
 
 from __future__ import annotations
 
 import numpy as np
-from ase.data import atomic_numbers, covalent_radii
+from ase import Atoms
+from ase.data import covalent_radii
 from ase.neighborlist import neighbor_list
+from scipy.spatial import cKDTree
 
-from atomscope.ase_bridge.convert import to_atoms
 from atomscope.model import Bond, Structure
 
 DEFAULT_TOLERANCE = 1.15
+
+
+def _periodic_pairs(structure: Structure, cutoffs: np.ndarray) -> np.ndarray:
+    """(M,2) index pairs with i < j from ASE's minimum-image neighbour list."""
+    assert structure.cell is not None  # guaranteed by Structure.is_periodic()
+    atoms = Atoms(
+        numbers=structure.numbers(),
+        positions=structure.positions(),
+        cell=np.array(structure.cell.vectors),
+        pbc=list(structure.cell.pbc),
+    )
+    i_idx, j_idx = neighbor_list("ij", atoms, cutoffs)
+    # i < j drops both the mirrored (j,i) entry and self-bonds through a periodic image, which
+    # is what the previous element-wise loop did.
+    keep = i_idx < j_idx
+    return np.stack((i_idx[keep], j_idx[keep]), axis=1)
+
+
+def _molecular_pairs(positions: np.ndarray, cutoffs: np.ndarray) -> np.ndarray:
+    """(M,2) index pairs with i < j for a structure without periodic boundaries."""
+    tree = cKDTree(positions)
+    pairs = np.asarray(
+        tree.query_pairs(r=float(2.0 * cutoffs.max()), output_type="ndarray"), dtype=np.int64
+    )
+    if pairs.size == 0:
+        return np.empty((0, 2), dtype=np.int64)
+    delta = positions[pairs[:, 0]] - positions[pairs[:, 1]]
+    distance = np.sqrt(np.einsum("ij,ij->i", delta, delta))
+    bonded: np.ndarray = pairs[distance < cutoffs[pairs[:, 0]] + cutoffs[pairs[:, 1]]]
+    return bonded
 
 
 def perceive_bonds(structure: Structure, tolerance: float = DEFAULT_TOLERANCE) -> list[Bond]:
     """Return single bonds for all atom pairs closer than the scaled covalent-radius sum."""
     if structure.n_atoms < 2:
         return []
-    radii = np.array([covalent_radii[atomic_numbers[a.element]] for a in structure.atoms])
-    atoms = to_atoms(structure)
-    if not structure.is_periodic():
-        atoms.set_pbc(False)
-        atoms.set_cell(None)
-    # neighbor_list needs per-atom cutoffs such that pairs are found when d < c_i + c_j.
-    cutoffs = radii * tolerance
-    i_idx, j_idx = neighbor_list("ij", atoms, cutoffs)
-    seen: set[tuple[int, int]] = set()
-    bonds: list[Bond] = []
-    for i, j in zip(i_idx.tolist(), j_idx.tolist(), strict=True):
-        if i == j:
-            continue
-        key = (i, j) if i < j else (j, i)
-        if key in seen:
-            continue
-        seen.add(key)
-        bonds.append(Bond(a=key[0], b=key[1]))
-    bonds.sort(key=lambda b: (b.a, b.b))
-    return bonds
+    # neighbour searches need per-atom cutoffs such that pairs are found when d < c_i + c_j.
+    cutoffs = covalent_radii[structure.numbers()] * tolerance
+    if structure.is_periodic():
+        pairs = _periodic_pairs(structure, cutoffs)
+    else:
+        pairs = _molecular_pairs(structure.positions(), cutoffs)
+    if pairs.size == 0:
+        return []
+    # Deduplicate on a packed key: np.unique(axis=0) lexsorts a structured view and is twice as
+    # slow. The keys are increasing in (a, b), so the result is sorted by (a, b) as before. The
+    # duplicates come from periodic cells where two images of j neighbour the same i.
+    keys = pairs[:, 0] * structure.n_atoms + pairs[:, 1]
+    _, first = np.unique(keys, return_index=True)
+    return [Bond(a=a, b=b) for a, b in pairs[first].tolist()]

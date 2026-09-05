@@ -23,6 +23,19 @@ export type Projection = 'perspective' | 'orthographic';
 
 export type PickResult = { kind: 'atom'; index: number } | { kind: 'bond'; index: number };
 
+/** Vite's `import.meta.env` without pulling `vite/client` into the app tsconfig. */
+interface ViteMeta {
+  readonly env?: { readonly DEV?: boolean };
+}
+const IS_DEV = (import.meta as unknown as ViteMeta).env?.DEV === true;
+
+declare global {
+  interface Window {
+    /** Development-only handle used by `e2e/perf.spec.ts`; undefined in production builds. */
+    __atomscopeRenderer?: Renderer;
+  }
+}
+
 export class Renderer {
   readonly scene = new Scene();
   readonly gl: WebGLRenderer;
@@ -39,6 +52,10 @@ export class Renderer {
   private ctx: LayerContext | null = null;
   /** Called whenever a frame is scheduled (camera or content changed); used by HTML overlays. */
   onInvalidate: (() => void) | null = null;
+  /** Frames actually drawn since construction (one integer increment per frame). */
+  frameCount = 0;
+  /** Called after each drawn frame. Null in the application; set by the performance harness. */
+  onFrame: ((count: number) => void) | null = null;
 
   constructor(private readonly container: HTMLElement) {
     this.gl = new WebGLRenderer({ antialias: true, alpha: false, preserveDrawingBuffer: true });
@@ -60,6 +77,7 @@ export class Renderer {
     this.observer = new ResizeObserver(() => this.resize());
     this.observer.observe(container);
     this.resize();
+    if (IS_DEV) window.__atomscopeRenderer = this;
   }
 
   get projection(): Projection {
@@ -210,6 +228,8 @@ export class Renderer {
     this.gl.render(this.scene, this.camera);
     for (const layer of this.layers)
       if (layer.visible && layer.renderOverlay) layer.renderOverlay(this.gl, this.camera);
+    this.frameCount++;
+    this.onFrame?.(this.frameCount);
   }
 
   private resize(): void {
@@ -226,6 +246,7 @@ export class Renderer {
   }
 
   dispose(): void {
+    if (IS_DEV && window.__atomscopeRenderer === this) delete window.__atomscopeRenderer;
     if (this.frame !== null) cancelAnimationFrame(this.frame);
     this.observer.disconnect();
     this.controller.dispose();

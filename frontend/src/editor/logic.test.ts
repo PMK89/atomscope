@@ -382,3 +382,14 @@ describe('measure', () => {
     expect(measure(d, [0, 1, 2, 3])?.dihedral).toBeCloseTo(90);
   });
 });
+
+test('perceiveBondsForAtom skips atoms that are already bonded, whatever the bond order', () => {
+  const doc = normalizeStructure({
+    name: 'chain',
+    charge: 0,
+    atoms: [makeAtom('C', [0, 0, 0]), makeAtom('C', [1.5, 0, 0]), makeAtom('C', [0, 1.5, 0])],
+    bonds: [{ a: 1, b: 0, order: 2, aromatic: false }],
+  });
+  // atom 1 is bonded to 0 already (stored as a=1, b=0), atom 2 is in range and unbonded
+  expect(perceiveBondsForAtom(doc, 0).map((b) => [b.a, b.b])).toEqual([[0, 2]]);
+});

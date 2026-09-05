@@ -19,8 +19,14 @@ def test_create_open_roundtrip(tmp_path: Path) -> None:
     assert again.manifest.name == "demo"
     assert again.manifest.structure_ids == [s.id]
     assert again.load_structure(s.id) == s
-    text = (tmp_path / "proj" / "structures" / f"{s.id}.json").read_text()
-    assert text.startswith('{\n  "atomic_scalars"')
+    path = tmp_path / "proj" / "structures" / f"{s.id}.json"
+    text = path.read_text()
+    # two-space indent, fields in declaration order, trailing newline
+    assert text.startswith('{\n  "id"')
+    assert text.endswith("\n")
+    # identical content must produce identical bytes
+    store.save_structure(s)
+    assert path.read_text() == text
 
 
 def test_create_refuses_non_empty(tmp_path: Path) -> None:
