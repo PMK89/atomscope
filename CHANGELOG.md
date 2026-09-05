@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Named selections: name the current selection, recall it from the Select
+  menu, rename or remove it. A set names its atoms by uid, so it survives an edit.
+
 - Pasting a VASP POSCAR: recognised by its lattice, and when it does not name
   its elements (VASP 4 kept them in the POTCAR) a dialog asks which element each species is.
 

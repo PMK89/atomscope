@@ -19,6 +19,8 @@ import { CartesianEditor } from './CartesianEditor';
 import { redoEdit, undoEdit } from './historyActions';
 import { ConstraintsDialog } from './ConstraintsDialog';
 import { SpeciesDialog } from './SpeciesDialog';
+import { NamedSelectionsDialog } from './NamedSelectionsDialog';
+import { addNamed, resolveNamed } from '../editor/namedSelections';
 import { SettingsDialog } from './SettingsDialog';
 import { BuildDialogs } from './BuildDialogs';
 import { CrystalDialogs } from './CrystalDialogs';
@@ -54,6 +56,7 @@ import type { StructureStyle } from '../renderer/layers/StructureLayer';
 
 export function MenuBar({ onError }: { onError: (msg: string) => void }): JSX.Element {
   const [help, setHelp] = useState<HelpTopic | null>(null);
+  const [namedOpen, setNamedOpen] = useState(false);
   const [exportImage, setExportImage] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
   const [exportOpen, setExportOpen] = useState(false);
@@ -275,6 +278,22 @@ export function MenuBar({ onError }: { onError: (msg: string) => void }): JSX.El
               if (pattern) void selectSmarts(pattern);
             },
           },
+          {
+            label: 'Add named selection…',
+            disabled: selection.atoms.size === 0,
+            action: () => {
+              const name = window.prompt('Name for this selection');
+              if (name)
+                selection.setNamed(addNamed(selection.named, name, store.doc, selection.atoms));
+            },
+          },
+          { label: 'Named selections…', action: () => setNamedOpen(true) },
+          // each saved set recalls itself, which is Avogadro's project-tree entry as a menu item
+          ...selection.named.map((entry) => ({
+            label: `  ${entry.name}`,
+            action: () => selection.set(resolveNamed(store.doc, entry)),
+            disabled: resolveNamed(store.doc, entry).length === 0,
+          })),
         ]}
       />
       <Menu
@@ -384,6 +403,7 @@ export function MenuBar({ onError }: { onError: (msg: string) => void }): JSX.El
       <CartesianEditor />
       <ConstraintsDialog />
       <SpeciesDialog onError={onError} />
+      <NamedSelectionsDialog open={namedOpen} onClose={() => setNamedOpen(false)} />
       <SettingsDialog />
       <CrystalDialogs onError={onError} />
       <BuildDialogs onError={onError} />

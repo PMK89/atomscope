@@ -1,6 +1,7 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, expect, test, vi } from 'vitest';
 import { api } from '../api/client';
+import { NO_NAMED_SELECTIONS } from '../editor/namedSelections';
 import { useSelectionStore } from '../state/selectionStore';
 import { makeAtom, normalizeStructure } from '../model/structure';
 import { useStructureStore } from '../state/structureStore';
@@ -20,6 +21,7 @@ afterEach(() => {
 
 beforeEach(() => {
   useSelectionStore.getState().clear();
+  useSelectionStore.getState().setNamed(NO_NAMED_SELECTIONS);
   const st = useStructureStore.getState();
   st.load(water());
   st.commit('rename', { ...useStructureStore.getState().doc, name: 'renamed' });
@@ -110,4 +112,22 @@ test('a SMARTS pattern that matches nothing is reported', async () => {
   fireEvent.click(screen.getByText('Select SMARTS…'));
 
   await waitFor(() => expect(onError).toHaveBeenCalledWith('No atom matches [Fe]'));
+});
+
+test('a selection can be named and recalled from the Select menu', () => {
+  render(<MenuBar onError={() => {}} />);
+  fireEvent.click(screen.getByRole('button', { name: 'Select' }));
+  // nothing selected: there is nothing to name
+  expect(screen.getByRole('menuitem', { name: 'Add named selection…' })).toBeDisabled();
+
+  act(() => useSelectionStore.getState().set([1, 2]));
+  vi.spyOn(window, 'prompt').mockReturnValue('hydrogens');
+  fireEvent.click(screen.getByText('Add named selection…'));
+  expect(useSelectionStore.getState().named.map((s) => s.name)).toEqual(['hydrogens']);
+
+  // the set is listed in the menu and puts the selection back
+  act(() => useSelectionStore.getState().clear());
+  fireEvent.click(screen.getByRole('button', { name: 'Select' }));
+  fireEvent.click(screen.getByRole('menuitem', { name: 'hydrogens' }));
+  expect([...useSelectionStore.getState().atoms]).toEqual([1, 2]);
 });

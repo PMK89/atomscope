@@ -284,6 +284,12 @@ undo history**.
   `Select residues…` — a comma-separated list of names, numbers, ranges or
   chain-qualified terms (`LYS`, `12`, `12-20`, `A:12-20`) — and
   `Select solvent`, which takes the waters and counter-ions by residue name.
+  A selection worth keeping is saved with `Add named selection…`: it is then
+  listed in the same menu and puts itself back with one click, and
+  `Named selections…` renames or removes it. A saved set names its *atoms*, so
+  it survives an edit — the dialog shows `1 of 2` when the document no longer
+  has everything the set named. Named selections belong to the session, not to
+  the project file.
 * **Manipulate** — besides dragging, numeric `Translate (Å)` x/y/z with a
   `Translate` button, and a `Rotate (°)` angle with `About x` / `About y` /
   `About z` buttons. With nothing selected these act on **all** atoms.
