@@ -1,5 +1,4 @@
 import { mkdtempSync } from 'node:fs';
-import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { expect, test } from '@playwright/test';
 
@@ -9,7 +8,7 @@ import { expect, test } from '@playwright/test';
  * energy, load the final structure. Uses a temporary project directory.
  */
 test('create project, configure, run and inspect an ASE calculation', async ({ page }) => {
-  const dir = join(mkdtempSync(join(tmpdir(), 'atomscope-e2e-')), 'proj');
+  const dir = join(mkdtempSync(join(process.cwd(), '..', '.scratch', 'e2e-')), 'proj');
   await page.goto('/');
   // Load a copper structure via SMILES is impossible; use the SMILES builder for an EMT-supported
   // molecule instead: EMT knows H, C, N, O approximately.
