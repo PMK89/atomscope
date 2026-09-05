@@ -1,8 +1,8 @@
 # Project state (resume here)
 
-Branch: main, at `7f5bc17`. Phases 0-1 done; Phase 2 (editor tools), 3 (volumetric, trajectories, vectors), 4-5 (CP-PAW setup/execution/forces), 6 (CP-PAW analysis: DOS, bands, orbitals), crystallography, molecular mechanics and wavefunction surfaces are merged and working. Parity matrix: 111 IMPLEMENTED, 55 PARTIAL, 145 NOT STARTED, 1 BLOCKED of 312 rows.
+Branch: main, at `52eb29b`. Phases 0-1 done; Phase 2 (editor tools), 3 (volumetric, trajectories, vectors), 4-5 (CP-PAW setup/execution/forces), 6 (CP-PAW analysis: DOS, bands, orbitals), crystallography, molecular mechanics and wavefunction surfaces are merged and working. Parity matrix: 111 IMPLEMENTED, 55 PARTIAL, 145 NOT STARTED, 1 BLOCKED of 312 rows.
 
-Tests: `pytest -q -m "not cppaw"` -> 254 passed, 1 skipped; `pytest -q -m cppaw` -> 7 passed (~90 s, needs the local CP-PAW install); `pnpm vitest run` -> 124 passed. `ruff check`, `mypy` and `tsc --noEmit` are clean. No known failing tests.
+Tests: `pytest -q -m "not cppaw"` -> 338 passed, 1 skipped; `pytest -q -m cppaw` -> 7 passed (~90 s, needs the local CP-PAW install); `pnpm vitest run` -> 192 passed; `make test-e2e` -> 4 passed. `ruff check`, `mypy` and `tsc --noEmit` are clean. No known failing tests.
 
 ## Resume commands
 
@@ -29,17 +29,18 @@ make dev-backend   # 127.0.0.1:8765 ; make dev-frontend -> 127.0.0.1:5173
 - Merged: crystallography (cells, symmetry via spglib, builders, library), molecular mechanics (Open Babel forcefields, hydrogens, pH, properties), CP-PAW analysis (DOS, band structure, orbital export, convergence charts in the Analysis panel).
 - Wavefunction surfaces (`atomscope.wavefunction`): Gaussian fchk and Molden readers (SP shells, 6D/5D, 10F/7F, gzip), contracted Gaussian evaluation with solid harmonics, molecular orbital / density / spin density / electrostatic potential / van der Waals fields, `POST /api/wavefunction/{load,surface}`, and the "Create surfaces" panel in the frontend. Validated as physics: MO overlap = identity, densities integrate to the electron count.
 
-- Worktrees in flight (agents): feat/review-fixes (frontend review findings), feat/vibrations (normal modes, IR/Raman/NMR/UV-Vis spectra), feat/performance (benchmarks, docs/performance.md), feat/docs (user guide, tutorials, developer guide).
+- Merged: vibrations and spectra (mass-weighted Hessian over any ASE calculator, IR intensities, Gaussian/Lorentzian broadening, Gaussian/ORCA/Q-Chem/JCAMP-DX/Turbomole parsers, Spectra dock panel with mode animation); 14 frontend review findings (periodic bond perception, marching-cubes budget, ARIA menus and dock tabs, undo during a preview gesture); molecular point groups and SMARTS selection with their UI; user guide, three tutorials, developer guide and README.
+- Worktree in flight: feat/performance (benchmarks, docs/performance.md).
 
 ## Known problems / open questions
 - Installed `/usr/bin/avogadro` is Avogadro 2; live Avogadro 1 comparison BLOCKED (source tree is the reference).
 - pnpm wrote to the global store `~/.local/share/pnpm/store` once before `.npmrc` was placed in `frontend/`; nothing else outside PROJECT_ROOT was modified. Not deleted (outside boundary).
-- CP-PAW total-density cube integrates to ~42.6 e for water (expected ~8-10): normalization of paw_wave "total" density still unexplained.
 - Installed CP-PAW binaries need `LD_LIBRARY_PATH` to a libgfortran 13 (auto-detected in conda pkgs); a rebuild with the one-character `paw_trace.f90` fix is the permanent remedy (patched tree prepared in `.scratch/cppaw/build/cp-paw`, not built).
 - `ase-cp-paw` declares MIT but has no LICENSE file (author = project owner).
 
 ## Next actions
-1. Merge feat/review-fixes, feat/vibrations, feat/performance and feat/docs when their agents finish. Shared files that always conflict: `App.tsx`, `RightDock.tsx`, `MenuBar.tsx`, `styles.css`, `client.ts`, `api/app.py`, `io/registry.py`; never hand-merge `openapi.json` / `schema.d.ts`, run `make contracts` instead.
+1. Merge feat/performance when its agent finishes. Shared files that always conflict: `App.tsx`, `RightDock.tsx`, `MenuBar.tsx`, `styles.css`, `client.ts`, `api/app.py`, `io/registry.py`; never hand-merge `openapi.json` / `schema.d.ts`, run `make contracts` instead. Checkable menu items now carry the `menuitemcheckbox` role, which e2e selectors must use.
 2. UI gaps recorded as PARTIAL: Extensions menu for the chem operations that only have API routes (add/remove hydrogens, pH, invert chirality, H->methyl, partial charges, Copy as SMILES/InChI), fragment/peptide/DNA/nanotube insert dialogs, Auto-Optimization tool, image export, constraints dialog.
 3. Remaining CRITICAL/HIGH parity gaps: label engine, Display Types dock, cut/copy/paste, cartoon/ribbon rendering with secondary-structure detection, SMARTS selection, molecular point groups, colour-by-second-cube (AV-SURF-013), QTAIM.
 4. More wavefunction readers (MOPAC aux, GAMESS, ORCA, Molpro, Slater bases) for AV-SURF-006; ORCA/Gaussian/NWChem input-only plugins; desktop shell ADR.
+5. Smallest next increments handed over by the agents: NMR/UV-Vis/CD have parsers and spectrum builders but no route or UI (AV-SPEC-004/006/007); force-field IR intensities are qualitative because topological charge models have no charge flux; `resources` is hard-coded `{cores: 1, mpi: false}` in `CalculationPanel.tsx`, so the CP-PAW MPI path is unreachable from the UI; there is no "Save as" (`api.structures.put` reuses the id, so saving after a supercell overwrites the source); units render as raw tags; DOS and band results are not reloaded when a project is reopened; calculation renames are silently discarded (no rename endpoint); `orbital_bands = "1-4"` silently produces no `!WAVE` blocks; `ase_builtin` reads an `optimizer` key that its schema does not declare and tags `pressure` as eV rather than eV/A^3; `mode: "diagonalize"` bands fail on the installed CP-PAW binaries (2025-05-07) while the API still serves the stale interpolated `.dat`; cancelling a CP-PAW run waits the full 90 s soft-stop grace because `proc.poll()` in the SIGTERM handler cannot take `_waitpid_lock` while the main thread is in `proc.wait()`.
