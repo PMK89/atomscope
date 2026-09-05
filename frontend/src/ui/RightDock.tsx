@@ -50,7 +50,7 @@ export function RightDock({ onError }: { onError: (m: string) => void }): JSX.El
       {panel('spectra', <SpectrumPanel onError={onError} />)}
       {panel('surfaces', <SurfacesPanel onError={onError} />)}
       {panel('crystal', <CrystalPanel onError={onError} />)}
-      {panel('properties', <PropertiesPanel />)}
+      {panel('properties', <PropertiesPanel onError={onError} />)}
     </>
   );
 }

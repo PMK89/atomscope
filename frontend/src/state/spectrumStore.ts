@@ -8,7 +8,8 @@
  * equilibrium geometry.
  */
 import { create } from 'zustand';
-import { api, type Body } from '../api/client';
+import { api } from '../api/client';
+import { toApiStructure } from '../api/structureBody';
 import type { ApiSpectrum, ApiVibrationalSpectrum, SpectrumDoc } from '../model/vibration';
 import {
   DEFAULT_AMPLITUDE,
@@ -18,7 +19,7 @@ import {
   modeToTrajectory,
   normalizeSpectrum,
 } from '../model/vibration';
-import { normalizeStructure, type StructureDoc } from '../model/structure';
+import { normalizeStructure } from '../model/structure';
 import { useStructureStore } from './structureStore';
 import { useTrajectoryStore } from './trajectoryStore';
 
@@ -57,21 +58,6 @@ export interface SpectrumState {
   /** Stop the animation and return the viewport to the equilibrium geometry. */
   stopAnimation: () => void;
 }
-
-type ApiStructureBody = Body<'/api/analysis/vibrations', 'post'>['structure'];
-
-/** The document as the backend expects it; derived fields the API recomputes are left out. */
-const toApiStructure = (doc: StructureDoc): ApiStructureBody => ({
-  id: doc.id,
-  name: doc.name,
-  atoms: doc.atoms,
-  bonds: doc.bonds,
-  cell: doc.cell,
-  charge: doc.charge,
-  multiplicity: doc.multiplicity,
-  constraints: doc.constraints,
-  residues: doc.residues,
-});
 
 export const useSpectrumStore = create<SpectrumState>((set, get) => ({
   vibrations: null,

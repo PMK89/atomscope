@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { api } from '../api/client';
+import { toApiStructure } from '../api/structureBody';
 import { normalizeStructure } from '../model/structure';
 import { useStructureStore } from '../state/structureStore';
 import { useTrajectoryStore } from '../state/trajectoryStore';
@@ -32,6 +33,20 @@ export function MenuBar({ onError }: { onError: (msg: string) => void }): JSX.El
       useTrajectoryStore.getState().loadFromResult(res);
     } catch (e) {
       onError(`Trajectory import failed: ${(e as Error).message}`);
+    }
+  };
+
+  const selectSmarts = async (pattern: string): Promise<void> => {
+    try {
+      const { atoms } = await api.chem.smarts({
+        structure: toApiStructure(store.doc),
+        pattern,
+        unique: true,
+      });
+      selection.set(atoms);
+      if (atoms.length === 0) onError(`No atom matches ${pattern}`);
+    } catch (e) {
+      onError(`SMARTS selection failed: ${(e as Error).message}`);
     }
   };
 
@@ -148,6 +163,13 @@ export function MenuBar({ onError }: { onError: (msg: string) => void }): JSX.El
             action: () => {
               const sym = window.prompt('Element symbol');
               if (sym) selection.set(atomsOfElement(store.doc, normalizeSymbol(sym)));
+            },
+          },
+          {
+            label: 'Select SMARTS…',
+            action: () => {
+              const pattern = window.prompt('SMARTS pattern', '[OX2H]');
+              if (pattern) void selectSmarts(pattern);
             },
           },
           { label: 'Cartesian editor…', action: () => openCartesian(true) },

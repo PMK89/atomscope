@@ -52,6 +52,8 @@ export type VibrationalSpectrum = components['schemas']['VibrationalSpectrum'];
 export type VibrationsResponse = components['schemas']['VibrationsResponse'];
 export type VibrationImport = components['schemas']['VibrationImport'];
 export type NmrShielding = components['schemas']['NmrShielding'];
+export type SmartsResult = components['schemas']['SmartsResult'];
+export type PointGroupResult = components['schemas']['PointGroupResult'];
 export type ParameterValues = Record<string, unknown>;
 
 export class ApiError extends Error {
@@ -221,6 +223,14 @@ export const api = {
       if (!res.ok) throw new ApiError(res.status, res.statusText);
       return new Float32Array(await res.arrayBuffer());
     },
+  },
+  chem: {
+    smarts: (body: Body<'/api/chem/smarts', 'post'>) =>
+      request<SmartsResult>('/api/chem/smarts', json(body)),
+    pointGroup: (body: Body<'/api/chem/point-group', 'post'>) =>
+      request<PointGroupResult>('/api/chem/point-group', json(body)),
+    symmetrize: (body: Body<'/api/chem/symmetrize', 'post'>) =>
+      request<Structure>('/api/chem/symmetrize', json(body)),
   },
   wavefunction: {
     load: (body: Body<'/api/wavefunction/load', 'post'>) =>

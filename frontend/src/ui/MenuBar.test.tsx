@@ -1,5 +1,7 @@
-import { fireEvent, render, screen } from '@testing-library/react';
-import { beforeEach, expect, test } from 'vitest';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { afterEach, beforeEach, expect, test, vi } from 'vitest';
+import { api } from '../api/client';
+import { useSelectionStore } from '../state/selectionStore';
 import { makeAtom, normalizeStructure } from '../model/structure';
 import { useStructureStore } from '../state/structureStore';
 import { MenuBar } from './MenuBar';
@@ -12,7 +14,12 @@ function water() {
   });
 }
 
+afterEach(() => {
+  vi.restoreAllMocks();
+});
+
 beforeEach(() => {
+  useSelectionStore.getState().clear();
   const st = useStructureStore.getState();
   st.load(water());
   st.commit('rename', { ...useStructureStore.getState().doc, name: 'renamed' });
@@ -77,4 +84,30 @@ test('menus support arrow-key navigation, skip disabled items and close on Escap
   fireEvent.keyDown(menu, { key: 'Escape' });
   expect(screen.queryByRole('menu')).toBeNull();
   expect(document.activeElement).toBe(edit);
+});
+
+test('Select SMARTS asks the backend and selects the matching atoms', async () => {
+  const smarts = vi
+    .spyOn(api.chem, 'smarts')
+    .mockResolvedValue({ matches: [[0, 1]], atoms: [0, 1] } as never);
+  vi.spyOn(window, 'prompt').mockReturnValue('[OX2H]');
+
+  render(<MenuBar onError={() => {}} />);
+  fireEvent.click(screen.getByText('Edit'));
+  fireEvent.click(screen.getByText('Select SMARTS…'));
+
+  await waitFor(() => expect([...useSelectionStore.getState().atoms]).toEqual([0, 1]));
+  expect(smarts).toHaveBeenCalledWith(expect.objectContaining({ pattern: '[OX2H]' }));
+});
+
+test('a SMARTS pattern that matches nothing is reported', async () => {
+  vi.spyOn(api.chem, 'smarts').mockResolvedValue({ matches: [], atoms: [] } as never);
+  vi.spyOn(window, 'prompt').mockReturnValue('[Fe]');
+  const onError = vi.fn();
+
+  render(<MenuBar onError={onError} />);
+  fireEvent.click(screen.getByText('Edit'));
+  fireEvent.click(screen.getByText('Select SMARTS…'));
+
+  await waitFor(() => expect(onError).toHaveBeenCalledWith('No atom matches [Fe]'));
 });

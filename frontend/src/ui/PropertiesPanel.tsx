@@ -8,6 +8,7 @@ import { NumberField } from './NumberField';
 import { normalizeSymbol } from '../editor/cartesian';
 import { ELEMENT_BY_SYMBOL } from '../model/elements';
 import { cartToFrac } from '../model/crystal';
+import { SymmetrySection } from './SymmetrySection';
 
 function cellLengths(doc: StructureDoc): [number, number, number] | null {
   if (!doc.cell) return null;
@@ -15,7 +16,7 @@ function cellLengths(doc: StructureDoc): [number, number, number] | null {
 }
 
 /** Right-dock tab: selected atom(s) and structure-level properties, all editable via commit. */
-export function PropertiesPanel(): JSX.Element {
+export function PropertiesPanel({ onError }: { onError?: (m: string) => void }): JSX.Element {
   const doc = useStructureStore((s) => s.doc);
   const commit = useStructureStore((s) => s.commit);
   const selected = useSelectionStore((s) => s.atoms);
@@ -89,6 +90,8 @@ export function PropertiesPanel(): JSX.Element {
       <div className="button-row">
         <button onClick={() => openEditor(true)}>Cartesian editor…</button>
       </div>
+
+      <SymmetrySection onError={onError} />
 
       <h3>Selection</h3>
       {idx.length === 0 && <p className="muted">No atoms selected.</p>}
