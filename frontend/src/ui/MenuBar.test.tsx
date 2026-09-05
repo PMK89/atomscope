@@ -74,7 +74,7 @@ test('menus support arrow-key navigation, skip disabled items and close on Escap
   expect(label()).toContain('Undo rename');
   const menu = screen.getByRole('menu');
   fireEvent.keyDown(menu, { key: 'ArrowDown' });
-  expect(label()).toContain('Select all'); // the disabled Redo entry was skipped
+  expect(label()).toContain('Cut'); // the disabled Redo entry was skipped
   fireEvent.keyDown(menu, { key: 'ArrowUp' });
   expect(label()).toContain('Undo rename');
   fireEvent.keyDown(menu, { key: 'End' });

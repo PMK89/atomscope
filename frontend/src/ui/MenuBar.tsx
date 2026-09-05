@@ -25,6 +25,14 @@ import {
   perceiveBonds,
   removeHydrogens,
 } from './chemActions';
+import {
+  clearSelection,
+  copySelection,
+  copyToSystemClipboard,
+  cutSelection,
+  installClipboardEvents,
+  pasteFromClipboard,
+} from './clipboardActions';
 import { isEditableTarget } from '../editor/ToolHost';
 import { Menu, type MenuItem } from './Menu';
 import type { StructureStyle } from '../renderer/layers/StructureLayer';
@@ -116,11 +124,17 @@ export function MenuBar({ onError }: { onError: (msg: string) => void }): JSX.El
         e.preventDefault();
         if (e.shiftKey) useSelectionStore.getState().clear();
         else useSelectionStore.getState().set(store.doc.atoms.map((_, i) => i));
+      } else if (key === 'backspace' && !isEditableTarget(e.target)) {
+        e.preventDefault();
+        clearSelection();
       }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [store]);
+
+  // Ctrl+X/C/V arrive as clipboard events, which carry the data without asking for permission
+  useEffect(() => installClipboardEvents(onError), [onError]);
 
   const styleItem = (label: string, style: StructureStyle): MenuItem => ({
     label,
@@ -160,6 +174,34 @@ export function MenuBar({ onError }: { onError: (msg: string) => void }): JSX.El
             shortcut: 'Ctrl+Shift+Z',
             disabled: !store.canRedo(),
             action: store.redo,
+          },
+          {
+            label: 'Cut',
+            shortcut: 'Ctrl+X',
+            disabled: store.doc.atoms.length === 0,
+            action: () => {
+              const text = copySelection();
+              if (text) {
+                void copyToSystemClipboard(text);
+                cutSelection();
+              }
+            },
+          },
+          {
+            label: 'Copy',
+            shortcut: 'Ctrl+C',
+            disabled: store.doc.atoms.length === 0,
+            action: () => {
+              const text = copySelection();
+              if (text) void copyToSystemClipboard(text);
+            },
+          },
+          { label: 'Paste', shortcut: 'Ctrl+V', action: () => void pasteFromClipboard(onError) },
+          {
+            label: 'Clear',
+            shortcut: 'Ctrl+Backspace',
+            disabled: store.doc.atoms.length === 0,
+            action: clearSelection,
           },
           {
             label: 'Select all',

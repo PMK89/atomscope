@@ -57,6 +57,7 @@ def test_io_routes(tmp_path: Path) -> None:
     water = r.json()
     r = c.post("/api/io/export", json={"structure": water, "format": "xyz"})
     assert r.status_code == 200 and r.json()["text"].startswith("3\n")
+    r_text = r.json()["text"]
     out = tmp_path / "w.xyz"
     r = c.post("/api/io/export", json={"structure": water, "format": "xyz", "path": str(out)})
     assert r.status_code == 200 and out.exists()
@@ -64,6 +65,11 @@ def test_io_routes(tmp_path: Path) -> None:
     assert r.status_code == 200 and len(r.json()["bonds"]) == 2
     r = c.post("/api/io/import/upload", files={"file": ("w.xyz", out.read_bytes())})
     assert r.status_code == 200 and len(r.json()["atoms"]) == 3
+    r = c.post("/api/io/import/text", json={"text": r_text})
+    assert r.status_code == 200 and len(r.json()["atoms"]) == 3 and len(r.json()["bonds"]) == 2
+    r = c.post("/api/io/import/text", json={"text": "CCO", "format": "smi"})
+    assert r.status_code == 200 and len(r.json()["atoms"]) == 9
+    assert c.post("/api/io/import/text", json={"text": "not a molecule\nat all"}).status_code == 400
     assert c.post("/api/io/smiles", json={"smiles": "C("}).status_code == 400
     assert (
         c.post("/api/io/import/path", json={"path": str(tmp_path / "nope.xyz")}).status_code == 404

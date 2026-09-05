@@ -1,6 +1,6 @@
 # Project state (resume here)
 
-Branch: main; this file is updated in the commit that checkpoints the work, so `git log -1 -- docs/STATE.md` is the last checkpoint. Phases 0-1 done; Phase 2 (editor tools), 3 (volumetric, trajectories, vectors), 4-5 (CP-PAW setup/execution/forces), 6 (CP-PAW analysis: DOS, bands, orbitals), crystallography, molecular mechanics and wavefunction surfaces are merged and working. Parity matrix: 138 IMPLEMENTED, 46 PARTIAL, 127 NOT STARTED, 1 BLOCKED of 312 rows.
+Branch: main; this file is updated in the commit that checkpoints the work, so `git log -1 -- docs/STATE.md` is the last checkpoint. Phases 0-1 done; Phase 2 (editor tools), 3 (volumetric, trajectories, vectors), 4-5 (CP-PAW setup/execution/forces), 6 (CP-PAW analysis: DOS, bands, orbitals), crystallography, molecular mechanics and wavefunction surfaces are merged and working. Parity matrix: 141 IMPLEMENTED, 45 PARTIAL, 125 NOT STARTED, 1 BLOCKED of 312 rows.
 
 Tests: `pytest -q -m "not cppaw"` -> 351 passed, 1 skipped; `pytest -q -m cppaw` -> 7 passed (~90 s, needs the local CP-PAW install); `pnpm vitest run` -> 229 passed; `make test-e2e` -> 8 passed. `ruff check`, `mypy` and `tsc --noEmit` are clean. No known failing tests.
 
@@ -42,11 +42,17 @@ make dev-backend   # 127.0.0.1:8765 ; make dev-frontend -> 127.0.0.1:5173
 - pnpm wrote to the global store `~/.local/share/pnpm/store` once before `.npmrc` was placed in `frontend/`; nothing else outside PROJECT_ROOT was modified. Not deleted (outside boundary).
 - Installed CP-PAW binaries need `LD_LIBRARY_PATH` to a libgfortran 13 (auto-detected in conda pkgs); a rebuild with the one-character `paw_trace.f90` fix is the permanent remedy (patched tree prepared in `.scratch/cppaw/build/cp-paw`, not built).
 - `ase-cp-paw` declares MIT but has no LICENSE file (author = project owner).
+- `backend/pyproject.toml` sets `--basetemp=../.scratch/pytest`, which is relative to the working
+  directory: run pytest from `backend/`, as the Makefile does. From the repository root it resolves
+  outside PROJECT_ROOT and every tmp_path test errors out.
+- The dev servers on 127.0.0.1:8765/5173 are not ours and do not reload, so they serve whatever
+  routes existed when they were started. E2E tests that need a new route want private servers:
+  `python -m atomscope.api.server --host 127.0.0.1 --port 8791`, `ATOMSCOPE_API_URL=http://127.0.0.1:8791 pnpm dev --host 127.0.0.1 --port 5191`,
+  then `PLAYWRIGHT_BASE_URL=http://127.0.0.1:5191 pnpm exec playwright test`.
 
 ## Next actions
-1. Remaining CRITICAL parity gaps, all in the renderer or the UI: cut/copy/paste, cartoon/ribbon
-   rendering with secondary-structure detection, ring and polygon engines, hydrogen-bond display,
-   QTAIM. The label engine and the Display tab are done; the Display tab is where the label
+1. Remaining CRITICAL parity gaps, all in the renderer: cartoon/ribbon rendering with
+   secondary-structure detection, ring and polygon engines, hydrogen-bond display, QTAIM. The label engine and the Display tab are done; the Display tab is where the label
    content is chosen (the View menu only switches labels on) and it can give the selection its own
    display type, which is what AV-VIS-001's "restricted to primitives" asks for.
 2. UI gaps recorded as PARTIAL: Extensions menu for the chem operations that only have API routes (add/remove hydrogens, pH, invert chirality, H->methyl, partial charges, Copy as SMILES/InChI), fragment/peptide/DNA/nanotube insert dialogs, Auto-Optimization tool, image export, constraints dialog.

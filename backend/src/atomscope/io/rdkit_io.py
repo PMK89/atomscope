@@ -107,6 +107,26 @@ def read(path: Path, fmt: str) -> Structure:
     raise ValueError(msg)
 
 
+def read_text(text: str, fmt: str, name: str = "pasted") -> Structure:
+    """Read a structure from text (a paste), not from a file."""
+    if fmt in ("mol", "sdf"):
+        mol = Chem.MolFromMolBlock(text, removeHs=False, sanitize=True)
+        if mol is None:
+            # sanitization rejects perfectly real molecules (metal centres, hypervalent atoms);
+            # coordinates and bond orders are all we need, so fall back to the unsanitized read
+            mol = Chem.MolFromMolBlock(text, removeHs=False, sanitize=False)
+            if mol is not None:
+                mol.UpdatePropertyCache(strict=False)
+        if mol is None:
+            msg = "RDKit could not read the text as a molfile"
+            raise ValueError(msg)
+        return mol_to_structure(mol, name=name)
+    if fmt == "smi":
+        return from_smiles(text.strip().splitlines()[0].split()[0])
+    msg = f"rdkit_io cannot read {fmt} from text"
+    raise ValueError(msg)
+
+
 def write(structure: Structure, path: Path, fmt: str) -> None:
     mol = structure_to_mol(structure)
     if fmt in ("mol", "sdf"):
@@ -118,4 +138,16 @@ def write(structure: Structure, path: Path, fmt: str) -> None:
         path.write_text(Chem.MolToSmiles(Chem.RemoveHs(mol)) + "\n", encoding="utf-8")
         return
     msg = f"rdkit_io cannot write {fmt}"
+    raise ValueError(msg)
+
+
+def write_text(structure: Structure, fmt: str) -> str:
+    """Serialize to text (clipboard, previews) without going through a file."""
+    mol = structure_to_mol(structure)
+    if fmt in ("mol", "sdf"):
+        mol.SetProp("_Name", structure.name)
+        return str(Chem.MolToMolBlock(mol, kekulize=False))
+    if fmt == "smi":
+        return str(Chem.MolToSmiles(mol)) + "\n"
+    msg = f"rdkit_io cannot write {fmt} as text"
     raise ValueError(msg)

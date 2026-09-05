@@ -140,6 +140,8 @@ export const api = {
       form.append('file', file, file.name);
       return request<Structure>('/api/io/import/upload', { method: 'POST', body: form });
     },
+    importText: (body: Body<'/api/io/import/text', 'post'>) =>
+      request<Structure>('/api/io/import/text', json(body)),
     smiles: (body: Body<'/api/io/smiles', 'post'>) =>
       request<Structure>('/api/io/smiles', json(body)),
     export: (body: Body<'/api/io/export', 'post'>) =>

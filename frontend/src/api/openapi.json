@@ -2241,6 +2241,32 @@
         "title": "ImportSpectrumRequest",
         "type": "object"
       },
+      "ImportTextRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "format": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "format name; sniffed when omitted",
+            "title": "Format"
+          },
+          "text": {
+            "description": "file content, e.g. a clipboard paste",
+            "maxLength": 20000000,
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": ["text"],
+        "title": "ImportTextRequest",
+        "type": "object"
+      },
       "ImportTrajectoryRequest": {
         "additionalProperties": false,
         "properties": {
@@ -9352,6 +9378,46 @@
         },
         "summary": "Import Spectrum Upload",
         "tags": ["analysis"]
+      }
+    },
+    "/api/io/import/text": {
+      "post": {
+        "description": "Read a structure from text: a clipboard paste, or an editor buffer. No file involved.",
+        "operationId": "import_text_api_io_import_text_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ImportTextRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Structure"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Import Text",
+        "tags": ["io"]
       }
     },
     "/api/io/import/trajectory": {

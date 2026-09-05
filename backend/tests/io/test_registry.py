@@ -7,7 +7,13 @@ from ase.build import bulk, molecule
 from atomscope.ase_bridge import from_atoms
 from atomscope.io import read_structure, write_structure
 from atomscope.io.rdkit_io import from_smiles
-from atomscope.io.registry import FormatError, detect_format, structure_to_string
+from atomscope.io.registry import (
+    FormatError,
+    detect_format,
+    sniff_text,
+    structure_from_string,
+    structure_to_string,
+)
 
 
 @pytest.mark.parametrize(
@@ -83,3 +89,41 @@ def test_unknown_extension_raises(tmp_path: Path) -> None:
 def test_string_export() -> None:
     text = structure_to_string(from_atoms(molecule("H2")), "xyz")
     assert text.splitlines()[0].strip() == "2"
+
+
+def test_sniff_text_recognizes_what_a_user_pastes() -> None:
+    assert sniff_text("3\n\nO 0 0 0\nH 0 0.8 0.6\nH 0 -0.8 0.6\n") == "xyz"
+    assert sniff_text("CCO") == "smi"
+    assert sniff_text("data_water\n_cell_length_a 5\n") == "cif"
+    assert sniff_text("HETATM    1  O   HOH A   1       0.0   0.0   0.0\n") == "pdb"
+    assert sniff_text("\n  Mrv  \n\n  1  0  0\nM  END\n") == "mol"
+    with pytest.raises(FormatError):
+        sniff_text("this is not a structure\nand neither is this\n")
+
+
+def test_read_pasted_xyz_perceives_bonds() -> None:
+    s = structure_from_string("3\nwater\nO 0 0 0\nH 0 0.76 0.59\nH 0 -0.76 0.59\n")
+    assert s.symbols() == ["O", "H", "H"]
+    assert len(s.bonds) == 2
+    assert s.provenance is not None and s.provenance.source == "text"
+
+
+def test_read_pasted_molfile_keeps_bond_orders() -> None:
+    ethene = from_smiles("C=C")
+    molblock = structure_to_string(ethene, "mol")
+    back = structure_from_string(molblock)
+    assert back.symbols() == ethene.symbols()
+    assert sorted(b.order for b in back.bonds) == sorted(b.order for b in ethene.bonds)
+    assert 2 in [b.order for b in back.bonds]
+
+
+def test_a_named_format_wins_over_the_sniffer() -> None:
+    # "6" alone sniffs as xyz; saying it is SMILES reads it as benzene's ring-closure digit... no,
+    # a bare digit is not valid SMILES, so the error must come from the reader, not the sniffer
+    with pytest.raises(ValueError, match="invalid SMILES"):
+        structure_from_string("6", "smi")
+
+
+def test_unreadable_text_is_a_format_error() -> None:
+    with pytest.raises(FormatError):
+        structure_from_string("nothing chemical here at all\nsecond line\n")

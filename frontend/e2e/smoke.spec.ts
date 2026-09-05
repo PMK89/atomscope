@@ -117,3 +117,39 @@ test('the Display tab drives the labels drawn into the scene', async ({ page }) 
   });
   expect(style).toMatchObject({ color: '#ff0000', size: 1.2 });
 });
+
+test('copy, paste, and paste of text from another program', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Edit' }).click();
+  await page.getByRole('menuitem', { name: 'Select all' }).click();
+  await page.getByRole('button', { name: 'Edit' }).click();
+  await page.getByRole('menuitem', { name: 'Copy Ctrl+C' }).click();
+
+  // the system clipboard really got the fragment, not just the in-app one
+  await expect
+    .poll(() => page.evaluate(() => navigator.clipboard.readText()))
+    .toMatch(/^3\n.*\nO /s);
+
+  await page.getByRole('button', { name: 'Edit' }).click();
+  await page.getByRole('menuitem', { name: 'Paste Ctrl+V' }).click();
+  await expect(page.locator('.app-statusbar')).toContainText('6 atoms');
+
+  // text written by something else is read by the backend (AV-FILE-009)
+  await page.evaluate(() => navigator.clipboard.writeText('2\n\nH 0 0 0\nH 0 0 0.74\n'));
+  await page.getByRole('button', { name: 'Edit' }).click();
+  await page.getByRole('menuitem', { name: 'Paste Ctrl+V' }).click();
+  await expect(page.locator('.app-statusbar')).toContainText('8 atoms');
+
+  // and cut takes them away again in one undo step
+  await page.getByRole('button', { name: 'Edit' }).click();
+  await page.getByRole('menuitem', { name: 'Cut Ctrl+X' }).click();
+  await expect(page.locator('.app-statusbar')).toContainText('6 atoms');
+  await page.getByRole('button', { name: 'Edit' }).click();
+  await page.getByRole('menuitem', { name: 'Undo Cut Ctrl+Z' }).click();
+  await expect(page.locator('.app-statusbar')).toContainText('8 atoms');
+
+  // the keyboard path goes through the DOM clipboard events, not the menu actions
+  await page.keyboard.press('Control+c');
+  await page.keyboard.press('Control+v');
+  await expect(page.locator('.app-statusbar')).toContainText('16 atoms');
+});

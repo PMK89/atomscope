@@ -18,7 +18,9 @@ function isSetting(v: unknown): boolean {
 
 /** Two values have the same shape when one can replace the other in the store. */
 function sameShape(a: unknown, b: unknown): boolean {
-  if (a === null || b === null) return true;
+  // null belongs to the nullable settings only (a style that is off), never to a tuple
+  if (b === null) return a === null || typeof a === 'string';
+  if (a === null) return typeof b === 'string';
   if (Array.isArray(a) || Array.isArray(b))
     return Array.isArray(a) && Array.isArray(b) && a.length === b.length;
   return typeof a === typeof b;

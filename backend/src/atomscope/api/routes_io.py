@@ -9,7 +9,7 @@ from pydantic import Field
 
 from atomscope.api.state import AppState
 from atomscope.calculations.grids import import_cube
-from atomscope.io import formats, read_structure, write_structure
+from atomscope.io import formats, read_structure, structure_from_string, write_structure
 from atomscope.io.qc_outputs import OutputImport, read_output
 from atomscope.io.rdkit_io import from_smiles
 from atomscope.io.registry import FormatError, structure_to_string
@@ -47,6 +47,11 @@ class ImportCubeResponse(StrictModel):
 class SmilesRequest(StrictModel):
     smiles: str
     add_hydrogens: bool = True
+
+
+class ImportTextRequest(StrictModel):
+    text: str = Field(max_length=20_000_000, description="file content, e.g. a clipboard paste")
+    format: str | None = Field(default=None, description="format name; sniffed when omitted")
 
 
 class ExportRequest(StrictModel):
@@ -105,6 +110,15 @@ async def import_upload(file: UploadFile, request: Request) -> Structure:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, str(exc)) from exc
     finally:
         target.unlink(missing_ok=True)
+
+
+@router.post("/import/text", response_model=Structure)
+def import_text(body: ImportTextRequest) -> Structure:
+    """Read a structure from text: a clipboard paste, or an editor buffer. No file involved."""
+    try:
+        return structure_from_string(body.text, body.format)
+    except (FormatError, ValueError) as exc:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, str(exc)) from exc
 
 
 @router.post("/import/cube", response_model=ImportCubeResponse)

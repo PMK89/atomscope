@@ -21,6 +21,9 @@
   Measurements and remaining limits: docs/performance.md.
 - Renderer: the sphere and cylinder tessellation is chosen from the atom count, which is what makes
   a large structure orbit at all.
+- Cut, copy, paste and clear (Edit menu, Ctrl+X/C/V, Ctrl+Backspace). A fragment copied inside
+  Atomscope keeps its bond orders; XYZ goes to the system clipboard for other programs, and text
+  pasted from elsewhere (XYZ, CIF, PDB, molfile, CML, SMILES) is read by `POST /api/io/import/text`.
 - Labels: atom and bond labels (index, symbol, name, formal and partial charge, residue, custom;
   bond order, length) as billboarded sprites, with colour, size and offset.
 - A Display tab in the right dock collects every display layer -- structure style, atom and bond

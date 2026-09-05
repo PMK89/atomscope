@@ -1501,6 +1501,26 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/io/import/text': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Import Text
+     * @description Read a structure from text: a clipboard paste, or an editor buffer. No file involved.
+     */
+    post: operations['import_text_api_io_import_text_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/io/import/trajectory': {
     parameters: {
       query?: never;
@@ -2840,6 +2860,19 @@ export interface components {
        * Format: path
        */
       path: string;
+    };
+    /** ImportTextRequest */
+    ImportTextRequest: {
+      /**
+       * Format
+       * @description format name; sniffed when omitted
+       */
+      format?: string | null;
+      /**
+       * Text
+       * @description file content, e.g. a clipboard paste
+       */
+      text: string;
     };
     /** ImportTrajectoryRequest */
     ImportTrajectoryRequest: {
@@ -7267,6 +7300,39 @@ export interface operations {
         };
         content: {
           'application/json': components['schemas']['Spectrum'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  import_text_api_io_import_text_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['ImportTextRequest'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['Structure'];
         };
       };
       /** @description Validation Error */

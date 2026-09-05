@@ -17,6 +17,8 @@ export default defineConfig({
   use: {
     baseURL: process.env['PLAYWRIGHT_BASE_URL'] ?? 'http://127.0.0.1:5173',
     headless: true,
+    // the clipboard test reads back what Copy wrote, which Chromium gates behind these
+    permissions: ['clipboard-read', 'clipboard-write'],
     launchOptions: { args: ['--use-gl=swiftshader', '--enable-unsafe-swiftshader'] },
   },
   reporter: [['list']],

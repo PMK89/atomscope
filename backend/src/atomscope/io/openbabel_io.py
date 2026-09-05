@@ -26,6 +26,23 @@ def read(path: Path, fmt: str) -> Structure:
     if not conv.ReadFile(mol, str(path)):
         msg = f"Open Babel could not read {path.name}"
         raise ValueError(msg)
+    return _from_obmol(mol, path.stem)
+
+
+def read_text(text: str, fmt: str, name: str = "pasted") -> Structure:
+    """Read a structure from text (a paste), not from a file."""
+    conv = ob.OBConversion()
+    if not conv.SetInFormat(fmt):
+        msg = f"Open Babel does not know format {fmt}"
+        raise ValueError(msg)
+    mol = ob.OBMol()
+    if not conv.ReadString(mol, text):
+        msg = f"Open Babel could not read the text as {fmt}"
+        raise ValueError(msg)
+    return _from_obmol(mol, name)
+
+
+def _from_obmol(mol: ob.OBMol, name: str) -> Structure:
     atoms = [
         Atom(
             element=_symbol(a.GetAtomicNum()),
@@ -43,14 +60,10 @@ def read(path: Path, fmt: str) -> Structure:
         )
         for b in ob.OBMolBondIter(mol)
     ]
-    return Structure(name=path.stem, atoms=atoms, bonds=bonds, charge=float(mol.GetTotalCharge()))
+    return Structure(name=name, atoms=atoms, bonds=bonds, charge=float(mol.GetTotalCharge()))
 
 
-def write(structure: Structure, path: Path, fmt: str) -> None:
-    conv = ob.OBConversion()
-    if not conv.SetOutFormat(fmt):
-        msg = f"Open Babel does not know format {fmt}"
-        raise ValueError(msg)
+def _to_obmol(structure: Structure) -> ob.OBMol:
     mol = ob.OBMol()
     for a in structure.atoms:
         oa = mol.NewAtom()
@@ -60,6 +73,24 @@ def write(structure: Structure, path: Path, fmt: str) -> None:
     for b in structure.bonds:
         mol.AddBond(b.a + 1, b.b + 1, b.order)
     mol.SetTitle(structure.name)
+    return mol
+
+
+def write(structure: Structure, path: Path, fmt: str) -> None:
+    conv = ob.OBConversion()
+    if not conv.SetOutFormat(fmt):
+        msg = f"Open Babel does not know format {fmt}"
+        raise ValueError(msg)
+    mol = _to_obmol(structure)
     if not conv.WriteFile(mol, str(path)):
         msg = f"Open Babel could not write {path.name}"
         raise ValueError(msg)
+
+
+def write_text(structure: Structure, fmt: str) -> str:
+    """Serialize to text (clipboard, previews) without going through a file."""
+    conv = ob.OBConversion()
+    if not conv.SetOutFormat(fmt):
+        msg = f"Open Babel does not know format {fmt}"
+        raise ValueError(msg)
+    return str(conv.WriteString(_to_obmol(structure)))

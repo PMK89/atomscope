@@ -178,12 +178,75 @@ def write_structure(structure: Structure, path: Path, fmt: str | None = None) ->
         raise FormatError(msg) from exc
 
 
+def sniff_text(text: str) -> str:
+    """Guess the format of pasted text, which arrives without a filename.
+
+    Only the formats a user is likely to paste are considered; anything else has to name its
+    format explicitly.
+    """
+    stripped = text.strip()
+    if not stripped:
+        msg = "nothing to read"
+        raise FormatError(msg)
+    lines = stripped.splitlines()
+    if "M  END" in text:
+        return "mol"
+    if lines[0].startswith("data_"):
+        return "cif"
+    if any(line.startswith(("ATOM  ", "HETATM")) for line in lines):
+        return "pdb"
+    if "<molecule" in text or "<cml" in text:
+        return "cml"
+    first = lines[0].split()
+    if len(first) == 1 and first[0].isdigit():
+        return "xyz"
+    if len(lines) == 1 and len(first) == 1:
+        return "smi"
+    msg = "cannot tell what format this text is"
+    raise FormatError(msg)
+
+
+def structure_from_string(text: str, fmt: str | None = None, *, perceive: bool = True) -> Structure:
+    """Read a structure from text (a paste or an editor buffer) instead of a file."""
+    info = _by_name(fmt or sniff_text(text))
+    if not info.can_read:
+        msg = f"format {info.name} is write-only"
+        raise FormatError(msg)
+    if info.library == "rdkit":
+        structure = rdkit_io.read_text(text, info.name)
+    elif info.library == "openbabel":
+        from atomscope.io import openbabel_io  # noqa: PLC0415 (optional dependency)
+
+        structure = openbabel_io.read_text(text, info.name)
+    else:
+        try:
+            atoms = ase.io.read(
+                _io.StringIO(text), format=_ASE_NAME.get(info.name, info.name), index=-1
+            )
+        except Exception as exc:
+            msg = f"ASE could not read the text as {info.name}: {exc}"
+            raise FormatError(msg) from exc
+        if isinstance(atoms, list):
+            atoms = atoms[-1]
+        structure = from_atoms(atoms, name="pasted")
+    if perceive and not structure.bonds and structure.n_atoms > 1:
+        structure.bonds = perceive_bonds(structure)
+    structure.provenance = Provenance(source="text", notes=f"read as {info.name}")
+    return structure
+
+
 def structure_to_string(structure: Structure, fmt: str) -> str:
     """Serialize to a text format (used for previews and clipboard)."""
     info = _by_name(fmt)
-    if info.library != "ase":
-        msg = "string export currently supports ASE formats only"
+    if not info.can_write:
+        msg = f"format {info.name} is read-only"
         raise FormatError(msg)
+    if info.library == "rdkit":
+        return rdkit_io.write_text(structure, info.name)
+    if info.library == "openbabel":
+        from atomscope.io import openbabel_io  # noqa: PLC0415 (optional dependency)
+
+        return openbabel_io.write_text(structure, info.name)
     buf = _io.StringIO()
     atoms = to_atoms(structure)
     if info.name == "xyz":
