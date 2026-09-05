@@ -45,6 +45,12 @@ export interface IsosurfaceMesh {
 
 const INITIAL_VERTEX_CAPACITY = 1024;
 
+/** Fine index of a point `t` of the way from coarse corner `a` to `b` along one axis. */
+function lerpIdx(ix: Int32Array, base: number, a: number, b: number, t: number): number {
+  const ia = ix[base + a]!;
+  return ia + t * (ix[base + b]! - ia);
+}
+
 function grow<T extends Float32Array | Uint32Array>(a: T): T {
   const out = new (a.constructor as new (n: number) => T)(a.length * 2);
   out.set(a);
@@ -190,13 +196,9 @@ export function marchingCubes(
     let t = vb === va ? 0.5 : (iso - va) / (vb - va);
     t = Math.min(1, Math.max(0, t));
     // index-space position (fine-grid units)
-    const lerpIdx = (ix: Int32Array, base: number, a: number, b: number): number => {
-      const ia = ix[base + a]!;
-      return ia + t * (ix[base + b]! - ia);
-    };
-    const pi = lerpIdx(idx0, I, A[0], B[0]);
-    const pj = lerpIdx(idx1, J, A[1], B[1]);
-    const pk = lerpIdx(idx2, K, A[2], B[2]);
+    const pi = lerpIdx(idx0, I, A[0], B[0], t);
+    const pj = lerpIdx(idx1, J, A[1], B[1], t);
+    const pk = lerpIdx(idx2, K, A[2], B[2], t);
     const [a0, a1, a2] = grid.axes;
     gradAt(I + A[0], J + A[1], K + A[2], ga);
     gradAt(I + B[0], J + B[1], K + B[2], gb);

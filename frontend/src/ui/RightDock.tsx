@@ -20,15 +20,9 @@ const panelId = (id: Tab): string => `dock-panel-${id}`;
 /** Tab strip for the right dock. Panels stay mounted (hidden) so form state survives switching. */
 export function RightDock({ onError }: { onError: (m: string) => void }): JSX.Element {
   const [tab, setTab] = useState<Tab>('calculation');
-  /** Wraps a panel so screen readers pair it with its tab; only the selected one is a tab stop. */
+  /** Wraps a panel so screen readers pair it with its tab. */
   const panel = (id: Tab, content: JSX.Element): JSX.Element => (
-    <div
-      role="tabpanel"
-      id={panelId(id)}
-      aria-labelledby={tabId(id)}
-      tabIndex={tab === id ? 0 : -1}
-      hidden={tab !== id}
-    >
+    <div role="tabpanel" id={panelId(id)} aria-labelledby={tabId(id)} hidden={tab !== id}>
       {content}
     </div>
   );
@@ -43,7 +37,6 @@ export function RightDock({ onError }: { onError: (m: string) => void }): JSX.El
             className={tab === t.id ? 'tab active' : 'tab'}
             aria-selected={tab === t.id}
             aria-controls={panelId(t.id)}
-            tabIndex={tab === t.id ? 0 : -1}
             onClick={() => setTab(t.id)}
           >
             {t.label}

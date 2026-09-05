@@ -70,11 +70,11 @@ test('dock tabs are associated with their panels', () => {
   const panel = document.getElementById(panelId!);
   expect(panel).toHaveAttribute('role', 'tabpanel');
   expect(panel).toHaveAttribute('aria-labelledby', tab.id);
-  // only the selected tab is a tab stop
-  expect(screen.getByRole('tab', { name: 'Calculation' })).toHaveAttribute('tabindex', '0');
-  expect(tab).toHaveAttribute('tabindex', '-1');
+  // every tab stays reachable with Tab; selection is reflected in aria-selected
+  expect(tab).not.toHaveAttribute('tabindex');
+  expect(tab).toHaveAttribute('aria-selected', 'false');
   fireEvent.click(tab);
-  expect(tab).toHaveAttribute('tabindex', '0');
+  expect(tab).toHaveAttribute('aria-selected', 'true');
 });
 
 test('the cartesian editor is a modal dialog that traps and restores focus', () => {
