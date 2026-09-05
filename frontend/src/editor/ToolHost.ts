@@ -58,6 +58,8 @@ export class ToolHost {
           useToolStore.getState().update('measure', { atoms: [] });
           useToolStore.getState().update('bondCentric', { bond: null });
         }
+        // the pickable geometry moved: the next pointer move must re-pick, however small it is
+        if (s.doc !== prev.doc) this.lastHoverPick = null;
         // undo/redo replaced the document the running gesture was editing
         if (s.historyRevision !== prev.historyRevision && this.dragging) this.abortGesture();
       }),

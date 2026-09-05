@@ -202,6 +202,11 @@ describe('host', () => {
     host.pointerMove(ev(x + 40, y));
     flushFrames();
     expect(picks()).toBe(2);
+    // a document change invalidates the last pick, so even a small move looks again
+    S().commit('move', { ...S().doc, name: 'moved' });
+    host.pointerMove(ev(x + 41, y));
+    flushFrames();
+    expect(picks()).toBe(3);
   });
   test('switching tools mid-drag cancels the preview', () => {
     useToolStore.getState().setActive('manipulate');
