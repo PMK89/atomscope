@@ -9,6 +9,7 @@ import { frameCell, framePositions, isTrajectoryCompatible } from '../model/traj
 import { installExtraLayers, syncExtraLayers } from './viewportLayers';
 import { BACKGROUND_HEX, useViewStore } from '../state/viewStore';
 import { atomColors } from '../renderer/atomColors';
+import { partialCharges } from '../renderer/labels';
 import { hiddenAtoms, styleArray } from '../renderer/atomStyles';
 import { useBioStore } from '../state/bioStore';
 import { useRendererStore } from '../state/rendererStore';
@@ -42,9 +43,23 @@ export function Viewport(): JSX.Element {
   const atomCount = doc.atoms.length;
   const residues = doc.residues;
   const scheme = view.colorScheme;
+  // only the scheme that reads them takes the positions or the charges, so the schemes that do
+  // not are still keyed on the residues alone and cost nothing during a drag
+  const colorAtoms = scheme === 'distance' ? doc.atoms : null;
+  const colorCharges = useMemo(() => {
+    if (scheme !== 'charge') return null;
+    const charges = partialCharges(doc);
+    return charges.length ? charges : null;
+  }, [scheme, doc]);
+  const custom = view.customColor;
   const atomColorOverride = useMemo(
-    () => atomColors(residues, atomCount, scheme, secondary),
-    [residues, atomCount, scheme, secondary],
+    () =>
+      atomColors(residues, atomCount, scheme, secondary, {
+        atoms: colorAtoms,
+        charges: colorCharges,
+        custom,
+      }),
+    [residues, atomCount, scheme, secondary, colorAtoms, colorCharges, custom],
   );
   // engine primitive scoping: uid-keyed in the store, resolved to one entry per atom here, and
   // stable while neither the atoms nor the assignment change (a new array rebuilds the meshes)

@@ -10,14 +10,26 @@ import type { SecondaryStructureData } from './layers/RibbonLayer';
 import { KIND_COLOR } from '../model/ribbon';
 import type { StructureDoc } from '../model/structure';
 
-export type ColorScheme = 'element' | 'residue' | 'chain' | 'secondary';
+export type ColorScheme =
+  'element' | 'residue' | 'chain' | 'secondary' | 'index' | 'distance' | 'charge' | 'custom';
 
 export const COLOR_SCHEMES: { id: ColorScheme; label: string }[] = [
   { id: 'element', label: 'Element' },
   { id: 'residue', label: 'Residue' },
   { id: 'chain', label: 'Chain' },
   { id: 'secondary', label: 'Secondary structure' },
+  { id: 'index', label: 'Atom index' },
+  { id: 'distance', label: 'Distance from the first atom' },
+  { id: 'charge', label: 'Partial charge' },
+  { id: 'custom', label: 'One colour' },
 ];
+
+/** Schemes that need residues; the others work on any molecule. */
+const NEEDS_RESIDUES: ReadonlySet<ColorScheme> = new Set<ColorScheme>([
+  'residue',
+  'chain',
+  'secondary',
+]);
 
 type RGB = [number, number, number];
 
@@ -66,6 +78,53 @@ export const CHAIN_COLORS: RGB[] = [
   [0.9, 0.4, 0.4],
 ];
 
+/**
+ * The rainbow Avogadro's index and distance colours sweep: red at 0 through green and blue to
+ * violet at 1. Hue only, so every colour in it is fully saturated and equally bright.
+ */
+export function rainbow(t: number): RGB {
+  const h = 300 * Math.min(1, Math.max(0, t));
+  const c = 1;
+  const x = 1 - Math.abs(((h / 60) % 2) - 1);
+  const rgb: RGB =
+    h < 60
+      ? [c, x, 0]
+      : h < 120
+        ? [x, c, 0]
+        : h < 180
+          ? [0, c, x]
+          : h < 240
+            ? [0, x, c]
+            : h < 300
+              ? [x, 0, c]
+              : [c, 0, x];
+  return rgb;
+}
+
+/**
+ * Avogadro's charge colours: red for negative, blue for positive, white at zero, scaled by the
+ * largest magnitude in the structure so a set of small charges is still readable.
+ */
+export function chargeColor(q: number, scale: number): RGB {
+  const t = scale > 0 ? Math.min(1, Math.abs(q) / scale) : 0;
+  return q < 0 ? [1, 1 - t, 1 - t] : [1 - t, 1 - t, 1];
+}
+
+/** `#rrggbb` (or `#rgb`) as an RGB triple in 0..1; unparseable text is grey rather than black. */
+export function parseHexColor(hex: string): RGB {
+  const text = hex.trim().replace(/^#/, '');
+  const full =
+    text.length === 3
+      ? text
+          .split('')
+          .map((c) => c + c)
+          .join('')
+      : text;
+  if (!/^[0-9a-fA-F]{6}$/.test(full)) return UNKNOWN_COLOR;
+  const n = parseInt(full, 16);
+  return [((n >> 16) & 255) / 255, ((n >> 8) & 255) / 255, (n & 255) / 255];
+}
+
 const write = (out: Float32Array, atom: number, c: RGB): void => {
   out[3 * atom] = c[0];
   out[3 * atom + 1] = c[1];
@@ -83,11 +142,51 @@ export function atomColors(
   atomCount: number,
   scheme: ColorScheme,
   secondary: SecondaryStructureData | null = null,
+  extra: {
+    /** the atoms, for `distance`; the caller passes them only when the scheme asks for them */
+    atoms?: StructureDoc['atoms'] | null;
+    /** partial charges, for `charge`; null when the structure carries none */
+    charges?: readonly number[] | null;
+    /** the colour of the `custom` scheme, as `#rrggbb` */
+    custom?: string;
+  } = {},
 ): Float32Array | null {
   if (scheme === 'element') return null;
-  if (residues.length === 0) return null;
+  if (NEEDS_RESIDUES.has(scheme) && residues.length === 0) return null;
+  if (scheme === 'charge' && !extra.charges?.length) return null;
+  if (scheme === 'distance' && !extra.atoms?.length) return null;
   const out = new Float32Array(atomCount * 3);
   for (let i = 0; i < atomCount; i++) write(out, i, UNKNOWN_COLOR);
+  if (scheme === 'custom') {
+    const c = parseHexColor(extra.custom ?? '');
+    for (let i = 0; i < atomCount; i++) write(out, i, c);
+    return out;
+  }
+  if (scheme === 'index') {
+    for (let i = 0; i < atomCount; i++)
+      write(out, i, rainbow(atomCount < 2 ? 0 : i / (atomCount - 1)));
+    return out;
+  }
+  if (scheme === 'distance') {
+    const atoms = extra.atoms!;
+    const first = atoms[0]!.position;
+    const d = (i: number): number => {
+      const p = atoms[i]?.position;
+      if (!p) return 0;
+      return Math.hypot(p[0]! - first[0]!, p[1]! - first[1]!, p[2]! - first[2]!);
+    };
+    let max = 0;
+    for (let i = 0; i < atomCount; i++) max = Math.max(max, d(i));
+    for (let i = 0; i < atomCount; i++) write(out, i, rainbow(max > 0 ? d(i) / max : 0));
+    return out;
+  }
+  if (scheme === 'charge') {
+    const charges = extra.charges!;
+    let scale = 0;
+    for (let i = 0; i < atomCount; i++) scale = Math.max(scale, Math.abs(charges[i] ?? 0));
+    for (let i = 0; i < atomCount; i++) write(out, i, chargeColor(charges[i] ?? 0, scale));
+    return out;
+  }
   if (scheme === 'residue') {
     for (const r of residues) {
       const c = RESIDUE_COLOR[r.name.trim().toUpperCase()] ?? UNKNOWN_COLOR;

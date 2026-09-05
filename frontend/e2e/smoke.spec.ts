@@ -503,3 +503,52 @@ test('display scope hides atoms and shows only the selection', async ({ page }) 
   await page.getByRole('button', { name: 'Show all' }).click();
   await expect.poll(drawn).toBeGreaterThan(all * 0.95);
 });
+
+test('atoms can be coloured by partial charge and by index', async ({ page }) => {
+  /** the mean colour of the drawn pixels, which says what the molecule is painted with */
+  const mean = (): Promise<[number, number, number]> =>
+    page.locator('.viewport-canvas canvas').evaluate((c: HTMLCanvasElement) => {
+      const gl = c.getContext('webgl2', {
+        preserveDrawingBuffer: true,
+      }) as WebGL2RenderingContext;
+      const w = gl.drawingBufferWidth;
+      const h = gl.drawingBufferHeight;
+      const px = new Uint8Array(w * h * 4);
+      gl.readPixels(0, 0, w, h, gl.RGBA, gl.UNSIGNED_BYTE, px);
+      let r = 0;
+      let g = 0;
+      let b = 0;
+      let n = 0;
+      for (let i = 0; i < px.length; i += 4) {
+        if (px[i]! > 240 && px[i + 1]! > 240 && px[i + 2]! > 240) continue;
+        r += px[i]!;
+        g += px[i + 1]!;
+        b += px[i + 2]!;
+        n++;
+      }
+      return n ? [r / n, g / n, b / n] : [0, 0, 0];
+    });
+
+  await page.goto('/');
+  await expect(page.locator('.app-statusbar')).toContainText('H2O');
+  await page.getByRole('tab', { name: 'Display' }).click();
+
+  // without charges the scheme says what is missing and the picture keeps its element colours
+  await page.getByLabel('Colour by').selectOption('charge');
+  await expect(page.getByText(/no partial charges/)).toBeVisible();
+  const elementColors = await mean();
+
+  await page.locator('button.menu-title', { hasText: 'Extensions' }).click();
+  await page.getByRole('menuitem', { name: 'Assign partial charges' }).click();
+  await expect(page.getByText(/no partial charges/)).toBeHidden();
+  // water: a negative oxygen (red) and two positive hydrogens (blue), so both ends are there
+  await expect.poll(mean).not.toEqual(elementColors);
+  await page.screenshot({ path: '../.scratch/dev/colour-by-charge.png' });
+
+  // one colour paints everything, and it is the one the panel says
+  await page.getByLabel('Colour by').selectOption('custom');
+  await page.locator('#display-custom-color').fill('#00ff00');
+  const [r, g, b] = await mean();
+  expect(g).toBeGreaterThan(r + 40);
+  expect(g).toBeGreaterThan(b + 40);
+});

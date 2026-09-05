@@ -98,7 +98,7 @@ test('ribbons can be switched on and given a rendering', () => {
   fireEvent.change(screen.getByLabelText('Rendering'), { target: { value: 'backbone' } });
   expect(useViewStore.getState().ribbonStyle).toBe('backbone');
   // a structure without residues says why nothing is drawn
-  expect(screen.getByText(/no residues/)).toBeInTheDocument();
+  expect(screen.getByText(/no residues, so it has no backbone/)).toBeInTheDocument();
 });
 
 test('the panel says when a setting has nothing to act on', () => {
@@ -133,4 +133,25 @@ test('display scope assigns a display type to the selection and hides the rest',
 
   fireEvent.click(screen.getByRole('button', { name: 'Show all' }));
   expect(styleArray(doc, useViewStore.getState().atomStyles)).toBeNull();
+});
+
+test('the colour schemes that need data say so, and one colour is chosen in the panel', () => {
+  useViewStore.setState({ colorScheme: 'element', customColor: '#4aa3ff' });
+  render(<DisplayPanel />);
+
+  // a plain molecule: no residues and no charges, and each scheme says what it is missing
+  fireEvent.change(screen.getByLabelText('Colour by'), { target: { value: 'chain' } });
+  expect(screen.getByText(/no residues, so its atoms keep/)).toBeInTheDocument();
+  fireEvent.change(screen.getByLabelText('Colour by'), { target: { value: 'charge' } });
+  expect(screen.getByText(/no partial charges/)).toBeInTheDocument();
+
+  // the index scheme needs nothing, so it says nothing
+  fireEvent.change(screen.getByLabelText('Colour by'), { target: { value: 'index' } });
+  expect(screen.queryByText(/no residues, so its atoms keep|no partial charges/)).toBeNull();
+
+  fireEvent.change(screen.getByLabelText('Colour by'), { target: { value: 'custom' } });
+  fireEvent.change(screen.getByLabelText('Colour', { selector: '#display-custom-color' }), {
+    target: { value: '#ff8000' },
+  });
+  expect(useViewStore.getState().customColor).toBe('#ff8000');
 });

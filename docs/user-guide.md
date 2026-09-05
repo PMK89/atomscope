@@ -483,8 +483,22 @@ selected atoms are tinted towards blue, hovered atoms towards yellow.
   rest pale), fetched from the same DSSP assignment the ribbons use, so it works
   with ribbons off.
 
-A structure without residues keeps its element colours whatever is chosen, and
-the panel says so. Double
+and four that do not need residues at all:
+
+* `Atom index` — the red-to-violet sweep Avogadro uses, first atom to last. It
+  is how one sees the order a file lists the atoms in.
+* `Distance from the first atom` — the same sweep, scaled to the farthest atom.
+* `Partial charge` — red for negative, blue for positive, white at zero, scaled
+  by the largest magnitude in the structure so a set of small charges is still
+  readable. The charges are the ones on the document: run
+  `Extensions ▸ Assign partial charges` (Open Babel: gasteiger, mmff94, qeq, eem
+  or qtpie) or take them from a calculation. The panel says so when there are
+  none.
+* `One colour` — everything in a colour chosen next to the list, for a figure
+  where the molecule is a shape rather than a set of elements.
+
+A structure without residues keeps its element colours under the three residue
+schemes, and the panel says so. Double
 and triple bonds are drawn as two or three parallel sticks in the plane of the
 molecule; structures built from SMILES are kekulized, so an aromatic ring shows
 alternating double bonds.

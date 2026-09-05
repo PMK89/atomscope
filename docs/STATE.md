@@ -1,8 +1,8 @@
 # Project state (resume here)
 
-Branch: main; this file is updated in the commit that checkpoints the work, so `git log -1 -- docs/STATE.md` is the last checkpoint. Phases 0-1 done; Phase 2 (editor tools), 3 (volumetric, trajectories, vectors), 4-5 (CP-PAW setup/execution/forces), 6 (CP-PAW analysis: DOS, bands, orbitals), crystallography, molecular mechanics and wavefunction surfaces are merged and working. Parity matrix: 167 IMPLEMENTED, 36 PARTIAL, 108 NOT STARTED, 1 BLOCKED of 312 rows.
+Branch: main; this file is updated in the commit that checkpoints the work, so `git log -1 -- docs/STATE.md` is the last checkpoint. Phases 0-1 done; Phase 2 (editor tools), 3 (volumetric, trajectories, vectors), 4-5 (CP-PAW setup/execution/forces), 6 (CP-PAW analysis: DOS, bands, orbitals), crystallography, molecular mechanics and wavefunction surfaces are merged and working. Parity matrix: 171 IMPLEMENTED, 36 PARTIAL, 104 NOT STARTED, 1 BLOCKED of 312 rows.
 
-Tests: `pytest -q -m "not cppaw"` -> 375 passed, 1 skipped; `pytest -q -m cppaw` -> 7 passed (~90 s, needs the local CP-PAW install); `pnpm vitest run` -> 365 passed; `pnpm exec playwright test` -> 22 passed (against private servers, see below; `make test-e2e` points at the user's 5173, which is stale). `ruff check`, `mypy` and `pnpm typecheck` are clean. No known failing tests. **Type-check the frontend with `pnpm typecheck` (`tsc -b --noEmit`), never with `pnpm exec tsc --noEmit`:** the root `tsconfig.json` is a solution file with `files: []`, so a bare `tsc --noEmit` checks nothing and exits 0.
+Tests: `pytest -q -m "not cppaw"` -> 375 passed, 1 skipped; `pytest -q -m cppaw` -> 7 passed (~90 s, needs the local CP-PAW install); `pnpm vitest run` -> 370 passed; `pnpm exec playwright test` -> 23 passed (against private servers, see below; `make test-e2e` points at the user's 5173, which is stale). `ruff check`, `mypy` and `pnpm typecheck` are clean. No known failing tests. **Type-check the frontend with `pnpm typecheck` (`tsc -b --noEmit`), never with `pnpm exec tsc --noEmit`:** the root `tsconfig.json` is a solution file with `files: []`, so a bare `tsc --noEmit` checks nothing and exits 0.
 
 ## Resume commands
 
@@ -49,7 +49,8 @@ run against current code -- Playwright above all -- use the private-server recip
   chain and secondary-structure colour schemes with `Select residues…`/`Select solvent`; the
   Settings dialog (quality, depth cueing, projection, background, backend list); Display scope
   (a display type per atom, keyed by uid, with hidden atoms dropped from the meshes, the labels
-  and the picking). Fixes found on the way: Optimize geometry sent valueless force-field
+  and the picking); the colour maps Avogadro carries as colour plugins -- atom index, distance
+  from the first atom, partial charge and a single custom colour. Fixes found on the way: Optimize geometry sent valueless force-field
   constraints and was rejected with a 422; `add_hydrogens` dropped every residue of a PDB
   structure; `tsc --noEmit` at the repository root checks nothing (the real check is
   `pnpm typecheck`), which had hidden 37 type errors; depth cueing haloed a transparent image

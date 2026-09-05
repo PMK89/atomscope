@@ -12,6 +12,9 @@ export interface ViewState {
   /** What decides an atom's colour: its element, or what it is part of. */
   colorScheme: ColorScheme;
   setColorScheme: (scheme: ColorScheme) => void;
+  /** The single colour of the `custom` colour scheme, as `#rrggbb`. */
+  customColor: string;
+  setCustomColor: (hex: string) => void;
   projection: Projection;
   showHydrogens: boolean;
   background: 'white' | 'black' | 'gray';
@@ -91,6 +94,8 @@ export const useViewStore = create<ViewState>((set) => ({
   style: 'ball-and-stick',
   colorScheme: 'element',
   setColorScheme: (colorScheme) => set({ colorScheme }),
+  customColor: '#4aa3ff',
+  setCustomColor: (customColor) => set({ customColor }),
   quality: 'auto',
   fog: false,
   setQuality: (quality) => set({ quality }),

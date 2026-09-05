@@ -11,6 +11,7 @@ import { useState } from 'react';
 import type { RibbonStyle } from '../model/ribbon';
 import { ATOM_LABEL_OPTIONS, BOND_LABEL_OPTIONS } from '../renderer/labels';
 import { COLOR_SCHEMES, type ColorScheme } from '../renderer/atomColors';
+import { partialCharges } from '../renderer/labels';
 import { assignStyle, assignmentCounts, displayOnly, NO_STYLES } from '../renderer/atomStyles';
 import { useSelectionStore } from '../state/selectionStore';
 import { useBioStore } from '../state/bioStore';
@@ -18,6 +19,9 @@ import { useRendererStore } from '../state/rendererStore';
 import type { StructureStyle } from '../renderer/layers/StructureLayer';
 import { useStructureStore } from '../state/structureStore';
 import { useViewStore } from '../state/viewStore';
+
+/** The schemes that have nothing to say about a molecule without residues. */
+const RESIDUE_SCHEMES = new Set<ColorScheme>(['residue', 'chain', 'secondary']);
 
 const STYLES: { id: StructureStyle; label: string }[] = [
   { id: 'ball-and-stick', label: 'Ball and stick' },
@@ -162,10 +166,27 @@ export function DisplayPanel(): JSX.Element {
           ))}
         </select>
       </div>
-      {view.colorScheme !== 'element' && doc.residues.length === 0 && (
+      {RESIDUE_SCHEMES.has(view.colorScheme) && doc.residues.length === 0 && (
         <p className="muted">
           This structure has no residues, so its atoms keep their element colours.
         </p>
+      )}
+      {view.colorScheme === 'charge' && partialCharges(doc).length === 0 && (
+        <p className="muted">
+          This structure carries no partial charges, so its atoms keep their element colours. Run
+          Extensions ▸ Assign partial charges first.
+        </p>
+      )}
+      {view.colorScheme === 'custom' && (
+        <div className="form-row">
+          <label htmlFor="display-custom-color">Colour</label>
+          <input
+            id="display-custom-color"
+            type="color"
+            value={view.customColor}
+            onChange={(e) => view.setCustomColor(e.target.value)}
+          />
+        </div>
       )}
       <div className="form-row">
         <label htmlFor="display-atom-scale">Atom radius</label>
