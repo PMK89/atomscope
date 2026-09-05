@@ -157,8 +157,22 @@ def _fmt(v: Scalar) -> str:
     if isinstance(v, int):
         return str(v)
     if isinstance(v, float):
-        return repr(float(v)) if abs(v) < 1e15 else f"{v:.10E}"
+        return _fmt_float(v)
     return f"'{v}'"
+
+
+def _fmt_float(v: float) -> str:
+    """Fortran-friendly float: always a decimal point, uppercase exponent (``1e-05`` is rejected
+    by CP-PAW's reader with 'CORRUPTED DATA FIELD ON INPUT')."""
+    text = repr(float(v))
+    if "e" in text:
+        mantissa, exp = text.split("e")
+        if "." not in mantissa:
+            mantissa += ".0"
+        return f"{mantissa}E{exp}"
+    if "." not in text and text not in ("inf", "-inf", "nan"):
+        text += ".0"
+    return text
 
 
 def _fmt_value(v: Value) -> str:

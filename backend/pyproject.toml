@@ -50,6 +50,7 @@ packages = ["src/atomscope"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 asyncio_mode = "auto"
+markers = ["cppaw: runs the real CP-PAW executable (slow; skipped when unavailable)"]
 
 [tool.ruff]
 line-length = 100

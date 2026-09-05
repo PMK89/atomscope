@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import contextlib
+import json
 from pathlib import Path
 
 from atomscope.backends.base import GeneratedInputs, Resources, ResultBundle
@@ -115,6 +116,10 @@ class CalculationService:
         input_dir = self._dir(calc.id) / "input"
         for f in generated.files:
             (input_dir / f.name).write_text(f.text, encoding="utf-8")
+        # Plugins may need the merged values at run/parse time (e.g. which analysis files exist).
+        (input_dir / "values.json").write_text(
+            json.dumps(calc.values, indent=2, sort_keys=True, default=str) + "\n", encoding="utf-8"
+        )
         calc.generated = generated
         calc.status = "ready"
         self.save(calc)

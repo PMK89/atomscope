@@ -74,3 +74,16 @@ def test_programmatic_build() -> None:
     ctl.ensure_child("GENERIC").set("NSTEP", 10)
     ctl.ensure_child("GENERIC").set("nstep", 20)  # case-insensitive overwrite
     assert format_deck(root) == "!CONTROL\n  !GENERIC NSTEP=20 !END\n!END\n!EOB\n"
+
+
+def test_floats_are_fortran_friendly() -> None:
+    root = Block("__ROOT__")
+    g = Block("GENERIC")
+    root.children.append(g)
+    g.set("ETOL", 1e-5)
+    g.set("DT", 5.0)
+    g.set("BIG", 1.5e20)
+    text = format_deck(root)
+    assert "ETOL=1.0E-05" in text and "DT=5.0" in text and "BIG=1.5E+20" in text
+    back = parse_deck(text).child("GENERIC")
+    assert back.get("ETOL") == 1e-5 and back.get("BIG") == 1.5e20
