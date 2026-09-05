@@ -2,7 +2,7 @@
 
 Branch: main; this file is updated in the commit that checkpoints the work, so `git log -1 -- docs/STATE.md` is the last checkpoint. Phases 0-1 done; Phase 2 (editor tools), 3 (volumetric, trajectories, vectors), 4-5 (CP-PAW setup/execution/forces), 6 (CP-PAW analysis: DOS, bands, orbitals), crystallography, molecular mechanics and wavefunction surfaces are merged and working. Parity matrix: 165 IMPLEMENTED, 36 PARTIAL, 110 NOT STARTED, 1 BLOCKED of 312 rows.
 
-Tests: `pytest -q -m "not cppaw"` -> 374 passed, 1 skipped; `pytest -q -m cppaw` -> 7 passed (~90 s, needs the local CP-PAW install); `pnpm vitest run` -> 351 passed; `pnpm exec playwright test` -> 20 passed (against private servers, see below; `make test-e2e` points at the user's 5173, which is stale). `ruff check`, `mypy` and `pnpm typecheck` are clean. No known failing tests. **Type-check the frontend with `pnpm typecheck` (`tsc -b --noEmit`), never with `pnpm exec tsc --noEmit`:** the root `tsconfig.json` is a solution file with `files: []`, so a bare `tsc --noEmit` checks nothing and exits 0.
+Tests: `pytest -q -m "not cppaw"` -> 375 passed, 1 skipped; `pytest -q -m cppaw` -> 7 passed (~90 s, needs the local CP-PAW install); `pnpm vitest run` -> 351 passed; `pnpm exec playwright test` -> 20 passed (against private servers, see below; `make test-e2e` points at the user's 5173, which is stale). `ruff check`, `mypy` and `pnpm typecheck` are clean. No known failing tests. **Type-check the frontend with `pnpm typecheck` (`tsc -b --noEmit`), never with `pnpm exec tsc --noEmit`:** the root `tsconfig.json` is a solution file with `files: []`, so a bare `tsc --noEmit` checks nothing and exits 0.
 
 ## Resume commands
 
@@ -73,6 +73,9 @@ make dev-backend   # 127.0.0.1:8765 ; make dev-frontend -> 127.0.0.1:5173
      is O(N^2) around the fixed helper. All measured, all in `docs/performance.md`.
    - The orbit frame rates in `docs/performance.md` predate the tessellation fix; re-running
      `make test-perf` needs a backend and a frontend dev server of one's own, not the user's.
+   - Colouring by secondary structure (like the ribbons) asks the backend for a new DSSP
+     assignment on every document revision, so a run of the auto-optimizer costs one DSSP request
+     per round next to the optimize-step. Debounce `bioStore.load` if that ever bites.
    - CP-PAW's STRC writer takes only fixed atoms and fixed bond lengths from the constraint list;
      `fix_angle`, `fix_dihedral` and `ignore_atoms` are silently skipped there, and an ignored
      atom has no ASE meaning either (it is an Open Babel notion). Open Babel treats a torsion

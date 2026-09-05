@@ -467,8 +467,8 @@ selected atoms are tinted towards blue, hovered atoms towards yellow.
 **Colour by** replaces the element colours with what an atom is *part of*:
 
 * `Residue` — the RasMol amino-acid colours Avogadro uses (acidic red, basic
-  blue, hydrophobic dark, polar orange or cyan…), with the four bases coloured
-  too. A residue name the table does not know is grey, so it is visible as
+  blue, aliphatic green, aromatic indigo, polar orange or cyan…), with the four
+  bases coloured too. A residue name the table does not know is grey, so it is visible as
   unknown.
 * `Chain` — a fixed cycle of eight colours in the order the chains appear.
 * `Secondary structure` — the cartoon colours (helices red, strands yellow, the

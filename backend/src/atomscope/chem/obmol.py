@@ -17,7 +17,7 @@ import numpy as np
 from openbabel import openbabel as ob
 from rdkit import Chem
 
-from atomscope.model import Atom, Bond, Structure
+from atomscope.model import Atom, Bond, Residue, Structure
 from atomscope.model.common import Vec3
 
 OB_LOCK = threading.RLock()
@@ -133,6 +133,10 @@ def from_obmol(mol: ob.OBMol, template: Structure) -> Structure:
     ]
     bonds.sort(key=lambda b: b.key())
     same_count = len(atoms) == len(template.atoms)
+    # Open Babel appends new atoms, so the template's indices still mean what they meant: the
+    # residues and constraints survive, and a new hydrogen joins the residue of its heavy atom.
+    appended = len(atoms) > len(template.atoms)
+    residues = template.residues if same_count else _extended_residues(template, len(atoms), bonds)
     return Structure(
         id=template.id,
         name=template.name,
@@ -144,7 +148,32 @@ def from_obmol(mol: ob.OBMol, template: Structure) -> Structure:
         atomic_scalars=template.atomic_scalars if same_count else {},
         atomic_vectors=template.atomic_vectors if same_count else {},
         properties=template.properties,
-        constraints=template.constraints if same_count else [],
-        residues=template.residues if same_count else [],
+        constraints=template.constraints if same_count or appended else [],
+        residues=residues,
         provenance=template.provenance,
     )
+
+
+def _extended_residues(template: Structure, n_atoms: int, bonds: list[Bond]) -> list[Residue]:
+    """The template's residues with the appended atoms added to the residue they are bonded to.
+
+    Adding hydrogens to a PDB structure would otherwise drop every residue, which takes the
+    ribbons, the residue labels, residue selection and residue colours with it.
+    """
+    n = len(template.atoms)
+    if n_atoms < n or not template.residues:
+        return [] if n_atoms != n else list(template.residues)
+    residue_of = [-1] * n
+    for r, res in enumerate(template.residues):
+        for i in res.atom_indices:
+            if 0 <= i < n:
+                residue_of[i] = r
+    extra: dict[int, list[int]] = {}
+    for b in bonds:
+        for new, old in ((b.a, b.b), (b.b, b.a)):
+            if new >= n > old >= 0 and residue_of[old] >= 0:
+                extra.setdefault(residue_of[old], []).append(new)
+    return [
+        res.model_copy(update={"atom_indices": sorted({*res.atom_indices, *extra.get(r, [])})})
+        for r, res in enumerate(template.residues)
+    ]

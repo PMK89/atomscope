@@ -29,6 +29,10 @@ test('residues take the RasMol colours, and an unknown one is grey', () => {
   expect(rgb(c, 0)).toEqual(RESIDUE_COLOR['LYS']);
   expect(rgb(c, 2)).toEqual(RESIDUE_COLOR['GLY']);
   expect(rgb(c, 3)).toEqual(UNKNOWN_COLOR);
+  // the aliphatic residues are RasMol's green (15, 130, 15), not black
+  expect(RESIDUE_COLOR['LEU']).toEqual([0.06, 0.51, 0.06]);
+  expect(RESIDUE_COLOR['VAL']).toEqual(RESIDUE_COLOR['LEU']);
+  expect(RESIDUE_COLOR['ILE']).toEqual(RESIDUE_COLOR['LEU']);
 });
 
 test('chains take the cycle in the order they appear', () => {

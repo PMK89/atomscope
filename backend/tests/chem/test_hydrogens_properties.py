@@ -1,9 +1,12 @@
+from pathlib import Path
+
 import numpy as np
 import pytest
 from rdkit import Chem
 
 from atomscope.chem import edits, hydrogens, properties
 from atomscope.io.rdkit_io import from_smiles, structure_to_mol
+from atomscope.io.registry import structure_from_string
 from atomscope.model import (
     Atom,
     Bond,
@@ -195,3 +198,21 @@ def test_removing_atoms_reindexes_or_drops_every_constraint_kind() -> None:
         FixBondLength(a=0, b=1, value=1.5),
         FixAngle(a=0, b=1, c=2),
     ]
+
+
+def test_added_hydrogens_join_the_residue_of_their_heavy_atom() -> None:
+    """A PDB structure keeps its residues through Add hydrogens, or the ribbons vanish with them."""
+    text = (Path(__file__).resolve().parents[1] / "fixtures" / "bio" / "1crn.pdb").read_text()
+    s = structure_from_string(text, "pdb")
+    assert len(s.residues) == 46
+
+    full = hydrogens.add_hydrogens(s)
+    assert full.n_atoms > s.n_atoms
+    assert len(full.residues) == 46
+    covered = {i for r in full.residues for i in r.atom_indices}
+    assert covered == set(range(full.n_atoms))
+    # every hydrogen sits in the residue of the atom it is bonded to
+    residue_of = {i: r for r, res in enumerate(full.residues) for i in res.atom_indices}
+    for b in full.bonds:
+        if full.atoms[b.a].element == "H" or full.atoms[b.b].element == "H":
+            assert residue_of[b.a] == residue_of[b.b]

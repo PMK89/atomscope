@@ -28,6 +28,9 @@
   which had hidden 37 errors (`normalizeStructure` demanding fields it fills in itself, spectrum
   requests missing fields the generated types require, a vibration trajectory without its
   `structureId`, unchecked tuple indexing in the cell-extent maths, several test casts).
+- Adding hydrogens to a PDB structure no longer drops its residues: a new hydrogen joins the
+  residue of the heavy atom it is bonded to, so the ribbons, residue labels, residue selection and
+  residue colours survive `Add hydrogens`.
 - Residue-aware selection and colouring: `Select ▸ Select residues…` (names, numbers, ranges,
   chain-qualified) and `Select ▸ Select solvent`, and a `Colour by` on the Display tab with
   residue (RasMol amino colours), chain and secondary-structure schemes.
