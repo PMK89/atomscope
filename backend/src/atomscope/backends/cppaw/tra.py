@@ -5,7 +5,10 @@ Fortran sequential unformatted records (``paw_iotra.f90``): each record is
 ``int32 ISTEP, float64 TIME (a.u.), int32 NSIZE, float64 ARRAY[NSIZE]`` wrapped in 4-byte
 record markers. ``_r.tra`` holds NSIZE = 9 + 8·NAT doubles: lattice (9, column-major, Bohr),
 positions (3·NAT, Bohr), point charges (NAT), then (q, mx, my, mz) per atom. Files are opened
-in APPEND mode by CP-PAW, so several runs may be concatenated; ISTEP restarts at 1 per run.
+in APPEND mode by CP-PAW, so several runs may be concatenated. ISTEP is the step counter NFI,
+which restarts at 1 for ``START=T`` runs but continues for ``START=F`` continuations, so an
+ISTEP decrease marks a new *from-scratch* run; continuation stages in the same directory form
+one continuous trajectory. Atomscope runs every calculation in a fresh directory.
 """
 
 from __future__ import annotations

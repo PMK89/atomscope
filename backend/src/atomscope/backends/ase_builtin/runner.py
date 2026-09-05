@@ -18,7 +18,7 @@ from ase.calculators.lj import LennardJones
 from ase.calculators.morse import MorsePotential
 from ase.md.langevin import Langevin
 from ase.md.velocitydistribution import MaxwellBoltzmannDistribution
-from ase.optimize import BFGS
+from ase.optimize import BFGS, FIRE, LBFGS
 
 from atomscope.ase_bridge import from_atoms, to_atoms
 from atomscope.backends.base import ResultBundle, ScalarSeries
@@ -32,7 +32,7 @@ def _v3(v: Any) -> Vec3:
     return (float(v[0]), float(v[1]), float(v[2]))
 
 
-def make_calculator(p: dict[str, Any]) -> Any:
+def make_calculator(p: dict[str, Any], work: Path) -> Any:
     match p["calculator"]:
         case "emt":
             return EMT()
@@ -40,6 +40,21 @@ def make_calculator(p: dict[str, Any]) -> Any:
             return LennardJones(epsilon=p["lj_epsilon"], sigma=p["lj_sigma"], rc=p["lj_rc"])
         case "morse":
             return MorsePotential()
+        case "cppaw":
+            from atomscope.ase_bridge.cppaw_calculator import CppawCalculator  # noqa: PLC0415
+
+            return CppawCalculator(
+                work / "cppaw",
+                values={
+                    "epwpsi": p.get("cppaw_epwpsi", 30.0),
+                    "nstep": p.get("cppaw_nstep", 400),
+                    "kpoint_r": p.get("cppaw_kpoint_r", 12.0),
+                    "empty_bands": p.get("cppaw_empty_bands", 4),
+                    "spin_polarized": p.get("cppaw_spin_polarized", False),
+                    "box_margin": p.get("cppaw_box_margin", 4.0),
+                },
+                keep_history=False,
+            )
     msg = f"unknown calculator {p['calculator']}"
     raise ValueError(msg)
 
@@ -66,7 +81,7 @@ def main(argv: list[str]) -> int:  # noqa: PLR0915
     structure = Structure.model_validate(payload["structure"])
     p = payload["parameters"]
     atoms = to_atoms(structure)
-    atoms.calc = make_calculator(p)
+    atoms.calc = make_calculator(p, work)
     log = (work / "progress.log").open("w", buffering=1)
     traj = Trajectory(
         id="traj",
@@ -83,7 +98,8 @@ def main(argv: list[str]) -> int:  # noqa: PLR0915
 
     if p["task"] == "relax":
         traj.kind = "optimization"
-        opt = BFGS(atoms, logfile=None)
+        opt_cls = {"bfgs": BFGS, "lbfgs": LBFGS, "fire": FIRE}[p.get("optimizer", "bfgs")]
+        opt = opt_cls(atoms, logfile=None)
         step = 0
 
         def record() -> None:

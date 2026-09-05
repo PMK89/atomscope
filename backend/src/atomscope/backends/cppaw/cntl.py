@@ -173,7 +173,9 @@ def wcntl_text(
     wave_file: str,
     cube_file: str,
     origin_bohr: tuple[float, float, float],
-    box_bohr: tuple[float, float, float],
+    box_bohr: tuple[
+        tuple[float, float, float], tuple[float, float, float], tuple[float, float, float]
+    ],
 ) -> str:
     """Control file for ``paw_wave.x``: view box in Bohr, cube output; the large DX file is
     suppressed."""
@@ -196,5 +198,5 @@ def wcntl_text(
         files.children.append(f)
     vb = w.ensure_child("VIEWBOX")
     vb.set("O", list(origin_bohr))
-    vb.set("T", [box_bohr[0], 0.0, 0.0, 0.0, box_bohr[1], 0.0, 0.0, 0.0, box_bohr[2]])
+    vb.set("T", [float(x) for row in box_bohr for x in row])  # three edge vectors
     return format_deck(root)

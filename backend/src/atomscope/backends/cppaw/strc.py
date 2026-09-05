@@ -32,6 +32,11 @@ def atom_name(symbol: str, index: int) -> str:
     return f"{species_name(symbol)}{index + 1}"
 
 
+def setup_id(symbol: str, setup_type: str) -> str:
+    """Internal setup identifier ``<SYMBOL>_<type>`` (element symbol without padding)."""
+    return f"{symbol.upper()}_{setup_type}"
+
+
 def default_npro(symbol: str) -> list[int]:
     z = atomic_numbers[symbol]
     return [1, 1] if z <= 2 else [2, 2, 1]
@@ -145,7 +150,8 @@ def build_strc(structure: Structure, opts: StrcOptions) -> Block:
         seen.append(sym)
         sp = Block("SPECIES")
         sp.set("NAME", species_name(sym))
-        sp.set("ID", f"{species_name(sym)}_{opts.setup_type}")
+        # CP-PAW splits the ID at the FIRST underscore: 'O_.75_6.0' -> element O, type .75_6.0
+        sp.set("ID", setup_id(sym, opts.setup_type))
         if sym == "H" and opts.hydrogen_mass > 0:
             sp.set("M", opts.hydrogen_mass)
         sp.set("NPRO", list(overrides.get(sym, default_npro(sym))))
@@ -155,7 +161,7 @@ def build_strc(structure: Structure, opts: StrcOptions) -> Block:
     if not seen:  # CP-PAW insists on at least one species
         sp = Block("SPECIES")
         sp.set("NAME", "H_")
-        sp.set("ID", f"H__{opts.setup_type}")
+        sp.set("ID", setup_id("H", opts.setup_type))
         sp.set("NPRO", [1, 1])
         strc.children.append(sp)
 

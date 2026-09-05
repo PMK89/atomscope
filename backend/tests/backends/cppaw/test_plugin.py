@@ -1,4 +1,4 @@
-# ruff: noqa: E501
+# ruff: noqa: E501, PLC0415
 import json
 from pathlib import Path
 
@@ -115,3 +115,15 @@ def test_run_spec_probes_runtime(tmp_path: Path) -> None:
     if p.settings.library_path:
         assert spec.env["LD_LIBRARY_PATH"] == p.settings.library_path
     assert p.restart_files(gen) == ["case.rstrt"]
+
+
+def test_runner_requires_program_finished(tmp_path: Path) -> None:
+    from atomscope.backends.cppaw.runner import ROOT_RE, protocol_finished
+
+    prot = tmp_path / "case.prot"
+    assert not protocol_finished(prot)
+    prot.write_text("PROGRAM STARTED\n...\nPROGRAM FINISHED\nPROGRAM STARTED\nincomplete\n")
+    assert not protocol_finished(prot)
+    prot.write_text("PROGRAM STARTED\nPROGRAM FINISHED\n")
+    assert protocol_finished(prot)
+    assert ROOT_RE.match("case") and not ROOT_RE.match("../case") and not ROOT_RE.match("a/b")

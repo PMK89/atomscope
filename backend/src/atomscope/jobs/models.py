@@ -26,6 +26,10 @@ class RunSpec(StrictModel):
         default_factory=list, description="files (relative to cwd) whose growth is streamed"
     )
     description: str = ""
+    soft_stop_seconds: float = Field(
+        default=5.0,
+        description="time given to the process itself (SIGTERM to its PID) before the whole group is signalled",
+    )
 
 
 class JobRecord(StrictModel):

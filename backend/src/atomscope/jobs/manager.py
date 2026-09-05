@@ -95,13 +95,20 @@ class JobManager:
         self._cancel_requested.add(job_id)
         proc = self._procs.get(job_id)
         if proc is not None and proc.returncode is None:
+            # 1. ask the direct child to stop (drivers translate this into a soft stop)
             with contextlib.suppress(ProcessLookupError):
-                os.killpg(proc.pid, signal.SIGTERM)
+                proc.send_signal(signal.SIGTERM)
             try:
-                await asyncio.wait_for(proc.wait(), timeout=self._grace)
+                await asyncio.wait_for(proc.wait(), timeout=record.spec.soft_stop_seconds)
             except TimeoutError:
+                # 2. then the whole process group, 3. finally SIGKILL after the grace period
                 with contextlib.suppress(ProcessLookupError):
-                    os.killpg(proc.pid, signal.SIGKILL)
+                    os.killpg(proc.pid, signal.SIGTERM)
+                try:
+                    await asyncio.wait_for(proc.wait(), timeout=self._grace)
+                except TimeoutError:
+                    with contextlib.suppress(ProcessLookupError):
+                        os.killpg(proc.pid, signal.SIGKILL)
         task = self._tasks.get(job_id)
         if task is not None:
             await task

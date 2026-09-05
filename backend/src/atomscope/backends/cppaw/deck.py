@@ -46,6 +46,7 @@ class Block:
     name: str
     keys: dict[str, Value] = field(default_factory=dict)
     children: list[Block] = field(default_factory=list)
+    duplicate_keys: list[str] = field(default_factory=list, compare=False)
 
     # ---- queries -------------------------------------------------------------------------
     def child(self, name: str) -> Block | None:
@@ -120,7 +121,11 @@ def parse_deck(text: str) -> Block:
         nonlocal current_key, pending
         if current_key is not None:
             block = stack[-1]
-            block.keys[current_key] = pending[0] if len(pending) == 1 else list(pending)
+            # CP-PAW recognizes only the FIRST occurrence of a repeated key (manual l.426-432).
+            if any(k.upper() == current_key.upper() for k in block.keys):
+                block.duplicate_keys.append(current_key)
+            else:
+                block.keys[current_key] = pending[0] if len(pending) == 1 else list(pending)
         current_key = None
         pending = []
 

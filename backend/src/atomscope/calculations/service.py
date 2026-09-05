@@ -46,7 +46,11 @@ class CalculationService:
             ):
                 try:
                     results = self.collect_results(calc.id)
-                    complete = results.final_structure is not None and bool(results.properties)
+                    complete = (
+                        results.final_structure is not None
+                        and bool(results.properties)
+                        and results.complete is not False
+                    )
                 except Exception:  # noqa: BLE001
                     complete = False
                 current = self.get(calc.id)
@@ -170,6 +174,10 @@ class CalculationService:
         parent = self.get(calc_id)
         plugin = self.registry.get(parent.backend_id)
         merged = merge_values(plugin.schema(), parent.values, values or {})
+        if restart_from_parent:
+            restart_values = getattr(plugin, "restart_values", None)
+            if callable(restart_values):
+                merged = restart_values(merged)
         base_structure = structure or self.input_structure(parent)
         child = self.create(
             name=name or f"{parent.name} (fork)",

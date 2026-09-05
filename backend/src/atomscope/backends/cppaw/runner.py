@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import argparse
 import os
+import re
 import signal
 import subprocess
 import sys
@@ -26,6 +27,15 @@ from pathlib import Path
 from atomscope.backends.cppaw.cntl import wcntl_text
 
 SOFT_STOP_GRACE = 90.0
+ROOT_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$")
+
+
+def protocol_finished(prot: Path) -> bool:
+    """CP-PAW's own completion marker: the last run in the (append-mode) protocol ended normally."""
+    if not prot.is_file():
+        return False
+    text = prot.read_text(errors="replace")
+    return "PROGRAM FINISHED" in text.rsplit("PROGRAM STARTED", 1)[-1]
 
 
 def main(argv: list[str]) -> int:  # noqa: PLR0915
@@ -39,8 +49,16 @@ def main(argv: list[str]) -> int:  # noqa: PLR0915
         "--box", nargs=6, type=float, default=None, help="origin and box lengths in Bohr"
     )
     args = ap.parse_args(argv[1:])
-    work = Path(args.work_dir)
+    work = Path(args.work_dir).resolve()
     root = args.root
+    if not ROOT_RE.match(root):
+        print(f"[atomscope] invalid root name {root!r}", flush=True)
+        return 2
+    for spec in args.cube:
+        _, _, wave_file = spec.partition("=")
+        if not ROOT_RE.match(Path(wave_file).stem) or "/" in wave_file:
+            print(f"[atomscope] invalid wave file name {wave_file!r}", flush=True)
+            return 2
     os.chdir(work)
 
     exit_file = work / f"{root}.exit"
@@ -78,7 +96,9 @@ def main(argv: list[str]) -> int:  # noqa: PLR0915
         return code
 
     if args.wave and args.cube and args.box:
-        ox, oy, oz, lx, ly, lz = args.box
+        b = args.box
+        origin = (b[0], b[1], b[2])
+        vectors = ((b[3], b[4], b[5]), (b[6], b[7], b[8]), (b[9], b[10], b[11]))
         for spec in args.cube:
             kind, _, wave_file = spec.partition("=")
             if not (work / wave_file).exists():
@@ -87,7 +107,7 @@ def main(argv: list[str]) -> int:  # noqa: PLR0915
             stem = Path(wave_file).stem
             cube_file = f"{stem}.cub"
             wcntl = work / f"{stem}.wcntl"
-            wcntl.write_text(wcntl_text(root, wave_file, cube_file, (ox, oy, oz), (lx, ly, lz)))
+            wcntl.write_text(wcntl_text(root, wave_file, cube_file, origin, vectors))
             print(f"[atomscope] paw_wave.x {wcntl.name} -> {cube_file}", flush=True)
             with (work / f"{stem}.wave.out").open("wb") as wout:
                 rc = subprocess.call([args.wave, wcntl.name], stdout=wout, stderr=subprocess.STDOUT)  # noqa: S603

@@ -1,4 +1,4 @@
-# ruff: noqa: E501
+# ruff: noqa: E501, PLC0415
 from pathlib import Path
 
 import numpy as np
@@ -45,7 +45,7 @@ def test_molecule_strc() -> None:
     assert occ.get("CHARGE") == -1.0 and occ.get("NSPIN") == 2 and occ.get("SPIN") == 0.5
     species = strc.children_named("SPECIES")
     assert [sp.get("NAME") for sp in species] == ["O_", "H_"]
-    assert species[0].get("ID") == "O__.75_6.0" and species[1].get("NPRO") == [1, 1]
+    assert species[0].get("ID") == "O_.75_6.0" and species[1].get("NPRO") == [1, 1]
     atoms = strc.children_named("ATOM")
     assert [a.get("NAME") for a in atoms] == ["O_1", "H_2", "H_3"]
     cons = strc.child("CONSTRAINTS")
@@ -138,3 +138,27 @@ def test_generation_is_deterministic() -> None:
     s = from_atoms(molecule("CH4"))
     assert strc_text(s, StrcOptions()) == strc_text(s, StrcOptions())
     assert cntl_text("case", {}) == cntl_text("case", {})
+
+
+def test_setup_ids_split_at_first_underscore() -> None:
+    from atomscope.backends.cppaw.strc import setup_id
+
+    assert setup_id("O", ".75_6.0") == "O_.75_6.0"
+    assert setup_id("Si", ".75_6.0") == "SI_.75_6.0"
+    assert setup_id("H", "NDLSS_V0") == "H_NDLSS_V0"
+
+
+def test_wcntl_uses_full_cell_vectors() -> None:
+    from atomscope.backends.cppaw.cntl import wcntl_text
+
+    text = wcntl_text(
+        "case",
+        "w.wv",
+        "w.cub",
+        (0.0, 0.0, 0.0),
+        ((0.0, 5.0, 5.0), (5.0, 0.0, 5.0), (5.0, 5.0, 0.0)),
+    )
+    vb = parse_deck(text).path("WCNTL", "VIEWBOX")
+    assert vb.get("T") == [0.0, 5.0, 5.0, 5.0, 0.0, 5.0, 5.0, 5.0, 0.0]
+    files = parse_deck(text).path("WCNTL", "FILES").children_named("FILE")
+    assert {f.get("ID") for f in files} == {"STRC", "WAVE", "CUBE", "WAVEDX"}

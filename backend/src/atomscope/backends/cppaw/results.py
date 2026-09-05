@@ -74,6 +74,7 @@ def collect(
     text = runs[-1]
     prot: ProtocolData = parse_protocol_text_cached(text)
     finished = "PROGRAM FINISHED" in text
+    bundle.complete = finished
     if not finished:
         bundle.warnings.append("protocol does not contain PROGRAM FINISHED (run incomplete)")
     if prot.error_lines:

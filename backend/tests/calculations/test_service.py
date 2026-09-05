@@ -1,3 +1,4 @@
+# ruff: noqa: E501, PLC0415
 from pathlib import Path
 
 import pytest
@@ -99,3 +100,24 @@ def test_close_detaches_listener(tmp_path: Path) -> None:
     assert svc._on_job_event in jm._listeners
     svc.close()
     assert svc._on_job_event not in jm._listeners
+
+
+def test_restart_fork_sets_restart_start_for_cppaw(tmp_path: Path) -> None:
+    from atomscope.backends.cppaw import plugin as cppaw_plugin
+
+    project = ProjectStore.create(tmp_path / "p", "demo")
+    s = from_atoms(bulk("Si"))
+    svc = CalculationService(project, default_registry(), JobManager())
+    calc = svc.create(name="si", backend_id="cppaw", structure=s, values={"task": "single_point"})
+    svc.generate(calc.id)
+    (project.calculation_dir(calc.id) / "work" / "case.rstrt").write_bytes(b"fake restart")
+    child = svc.fork(calc.id, {"task": "relax"}, restart_from_parent=True)
+    assert child.values["start"] == "restart" and child.values["task"] == "relax"
+    assert (project.calculation_dir(child.id) / "work" / "case.rstrt").exists()
+    assert (
+        cppaw_plugin.restart_values({"start": "restart_new_structure"})["start"]
+        == "restart_new_structure"
+    )
+    gen = svc.generate(child.id)
+    cntl = next(f.text for f in gen.files if f.name == "case.cntl")
+    assert "START=F" in cntl

@@ -1,3 +1,4 @@
+# ruff: noqa: E501, PLC0415
 from pathlib import Path
 
 import pytest
@@ -87,3 +88,10 @@ def test_floats_are_fortran_friendly() -> None:
     assert "ETOL=1.0E-05" in text and "DT=5.0" in text and "BIG=1.5E+20" in text
     back = parse_deck(text).child("GENERIC")
     assert back.get("ETOL") == 1e-5 and back.get("BIG") == 1.5e20
+
+
+def test_duplicate_keys_first_wins() -> None:
+    root = parse_deck("!A X=1 X=2 y=3 Y=4 !END !EOB")
+    a = root.child("A")
+    assert a.get("X") == 1 and a.get("Y") == 3
+    assert a.duplicate_keys == ["X", "Y"]

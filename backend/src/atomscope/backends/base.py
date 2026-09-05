@@ -76,6 +76,9 @@ class ResultBundle(StrictModel):
     grids: list[VolumetricGrid] = Field(default_factory=list)
     series: list[ScalarSeries] = Field(default_factory=list)
     converged: bool | None = None
+    complete: bool | None = Field(
+        default=None, description="the program's own normal-termination marker was found"
+    )
     warnings: list[str] = Field(default_factory=list)
     extra: dict[str, object] = Field(default_factory=dict)
 

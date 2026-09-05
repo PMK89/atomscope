@@ -34,6 +34,13 @@ from atomscope.schemas import (
     validate,
 )
 
+Vec3 = tuple[float, float, float]
+
+
+def _v3(row: object) -> Vec3:
+    seq = list(row)  # type: ignore[call-overload]
+    return (float(seq[0]), float(seq[1]), float(seq[2]))
+
 
 class CppawPlugin:
     id = "cppaw"
@@ -68,6 +75,13 @@ class CppawPlugin:
                 ("healthy: " if self.health.ok else "unhealthy: ") + self.health.message
             )
         return report
+
+    def restart_values(self, values: Values) -> Values:
+        """Values for a calculation continuing from a copied restart file."""
+        out = dict(values)
+        if out.get("start") not in ("restart", "restart_new_structure"):
+            out["start"] = "restart"
+        return out
 
     def restart_files(self, generated: GeneratedInputs) -> list[str]:
         """Glob patterns (relative to work/) copied when continuing from a previous run."""
@@ -187,8 +201,12 @@ class CppawPlugin:
             argv += ["--wave", str(wave)]
             for kind, fname in analysis:
                 argv += ["--cube", f"{kind}={fname}"]
-            origin, box = self._view_box(structure, values)
-            argv += ["--box", *[f"{x:.6f}" for x in (*origin, *box)]]
+            origin, vectors = self._view_box(structure, values)
+            argv += [
+                "--box",
+                *[f"{x:.6f}" for x in origin],
+                *[f"{x:.6f}" for row in vectors for x in row],
+            ]
         env = self.settings.env()
         if resources.cores > 1:
             env["OMP_NUM_THREADS"] = "1"
@@ -200,6 +218,7 @@ class CppawPlugin:
             stderr_name="driver.err",
             watch_files=[f"{generated.root_name}.prot"],
             description=generated.summary,
+            soft_stop_seconds=120.0,  # runner touches ROOT.exit and waits for PROGRAM FINISHED
         )
 
     def _values_from_inputs(self, input_dir: Path) -> Values:
@@ -213,18 +232,18 @@ class CppawPlugin:
 
     def _view_box(
         self, structure: Structure, values: Values
-    ) -> tuple[tuple[float, float, float], tuple[float, float, float]]:
-        """View box (Bohr) for paw_wave: the cell for periodic systems, molecule box otherwise."""
+    ) -> tuple[Vec3, tuple[Vec3, Vec3, Vec3]]:
+        """View box (Bohr): the full cell (three edge vectors) for periodic systems, the
+        molecule bounding box plus margin otherwise."""
         if structure.is_periodic() and structure.cell is not None:
-            m = np.array(structure.cell.vectors)
-            lengths = np.linalg.norm(m, axis=1) / Bohr
-            return (0.0, 0.0, 0.0), (float(lengths[0]), float(lengths[1]), float(lengths[2]))
+            m = np.array(structure.cell.vectors) / Bohr
+            return (0.0, 0.0, 0.0), (_v3(m[0]), _v3(m[1]), _v3(m[2]))
         margin = float(values.get("box_margin", 4.0))  # type: ignore[arg-type]
         pos = structure.positions()
-        lo = pos.min(axis=0) - margin
+        lo = (pos.min(axis=0) - margin) / Bohr
         cell = molecule_box(structure, margin)
-        box = (cell.vectors[0][0] / Bohr, cell.vectors[1][1] / Bohr, cell.vectors[2][2] / Bohr)
-        return (float(lo[0] / Bohr), float(lo[1] / Bohr), float(lo[2] / Bohr)), box
+        v = np.array(cell.vectors) / Bohr
+        return (float(lo[0]), float(lo[1]), float(lo[2])), (_v3(v[0]), _v3(v[1]), _v3(v[2]))
 
     def diagnose_failure(self, work_dir: Path, root_name: str) -> str | None:
         """Called by the calculation service when a job fails; returns a human explanation."""

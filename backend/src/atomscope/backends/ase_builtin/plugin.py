@@ -1,3 +1,4 @@
+# ruff: noqa: E501
 from __future__ import annotations
 
 import json
@@ -53,6 +54,11 @@ SCHEMA = ParameterSchema(
                         ),
                         Choice(value="lj", label="Lennard-Jones"),
                         Choice(value="morse", label="Morse"),
+                        Choice(
+                            value="cppaw",
+                            label="CP-PAW (DFT forces via CppawCalculator)",
+                            help="Each optimizer step runs a CP-PAW force evaluation (two stages: electrons, then damped atomic steps)",
+                        ),
                     ],
                     help="Analytic potentials shipped with ASE; no external program needed.",
                     reference="https://wiki.fysik.dtu.dk/ase/ase/calculators/calculators.html",
@@ -87,6 +93,58 @@ SCHEMA = ParameterSchema(
                     exclusive_minimum=True,
                     advanced=True,
                     visible_when=[VisibleWhen(key="calculator", value="lj")],
+                ),
+                ParameterSpec(
+                    key="cppaw_epwpsi",
+                    label="CP-PAW plane-wave cutoff",
+                    type="number",
+                    default=30.0,
+                    minimum=1,
+                    unit=Unit.RYDBERG,
+                    visible_when=[VisibleWhen(key="calculator", value="cppaw")],
+                ),
+                ParameterSpec(
+                    key="cppaw_nstep",
+                    label="CP-PAW electron steps per evaluation",
+                    type="integer",
+                    default=400,
+                    minimum=10,
+                    visible_when=[VisibleWhen(key="calculator", value="cppaw")],
+                ),
+                ParameterSpec(
+                    key="cppaw_kpoint_r",
+                    label="CP-PAW k-point density R",
+                    type="number",
+                    default=12.0,
+                    minimum=1,
+                    unit=Unit.BOHR,
+                    visible_when=[VisibleWhen(key="calculator", value="cppaw")],
+                    help="periodic systems only",
+                ),
+                ParameterSpec(
+                    key="cppaw_empty_bands",
+                    label="CP-PAW empty bands",
+                    type="integer",
+                    default=4,
+                    minimum=0,
+                    visible_when=[VisibleWhen(key="calculator", value="cppaw")],
+                ),
+                ParameterSpec(
+                    key="cppaw_spin_polarized",
+                    label="CP-PAW spin polarized",
+                    type="boolean",
+                    default=False,
+                    visible_when=[VisibleWhen(key="calculator", value="cppaw")],
+                ),
+                ParameterSpec(
+                    key="cppaw_box_margin",
+                    label="CP-PAW vacuum margin (molecules)",
+                    type="number",
+                    default=4.0,
+                    minimum=0.5,
+                    unit=Unit.ANGSTROM,
+                    advanced=True,
+                    visible_when=[VisibleWhen(key="calculator", value="cppaw")],
                 ),
             ],
         ),
@@ -183,7 +241,7 @@ PRESETS = [
 
 class AseBuiltinPlugin:
     id = "ase_builtin"
-    name = "ASE built-in calculators"
+    name = "ASE workflows (built-in calculators or CP-PAW)"
     capabilities = BackendCapabilities(
         energy=True, forces=True, stress=True, relaxation=True, molecular_dynamics=True
     )
@@ -207,6 +265,21 @@ class AseBuiltinPlugin:
             if bad:
                 report.issues.append(
                     ValidationIssue(key="calculator", message=f"EMT has no parameters for {bad}")
+                )
+        if merged.get("calculator") == "cppaw":
+            from atomscope.backends.cppaw import plugin as cppaw_plugin  # noqa: PLC0415
+
+            if not cppaw_plugin.discover_executables().available:
+                report.issues.append(
+                    ValidationIssue(key="calculator", message="CP-PAW executables not found")
+                )
+            if merged.get("task") == "md":
+                report.issues.append(
+                    ValidationIssue(
+                        key="task",
+                        message="ASE MD with CP-PAW forces is very slow; consider CP-PAW's own MD",
+                        severity="warning",
+                    )
                 )
         return report
 
@@ -238,8 +311,8 @@ class AseBuiltinPlugin:
                 str(work_dir),
             ],
             cwd=work_dir,
-            env={"PYTHONPATH": ":".join(sys.path[1:])} if False else {},
             watch_files=["progress.log"],
+            env=_cppaw_env() if generated.summary.startswith("cppaw") else {},
             description=generated.summary,
         )
 
@@ -248,6 +321,15 @@ class AseBuiltinPlugin:
         if not path.is_file():
             return ResultBundle(warnings=["results.json not found (job failed or still running)"])
         return ResultBundle.model_validate_json(path.read_text(encoding="utf-8"))
+
+
+def _cppaw_env() -> dict[str, str]:
+    from atomscope.backends.cppaw import plugin as cppaw_plugin  # noqa: PLC0415
+    from atomscope.backends.cppaw import settings as cppaw_settings  # noqa: PLC0415
+
+    if not cppaw_plugin.settings.runtime_verified:
+        cppaw_settings.ensure_runtime(cppaw_plugin.settings)
+    return cppaw_plugin.settings.env()
 
 
 plugin = AseBuiltinPlugin()

@@ -1,3 +1,4 @@
+# ruff: noqa: E501, PLC0415
 from pathlib import Path
 
 import pytest
@@ -58,3 +59,40 @@ async def test_end_to_end_run(tmp_path: Path, task: str) -> None:
     if task == "md":
         assert res.trajectory.frames[-1].temperature is not None
     assert (work / "progress.log").read_text().startswith("initial energy")
+
+
+@pytest.mark.cppaw
+async def test_ase_bfgs_drives_cppaw(tmp_path: Path) -> None:
+    """ASE BFGS relaxation with CP-PAW forces (~1-2 min)."""
+    from atomscope.backends.cppaw import plugin as cppaw_plugin
+
+    if not cppaw_plugin.discover_executables().available:
+        pytest.skip("paw_fast.x not found")
+    atoms = bulk("Si")
+    atoms.positions[1] += [0.05, 0.0, 0.0]
+    s = from_atoms(atoms, name="si2")
+    values = {
+        "calculator": "cppaw",
+        "task": "relax",
+        "max_steps": 3,
+        "fmax": 0.02,
+        "cppaw_kpoint_r": 8.0,
+        "cppaw_empty_bands": 2,
+        "cppaw_epwpsi": 25.0,
+    }
+    assert plugin.validate(s, values).ok
+    gen = plugin.generate_inputs(s, values, "case")
+    inp, work = tmp_path / "input", tmp_path / "work"
+    inp.mkdir()
+    work.mkdir()
+    for f in gen.files:
+        (inp / f.name).write_text(f.text)
+    spec = plugin.run_spec(inp, work, gen, Resources())
+    jm = JobManager()
+    rec = await jm.wait(jm.submit(spec).id)
+    assert rec.status == "completed", (work / "stderr.log").read_text()
+    res = plugin.parse_results(work, gen)
+    assert res.trajectory is not None and res.trajectory.n_frames >= 2
+    energies = [f.energy for f in res.trajectory.frames]
+    assert energies[-1] <= energies[0] + 1e-6
+    assert "forces" in res.final_structure.atomic_vectors
