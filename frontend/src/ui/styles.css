@@ -43,6 +43,20 @@ button {
   display: grid;
   grid-template-rows: auto 1fr auto;
   height: 100%;
+  position: relative;
+}
+/* shown while a file is being dragged over the window (see ui/fileDrop.ts) */
+.app-dropzone {
+  position: absolute;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  border: 2px dashed var(--accent);
+  font-size: 1.2rem;
 }
 .app-menubar {
   display: flex;

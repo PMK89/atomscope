@@ -701,3 +701,29 @@ test('the viewport can be exported as a POV-Ray scene', async ({ page }) => {
   // and no label sprite or axes gizmo made it in
   expect(text).not.toContain('text {');
 });
+
+test('a file dropped on the window opens, and a second file in the same drop is left alone', async ({
+  page,
+}) => {
+  await page.goto('/');
+  await expect(page.locator('.app-statusbar')).toContainText('3 atoms'); // the demo water
+
+  // a real drop: a DataTransfer built in the page, so preventDefault and dataTransfer.files are
+  // the browser's own rather than a synthetic event's
+  await page.evaluate(() => {
+    const transfer = new DataTransfer();
+    const xyz = '4\n\nN 0 0 0.11\nH 0 0.94 -0.27\nH 0.81 -0.47 -0.27\nH -0.81 -0.47 -0.27\n';
+    transfer.items.add(new File([xyz], 'ammonia.xyz', { type: 'text/plain' }));
+    transfer.items.add(new File(['1\n\nHe 0 0 0\n'], 'helium.xyz', { type: 'text/plain' }));
+    const shell = document.querySelector('.app-shell')!;
+    for (const type of ['dragenter', 'dragover', 'drop']) {
+      shell.dispatchEvent(
+        new DragEvent(type, { bubbles: true, cancelable: true, dataTransfer: transfer }),
+      );
+    }
+  });
+
+  await expect(page.locator('.app-statusbar')).toContainText('4 atoms');
+  await expect(page.locator('.app-statusbar')).toContainText('H3N');
+  await expect(page.locator('.status-error')).toContainText('the other 1 file was left alone');
+});

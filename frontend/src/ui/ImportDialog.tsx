@@ -11,6 +11,7 @@ import { api, type FormatDescription } from '../api/client';
 import { normalizeStructure } from '../model/structure';
 import { useRecentStore } from '../state/recentStore';
 import { useStructureStore } from '../state/structureStore';
+import { openUploadedFile } from './openFile';
 
 /** `accept` for the file picker: every extension a reader claims. */
 export function acceptFilter(formats: FormatDescription[]): string {
@@ -73,7 +74,9 @@ export function ImportDialog({
   const openFile = async (file: File): Promise<void> => {
     setBusy(true);
     try {
-      finish(await api.io.importUpload(file, format || undefined));
+      // the same path a dropped file takes, so the two agree on detection and on the document swap
+      await openUploadedFile(file, format || undefined);
+      onClose();
     } catch (e) {
       onError(`Open failed: ${(e as Error).message}`);
     } finally {

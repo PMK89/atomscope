@@ -1,6 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { makeAtom, makeBond, normalizeStructure } from '../model/structure';
 import { useStructureStore } from '../state/structureStore';
+import { droppedFile, hasFiles } from './fileDrop';
+import { openUploadedFile } from './openFile';
 import { RightDock } from './RightDock';
 import { ToolBar } from './ToolBar';
 import { ToolSettings } from './ToolSettings';
@@ -53,8 +55,51 @@ export function App(): JSX.Element {
     return () => clearTimeout(t);
   }, [error]);
 
+  // A file dropped anywhere on the window opens, as it does in Avogadro. `depth` counts enter/leave
+  // pairs: crossing into a child element fires a leave on the parent, and a naive flag would flicker.
+  const [dragging, setDragging] = useState(false);
+  const depth = useRef(0);
+  const onDragEnter = (e: React.DragEvent): void => {
+    if (!hasFiles(e.dataTransfer)) return;
+    depth.current += 1;
+    setDragging(true);
+  };
+  const onDragLeave = (e: React.DragEvent): void => {
+    if (!hasFiles(e.dataTransfer)) return;
+    depth.current = Math.max(0, depth.current - 1);
+    if (depth.current === 0) setDragging(false);
+  };
+  const onDragOver = (e: React.DragEvent): void => {
+    // without this the browser navigates to the file instead of handing it over
+    if (hasFiles(e.dataTransfer)) e.preventDefault();
+  };
+  const onDrop = (e: React.DragEvent): void => {
+    if (!hasFiles(e.dataTransfer)) return;
+    e.preventDefault();
+    depth.current = 0;
+    setDragging(false);
+    const { file, message } = droppedFile([...e.dataTransfer.files]);
+    if (!file) {
+      setError(message);
+      return;
+    }
+    if (message) setError(message);
+    openUploadedFile(file).catch((err: Error) => setError(`Open failed: ${err.message}`));
+  };
+
   return (
-    <div className="app-shell">
+    <div
+      className="app-shell"
+      onDragEnter={onDragEnter}
+      onDragLeave={onDragLeave}
+      onDragOver={onDragOver}
+      onDrop={onDrop}
+    >
+      {dragging && (
+        <div className="app-dropzone" role="presentation">
+          <p>Drop a file to open it</p>
+        </div>
+      )}
       <MenuBar onError={setError} />
       <main className="app-main">
         <aside className="app-dock app-dock-left">

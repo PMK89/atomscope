@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- A file dropped on the window opens it. A drop of several files opens the
+  first and says so, since one document is open at a time.
+
 - The Spectra panel exports: the plotted curve and the mode table as
   tab-separated values, and the plot as PNG or SVG. An exported plot is always
   written in the light palette on white, whatever theme the application is in.

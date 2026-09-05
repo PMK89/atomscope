@@ -456,6 +456,12 @@ the detection, which is what a file whose extension says nothing about its
 contents needs — a Gaussian output called `run.txt`, say. The file picker is
 filtered to the extensions the readers claim.
 
+**Dropping a file** on the window opens it, the same upload path `Choose a
+file…` takes, with the format detected from the file. Atomscope has one
+document open at a time, so a drop carrying several files opens the first and
+says in the status bar that the others were left alone — Avogadro opened each
+in a window of its own, which there is no equivalent of here.
+
 Text can also be pasted straight in: `Edit ▸ Paste` (Ctrl+V) reads XYZ, CIF,
 PDB, molfiles, CML, SMILES or a VASP POSCAR from the clipboard, sniffing the
 format when it is not obvious (`POST /api/io/import/text`). This is Avogadro's
