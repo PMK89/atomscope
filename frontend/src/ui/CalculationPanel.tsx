@@ -65,6 +65,8 @@ export function CalculationPanel({ onError }: { onError: (m: string) => void }):
     setReport(null);
   }, [selected?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  const backendInfo = backends.find((b) => b.id === backendId);
+  const canExecute = backendInfo?.capabilities.executes !== false;
   const busy = selected?.status === 'queued' || selected?.status === 'running';
   // A calculation that has run is immutable; changes go into a fork (reproducibility).
   const frozen =
@@ -220,7 +222,8 @@ export function CalculationPanel({ onError }: { onError: (m: string) => void }):
             <button
               className="primary"
               onClick={() => void onRun().catch(fail)}
-              disabled={busy || frozen}
+              disabled={busy || frozen || !canExecute}
+              title={canExecute ? undefined : 'This backend only generates input files'}
             >
               Run
             </button>
@@ -253,6 +256,24 @@ export function CalculationPanel({ onError }: { onError: (m: string) => void }):
       )}
       {tab === 'input' && (
         <div className="generated">
+          {selected?.generated && (
+            <div className="button-row">
+              <button
+                onClick={() => {
+                  for (const f of selected.generated?.files ?? []) {
+                    const blob = new Blob([f.text], { type: 'text/plain' });
+                    const a = document.createElement('a');
+                    a.href = URL.createObjectURL(blob);
+                    a.download = f.name;
+                    a.click();
+                    URL.revokeObjectURL(a.href);
+                  }
+                }}
+              >
+                Save input files…
+              </button>
+            </div>
+          )}
           {selected?.generated ? (
             selected.generated.files.map((f) => (
               <details key={f.name} open>
