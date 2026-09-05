@@ -44,6 +44,27 @@ export class CameraController {
     window.removeEventListener('pointerup', this.onPointerUp);
   }
 
+  /**
+   * Orient the camera to look along `direction` (from camera towards the pivot); the camera's
+   * up vector is aligned with `up` as far as possible.
+   */
+  lookAlong(direction: Vector3, up?: Vector3): void {
+    const offset = direction.clone().normalize().multiplyScalar(-1);
+    if (offset.lengthSq() < 1e-12) return;
+    this.spherical.setFromVector3(offset.multiplyScalar(this.spherical.radius));
+    this.spherical.phi = Math.max(1e-3, Math.min(Math.PI - 1e-3, this.spherical.phi));
+    this.updateCamera();
+    if (up) {
+      // roll so that `up` projects to screen-up
+      const right = new Vector3().setFromMatrixColumn(this.camera.matrixWorld, 0);
+      const camUp = new Vector3().setFromMatrixColumn(this.camera.matrixWorld, 1);
+      const angle = Math.atan2(up.dot(right), up.dot(camUp));
+      if (Math.abs(angle) > 1e-6 && typeof (this as { roll?: unknown }).roll === 'function') {
+        (this as unknown as { roll: (a: number) => void }).roll(angle);
+      }
+    }
+  }
+
   /** Frame a sphere (center, radius) so it fills the view. */
   fit(center: Vector3, radius: number): void {
     this.pivot.copy(center);

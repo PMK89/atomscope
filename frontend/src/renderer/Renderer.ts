@@ -17,6 +17,7 @@ import {
 import { CameraController, type AnyCamera } from './CameraController';
 import type { DisplayLayer, LayerContext } from './layers/Layer';
 import { StructureLayer } from './layers/StructureLayer';
+import { principalAxes } from './principalAxes';
 
 export type Projection = 'perspective' | 'orthographic';
 
@@ -120,12 +121,19 @@ export class Renderer {
       this.controller.fit(new Vector3(), 5);
       return;
     }
-    const c = new Vector3();
-    for (const a of this.ctx.structure.atoms) c.add(new Vector3(...a.position));
-    c.divideScalar(this.ctx.structure.atoms.length);
+    const atoms = this.ctx.structure.atoms;
+    const flat = new Float64Array(atoms.length * 3);
+    atoms.forEach((a, i) => flat.set(a.position, 3 * i));
+    const pa = principalAxes(flat, atoms.length);
+    const c = pa ? new Vector3(...pa.center) : new Vector3(...(atoms[0]?.position ?? [0, 0, 0]));
     let r = 0;
-    for (const a of this.ctx.structure.atoms)
-      r = Math.max(r, c.distanceTo(new Vector3(...a.position)));
+    for (const a of atoms) r = Math.max(r, c.distanceTo(new Vector3(...a.position)));
+    // Default orientation: look along the axis of least extent, largest extent horizontal.
+    if (pa && pa.variances[0] > 1e-6) {
+      const view = new Vector3(...pa.axes[2]);
+      const up = new Vector3(...pa.axes[1]);
+      this.controller.lookAlong(view, up);
+    }
     this.controller.fit(c, r + 1.5);
   }
 

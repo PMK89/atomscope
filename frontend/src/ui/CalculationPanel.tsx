@@ -4,6 +4,7 @@ import {
   type BackendInfo,
   type Calculation,
   type ParameterValues,
+  type Preset,
   type ValidationReport,
 } from '../api/client';
 import { schemaDefaults } from '../model/schema';
@@ -20,6 +21,7 @@ export function CalculationPanel({ onError }: { onError: (m: string) => void }):
   const load = useStructureStore((s) => s.load);
   const store = useCalculationStore();
   const [backends, setBackends] = useState<BackendInfo[]>([]);
+  const [presets, setPresets] = useState<Preset[]>([]);
   const [backendId, setBackendId] = useState('');
   const [values, setValues] = useState<ParameterValues>({});
   const [report, setReport] = useState<ValidationReport | null>(null);
@@ -43,6 +45,10 @@ export function CalculationPanel({ onError }: { onError: (m: string) => void }):
 
   useEffect(() => {
     if (!backendId) return;
+    api.backends
+      .presets(backendId)
+      .then(setPresets)
+      .catch(() => setPresets([]));
     store
       .loadSchema(backendId)
       .then((s) => {
@@ -166,6 +172,27 @@ export function CalculationPanel({ onError }: { onError: (m: string) => void }):
               ))}
             </select>
           </div>
+          {presets.length > 0 && schema && (
+            <div className="form-row">
+              <label htmlFor="calc-preset">Preset</label>
+              <select
+                id="calc-preset"
+                defaultValue=""
+                disabled={busy || frozen}
+                onChange={(e) => {
+                  const preset = presets.find((p) => p.id === e.target.value);
+                  if (preset) setValues({ ...schemaDefaults(schema), ...preset.values });
+                }}
+              >
+                <option value="">— choose a preset —</option>
+                {presets.map((p) => (
+                  <option key={p.id} value={p.id} title={p.description}>
+                    {p.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
           {frozen && (
             <p className="muted">
               This calculation has run and is read-only. Fork it to change parameters or continue
