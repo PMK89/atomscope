@@ -9,6 +9,7 @@
  */
 import type { RibbonStyle } from '../model/ribbon';
 import { ATOM_LABEL_OPTIONS, BOND_LABEL_OPTIONS } from '../renderer/labels';
+import { COLOR_SCHEMES, type ColorScheme } from '../renderer/atomColors';
 import { useBioStore } from '../state/bioStore';
 import { useRendererStore } from '../state/rendererStore';
 import type { StructureStyle } from '../renderer/layers/StructureLayer';
@@ -66,6 +67,25 @@ export function DisplayPanel(): JSX.Element {
           ))}
         </select>
       </div>
+      <div className="form-row">
+        <label htmlFor="display-color-scheme">Colour by</label>
+        <select
+          id="display-color-scheme"
+          value={view.colorScheme}
+          onChange={(e) => view.setColorScheme(e.target.value as ColorScheme)}
+        >
+          {COLOR_SCHEMES.map((c) => (
+            <option key={c.id} value={c.id}>
+              {c.label}
+            </option>
+          ))}
+        </select>
+      </div>
+      {view.colorScheme !== 'element' && doc.residues.length === 0 && (
+        <p className="muted">
+          This structure has no residues, so its atoms keep their element colours.
+        </p>
+      )}
       <div className="form-row">
         <label htmlFor="display-atom-scale">Atom radius</label>
         <input

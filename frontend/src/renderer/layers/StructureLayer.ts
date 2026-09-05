@@ -37,6 +37,12 @@ export interface StructureLayerSettings {
    */
   cellRepeat: [number, number, number];
   /**
+   * One RGB triple per atom, replacing the element colours (a residue or chain colour scheme).
+   * Null keeps the element colours, which is the default and the only thing a plain molecule
+   * has to say.
+   */
+  atomColors: Float32Array | null;
+  /**
    * Style for the selected atoms, when they should be drawn differently from the rest (Avogadro
    * restricts an engine to a set of primitives; this is the same effect with one engine). Null
    * draws everything in `style`, which is also the fast path: the selection then never rebuilds
@@ -54,6 +60,7 @@ export const DEFAULT_STRUCTURE_SETTINGS: StructureLayerSettings = {
   multipleBonds: true,
   cellRepeat: [1, 1, 1],
   selectionStyle: null,
+  atomColors: null,
 };
 
 /** [sphere segments, sphere rings, cylinder sides] from coarse to fine. */
@@ -198,7 +205,11 @@ export class StructureLayer implements DisplayLayer {
 
   update(ctx: LayerContext): void {
     const s = ctx.structure;
-    const settingsKey = JSON.stringify(this.settings);
+    // the colour array is per atom and identified by identity: stringifying it every frame would
+    // cost more than drawing does
+    const { atomColors, ...keyed } = this.settings;
+    const settingsKey = JSON.stringify(keyed);
+    const colorsChanged = atomColors !== this.lastAtomColors;
     // the selection only changes what is drawn when it has a style of its own
     const selectionChanged =
       this.settings.selectionStyle !== null && ctx.selectedAtoms !== this.lastSelected;
@@ -230,10 +241,12 @@ export class StructureLayer implements DisplayLayer {
     // colours depend on the element sequence (a rebuild), the selection and the hover only
     if (
       rebuilt ||
+      colorsChanged ||
       ctx.selectedAtoms !== this.lastSelected ||
       ctx.hoveredAtom !== this.lastHovered
     ) {
       this.applyColors(ctx);
+      this.lastAtomColors = atomColors;
       this.lastSelected = ctx.selectedAtoms;
       this.lastHovered = ctx.hoveredAtom;
     }
@@ -456,6 +469,8 @@ export class StructureLayer implements DisplayLayer {
   private bondMeshBonds: StructureDoc['bonds'] = [];
   /** original bond index for each entry of bondMeshBonds */
   private bondMeshBondIndices: number[] = [];
+  /** identity of the colour override the instance colours were written from */
+  private lastAtomColors: Float32Array | null = null;
 
   private atomRadius(covalent: number, vdw: number, style: StructureStyle): number {
     switch (style) {
@@ -470,13 +485,28 @@ export class StructureLayer implements DisplayLayer {
     }
   }
 
+  /** The atom's colour before selection and hover tints: the scheme's, or the element's. */
+  private baseColor(s: StructureDoc, atomIndex: number, out: Color): void {
+    const override = this.settings.atomColors;
+    // a stale override (an edit added atoms) must not read past its end
+    if (override && 3 * atomIndex + 2 < override.length) {
+      out.setRGB(
+        override[3 * atomIndex]!,
+        override[3 * atomIndex + 1]!,
+        override[3 * atomIndex + 2]!,
+      );
+      return;
+    }
+    const el = elementBySymbol(s.atoms[atomIndex]!.element);
+    out.setRGB(el.color[0], el.color[1], el.color[2]);
+  }
+
   private applyColors(ctx: LayerContext): void {
     const s = ctx.structure;
     const color = new Color();
     if (this.atomMesh) {
       this.atomOfInstance.forEach((atomIndex, k) => {
-        const el = elementBySymbol(s.atoms[atomIndex]!.element);
-        color.setRGB(el.color[0], el.color[1], el.color[2]);
+        this.baseColor(s, atomIndex, color);
         if (ctx.selectedAtoms.has(atomIndex)) color.lerp(SELECTION_COLOR, 0.6);
         if (ctx.hoveredAtom === atomIndex) color.lerp(HOVER_COLOR, 0.5);
         this.atomMesh!.setColorAt(k, color);
@@ -487,8 +517,7 @@ export class StructureLayer implements DisplayLayer {
       this.bondHalves.forEach((half, k) => {
         const bond = this.bondMeshBonds[half.bond]!;
         const atomIndex = half.end === 'a' ? bond.a : bond.b;
-        const el = elementBySymbol(s.atoms[atomIndex]!.element);
-        color.setRGB(el.color[0], el.color[1], el.color[2]);
+        this.baseColor(s, atomIndex, color);
         // a stick or wireframe atom is only visible through its bonds, so tint them instead
         const atomStyle = this.styleOf(atomIndex, ctx.selectedAtoms);
         if (atomStyle === 'stick' || atomStyle === 'wireframe') {

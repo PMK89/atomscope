@@ -143,7 +143,8 @@ retries with a compatible `libgfortran` found under `~/miniconda3/pkgs`
 
 **Menu bar** — `File`, `Edit`, `Select`, `Build`, `Extensions`, `View`, `Help`.
 `Edit` holds undo/redo, cut/copy/paste/clear and the Cartesian editor; `Select`
-holds the selection commands (all, none, invert, by element, by SMARTS); `Help`
+holds the selection commands (all, none, invert, by element, by residue, solvent,
+by SMARTS); `Help`
 names the guides, the tutorials and the shortcuts. See the
 [shortcut table](#9-keyboard-shortcuts) for the accelerators.
 
@@ -272,7 +273,10 @@ undo history**.
   an `Adjust hydrogens` checkbox (on by default) that keeps hydrogen counts
   consistent after every edit.
 * **Select** — `Mode`: `Atoms` (default), `Residues` (offered only when the
-  structure has residues) or `Molecules`.
+  structure has residues) or `Molecules`. The `Select` menu adds
+  `Select residues…` — a comma-separated list of names, numbers, ranges or
+  chain-qualified terms (`LYS`, `12`, `12-20`, `A:12-20`) — and
+  `Select solvent`, which takes the waters and counter-ions by residue name.
 * **Manipulate** — besides dragging, numeric `Translate (Å)` x/y/z with a
   `Translate` button, and a `Rotate (°)` angle with `About x` / `About y` /
   `About z` buttons. With nothing selected these act on **all** atoms.
@@ -451,7 +455,7 @@ of the right dock, which is Avogadro's Display Types dock:
 
 | Section | What it holds |
 |---|---|
-| Structure | display type, atom radius, bond radius, multiple bonds, hydrogens, and a display type for the **selected atoms only** (ball-and-stick on the active site, wireframe on the rest) |
+| Structure | display type, **colour by**, atom radius, bond radius, multiple bonds, hydrogens, and a display type for the **selected atoms only** (ball-and-stick on the active site, wireframe on the rest) |
 | Labels | on/off, what atoms and bonds are labelled with (index, symbol, name, formal or partial charge, residue name or number, uid, custom; bond order or length), colour, size, offset |
 | Hydrogen bonds | on/off, cut-off distance and angle; drawn as dashed sticks from the geometry on screen |
 | Ribbons | cartoon, ribbon or backbone rendering of a protein, and a width; helices red, strands yellow with an arrowhead, coil thin |
@@ -459,7 +463,20 @@ of the right dock, which is Avogadro's Display Types dock:
 | Unit cell and axes | the cell box, the repeat counts, the corner gizmo |
 
 Atom colours come from the built-in element table (generated from ASE);
-selected atoms are tinted towards blue, hovered atoms towards yellow. Double
+selected atoms are tinted towards blue, hovered atoms towards yellow.
+**Colour by** replaces the element colours with what an atom is *part of*:
+
+* `Residue` — the RasMol amino-acid colours Avogadro uses (acidic red, basic
+  blue, hydrophobic dark, polar orange or cyan…), with the four bases coloured
+  too. A residue name the table does not know is grey, so it is visible as
+  unknown.
+* `Chain` — a fixed cycle of eight colours in the order the chains appear.
+* `Secondary structure` — the cartoon colours (helices red, strands yellow, the
+  rest pale), fetched from the same DSSP assignment the ribbons use, so it works
+  with ribbons off.
+
+A structure without residues keeps its element colours whatever is chosen, and
+the panel says so. Double
 and triple bonds are drawn as two or three parallel sticks in the plane of the
 molecule; structures built from SMILES are kekulized, so an aromatic ring shows
 alternating double bonds.

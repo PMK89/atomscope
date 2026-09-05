@@ -23,7 +23,14 @@ import {
   setBondLength,
 } from './edits';
 import { formatMeasurement, measure } from './measure';
-import { atomsInRect, combineSelection, expandSelection, invertSelection } from './selectionMath';
+import {
+  atomsInRect,
+  atomsOfResidues,
+  combineSelection,
+  expandSelection,
+  invertSelection,
+  solventAtoms,
+} from './selectionMath';
 import { adjustHydrogens, substituentDirections } from './valence';
 
 function doc(atoms: [string, number, number, number][], bonds: [number, number][]): StructureDoc {
@@ -392,4 +399,29 @@ test('perceiveBondsForAtom skips atoms that are already bonded, whatever the bon
   });
   // atom 1 is bonded to 0 already (stored as a=1, b=0), atom 2 is in range and unbonded
   expect(perceiveBondsForAtom(doc, 0).map((b) => [b.a, b.b])).toEqual([[0, 2]]);
+});
+
+const protein = normalizeStructure({
+  name: 'bits of a protein',
+  atoms: Array.from({ length: 8 }, (_, i) => makeAtom(i < 6 ? 'C' : 'O', [i, 0, 0])),
+  residues: [
+    { name: 'LYS', number: 12, chain: 'A', atom_indices: [0, 1] },
+    { name: 'GLY', number: 13, chain: 'A', atom_indices: [2, 3] },
+    { name: 'LYS', number: 12, chain: 'B', atom_indices: [4, 5] },
+    { name: 'HOH', number: 201, chain: 'W', atom_indices: [6] },
+    { name: 'NA', number: 202, chain: 'W', atom_indices: [7] },
+  ],
+} as never);
+
+test('residues are selected by name, number, range or chain', () => {
+  expect(atomsOfResidues(protein, 'LYS')).toEqual([0, 1, 4, 5]);
+  expect(atomsOfResidues(protein, '13')).toEqual([2, 3]);
+  expect(atomsOfResidues(protein, '12-13')).toEqual([0, 1, 2, 3, 4, 5]);
+  expect(atomsOfResidues(protein, 'B:12')).toEqual([4, 5]);
+  expect(atomsOfResidues(protein, 'gly, B:12')).toEqual([2, 3, 4, 5]);
+  expect(atomsOfResidues(protein, 'TRP')).toEqual([]);
+});
+
+test('solvent selection takes waters and counter-ions, not the protein', () => {
+  expect(solventAtoms(protein)).toEqual([6, 7]);
 });

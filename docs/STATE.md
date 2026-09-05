@@ -1,8 +1,8 @@
 # Project state (resume here)
 
-Branch: main; this file is updated in the commit that checkpoints the work, so `git log -1 -- docs/STATE.md` is the last checkpoint. Phases 0-1 done; Phase 2 (editor tools), 3 (volumetric, trajectories, vectors), 4-5 (CP-PAW setup/execution/forces), 6 (CP-PAW analysis: DOS, bands, orbitals), crystallography, molecular mechanics and wavefunction surfaces are merged and working. Parity matrix: 164 IMPLEMENTED, 36 PARTIAL, 111 NOT STARTED, 1 BLOCKED of 312 rows.
+Branch: main; this file is updated in the commit that checkpoints the work, so `git log -1 -- docs/STATE.md` is the last checkpoint. Phases 0-1 done; Phase 2 (editor tools), 3 (volumetric, trajectories, vectors), 4-5 (CP-PAW setup/execution/forces), 6 (CP-PAW analysis: DOS, bands, orbitals), crystallography, molecular mechanics and wavefunction surfaces are merged and working. Parity matrix: 165 IMPLEMENTED, 36 PARTIAL, 110 NOT STARTED, 1 BLOCKED of 312 rows.
 
-Tests: `pytest -q -m "not cppaw"` -> 374 passed, 1 skipped; `pytest -q -m cppaw` -> 7 passed (~90 s, needs the local CP-PAW install); `pnpm vitest run` -> 345 passed; `pnpm exec playwright test` -> 19 passed (against private servers, see below; `make test-e2e` points at the user's 5173, which is stale). `ruff check`, `mypy` and `pnpm typecheck` are clean. No known failing tests. **Type-check the frontend with `pnpm typecheck` (`tsc -b --noEmit`), never with `pnpm exec tsc --noEmit`:** the root `tsconfig.json` is a solution file with `files: []`, so a bare `tsc --noEmit` checks nothing and exits 0.
+Tests: `pytest -q -m "not cppaw"` -> 374 passed, 1 skipped; `pytest -q -m cppaw` -> 7 passed (~90 s, needs the local CP-PAW install); `pnpm vitest run` -> 351 passed; `pnpm exec playwright test` -> 20 passed (against private servers, see below; `make test-e2e` points at the user's 5173, which is stale). `ruff check`, `mypy` and `pnpm typecheck` are clean. No known failing tests. **Type-check the frontend with `pnpm typecheck` (`tsc -b --noEmit`), never with `pnpm exec tsc --noEmit`:** the root `tsconfig.json` is a solution file with `files: []`, so a bare `tsc --noEmit` checks nothing and exits 0.
 
 ## Resume commands
 
@@ -64,7 +64,7 @@ make dev-backend   # 127.0.0.1:8765 ; make dev-frontend -> 127.0.0.1:5173
    content is chosen (the View menu only switches labels on) and it can give the selection its own
    display type, which is what AV-VIS-001's "restricted to primitives" asks for.
 2. UI gaps recorded as PARTIAL: Extensions menu for the chem operations that only have API routes (add/remove hydrogens, pH, invert chirality, H->methyl, partial charges, Copy as SMILES/InChI), fragment/peptide/DNA/nanotube insert dialogs, image export.
-3. Remaining HIGH parity gaps outside the renderer: residue-based selection and colouring (AV-BIO-006), paste of crystal text with an identity mapping dialog (AV-XTAL-002), and the Settings dialog (AV-UI-012). Colour-by-second-cube (AV-SURF-013), the constraints dialog (AV-MM-005) and the bond properties table (AV-ANAL-003) and the auto-optimize tool (AV-EDIT-031) are done; the angle and torsion property tables (AV-ANAL-004/005) would reuse the same table.
+3. Remaining HIGH parity gaps outside the renderer: paste of crystal text with an identity mapping dialog (AV-XTAL-002), and the Settings dialog (AV-UI-012). Colour-by-second-cube (AV-SURF-013), the constraints dialog (AV-MM-005) and the bond properties table (AV-ANAL-003) the auto-optimize tool (AV-EDIT-031) and residue selection and colouring (AV-BIO-006) are done; the angle and torsion property tables (AV-ANAL-004/005) would reuse the same table.
 4. More wavefunction readers (MOPAC aux, GAMESS, ORCA, Molpro, Slater bases) for AV-SURF-006; ORCA/Gaussian/NWChem input-only plugins; desktop shell ADR.
 5. Known limits and hand-overs:
    - `applyColors` rewrites every instance colour on every hover change (~300k operations per

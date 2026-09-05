@@ -7,7 +7,12 @@ import { useTrajectoryStore } from '../state/trajectoryStore';
 import { useViewStore } from '../state/viewStore';
 import { useSelectionStore } from '../state/selectionStore';
 import { useToolStore } from '../editor/toolStore';
-import { atomsOfElement, invertSelection } from '../editor/selectionMath';
+import {
+  atomsOfElement,
+  atomsOfResidues,
+  invertSelection,
+  solventAtoms,
+} from '../editor/selectionMath';
 import { normalizeSymbol } from '../editor/cartesian';
 import { CartesianEditor } from './CartesianEditor';
 import { redoEdit, undoEdit } from './historyActions';
@@ -240,6 +245,19 @@ export function MenuBar({ onError }: { onError: (msg: string) => void }): JSX.El
               const sym = window.prompt('Element symbol');
               if (sym) selection.set(atomsOfElement(store.doc, normalizeSymbol(sym)));
             },
+          },
+          {
+            label: 'Select residues…',
+            disabled: store.doc.residues.length === 0,
+            action: () => {
+              const spec = window.prompt('Residue names, numbers or ranges (LYS, 12, A:12-20)');
+              if (spec) selection.set(atomsOfResidues(store.doc, spec));
+            },
+          },
+          {
+            label: 'Select solvent',
+            disabled: store.doc.residues.length === 0,
+            action: () => selection.set(solventAtoms(store.doc)),
           },
           {
             label: 'Select SMARTS…',

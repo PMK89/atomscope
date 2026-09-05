@@ -28,6 +28,9 @@
   which had hidden 37 errors (`normalizeStructure` demanding fields it fills in itself, spectrum
   requests missing fields the generated types require, a vibration trajectory without its
   `structureId`, unchecked tuple indexing in the cell-extent maths, several test casts).
+- Residue-aware selection and colouring: `Select ▸ Select residues…` (names, numbers, ranges,
+  chain-qualified) and `Select ▸ Select solvent`, and a `Colour by` on the Display tab with
+  residue (RasMol amino colours), chain and secondary-structure schemes.
 - An Auto-optimize tool (`O`): the force field runs continuously and an atom can be dragged while
   it does, pinned where it is held while the rest of the molecule relaxes around it. One request in
   flight at a time, and the whole run is a single undo step -- Undo during a run stops it and

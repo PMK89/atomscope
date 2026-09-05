@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import type { ColorScheme } from '../renderer/atomColors';
 import type { StructureStyle } from '../renderer/layers/StructureLayer';
 import type { Projection } from '../renderer/Renderer';
 import type { AtomLabelContent, BondLabelContent } from '../renderer/labels';
@@ -7,6 +8,9 @@ import { DEFAULT_HBOND_SETTINGS } from '../model/hbonds';
 
 export interface ViewState {
   style: StructureStyle;
+  /** What decides an atom's colour: its element, or what it is part of. */
+  colorScheme: ColorScheme;
+  setColorScheme: (scheme: ColorScheme) => void;
   projection: Projection;
   showHydrogens: boolean;
   background: 'white' | 'black' | 'gray';
@@ -73,6 +77,8 @@ export interface ViewState {
 
 export const useViewStore = create<ViewState>((set) => ({
   style: 'ball-and-stick',
+  colorScheme: 'element',
+  setColorScheme: (colorScheme) => set({ colorScheme }),
   projection: 'perspective',
   showHydrogens: true,
   background: 'white',

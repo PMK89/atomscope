@@ -108,7 +108,7 @@ test('the Display tab drives the labels drawn into the scene', async ({ page }) 
   await expect.poll(labels).toEqual(['O', 'H', 'H', '0.96', '0.96']);
 
   // the style controls reach the renderer too
-  await page.getByLabel('Colour').fill('#ff0000');
+  await page.getByLabel('Colour', { exact: true }).fill('#ff0000');
   await page.getByRole('slider', { name: 'Size' }).fill('1.2');
   const style = await page.evaluate(() => {
     const renderer = (window as unknown as { __atomscopeRenderer?: unknown })
@@ -408,4 +408,27 @@ test('the auto-optimize tool relaxes a stretched bond and is one undo step', asy
   await expect
     .poll(async () => Number(await page.getByLabel('length of O1—H2').inputValue()))
     .toBeGreaterThan(1.3);
+});
+
+test('a peptide can be coloured by residue and selected by residue name', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Build' }).click();
+  await page.getByRole('menuitem', { name: 'Insert peptide…' }).click();
+  await page.getByLabel('Conformation').selectOption('alpha_helix');
+  await page.getByLabel('Sequence').fill('AGKDAGKD');
+  await page.getByRole('button', { name: 'Insert', exact: true }).click();
+  await expect(page.locator('.app-statusbar')).toContainText('atoms');
+
+  await page.getByRole('tab', { name: 'Display' }).click();
+  await page.getByLabel('Colour by').selectOption('residue');
+  // lysine is blue and aspartate red in the RasMol scheme the residue colours follow
+  await page.locator('canvas').screenshot({ path: '../.scratch/dev/residue-colors.png' });
+
+  // the menu bar's Select, not the Select tool button
+  await page.locator('button.menu-title', { hasText: 'Select' }).click();
+  page.once('dialog', (d) => void d.accept('LYS'));
+  await page.getByRole('menuitem', { name: 'Select residues…' }).click();
+  await expect(page.locator('.app-statusbar')).toContainText('selected');
+  const selected = await page.locator('.app-statusbar').textContent();
+  expect(Number(/(\d+) selected/.exec(selected ?? '')?.[1] ?? 0)).toBeGreaterThan(20);
 });

@@ -87,7 +87,8 @@ test('import a cube and render an isosurface', async ({ page, request }) => {
   await page.getByRole('button', { name: 'Import' }).click();
   await expect(page.getByText(/electrostatic potential · 2/)).toBeVisible();
 
-  await page.getByLabel('Colour by').selectOption({ label: 'ramp' });
+  // the Display tab has a 'Colour by' of its own: this is the surface's
+  await page.locator('select[id$="-colorby"]').selectOption({ label: 'ramp' });
   // the diverging scale paints the low end blue and the high end red: red is what was not there
   await expect.poll(() => redPixels(page), { timeout: 30_000 }).toBeGreaterThan(200);
   await page.screenshot({ path: join(dir, 'surface-colored.png') });

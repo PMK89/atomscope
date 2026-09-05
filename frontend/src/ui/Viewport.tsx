@@ -8,6 +8,7 @@ import { useTrajectoryStore } from '../state/trajectoryStore';
 import { frameCell, framePositions, isTrajectoryCompatible } from '../model/trajectory';
 import { installExtraLayers, syncExtraLayers } from './viewportLayers';
 import { BACKGROUND_HEX, useViewStore } from '../state/viewStore';
+import { atomColors } from '../renderer/atomColors';
 import { useBioStore } from '../state/bioStore';
 import { useRendererStore } from '../state/rendererStore';
 import { useIsosurfaceLayers } from './useIsosurfaceLayers';
@@ -34,6 +35,16 @@ export function Viewport(): JSX.Element {
   );
   const cellOverride = useMemo(() => (active ? frameCell(active, frame) : null), [active, frame]);
   const secondary = useBioStore((s) => s.data);
+  // Colours follow the residues, not the coordinates: keyed on the whole document they would be
+  // rebuilt on every frame of a drag, and a new array repaints every instance colour.
+  // colours follow the residues, not the coordinates, so a drag does not recompute them
+  const atomCount = doc.atoms.length;
+  const residues = doc.residues;
+  const scheme = view.colorScheme;
+  const atomColorOverride = useMemo(
+    () => atomColors(residues, atomCount, scheme, secondary),
+    [residues, atomCount, scheme, secondary],
+  );
   const lastFitted = useRef<string | null>(null);
   const lastFitRequest = useRef(0);
   // renderer readiness as state, so surfaces already in the store mount into a new renderer
@@ -67,6 +78,7 @@ export function Viewport(): JSX.Element {
       selectionStyle: view.selectionStyle,
       multipleBonds: view.multipleBonds,
       cellRepeat: view.cellRepeat,
+      atomColors: atomColorOverride,
     });
     r.setBackground(BACKGROUND_HEX[view.background]);
     if (r.projection !== view.projection) r.setProjection(view.projection);
@@ -84,13 +96,26 @@ export function Viewport(): JSX.Element {
       lastFitRequest.current = view.fitRequest;
       r.fitToStructure();
     }
-  }, [doc, revision, selected, hovered, view, positionsOverride, cellOverride, secondary]);
+  }, [
+    doc,
+    revision,
+    selected,
+    hovered,
+    view,
+    positionsOverride,
+    cellOverride,
+    secondary,
+    atomColorOverride,
+  ]);
 
   // the assignment depends on the geometry, so it is refetched per revision -- but only while
   // something is drawing it
   useEffect(() => {
-    if (view.showRibbon) void useBioStore.getState().load(doc, revision);
-  }, [view.showRibbon, doc, revision]);
+    // the ribbon draws it, and so does colouring by secondary structure
+    if (view.showRibbon || view.colorScheme === 'secondary') {
+      void useBioStore.getState().load(doc, revision);
+    }
+  }, [view.showRibbon, view.colorScheme, doc, revision]);
 
   return (
     <div ref={ref} className="viewport-canvas" data-testid="viewport">

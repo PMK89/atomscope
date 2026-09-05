@@ -78,3 +78,65 @@ export function atomsOfElement(doc: StructureDoc, element: string): number[] {
   });
   return out;
 }
+
+/** Residue names that mean "solvent or a counter-ion", as PDB files write them. */
+const SOLVENT_RESIDUES = new Set([
+  'HOH',
+  'WAT',
+  'SOL',
+  'TIP',
+  'TIP3',
+  'TIP4',
+  'DOD',
+  'H2O',
+  // counter-ions, matched as residue *names*: an alpha carbon is the atom name CA, not a residue
+  'NA',
+  'CL',
+  'K',
+  'MG',
+  'CA',
+  'ZN',
+  'MN',
+  'FE',
+  'SO4',
+  'PO4',
+]);
+
+/** Atoms of every solvent or ion residue (Avogadro's Select Solvent). */
+export function solventAtoms(doc: StructureDoc): number[] {
+  const out: number[] = [];
+  for (const r of doc.residues) {
+    if (SOLVENT_RESIDUES.has(r.name.trim().toUpperCase())) out.push(...r.atom_indices);
+  }
+  return out;
+}
+
+/**
+ * Atoms of the residues named by `spec`, a comma-separated list of
+ * `LYS` (every lysine), `12` (residue number 12), `12-20` (a range) or `A:12` / `A:12-20`
+ * (restricted to one chain). Numbers are residue numbers as the file gives them, not indices.
+ */
+export function atomsOfResidues(doc: StructureDoc, spec: string): number[] {
+  const terms = spec
+    .split(',')
+    .map((t) => t.trim())
+    .filter(Boolean);
+  const out = new Set<number>();
+  for (const term of terms) {
+    const [chain, rest] = term.includes(':')
+      ? [term.slice(0, term.indexOf(':')).trim(), term.slice(term.indexOf(':') + 1).trim()]
+      : [null, term];
+    const range = /^(-?\d+)\s*-\s*(-?\d+)$/.exec(rest);
+    const number = /^-?\d+$/.test(rest) ? Number(rest) : null;
+    for (const r of doc.residues) {
+      if (chain !== null && r.chain.toUpperCase() !== chain.toUpperCase()) continue;
+      const matched = range
+        ? r.number >= Number(range[1]) && r.number <= Number(range[2])
+        : number !== null
+          ? r.number === number
+          : r.name.trim().toUpperCase() === rest.toUpperCase();
+      if (matched) for (const i of r.atom_indices) out.add(i);
+    }
+  }
+  return [...out].sort((a, b) => a - b);
+}
