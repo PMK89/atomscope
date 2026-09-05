@@ -3,6 +3,7 @@ import { api } from '../api/client';
 import { normalizeStructure } from '../model/structure';
 import { useCalculationStore } from '../state/calculationStore';
 import { useProjectStore } from '../state/projectStore';
+import { useVolumetricStore } from '../state/volumetricStore';
 import { useStructureStore } from '../state/structureStore';
 
 export function ProjectPanel({ onError }: { onError: (m: string) => void }): JSX.Element {
@@ -23,6 +24,7 @@ export function ProjectPanel({ onError }: { onError: (m: string) => void }): JSX
     } else {
       calcs.disconnect();
       calcs.clear();
+      useVolumetricStore.getState().clear();
     }
   }, [project.info?.path]); // eslint-disable-line react-hooks/exhaustive-deps
 

@@ -14,7 +14,7 @@ nothing depends on frontend state.
     input/                     generated input files exactly as sent to the code
     work/                      working directory of the executed job (raw outputs, logs)
     results/                   parsed results: results.json (ResultBundle) plus binary sidecars
-                               (grids, trajectories) referenced from it
+                               <grid-id>.f32 for volumetric grids referenced by data_ref
   datasets/<id>.json           standalone imported datasets (cube files, trajectories, spectra)
   datasets/<id>.bin            binary sidecars for datasets
   presets/<name>.json          saved parameter presets
