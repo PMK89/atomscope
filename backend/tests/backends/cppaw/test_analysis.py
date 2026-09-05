@@ -2,6 +2,7 @@
 """Golden tests for the CP-PAW analysis tools: control-file generators, .dos/.dat parsers,
 orbital listing and default k-paths (no executable needed)."""
 
+import os
 from pathlib import Path
 
 import pytest
@@ -140,6 +141,20 @@ def test_read_bands_from_written_files(tmp_path: Path) -> None:
     assert bs.energies[0][0] == [-4.33744, 7.70453] and bs.homo_energy == 7.7
     xs, e = parse_band_text("#DATA FOR LINE BLOCK 1\n 0.0 1.0 2.0\n")
     assert xs == [0.0] and e == [[1.0, 2.0]]
+
+
+def test_a_band_file_left_over_from_an_earlier_request_is_refused(tmp_path: Path) -> None:
+    """paw_bands.x can fail (older builds reject MODE=DIAG) and leave the previous run's .dat in
+    place; answering with it would show a band structure nobody asked for."""
+    path = [KPathPoint(label="G", xk=(0, 0, 0)), KPathPoint(label="X", xk=(0.5, 0, 0.5))]
+    stale = tmp_path / band_file("case", 1)
+    stale.write_text("   0.00000  -4.0   7.0\n   0.50000  -3.0   6.0\n")
+    os.utime(stale, (1_000_000, 1_000_000))
+    (tmp_path / band_sidecar("case")).write_text(
+        band_sidecar_text(path, BandOptions(nk=2, mode="diagonalize"), 1)
+    )
+    with pytest.raises(FileNotFoundError, match="predates"):
+        read_bands(tmp_path, "case")
 
 
 def test_orbital_labels_and_listing() -> None:

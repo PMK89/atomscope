@@ -22,14 +22,36 @@ def _b(v: Values, key: str, default: bool) -> bool:
     return bool(x) if x is not None else default
 
 
-def orbital_band_list(text: object) -> list[int]:
+MAX_ORBITAL_BANDS = 200
+
+
+def parse_orbital_bands(text: object) -> tuple[list[int], list[str]]:
+    """Band numbers from ``"1 3 5"`` or ``"1-4, 7"``, plus the tokens that made no sense.
+
+    Ranges are accepted because that is how anyone writes a list of orbitals; returning the
+    rejected tokens lets ``validate`` say so instead of silently producing no !WAVE blocks.
+    """
     if not isinstance(text, str):
-        return []
-    return [
-        int(t)
-        for t in text.replace(",", " ").split()
-        if t.strip().lstrip("-").isdigit() and int(t) > 0
-    ]
+        return [], []
+    bands: list[int] = []
+    bad: list[str] = []
+    for token in text.replace(",", " ").split():
+        first, dash, last = token.partition("-")
+        if not dash and first.isdigit() and int(first) > 0:
+            bands.append(int(first))
+        elif dash and first.isdigit() and last.isdigit() and 0 < int(first) <= int(last):
+            bands.extend(range(int(first), int(last) + 1))
+        else:
+            bad.append(token)
+    unique = sorted(dict.fromkeys(bands))
+    if len(unique) > MAX_ORBITAL_BANDS:
+        bad.append(f"{len(unique)} bands requested, at most {MAX_ORBITAL_BANDS} are written")
+        unique = unique[:MAX_ORBITAL_BANDS]
+    return unique, bad
+
+
+def orbital_band_list(text: object) -> list[int]:
+    return parse_orbital_bands(text)[0]
 
 
 def analysis_files(root_name: str, v: Values) -> list[tuple[str, str]]:

@@ -48,6 +48,15 @@ def read_bands(work: Path, root: str, *, homo_energy: float | None = None) -> Ba
         if not f.is_file():
             msg = f"{f.name} not found (paw_bands.x did not finish?)"
             raise FileNotFoundError(msg)
+        # The sidecar is written when the run is requested. A .dat older than it belongs to an
+        # earlier request, so the last run failed (older paw_bands.x builds reject MODE=DIAG, for
+        # instance) and serving the file would answer a question nobody asked.
+        if f.stat().st_mtime < sidecar.stat().st_mtime:
+            msg = (
+                f"{f.name} predates the last band request (mode {meta.get('mode', '?')}): "
+                "that run did not produce a band file, see the job log"
+            )
+            raise FileNotFoundError(msg)
         x, rows = parse_band_text(f.read_text(errors="replace"))
         if spin == 1:
             xs = x

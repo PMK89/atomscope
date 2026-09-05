@@ -3,7 +3,10 @@ from pathlib import Path
 
 import pytest
 
+from atomscope.backends.cppaw.cntl import parse_orbital_bands
 from atomscope.backends.cppaw.deck import Block, DeckSyntaxError, format_deck, parse_deck
+from atomscope.backends.cppaw.plugin import CppawPlugin
+from atomscope.model import Atom, Structure
 
 FIX = Path(__file__).resolve().parents[2] / "fixtures" / "cppaw"
 
@@ -95,3 +98,18 @@ def test_duplicate_keys_first_wins() -> None:
     a = root.child("A")
     assert a.get("X") == 1 and a.get("Y") == 3
     assert a.duplicate_keys == ["X", "Y"]
+
+
+def test_orbital_band_ranges_are_accepted_and_nonsense_is_reported() -> None:
+    """'1-4' is how anyone writes a list of orbitals; it used to be dropped without a word."""
+    assert parse_orbital_bands("1-4, 7") == ([1, 2, 3, 4, 7], [])
+    assert parse_orbital_bands("3 3 1") == ([1, 3], [])
+    bands, bad = parse_orbital_bands("2 HOMO 4-1")
+    assert bands == [2] and bad == ["HOMO", "4-1"]
+
+    plugin = CppawPlugin()
+    report = plugin.validate(
+        Structure(atoms=[Atom(element="Si", position=(0.0, 0.0, 0.0))]),
+        {"write_orbitals": True, "orbital_bands": "HOMO"},
+    )
+    assert any(i.key == "orbital_bands" for i in report.issues)

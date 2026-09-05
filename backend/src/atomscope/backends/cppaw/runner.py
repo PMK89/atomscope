@@ -30,6 +30,7 @@ from pathlib import Path
 from atomscope.backends.cppaw.cntl import wcntl_text
 
 SOFT_STOP_GRACE = 90.0
+POLL_INTERVAL = 0.2
 ROOT_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$")
 
 
@@ -57,8 +58,13 @@ def run_stage(
             [*(launcher or []), paw_fast, f"{root}.cntl"], stdout=out, stderr=subprocess.STDOUT
         )
 
+        deadline: float | None = None
+
         def soft_stop(signum: int, _frame: object) -> None:
-            nonlocal stopped
+            """Ask CP-PAW to stop at the end of its step. Waiting happens in the loop below."""
+            nonlocal stopped, deadline
+            if stopped:
+                return
             stopped = True
             print(
                 f"[atomscope] signal {signum}: requesting soft stop via {exit_file.name}",
@@ -66,15 +72,26 @@ def run_stage(
             )
             exit_file.touch()
             deadline = time.monotonic() + SOFT_STOP_GRACE
-            while proc.poll() is None and time.monotonic() < deadline:
-                time.sleep(0.5)
-            if proc.poll() is None:
-                print("[atomscope] soft stop timed out, terminating", flush=True)
-                proc.terminate()
 
         signal.signal(signal.SIGTERM, soft_stop)
         signal.signal(signal.SIGINT, soft_stop)
-        code = proc.wait()
+        # Poll rather than block in proc.wait(): the handler runs on this thread, inside the
+        # wait() frame, which holds Popen._waitpid_lock -- a poll() from there can never see the
+        # child exit, so waiting inside the handler would turn every soft stop into the
+        # grace-period kill even when CP-PAW stopped a second later.
+        code = proc.poll()
+        while code is None:
+            if deadline is not None and time.monotonic() > deadline:
+                print("[atomscope] soft stop timed out, terminating", flush=True)
+                proc.terminate()
+                try:
+                    code = proc.wait(timeout=10)
+                except subprocess.TimeoutExpired:
+                    proc.kill()
+                    code = proc.wait()
+                break
+            time.sleep(POLL_INTERVAL)
+            code = proc.poll()
     signal.signal(signal.SIGTERM, signal.SIG_DFL)
     signal.signal(signal.SIGINT, signal.SIG_DFL)
     print(

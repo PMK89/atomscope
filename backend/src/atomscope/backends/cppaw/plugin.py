@@ -28,7 +28,12 @@ from atomscope.backends.cppaw.analysis import (
     orbital_label,
 )
 from atomscope.backends.cppaw.bands import read_bands
-from atomscope.backends.cppaw.cntl import analysis_files, cntl_text, force_stage_values
+from atomscope.backends.cppaw.cntl import (
+    analysis_files,
+    cntl_text,
+    force_stage_values,
+    parse_orbital_bands,
+)
 from atomscope.backends.cppaw.dos import read_dos
 from atomscope.backends.cppaw.results import collect
 from atomscope.backends.cppaw.schema import PRESETS, SCHEMA
@@ -153,6 +158,14 @@ class CppawPlugin:
                     key="write_spin_density",
                     message="requires a spin-polarized calculation",
                     severity="warning",
+                )
+            )
+        _, bad_bands = parse_orbital_bands(merged.get("orbital_bands", ""))
+        if bad_bands:
+            report.issues.append(
+                ValidationIssue(
+                    key="orbital_bands",
+                    message=f"not band numbers or ranges: {', '.join(bad_bands)}",
                 )
             )
         if merged.get("occupations") == "mermin" and merged.get("safeortho"):
