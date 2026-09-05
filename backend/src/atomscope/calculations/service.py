@@ -1,3 +1,4 @@
+# ruff: noqa: E501
 """Calculation lifecycle inside a project: create -> generate -> run -> collect results."""
 
 from __future__ import annotations
@@ -222,6 +223,9 @@ class CalculationService:
             self.generate(calc_id)
             calc = self.get(calc_id)
         plugin = self.registry.get(calc.backend_id)
+        if not plugin.capabilities.executes:
+            msg = f"backend {plugin.name!r} only generates input files; run them with the target program"
+            raise CalculationError(msg)
         exe = plugin.discover_executables()
         if not exe.available:
             msg = "backend executables not available: " + "; ".join(exe.messages)
