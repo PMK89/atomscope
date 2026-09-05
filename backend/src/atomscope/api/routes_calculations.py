@@ -31,6 +31,15 @@ class UpdateValuesRequest(StrictModel):
     values: dict[str, object]
 
 
+class ForkRequest(StrictModel):
+    values: dict[str, object] = Field(default_factory=dict)
+    name: str | None = None
+    restart_from_parent: bool = False
+    structure_id: str | None = Field(
+        default=None, description="use another structure instead of the parent's"
+    )
+
+
 class LogResponse(StrictModel):
     stream: str
     lines: list[str]
@@ -79,6 +88,25 @@ def update_values(calc_id: str, body: UpdateValuesRequest, request: Request) -> 
         return _state(request).require_calculations().update_values(calc_id, body.values)
     except CalculationError as exc:
         raise HTTPException(status.HTTP_409_CONFLICT, str(exc)) from exc
+
+
+@router.post("/{calc_id}/fork", response_model=Calculation, status_code=status.HTTP_201_CREATED)
+def fork_calculation(calc_id: str, body: ForkRequest, request: Request) -> Calculation:
+    state = _state(request)
+    svc = state.require_calculations()
+    try:
+        structure = (
+            state.require_project().load_structure(body.structure_id) if body.structure_id else None
+        )
+        return svc.fork(
+            calc_id,
+            body.values,
+            name=body.name,
+            restart_from_parent=body.restart_from_parent,
+            structure=structure,
+        )
+    except CalculationError as exc:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, str(exc)) from exc
 
 
 @router.get("/{calc_id}/validate", response_model=ValidationReport)

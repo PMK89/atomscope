@@ -69,6 +69,10 @@ class CppawPlugin:
             )
         return report
 
+    def restart_files(self, generated: GeneratedInputs) -> list[str]:
+        """Glob patterns (relative to work/) copied when continuing from a previous run."""
+        return [f"{generated.root_name}.rstrt"]
+
     def health_check(self) -> cppaw_settings.HealthReport:
         self.health = cppaw_settings.health_check(self.settings)
         return self.health
@@ -148,6 +152,10 @@ class CppawPlugin:
         if exe is None:
             msg = "paw_fast.x not found"
             raise FileNotFoundError(msg)
+        if not self.settings.runtime_verified:
+            problem = cppaw_settings.ensure_runtime(self.settings)
+            if problem:
+                raise RuntimeError(problem)
         structure = self._structure_from_inputs(input_dir)
         values = self._values_from_inputs(input_dir)
         argv = [
@@ -202,6 +210,15 @@ class CppawPlugin:
         cell = molecule_box(structure, margin)
         box = (cell.vectors[0][0] / Bohr, cell.vectors[1][1] / Bohr, cell.vectors[2][2] / Bohr)
         return (float(lo[0] / Bohr), float(lo[1] / Bohr), float(lo[2] / Bohr)), box
+
+    def diagnose_failure(self, work_dir: Path, root_name: str) -> str | None:
+        """Called by the calculation service when a job fails; returns a human explanation."""
+        text = ""
+        for name in (f"{root_name}.out", "driver.log", "driver.err"):
+            p = work_dir / name
+            if p.is_file():
+                text += p.read_text(errors="replace")[-20000:]
+        return cppaw_settings.diagnose_output(text)
 
     # ---- results -------------------------------------------------------------------------------
     def parse_results(self, work_dir: Path, generated: GeneratedInputs) -> ResultBundle:

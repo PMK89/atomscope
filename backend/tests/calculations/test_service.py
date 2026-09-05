@@ -54,3 +54,48 @@ def test_invalid_values_block_generation(tmp_path: Path) -> None:
         svc.generate(calc.id)
     svc.update_values(calc.id, {"task": "single_point"})
     assert svc.validate(calc.id).ok
+
+
+async def test_completed_calculation_is_immutable_and_forkable(tmp_path: Path) -> None:
+    project = ProjectStore.create(tmp_path / "p", "demo")
+    s = from_atoms(bulk("Cu", cubic=True), name="cu")
+    jm = JobManager()
+    svc = CalculationService(project, default_registry(), jm)
+    calc = svc.create(
+        name="cu", backend_id="ase_builtin", structure=s, values={"task": "single_point"}
+    )
+    svc.run(calc.id)
+    await jm.wait(svc.get(calc.id).job.id)
+    assert svc.get(calc.id).status == "completed"
+    with pytest.raises(CalculationError, match="fork"):
+        svc.update_values(calc.id, {"task": "relax"})
+    with pytest.raises(CalculationError, match="fork"):
+        svc.run(calc.id)
+    child = svc.fork(calc.id, {"task": "relax", "max_steps": 2}, name="cu relax")
+    assert child.parent_calculation_id == calc.id and child.values["task"] == "relax"
+    assert child.values["calculator"] == "emt" and child.status == "draft"
+    assert svc.input_structure(child) == svc.input_structure(calc)
+    with pytest.raises(CalculationError, match="restart"):
+        svc.fork(calc.id, restart_from_parent=True)  # ASE plugin has no restart files
+
+
+def test_reconcile_marks_orphaned_running_calculations(tmp_path: Path) -> None:
+    project = ProjectStore.create(tmp_path / "p", "demo")
+    s = from_atoms(bulk("Cu"))
+    svc = CalculationService(project, default_registry(), JobManager())
+    calc = svc.create(name="orphan", backend_id="ase_builtin", structure=s, values={})
+    svc.generate(calc.id)
+    calc = svc.get(calc.id)
+    calc.status = "running"
+    svc.save(calc)
+    again = CalculationService(ProjectStore.open(tmp_path / "p"), default_registry(), JobManager())
+    assert again.get(calc.id).status == "failed"
+
+
+def test_close_detaches_listener(tmp_path: Path) -> None:
+    project = ProjectStore.create(tmp_path / "p", "demo")
+    jm = JobManager()
+    svc = CalculationService(project, default_registry(), jm)
+    assert svc._on_job_event in jm._listeners
+    svc.close()
+    assert svc._on_job_event not in jm._listeners

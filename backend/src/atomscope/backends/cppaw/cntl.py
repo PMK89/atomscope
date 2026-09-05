@@ -162,7 +162,8 @@ def wcntl_text(
     origin_bohr: tuple[float, float, float],
     box_bohr: tuple[float, float, float],
 ) -> str:
-    """Control file for ``paw_wave.x``: view box in Bohr, cube output, the large DX file suppressed."""
+    """Control file for ``paw_wave.x``: view box in Bohr, cube output; the large DX file is
+    suppressed."""
     root = Block("__ROOT__")
     w = Block("WCNTL")
     root.children.append(w)

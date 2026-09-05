@@ -8,6 +8,7 @@ from ase.build import bulk, molecule
 from atomscope.ase_bridge import from_atoms
 from atomscope.backends.base import BackendPlugin, Resources
 from atomscope.backends.cppaw.plugin import CppawPlugin, plugin
+from atomscope.backends.cppaw.settings import diagnose_output
 from atomscope.backends.registry import default_registry
 from atomscope.jobs import JobManager
 
@@ -87,3 +88,28 @@ async def test_real_si2_run(tmp_path: Path) -> None:
     assert res.trajectory is not None
     if p.settings.find("paw_wave.x") is not None:
         assert res.grids and (work / "case_density.cub").exists()
+
+
+def test_diagnose_output_recognizes_runtime_failure() -> None:
+    assert "libgfortran" in (
+        diagnose_output("Fortran runtime error: Missing comma between descriptors") or ""
+    )
+    assert "STOP IN STRCIN" in (diagnose_output("foo\n STOP IN STRCIN_SPECIES\n") or "")
+    assert diagnose_output("all good") is None
+
+
+def test_run_spec_probes_runtime(tmp_path: Path) -> None:
+    p = CppawPlugin()
+    if not p.discover_executables().available:
+        pytest.skip("paw_fast.x not found")
+    s = from_atoms(bulk("Si"))
+    gen = p.generate_inputs(s, {}, "case")
+    (tmp_path / "input").mkdir()
+    (tmp_path / "work").mkdir()
+    (tmp_path / "input" / "structure.json").write_text(s.model_dump_json())
+    assert not p.settings.runtime_verified
+    spec = p.run_spec(tmp_path / "input", tmp_path / "work", gen, Resources())
+    assert p.settings.runtime_verified
+    if p.settings.library_path:
+        assert spec.env["LD_LIBRARY_PATH"] == p.settings.library_path
+    assert p.restart_files(gen) == ["case.rstrt"]

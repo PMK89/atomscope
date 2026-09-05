@@ -37,6 +37,7 @@ class CppawSettings:
     library_path: str | None = None
     mpirun: str | None = None
     library_path_candidates: list[str] = field(default_factory=list)
+    runtime_verified: bool = False
 
     @classmethod
     def from_env(cls) -> CppawSettings:
@@ -147,6 +148,70 @@ def _run_deck(exe: Path, env_extra: dict[str, str], timeout: float) -> tuple[int
         return (0 if ok else proc.returncode or 1), proc.stdout + proc.stderr
 
 
+def runtime_probe(exe: Path, env_extra: dict[str, str], timeout: float = 15.0) -> tuple[bool, str]:
+    """Cheap start-up probe (~0.2 s): run paw_fast.x on a missing control file.
+
+    A healthy binary reaches its own input error; a runtime-incompatible one dies earlier with
+    the libgfortran FORMAT signature. Returns (runtime_ok, combined output).
+    """
+    with tempfile.TemporaryDirectory(prefix="atomscope-cppaw-probe-") as tmp:
+        env = {k: os.environ[k] for k in ("PATH", "HOME", "LANG", "TMPDIR") if k in os.environ}
+        env.update(env_extra)
+        try:
+            proc = subprocess.run(  # noqa: S603
+                [str(exe), "missing.cntl"],
+                cwd=tmp,
+                env=env,
+                capture_output=True,
+                text=True,
+                timeout=timeout,
+                check=False,
+            )
+        except subprocess.TimeoutExpired:
+            return False, "timeout"
+        out = proc.stdout + proc.stderr
+        return RUNTIME_ERROR_SIGNATURE not in out, out
+
+
+def ensure_runtime(settings: CppawSettings) -> str | None:
+    """Make sure ``settings.library_path`` lets the binary start; returns a diagnostic or None.
+
+    Called before every launch when no health check has established a working runtime. Tries
+    the current setting, then the candidate library directories.
+    """
+    exe = settings.find(MAIN_EXE)
+    if exe is None:
+        return f"{MAIN_EXE} not found"
+    attempts: list[str | None] = [settings.library_path] + [
+        c for c in settings.library_path_candidates if c != settings.library_path
+    ]
+    for lib in attempts:
+        ok, _ = runtime_probe(exe, {"LD_LIBRARY_PATH": lib} if lib else {})
+        if ok:
+            settings.library_path = lib
+            settings.runtime_verified = True
+            return None
+    return (
+        f"{MAIN_EXE} cannot start with the available libgfortran runtimes ({RUNTIME_ERROR_SIGNATURE!r}); "
+        "set ATOMSCOPE_CPPAW_LIBRARY_PATH or rebuild CP-PAW (docs/cppaw-analysis.md §7.1)"
+    )
+
+
+def diagnose_output(text: str) -> str | None:
+    """Explain a failed run from CP-PAW's captured stdout/stderr, if the cause is recognizable."""
+    if RUNTIME_ERROR_SIGNATURE in text:
+        return (
+            "CP-PAW aborted at start-up: the binary was built against an older libgfortran "
+            "(see docs/cppaw-analysis.md §7.1; set ATOMSCOPE_CPPAW_LIBRARY_PATH or rebuild)"
+        )
+    if "CORRUPTED DATA FIELD ON INPUT" in text:
+        return "CP-PAW could not parse an input value (CORRUPTED DATA FIELD ON INPUT)"
+    for line in text.splitlines():
+        if line.strip().startswith("STOP IN "):
+            return f"CP-PAW stopped with an error: {line.strip()}"
+    return None
+
+
 @dataclass
 class HealthReport:
     ok: bool
@@ -173,6 +238,7 @@ def health_check(settings: CppawSettings, timeout: float = 120.0) -> HealthRepor
         dt = time.monotonic() - t0
         if code == 0:
             settings.library_path = lib
+            settings.runtime_verified = True
             return HealthReport(
                 ok=True, message=f"si2 example ran in {dt:.1f} s", library_path=lib, seconds=dt
             )

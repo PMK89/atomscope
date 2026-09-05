@@ -32,6 +32,8 @@ class AppState:
         return d
 
     def set_project(self, project: ProjectStore | None) -> None:
+        if self.calculations is not None:
+            self.calculations.close()
         self.project = project
         self.calculations = (
             CalculationService(project, self.registry, self.jobs) if project is not None else None

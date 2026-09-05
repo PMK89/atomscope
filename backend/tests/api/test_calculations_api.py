@@ -55,3 +55,24 @@ def test_calculation_flow_over_api(tmp_path: Path) -> None:
             c.get(f"/api/calculations/{cid}/log", params={"stream": "../evil"}).status_code == 400
         )
         assert len(c.get("/api/calculations").json()) == 1
+
+
+def test_fork_endpoint(tmp_path: Path) -> None:
+    with TestClient(create_app()) as c:
+        c.post("/api/project/create", json={"path": str(tmp_path / "p"), "name": "d"})
+        s = from_atoms(bulk("Cu"), name="cu")
+        c.put(f"/api/structures/{s.id}", json=s.model_dump(mode="json"))
+        cid = c.post(
+            "/api/calculations",
+            json={"name": "a", "backend_id": "ase_builtin", "structure_id": s.id, "values": {}},
+        ).json()["id"]
+        r = c.post(f"/api/calculations/{cid}/fork", json={"values": {"task": "md"}, "name": "b"})
+        assert (
+            r.status_code == 201
+            and r.json()["parent_calculation_id"] == cid
+            and r.json()["values"]["task"] == "md"
+        )
+        assert (
+            c.post(f"/api/calculations/{cid}/fork", json={"restart_from_parent": True}).status_code
+            == 400
+        )
