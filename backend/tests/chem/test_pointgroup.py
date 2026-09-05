@@ -66,6 +66,25 @@ def test_textbook_point_groups(name: str, symbol: str, order: int) -> None:
     assert found.order == order
 
 
+@pytest.mark.parametrize(
+    "name,symbol",
+    [("H2O", "C2v"), ("CH4", "Td"), ("C6H6", "D6h"), ("C3H4_D2d", "D2d"), ("C2H4", "D2h")],
+)
+def test_detection_does_not_depend_on_orientation(name: str, symbol: str) -> None:
+    """ASE hands out canonically oriented molecules; a real one arrives in any frame. D2d is the
+    discriminating case: its three C2 axes are equivalent as axes, and only one carries the S4."""
+    rotation = np.array(
+        [
+            [0.36, -0.48, 0.8],
+            [0.8, 0.6, 0.0],
+            [-0.48, 0.64, 0.6],
+        ]
+    )  # a proper rotation with no zero entries in the interesting places
+    atoms = molecule(name)
+    atoms.positions = atoms.positions @ rotation.T + np.array([1.3, -2.0, 0.7])
+    assert detect(from_atoms(atoms)).symbol == symbol
+
+
 def test_linear_molecules_get_the_infinite_groups() -> None:
     assert detect(from_atoms(molecule("CO"))).symbol == "C*v"
     assert detect(from_atoms(molecule("CO2"))).symbol == "D*h"

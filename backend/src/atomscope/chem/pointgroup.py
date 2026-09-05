@@ -33,26 +33,10 @@ TOLERANCES: dict[Tolerance, float] = {"loose": 0.3, "normal": 0.1, "tight": 0.02
 
 MAX_ORDER = 8  # highest proper rotation searched for; C60 needs 5, benzene 6
 NEIGHBOURS = 5  # like neighbours per atom whose planes provide face-normal axis candidates
-MAX_ATOMS = 400  # candidate generation is quadratic in the atom count
+PROBE_MIN = 12  # atoms that must take part in generating axis candidates (see _probe_set)
+MAX_ATOMS = 250  # measured: 1.4 s at 53 atoms, 1.8 s at 103, 6.3 s at 203 (quadratic in both
+#                the candidate count and the cost of testing one)
 MAX_GROUP = 200  # |Ih| = 120; anything larger means the closure is not converging
-
-
-@dataclass(frozen=True)
-class Operation:
-    """One symmetry operation: ``kind`` is E, i, sigma, C or S."""
-
-    kind: Literal["E", "i", "sigma", "C", "S"]
-    order: int
-    axis: tuple[float, float, float] | None
-    matrix: np.ndarray
-
-    @property
-    def label(self) -> str:
-        if self.kind in ("E", "i"):
-            return self.kind
-        if self.kind == "sigma":
-            return "sigma"
-        return f"{self.kind}{self.order}"
 
 
 @dataclass(frozen=True)
@@ -118,10 +102,10 @@ def _candidate_axes(positions: np.ndarray, classes: np.ndarray) -> list[np.ndarr
         candidate = _normalize(positions[i])
         if candidate is not None:
             axes.append(candidate)
-    for i in range(len(positions)):
-        for j in range(i + 1, len(positions)):
-            if classes[i] != classes[j]:
-                continue
+    probe = _probe_set(positions, classes)
+    for a in range(len(probe)):
+        for b in range(a + 1, len(probe)):
+            i, j = probe[a], probe[b]
             for v in (positions[i] + positions[j], positions[i] - positions[j]):
                 candidate = _normalize(v)
                 if candidate is not None:
@@ -129,17 +113,38 @@ def _candidate_axes(positions: np.ndarray, classes: np.ndarray) -> list[np.ndarr
             candidate = _normalize(np.cross(positions[i], positions[j]))
             if candidate is not None:
                 axes.append(candidate)
-    axes.extend(_plane_normals(positions, classes))
+    axes.extend(_plane_normals(positions, probe))
     return _unique_axes(axes)
 
 
-def _plane_normals(positions: np.ndarray, classes: np.ndarray) -> list[np.ndarray]:
-    """Normals of the planes through each atom and pairs of its nearest like neighbours."""
+def _probe_set(positions: np.ndarray, classes: np.ndarray) -> np.ndarray:
+    """Indices of the atoms used to generate pair and plane candidates.
+
+    Every symmetry operation permutes the atoms of one element among themselves, so the axes of
+    the molecule are already determined by the smallest elements -- pairing up all 200 atoms of a
+    peptide to rediscover that it is C1 is what made detection quadratic in a way that hurt.
+    Elements are added smallest first until the set is large enough not to be degenerate (three
+    collinear carbons would hide the C2 axes of allene, which run through its hydrogens), so a
+    small molecule ends up contributing all of its atoms anyway.
+    """
+    del positions
+    groups: dict[int, list[int]] = {}
+    for i, element in enumerate(classes):
+        groups.setdefault(int(element), []).append(i)
+    probe: list[int] = []
+    for group in sorted(groups.values(), key=len):
+        if len(probe) >= PROBE_MIN:
+            break
+        probe.extend(group)
+    return np.array(sorted(probe))
+
+
+def _plane_normals(positions: np.ndarray, probe: np.ndarray) -> list[np.ndarray]:
+    """Normals of the planes through each probe atom and pairs of its nearest probe neighbours."""
     normals: list[np.ndarray] = []
     distances = np.linalg.norm(positions[:, None, :] - positions[None, :, :], axis=2)
-    for i in range(len(positions)):
-        like = np.flatnonzero(classes == classes[i])
-        like = like[like != i]
+    for i in probe:
+        like = probe[probe != i]
         if len(like) < 2:
             continue
         nearest = like[np.argsort(distances[i, like])[:NEIGHBOURS]]
@@ -350,21 +355,38 @@ def _classify(  # noqa: PLR0911 - the Schoenflies flow chart is a chain of decis
 
     c3_axes = [a for n, a in axes if n % 3 == 0]
     if len(c3_axes) >= 4:  # cubic family: T, O or I
-        highest = max(n for n, _ in axes)
         if any(n % 5 == 0 for n, _ in axes):
             return ("Ih" if inversion else "I"), None
         if any(n % 4 == 0 for n, _ in axes):
             return ("Oh" if inversion else "O"), None
         if inversion:
             return "Th", None
-        return ("Td" if mirrors else "T"), None if highest else None
+        return ("Td" if mirrors else "T"), None
 
     top_order = max(n for n, _ in axes)
-    candidates = [a for n, a in axes if n == top_order]
-    principal = max(
-        candidates,
-        key=lambda a: sum(1 for n, b in axes if n % 2 == 0 and abs(float(np.dot(a, b))) < 1e-3),
-    )
+    # Several axes can share the highest order -- D2 and D2d have three mutually perpendicular C2
+    # axes, only one of which carries the S4 or the mirrors. Classifying each of them and keeping
+    # the richest group makes the answer independent of the order the candidates were generated
+    # in, and so of how the molecule happens to be oriented.
+    best: tuple[str, np.ndarray] | None = None
+    for principal in (a for n, a in axes if n == top_order):
+        symbol = _axial_symbol(positions, classes, tol, axes, mirrors, principal, top_order)
+        if best is None or group_order(symbol) > group_order(best[0]):
+            best = (symbol, principal)
+    assert best is not None  # noqa: S101 - axes is non-empty here
+    return best
+
+
+def _axial_symbol(  # noqa: PLR0911, PLR0917 - the flow chart is a chain of decisions
+    positions: np.ndarray,
+    classes: np.ndarray,
+    tol: float,
+    axes: list[tuple[int, np.ndarray]],
+    mirrors: list[np.ndarray],
+    principal: np.ndarray,
+    top_order: int,
+) -> str:
+    """The C/D branch of the flow chart for one choice of principal axis."""
     perpendicular_c2 = sum(
         1 for n, b in axes if n % 2 == 0 and abs(float(np.dot(principal, b))) < 1e-3
     )
@@ -373,17 +395,17 @@ def _classify(  # noqa: PLR0911 - the Schoenflies flow chart is a chain of decis
 
     if perpendicular_c2 >= top_order:
         if horizontal:
-            return f"D{top_order}h", principal
+            return f"D{top_order}h"
         if vertical >= top_order:
-            return f"D{top_order}d", principal
-        return f"D{top_order}", principal
+            return f"D{top_order}d"
+        return f"D{top_order}"
     if horizontal:
-        return f"C{top_order}h", principal
+        return f"C{top_order}h"
     if vertical >= top_order:
-        return f"C{top_order}v", principal
+        return f"C{top_order}v"
     if _improper_order(principal, positions, classes, tol, 2 * top_order):
-        return f"S{2 * top_order}", principal
-    return f"C{top_order}", principal
+        return f"S{2 * top_order}"
+    return f"C{top_order}"
 
 
 def symmetrize(structure: Structure, tolerance: Tolerance | float = "normal") -> Structure:
