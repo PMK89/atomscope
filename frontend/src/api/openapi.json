@@ -5167,6 +5167,52 @@
         "title": "SurfaceRequest",
         "type": "object"
       },
+      "SurfaceTaskStatus": {
+        "additionalProperties": false,
+        "description": "A running (or finished) field evaluation. The grid is there once the status is `done`.",
+        "properties": {
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error"
+          },
+          "grid": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/VolumetricGrid"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "progress": {
+            "description": "fraction of the grid points evaluated",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Progress",
+            "type": "number"
+          },
+          "status": {
+            "enum": ["running", "done", "failed", "cancelled"],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": ["id", "status", "progress"],
+        "title": "SurfaceTaskStatus",
+        "type": "object"
+      },
       "SymmetryInfo": {
         "additionalProperties": false,
         "description": "Result of space-group perception.",
@@ -10621,7 +10667,7 @@
     },
     "/api/wavefunction/surface": {
       "post": {
-        "description": "Evaluate a field on a grid and store it as a dataset of the open project.",
+        "description": "Start evaluating a field on a grid; the dataset is stored in the project when it finishes.\n\nEverything that can be refused is refused here, synchronously, so a bad request is still a\n400. What is left is the arithmetic, which runs in a worker thread and is followed with\n`GET /surface/{id}` and stopped with `POST /surface/{id}/cancel`.",
         "operationId": "surface_api_wavefunction_surface_post",
         "requestBody": {
           "content": {
@@ -10638,7 +10684,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/VolumetricGrid"
+                  "$ref": "#/components/schemas/SurfaceTaskStatus"
                 }
               }
             },
@@ -10656,6 +10702,88 @@
           }
         },
         "summary": "Surface",
+        "tags": ["wavefunction"]
+      }
+    },
+    "/api/wavefunction/surface/{task_id}": {
+      "get": {
+        "description": "How far the evaluation has got, and its grid once it is done.",
+        "operationId": "surface_status_api_wavefunction_surface__task_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "task_id",
+            "required": true,
+            "schema": {
+              "title": "Task Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SurfaceTaskStatus"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Surface Status",
+        "tags": ["wavefunction"]
+      }
+    },
+    "/api/wavefunction/surface/{task_id}/cancel": {
+      "post": {
+        "description": "Stop an evaluation. It notices at the end of the chunk of grid points it is in.",
+        "operationId": "cancel_surface_api_wavefunction_surface__task_id__cancel_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "task_id",
+            "required": true,
+            "schema": {
+              "title": "Task Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SurfaceTaskStatus"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Cancel Surface",
         "tags": ["wavefunction"]
       }
     }

@@ -1,6 +1,8 @@
 """Molecular wavefunctions: readers (Gaussian fchk, Molden) and volumetric field generation."""
 
 from atomscope.wavefunction.cubes import (
+    EvaluationCancelledError,
+    EvaluationHooks,
     GridBox,
     bounding_box,
     density_values,
@@ -15,6 +17,8 @@ from atomscope.wavefunction.model import MolecularOrbital, Shell, Wavefunction
 from atomscope.wavefunction.molden import read_molden
 
 __all__ = [
+    "EvaluationCancelledError",
+    "EvaluationHooks",
     "GridBox",
     "MolecularOrbital",
     "Shell",

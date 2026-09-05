@@ -34,6 +34,9 @@ export const RESOLUTIONS: { label: string; spacing: number }[] = [
   { label: 'Very high', spacing: 0.1 },
 ];
 
+/** How often to ask how far the evaluation has got. */
+const POLL_MS = 300;
+
 /** Mirrors MAX_ESP_POINTS in routes_wavefunction.py. */
 export const ESP_LIMIT = 200_000;
 
@@ -73,7 +76,8 @@ export function SurfaceGenerator({
   const [orbital, setOrbital] = useState<number | null>(null);
   const [spacing, setSpacing] = useState(0.25);
   const [padding, setPadding] = useState(3.5);
-  const [busy, setBusy] = useState(false);
+  /** The evaluation in flight: its token, so it can be stopped, and how far it has got. */
+  const [running, setRunning] = useState<{ id: string; progress: number } | null>(null);
 
   const load = async (): Promise<void> => {
     const loaded = await api.wavefunction.load({ path: path.trim() });
@@ -88,22 +92,39 @@ export function SurfaceGenerator({
   const points = estimatePoints(positions, padding, spacing);
   const tooLarge = kind === 'electrostatic_potential' && points > ESP_LIMIT;
 
+  /**
+   * Start the evaluation and follow it. The backend hands back a token at once and does the
+   * arithmetic beside the request, so the panel can show how far it has got and stop it -- what
+   * Avogadro's modal progress dialog did, without a modal (AV-UI-022).
+   */
   const calculate = async (): Promise<void> => {
     if (!info) return;
-    setBusy(true);
+    const body: SurfaceRequest = {
+      path: info.source,
+      kind,
+      padding,
+      spacing,
+      vdw_scale: 1,
+      ...(kind === 'orbital' && orbital !== null ? { orbital_index: orbital } : {}),
+    };
+    let task = await api.wavefunction.surface(body);
+    setRunning({ id: task.id, progress: task.progress });
     try {
-      const body: SurfaceRequest = {
-        path: info.source,
-        kind,
-        padding,
-        spacing,
-        vdw_scale: 1,
-        ...(kind === 'orbital' && orbital !== null ? { orbital_index: orbital } : {}),
-      };
-      await onCreated(await api.wavefunction.surface(body));
+      while (task.status === 'running') {
+        await new Promise((resolve) => setTimeout(resolve, POLL_MS));
+        task = await api.wavefunction.surfaceStatus(task.id);
+        setRunning({ id: task.id, progress: task.progress });
+      }
+      if (task.status === 'failed') throw new Error(task.error ?? 'the evaluation failed');
+      if (task.status === 'cancelled') return; // asked for by the user: not an error
+      if (task.grid) await onCreated(task.grid);
     } finally {
-      setBusy(false);
+      setRunning(null);
     }
+  };
+
+  const cancel = async (): Promise<void> => {
+    if (running) await api.wavefunction.cancelSurface(running.id);
   };
 
   const fail = (e: Error): void => onError(e.message);
@@ -192,13 +213,16 @@ export function SurfaceGenerator({
             {points.toLocaleString()} grid points
             {tooLarge && ' - too many for the electrostatic potential, lower the resolution'}
           </p>
-          <button
-            className="primary"
-            onClick={() => void calculate().catch(fail)}
-            disabled={busy || tooLarge}
-          >
-            {busy ? 'Calculating...' : 'Calculate'}
-          </button>
+          <div className="button-row">
+            <button
+              className="primary"
+              onClick={() => void calculate().catch(fail)}
+              disabled={running !== null || tooLarge}
+            >
+              {running ? `Calculating… ${Math.round(running.progress * 100)}%` : 'Calculate'}
+            </button>
+            {running && <button onClick={() => void cancel().catch(fail)}>Cancel</button>}
+          </div>
         </>
       )}
     </div>

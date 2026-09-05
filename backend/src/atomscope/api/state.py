@@ -12,6 +12,7 @@ from atomscope.backends.registry import BackendRegistry, default_registry
 from atomscope.calculations import CalculationService
 from atomscope.jobs import JobManager
 from atomscope.project import ProjectStore
+from atomscope.wavefunction.tasks import SurfaceTasks
 
 
 class AppState:
@@ -22,6 +23,8 @@ class AppState:
         self.calculations: CalculationService | None = None
         self.registry = registry or default_registry()
         self.jobs = JobManager(max_parallel=1)
+        # long field evaluations, which report progress and can be cancelled (AV-UI-022)
+        self.surface_tasks = SurfaceTasks()
         env_dir = os.environ.get("ATOMSCOPE_DATA_DIR")
         # an explicit directory wins over the environment, and both over a temporary one. Written
         # as one expression this read `(data_dir or Path(env_dir)) if env_dir else tempdir`, which

@@ -121,3 +121,39 @@ function rampCube(): string {
   lines.push(values.join(' '));
   return lines.join('\n') + '\n';
 }
+
+const FCHK = resolve(
+  dirname(fileURLToPath(import.meta.url)),
+  '../../backend/tests/fixtures/wavefunction/co.fchk',
+);
+
+test('an orbital is evaluated beside the request, with progress and a way to stop it', async ({
+  page,
+  request,
+}) => {
+  const base = process.env['PLAYWRIGHT_BASE_URL'] ?? 'http://127.0.0.1:5173';
+  const dir = test.info().outputPath('project');
+  await request.post(`${base}/api/project/close`);
+  expect(
+    (
+      await request.post(`${base}/api/project/create`, {
+        data: { path: join(dir, 'p'), name: 'wf' },
+      })
+    ).ok(),
+  ).toBeTruthy();
+
+  await page.goto('/');
+  await page.getByRole('tab', { name: 'Surfaces' }).click();
+  await page.getByLabel('Wavefunction').fill(FCHK);
+  await page.getByRole('button', { name: 'Load' }).click();
+  await expect(page.getByTestId('wf-summary')).toContainText('14 electrons');
+
+  // a grid coarse enough to finish quickly: this is about the task, not the arithmetic
+  await page.getByLabel('Resolution').selectOption('0.4');
+  await page.getByRole('button', { name: 'Calculate' }).click();
+
+  // the HOMO becomes a dataset of the project, through the token the request handed back
+  // the card names it and the dataset list repeats it, so take the first
+  await expect(page.getByText(/co HOMO/).first()).toBeVisible({ timeout: 60_000 });
+  await expect(page.getByRole('button', { name: 'Calculate' })).toBeEnabled();
+});

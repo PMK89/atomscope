@@ -24,7 +24,11 @@ const INFO = {
 };
 
 beforeEach(() => {
-  useProjectStore.setState({ info: { name: 'p', path: '/p' } as never });
+  // the panel refreshes the project after loading a wavefunction; there is no backend here
+  useProjectStore.setState({
+    info: { name: 'p', path: '/p' } as never,
+    refresh: async () => undefined,
+  });
   vi.restoreAllMocks();
 });
 
@@ -36,9 +40,16 @@ test('estimatePoints matches the box the backend builds', () => {
 
 test('loads a wavefunction and requests the selected orbital', async () => {
   vi.spyOn(api.wavefunction, 'load').mockResolvedValue(INFO as never);
+  // the evaluation runs beside the request: a token comes back, the grid arrives when it is done
   const surface = vi
     .spyOn(api.wavefunction, 'surface')
-    .mockResolvedValue({ id: 'g1', kind: 'orbital' } as never);
+    .mockResolvedValue({ id: 't1', status: 'running', progress: 0 } as never);
+  vi.spyOn(api.wavefunction, 'surfaceStatus').mockResolvedValue({
+    id: 't1',
+    status: 'done',
+    progress: 1,
+    grid: { id: 'g1', kind: 'orbital' },
+  } as never);
   const onCreated = vi.fn();
 
   render(<SurfaceGenerator onError={() => {}} onCreated={onCreated} />);
@@ -78,4 +89,64 @@ test('refuses an electrostatic potential grid the backend would reject', async (
   ).toBeGreaterThan(ESP_LIMIT);
   expect(screen.getByTestId('wf-points').textContent).toContain('too many');
   expect(screen.getByText('Calculate')).toBeDisabled();
+});
+
+test('a running evaluation shows how far it has got and can be stopped', async () => {
+  vi.spyOn(api.wavefunction, 'load').mockResolvedValue(INFO as never);
+  vi.spyOn(api.wavefunction, 'surface').mockResolvedValue({
+    id: 't2',
+    status: 'running',
+    progress: 0,
+  } as never);
+  const statuses = [
+    { id: 't2', status: 'running', progress: 0.42 },
+    { id: 't2', status: 'cancelled', progress: 0.42 },
+  ];
+  vi.spyOn(api.wavefunction, 'surfaceStatus').mockImplementation(
+    () => Promise.resolve((statuses.shift() ?? statuses[0]) as never) as never,
+  );
+  const cancel = vi
+    .spyOn(api.wavefunction, 'cancelSurface')
+    .mockResolvedValue({ id: 't2', status: 'cancelled', progress: 0.42 } as never);
+  const onCreated = vi.fn();
+
+  render(<SurfaceGenerator onError={() => {}} onCreated={onCreated} />);
+  fireEvent.change(screen.getByLabelText('Wavefunction'), { target: { value: '/data/co.fchk' } });
+  fireEvent.click(screen.getByText('Load'));
+  await screen.findByTestId('wf-summary');
+  fireEvent.click(screen.getByText('Calculate'));
+
+  const stop = await screen.findByRole('button', { name: 'Cancel' });
+  expect(await screen.findByText('Calculating… 42%')).toBeInTheDocument();
+  fireEvent.click(stop);
+  expect(cancel).toHaveBeenCalledWith('t2');
+
+  // a cancelled evaluation is not an error and produces no surface
+  await waitFor(() => expect(screen.getByText('Calculate')).toBeEnabled());
+  expect(onCreated).not.toHaveBeenCalled();
+});
+
+test('a failed evaluation is reported once, from the task rather than the request', async () => {
+  vi.spyOn(api.wavefunction, 'load').mockResolvedValue(INFO as never);
+  vi.spyOn(api.wavefunction, 'surface').mockResolvedValue({
+    id: 't3',
+    status: 'running',
+    progress: 0,
+  } as never);
+  vi.spyOn(api.wavefunction, 'surfaceStatus').mockResolvedValue({
+    id: 't3',
+    status: 'failed',
+    progress: 0.1,
+    error: 'the basis went missing',
+  } as never);
+  const errors: string[] = [];
+
+  render(<SurfaceGenerator onError={(m) => void errors.push(m)} onCreated={() => {}} />);
+  fireEvent.change(screen.getByLabelText('Wavefunction'), { target: { value: '/data/co.fchk' } });
+  fireEvent.click(screen.getByText('Load'));
+  await screen.findByTestId('wf-summary');
+  fireEvent.click(screen.getByText('Calculate'));
+
+  await waitFor(() => expect(errors).toEqual(['the basis went missing']));
+  expect(screen.getByText('Calculate')).toBeEnabled();
 });

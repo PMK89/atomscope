@@ -729,6 +729,25 @@ files it as a project dataset with a kind you choose (electron density, spin
 density, orbital, orbital density, electrostatic potential, density difference,
 other).
 
+**Create surfaces from a wavefunction** (Avogadro's `Extensions ▸ Create
+Surfaces…`). Give the `Wavefunction` field the path to a Gaussian formatted
+checkpoint (`.fchk`, gzipped or not) or a Molden file and press `Load`: the
+panel lists the orbitals with their energies and marks the HOMO. Choose a
+surface type — a molecular orbital, the electron density, the spin density, the
+electrostatic potential or the van der Waals volume — a resolution and a
+padding, and press `Calculate`. The estimated number of grid points is shown
+before you start, and an electrostatic potential over too fine a grid is
+refused rather than attempted: its cost grows with the square of the point
+count.
+
+The evaluation runs beside the request, not inside it. The button becomes
+`Calculating… 42%` and a `Cancel` appears next to it; cancelling stops the
+arithmetic itself at the end of the chunk of grid points it is in, and writes
+no dataset. Nothing is blocked while it runs — you can keep rotating, editing
+or reading elsewhere in the window, which is why there is no modal progress
+dialog like Avogadro's. When it finishes, the field is a project dataset like
+any other, and `Add surface` meshes it.
+
 ### 6.2 Trajectories
 
 A trajectory reaches the viewport in two ways: `Load trajectory` on the

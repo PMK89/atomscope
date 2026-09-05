@@ -60,6 +60,7 @@ export type FragmentInfo = components['schemas']['FragmentInfo'];
 export type PeptidePresets = components['schemas']['PeptidePresets'];
 export type ChargesResult = components['schemas']['ChargesResult'];
 export type AtomTyping = components['schemas']['AtomTyping'];
+export type SurfaceTaskStatus = components['schemas']['SurfaceTaskStatus'];
 export type CompoundName = components['schemas']['CompoundName'];
 export type Identifiers = components['schemas']['Identifiers'];
 export type OptimizeResult = components['schemas']['OptimizeResult'];
@@ -308,7 +309,13 @@ export const api = {
     load: (body: Body<'/api/wavefunction/load', 'post'>) =>
       request<WavefunctionInfo>('/api/wavefunction/load', json(body)),
     surface: (body: Body<'/api/wavefunction/surface', 'post'>) =>
-      request<VolumetricGrid>('/api/wavefunction/surface', json(body)),
+      request<SurfaceTaskStatus>('/api/wavefunction/surface', json(body)),
+    surfaceStatus: (id: string) =>
+      request<SurfaceTaskStatus>(`/api/wavefunction/surface/${encodeURIComponent(id)}`),
+    cancelSurface: (id: string) =>
+      request<SurfaceTaskStatus>(`/api/wavefunction/surface/${encodeURIComponent(id)}/cancel`, {
+        method: 'POST',
+      }),
   },
   backends: {
     list: () => request<BackendInfo[]>('/api/backends'),

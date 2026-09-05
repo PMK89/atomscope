@@ -34,6 +34,32 @@ ESP_PAIR_BUDGET = 8_000_000  # entries of the target x source distance matrix (~
 ESP_MAX_POINTS = 2_000_000  # the potential is a grid integral, so its cost is quadratic
 
 
+class EvaluationCancelledError(Exception):
+    """Raised out of a field evaluation whose caller asked it to stop."""
+
+
+@dataclass(frozen=True)
+class EvaluationHooks:
+    """What a long evaluation reports and obeys, checked once per chunk of grid points.
+
+    A field over a fine grid takes seconds to minutes, so the caller needs two things from it:
+    how far it has got, and a way to stop it. Both are optional, and a plain call has neither.
+    """
+
+    should_stop: Callable[[], bool] | None = None
+    on_progress: Callable[[float], None] | None = None
+
+    def step(self, filled: int, total: int) -> None:
+        """Called with the points done so far; raises when the caller has asked to stop."""
+        if self.should_stop is not None and self.should_stop():
+            raise EvaluationCancelledError
+        if self.on_progress is not None:
+            self.on_progress(filled / total if total > 0 else 1.0)
+
+
+NO_HOOKS = EvaluationHooks()
+
+
 @dataclass(frozen=True)
 class GridBox:
     """A regular grid: origin and step vectors in Angstrom plus the point counts."""
@@ -93,6 +119,7 @@ def _evaluate(
     wavefunction: Wavefunction,
     box: GridBox,
     reducer: Callable[[np.ndarray], np.ndarray],
+    hooks: EvaluationHooks = NO_HOOKS,
 ) -> np.ndarray:
     """Walk the grid in chunks, applying ``reducer(basis_block) -> values``."""
     centres = wavefunction.structure.positions() / Bohr
@@ -103,16 +130,24 @@ def _evaluate(
         values = reducer(chi)
         out[filled : filled + values.size] = values
         filled += values.size
+        hooks.step(filled, box.n_points)
     return np.asarray(out[:filled].reshape(box.shape))
 
 
-def orbital_values(wavefunction: Wavefunction, index: int, box: GridBox) -> np.ndarray:
+def orbital_values(
+    wavefunction: Wavefunction, index: int, box: GridBox, hooks: EvaluationHooks = NO_HOOKS
+) -> np.ndarray:
     """Values of one molecular orbital on the grid (atomic units)."""
     coefficients = wavefunction.orbitals[index].coefficients
-    return _evaluate(wavefunction, box, lambda chi: coefficients @ chi)
+    return _evaluate(wavefunction, box, lambda chi: coefficients @ chi, hooks)
 
 
-def density_values(wavefunction: Wavefunction, box: GridBox, spin: str | None = None) -> np.ndarray:
+def density_values(
+    wavefunction: Wavefunction,
+    box: GridBox,
+    spin: str | None = None,
+    hooks: EvaluationHooks = NO_HOOKS,
+) -> np.ndarray:
     """Electron density, or the density of one spin channel when ``spin`` is given."""
     selected = [
         mo
@@ -137,18 +172,23 @@ def density_values(wavefunction: Wavefunction, box: GridBox, spin: str | None = 
     return _evaluate(wavefunction, box, reducer)
 
 
-def spin_density_values(wavefunction: Wavefunction, box: GridBox) -> np.ndarray:
+def spin_density_values(
+    wavefunction: Wavefunction, box: GridBox, hooks: EvaluationHooks = NO_HOOKS
+) -> np.ndarray:
     """Alpha minus beta density; zero for a restricted wavefunction."""
-    alpha = density_values(wavefunction, box, spin="alpha")
+    alpha = density_values(wavefunction, box, spin="alpha", hooks=hooks)
     try:
-        beta = density_values(wavefunction, box, spin="beta")
+        beta = density_values(wavefunction, box, spin="beta", hooks=hooks)
     except ValueError:
         return np.zeros_like(alpha)
     return np.asarray(alpha - beta)
 
 
 def electrostatic_potential_values(
-    wavefunction: Wavefunction, box: GridBox, density: np.ndarray | None = None
+    wavefunction: Wavefunction,
+    box: GridBox,
+    density: np.ndarray | None = None,
+    hooks: EvaluationHooks = NO_HOOKS,
 ) -> np.ndarray:
     """Electrostatic potential V(r) = sum_A Z_A/|r-R_A| - integral rho(r')/|r-r'| dr'.
 
@@ -165,7 +205,7 @@ def electrostatic_potential_values(
         )
         raise ValueError(msg)
     if density is None:
-        density = density_values(wavefunction, box)
+        density = density_values(wavefunction, box, hooks=hooks)
     numbers = wavefunction.structure.numbers()
     nuclei = wavefunction.structure.positions() / Bohr
     voxel = abs(np.linalg.det(np.array(box.axes) / Bohr))
@@ -212,10 +252,13 @@ def electrostatic_potential_values(
             electronic[lo : lo + targets_per_block] = partial
         out[filled : filled + chunk.shape[0]] = nuclear - electronic
         filled += chunk.shape[0]
+        hooks.step(filled, box.n_points)
     return np.asarray(out.reshape(box.shape))
 
 
-def vdw_values(structure: Structure, box: GridBox, scale: float = 1.0) -> np.ndarray:
+def vdw_values(
+    structure: Structure, box: GridBox, scale: float = 1.0, hooks: EvaluationHooks = NO_HOOKS
+) -> np.ndarray:
     """Signed distance-like field whose zero isosurface is the union of vdW spheres.
 
     ``f(r) = max_A (R_A - |r - R_A|)``, so f > 0 inside the molecular volume. Radii are Bondi/
@@ -242,6 +285,7 @@ def vdw_values(structure: Structure, box: GridBox, scale: float = 1.0) -> np.nda
             best = np.maximum(best, r - np.linalg.norm(chunk_ang - centre, axis=1))
         out[filled : filled + best.size] = best
         filled += best.size
+        hooks.step(filled, box.n_points)
     return out.reshape(box.shape)
 
 
