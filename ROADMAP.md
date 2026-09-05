@@ -49,15 +49,20 @@ auto-optimize tool (AV-MM-010, the backend has no MD minimizer).
 ## Phase 8 — Avogadro parity expansion — IN PROGRESS
 Crystallography, molecular mechanics and builders, biomolecules (residues, ribbons, DSSP, peptide/DNA
 builders), spectra (IR/UV/CD), vibrations, symmetry (point groups) and the file formats are merged.
-**No CRITICAL or HIGH row of the parity matrix is open** (185 IMPLEMENTED, 34 PARTIAL, 92 NOT STARTED, 1
-BLOCKED of 312 — re-derive with the awk in `docs/STATE.md`, do not trust this number). What is left is
-MEDIUM and below: crystal-text paste (AV-XTAL-002), named selections, Python scripting and the plugin
-manager, multi-document/multi-view, network fetch (PDB, by name), QTAIM.
+**No CRITICAL or HIGH row is NOT STARTED**, but 18 HIGH rows are PARTIAL — each note says which
+part is missing (bond selection mode, arbitrary background colour, Set Spacegroup, the Gaussian and
+GAMESS option dialogs, the remaining wavefunction readers, frontend plugin registration, modal
+progress dialogs). Counts: 190 IMPLEMENTED, 36 PARTIAL, 85 NOT STARTED, 1 BLOCKED of 312 — re-derive
+with the awk in `docs/STATE.md`, do not trust this number. The NOT STARTED work is MEDIUM and below:
+crystal-text paste (AV-XTAL-002), named selections, Python scripting and the plugin manager,
+multi-document/multi-view, network fetch (PDB, by name), QTAIM.
 
 ## Phase 9 — Additional backends — IN PROGRESS
 `qc_inputs` (ORCA, Gaussian, NWChem, GAMESS-US, MOPAC, Quantum ESPRESSO, ABINIT input generation) and the
-Open Babel force fields are DONE. Planned: ORCA/xTB execution adapters when binaries exist, more output
-parsers (ORCA output analysis AV-QM-017), the input generators Avogadro does not have either
+Open Babel force fields are DONE. An ORCA output already loads its geometry, normal modes and IR
+intensities through the Spectra panel (AV-QM-017 PARTIAL). Planned: ORCA/xTB execution adapters when
+binaries exist, more output parsers (orbital energies and fragments from the same ORCA output, MOPAC
+aux, GAMESS, Molpro), the input generators Avogadro does not have either
 (PSI4, Q-Chem, Dalton, MOLPRO, LAMMPS).
 
 ## Phase 10 — Packaging and hardening — PLANNED
