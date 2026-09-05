@@ -55,17 +55,47 @@ class Trajectory(StrictModel):
 
 
 class VibrationalMode(StrictModel):
+    """One normal mode.
+
+    ``displacements`` are *Cartesian* displacement vectors, one per atom, normalised so that
+    ``sum_i |d_i|^2 == 1``. This is the convention Gaussian and ORCA print (ORCA states that the
+    1/sqrt(m) weighting has already been applied to its printed vectors), and it is what an
+    animation needs: atom ``i`` moves along ``amplitude * d_i``. Mass-weighted eigenvectors are
+    converted by dividing by sqrt(m_i) and renormalising.
+    """
+
     frequency: float = Field(description="cm^-1; negative = imaginary")
-    displacements: list[Vec3] = Field(description="Å, one per atom")
-    ir_intensity: float | None = None
-    raman_activity: float | None = None
+    displacements: list[Vec3] = Field(description="Cartesian, unit-normalised over all atoms")
+    ir_intensity: float | None = Field(default=None, description="km/mol")
+    raman_activity: float | None = Field(default=None, description="Å^4/amu")
     symmetry: str | None = None
+    reduced_mass: float | None = Field(default=None, description="amu")
+    force_constant: float | None = Field(default=None, description="mDyne/Å")
+    kind: str = Field(
+        default="vibration",
+        description="vibration | translation | rotation (trivial modes are reported separately)",
+    )
 
 
 class VibrationalSpectrum(StrictModel):
+    """The modes of one structure plus the summary numbers a Vibrations dock shows."""
+
     id: str
     structure_id: str | None = None
-    modes: list[VibrationalMode]
+    symbols: list[str] = Field(default_factory=list)
+    positions: list[Vec3] = Field(
+        default_factory=list, description="Å, the equilibrium geometry the modes belong to"
+    )
+    modes: list[VibrationalMode] = Field(description="the 3N-6 (3N-5) vibrational modes")
+    trivial_modes: list[VibrationalMode] = Field(
+        default_factory=list,
+        description="the 6 (5 for linear molecules) translations/rotations, for diagnostics",
+    )
+    zero_point_energy: float | None = Field(
+        default=None, description="eV, 1/2 sum h*nu over the real vibrational modes"
+    )
+    linear: bool | None = Field(default=None, description="True when the molecule is linear")
+    method: str | None = Field(default=None, description="how the modes were obtained")
     provenance: Provenance | None = None
 
 

@@ -1,0 +1,243 @@
+ Excerpt of testfiles/ch3oh-nmr.qcout from the Avogadro 1 test corpus (see PROVENANCE.md).
+ Only the nuclear orientation and the NMR shielding sections are kept.
+
+ ----------------------------------------------------
+       Standard Nuclear Orientation (Angstroms)
+    I     Atom         X            Y            Z
+ ----------------------------------------------------
+    1      C       0.664955    -0.020102    -0.000019
+    2      O      -0.742623     0.130359     0.000006
+    3      H       0.974407    -0.564133    -0.895426
+    4      H       0.974415    -0.564132     0.895496
+    5      H       1.127776     0.970158     0.000016
+    6      H      -1.125338    -0.764156    -0.000019
+ ----------------------------------------------------
+ Molecular Point Group                 C1    NOp =  1
+
+
+
+          ============================================= 
+          ===                                       === 
+          ===       NMR-SHIELDING TENSORS (SCF)     === 
+          ===                                       === 
+          ============================================= 
+
+
+  -------------------
+  -- ATOM  C     1 --
+  -------------------
+
+   ISOTROPIC:    139.54974364          ANISOTROPIC:     74.34978117
+
+   diamagnetic (undisturbed density) part of shielding tensor  (EFS)
+      Trace =    254.41638756
+      Full Tensor:
+                263.40828024           -2.39849207           -0.00032720
+                 -0.91479292          249.75418494            0.00020988
+                 -0.00013997            0.00028050          250.08669749
+   paramagnetic (undisturbed density) part of shielding tensor (SOILP)
+      Trace =    -10.90092326
+      Full Tensor:
+                 -7.88828187           -1.41904686           -0.00017382
+                 -1.05140186          -12.95153575           -0.00008344
+                  0.00083011           -0.00002845          -11.86295217
+   paramagnetic (disturbed density) part of shielding tensor   (SOI)
+      Trace =   -103.96572065
+      Full Tensor:
+                -67.49377300           -3.65993353            0.00112300
+                 -7.66565399         -124.13137328           -0.00337769
+                 -0.00083811           -0.00306505         -120.27201568
+   total shielding tensor
+      Trace =    139.54974364
+      Full Tensor:
+                188.02622538           -7.47747246            0.00062198
+                 -9.63184878          112.67127590           -0.00325125
+                 -0.00014797           -0.00281300          117.95172965
+
+
+  -------------------
+  -- ATOM  O     2 --
+  -------------------
+
+   ISOTROPIC:    314.11692792          ANISOTROPIC:    113.60317660
+
+   diamagnetic (undisturbed density) part of shielding tensor  (EFS)
+      Trace =    395.18194127
+      Full Tensor:
+                409.45047546            1.96532436           -0.00033457
+                  1.34935474          394.24182516            0.00039764
+                 -0.00045226            0.00041347          381.85352318
+   paramagnetic (undisturbed density) part of shielding tensor (SOILP)
+      Trace =     -9.27802888
+      Full Tensor:
+                 -3.44663365            0.16967355            0.00000450
+                 -0.14134062           -8.74029969            0.00009959
+                 -0.00015766            0.00017025          -15.64715328
+   paramagnetic (disturbed density) part of shielding tensor   (SOI)
+      Trace =    -71.78698447
+      Full Tensor:
+               -116.82377857           25.18370075            0.00173668
+                 65.66662186          -18.69909912           -0.00013761
+                  0.00816923           -0.00119914          -79.83807571
+   total shielding tensor
+      Trace =    314.11692792
+      Full Tensor:
+                289.18006324           27.31869866            0.00140662
+                 66.87463597          366.80242634            0.00035961
+                  0.00755930           -0.00061542          286.36829419
+
+
+  -------------------
+  -- ATOM  H     3 --
+  -------------------
+
+   ISOTROPIC:     28.54643103          ANISOTROPIC:      8.14208193
+
+   diamagnetic (undisturbed density) part of shielding tensor  (EFS)
+      Trace =     25.84461495
+      Full Tensor:
+                 22.69348703           -4.31657493           -6.35557451
+                 -4.02153744           22.88851646            8.92097173
+                 -6.44721371            9.31191875           31.95184135
+   paramagnetic (undisturbed density) part of shielding tensor (SOILP)
+      Trace =      2.77681597
+      Full Tensor:
+                  5.62367572            0.72223627            1.41154597
+                  0.92880190            2.78307980           -3.31511627
+                  2.08965056           -3.37770993           -0.07630760
+   paramagnetic (disturbed density) part of shielding tensor   (SOI)
+      Trace =     -0.07499989
+      Full Tensor:
+                  3.53798203            1.26741908            1.03927323
+                  1.76397478            0.20083772           -3.65666401
+                  3.38920649           -4.10468525           -3.96381941
+   total shielding tensor
+      Trace =     28.54643103
+      Full Tensor:
+                 31.85514478           -2.32691958           -3.90475532
+                 -1.32876076           25.87243398            1.94919145
+                 -0.96835666            1.82952357           27.91171434
+
+
+  -------------------
+  -- ATOM  H     4 --
+  -------------------
+
+   ISOTROPIC:     28.54486538          ANISOTROPIC:      8.14220142
+
+   diamagnetic (undisturbed density) part of shielding tensor  (EFS)
+      Trace =     25.84267465
+      Full Tensor:
+                 22.69159516           -4.31582462            6.35502729
+                 -4.02079936           22.88599854           -8.91985159
+                  6.44673943           -9.31084652           31.95043025
+   paramagnetic (undisturbed density) part of shielding tensor (SOILP)
+      Trace =      2.77671792
+      Full Tensor:
+                  5.62355634            0.72205879           -1.41147190
+                  0.92841841            2.78350450            3.31475412
+                 -2.08903327            3.37722487           -0.07690707
+   paramagnetic (disturbed density) part of shielding tensor   (SOI)
+      Trace =     -0.07452720
+      Full Tensor:
+                  3.53800561            1.26716429           -1.03906853
+                  1.76331101            0.20134079            3.65514051
+                 -3.38906560            4.10367752           -3.96292798
+   total shielding tensor
+      Trace =     28.54486538
+      Full Tensor:
+                 31.85315710           -2.32660155            3.90448686
+                 -1.32906994           25.87084383           -1.94995696
+                  0.96864056           -1.82994413           27.91059520
+
+
+  -------------------
+  -- ATOM  H     5 --
+  -------------------
+
+   ISOTROPIC:     28.63364455          ANISOTROPIC:      6.70543506
+
+   diamagnetic (undisturbed density) part of shielding tensor  (EFS)
+      Trace =     25.46388860
+      Full Tensor:
+                 24.63908113            8.97446968            0.00025693
+                  9.52010218           34.78072665            0.00054083
+                  0.00031381            0.00061929           16.97185802
+   paramagnetic (undisturbed density) part of shielding tensor (SOILP)
+      Trace =      2.98621262
+      Full Tensor:
+                  4.86704458           -3.26926475           -0.00017455
+                 -3.43188946           -1.63699811           -0.00050584
+                  0.00002946           -0.00034194            5.72859141
+   paramagnetic (disturbed density) part of shielding tensor   (SOI)
+      Trace =      0.18354332
+      Full Tensor:
+                  2.09518845           -1.57294690            0.00003791
+                 -4.91512035           -4.83390293           -0.00005477
+                 -0.00045514           -0.00059105            3.28934445
+   total shielding tensor
+      Trace =     28.63364455
+      Full Tensor:
+                 31.60131416            4.13225803            0.00012029
+                  1.17309237           28.30982561           -0.00001978
+                 -0.00011187           -0.00031370           25.98979387
+
+
+  -------------------
+  -- ATOM  H     6 --
+  -------------------
+
+   ISOTROPIC:     32.25366963          ANISOTROPIC:     17.31907530
+
+   diamagnetic (undisturbed density) part of shielding tensor  (EFS)
+      Trace =     24.35464645
+      Full Tensor:
+                 23.06592562           12.70442946            0.00028027
+                 11.45397867           37.84207571            0.00070281
+                  0.00024469            0.00070940           12.15593801
+   paramagnetic (undisturbed density) part of shielding tensor (SOILP)
+      Trace =      3.45469460
+      Full Tensor:
+                  4.83353485           -2.69491711           -0.00001927
+                 -3.35782050           -0.50253740           -0.00010963
+                 -0.00009638           -0.00021931            6.03308636
+   paramagnetic (disturbed density) part of shielding tensor   (SOI)
+      Trace =      4.44432858
+      Full Tensor:
+                  6.12536095           -2.95752891           -0.00017558
+                 -3.34692241            1.95405406           -0.00025744
+                 -0.00039082           -0.00003665            5.25357072
+   total shielding tensor
+      Trace =     32.25366963
+      Full Tensor:
+                 34.02482142            7.05198344            0.00008542
+                  4.74923576           39.29359237            0.00033574
+                 -0.00024252            0.00045344           23.44259509
+
+  Summary of detailed contributions
+ ===================================
+
+    ATOM        DIAMAGNETIC     PARAMAGNETIC (P)     PARAMAGNETIC (d/dB P)
+  --------------------------------------------------------------------------
+    C     1     254.41638756     -10.90092326         -103.96572065
+    O     2     395.18194127      -9.27802888          -71.78698447
+    H     3      25.84461495       2.77681597           -0.07499989
+    H     4      25.84267465       2.77671792           -0.07452720
+    H     5      25.46388860       2.98621262            0.18354332
+    H     6      24.35464645       3.45469460            4.44432858
+
+  Summary
+ =========
+
+       ATOM           ISOTROPIC        ANISOTROPIC       REL. SHIFTS
+------------------------------------------------------------------------
+   Atom C     1     139.54974364       74.34978117
+   Atom O     2     314.11692792      113.60317660
+   Atom H     3      28.54643103        8.14208193
+   Atom H     4      28.54486538        8.14220142
+   Atom H     5      28.63364455        6.70543506
+   Atom H     6      32.25366963       17.31907530
+
+
+ --- SHIFTS DONE ---
+

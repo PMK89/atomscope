@@ -472,6 +472,20 @@
         "title": "BandStructure",
         "type": "object"
       },
+      "Body_import_spectrum_upload_api_io_import_spectrum_upload_post": {
+        "properties": {
+          "file": {
+            "contentMediaType": "application/octet-stream",
+            "title": "File",
+            "type": "string"
+          }
+        },
+        "required": [
+          "file"
+        ],
+        "title": "Body_import_spectrum_upload_api_io_import_spectrum_upload_post",
+        "type": "object"
+      },
       "Body_import_trajectory_upload_api_io_import_trajectory_upload_post": {
         "properties": {
           "file": {
@@ -498,6 +512,20 @@
           "file"
         ],
         "title": "Body_import_upload_api_io_import_upload_post",
+        "type": "object"
+      },
+      "Body_import_vibrations_upload_api_io_import_vibrations_upload_post": {
+        "properties": {
+          "file": {
+            "contentMediaType": "application/octet-stream",
+            "title": "File",
+            "type": "string"
+          }
+        },
+        "required": [
+          "file"
+        ],
+        "title": "Body_import_vibrations_upload_api_io_import_vibrations_upload_post",
         "type": "object"
       },
       "Bond": {
@@ -1206,6 +1234,69 @@
           "series"
         ],
         "title": "DosSpectrum",
+        "type": "object"
+      },
+      "ElectronicTransition": {
+        "additionalProperties": false,
+        "description": "One electronic excitation, for UV-Vis and CD spectra.",
+        "properties": {
+          "energy": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "eV",
+            "title": "Energy"
+          },
+          "label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Label"
+          },
+          "oscillator_strength": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "dimensionless",
+            "title": "Oscillator Strength"
+          },
+          "rotatory_strength": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "10^-40 erg cm^3",
+            "title": "Rotatory Strength"
+          },
+          "wavelength": {
+            "description": "nm",
+            "title": "Wavelength",
+            "type": "number"
+          }
+        },
+        "required": [
+          "wavelength"
+        ],
+        "title": "ElectronicTransition",
         "type": "object"
       },
       "EnergyRequest": {
@@ -2319,6 +2410,36 @@
         "title": "ImportPathRequest",
         "type": "object"
       },
+      "ImportSpectrumRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "kind": {
+            "default": "experimental",
+            "enum": [
+              "ir",
+              "raman",
+              "nmr",
+              "uvvis",
+              "cd",
+              "dos",
+              "experimental",
+              "other"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "path": {
+            "format": "path",
+            "title": "Path",
+            "type": "string"
+          }
+        },
+        "required": [
+          "path"
+        ],
+        "title": "ImportSpectrumRequest",
+        "type": "object"
+      },
       "ImportTrajectoryRequest": {
         "additionalProperties": false,
         "properties": {
@@ -2417,6 +2538,51 @@
           "structure"
         ],
         "title": "InsertRequest",
+        "type": "object"
+      },
+      "IrSpectrumRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "raman": {
+            "default": false,
+            "description": "plot Raman activities instead of IR",
+            "title": "Raman",
+            "type": "boolean"
+          },
+          "scale_factor": {
+            "default": 1.0,
+            "exclusiveMinimum": 0.0,
+            "title": "Scale Factor",
+            "type": "number"
+          },
+          "shape": {
+            "default": "gaussian",
+            "enum": [
+              "gaussian",
+              "lorentzian"
+            ],
+            "title": "Shape",
+            "type": "string"
+          },
+          "transmittance": {
+            "default": false,
+            "title": "Transmittance",
+            "type": "boolean"
+          },
+          "vibrations": {
+            "$ref": "#/components/schemas/VibrationalSpectrum"
+          },
+          "width": {
+            "default": 30.0,
+            "exclusiveMinimum": 0.0,
+            "title": "Width",
+            "type": "number"
+          }
+        },
+        "required": [
+          "vibrations"
+        ],
+        "title": "IrSpectrumRequest",
         "type": "object"
       },
       "JobRecord": {
@@ -2699,6 +2865,45 @@
           "m"
         ],
         "title": "NanotubeRequest",
+        "type": "object"
+      },
+      "NmrShielding": {
+        "additionalProperties": false,
+        "description": "One nucleus' magnetic shielding tensor summary, as printed by NMR codes (ppm).",
+        "properties": {
+          "anisotropic": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "ppm",
+            "title": "Anisotropic"
+          },
+          "element": {
+            "title": "Element",
+            "type": "string"
+          },
+          "index": {
+            "description": "0-based atom index in the structure",
+            "title": "Index",
+            "type": "integer"
+          },
+          "isotropic": {
+            "description": "ppm, 1/3 tr(sigma)",
+            "title": "Isotropic",
+            "type": "number"
+          }
+        },
+        "required": [
+          "index",
+          "element",
+          "isotropic"
+        ],
+        "title": "NmrShielding",
         "type": "object"
       },
       "NucleicRequest": {
@@ -4320,6 +4525,274 @@
         "title": "SpacegroupBuildRequest",
         "type": "object"
       },
+      "Spectrum": {
+        "additionalProperties": false,
+        "description": "A plottable spectrum: stick peaks and/or a sampled curve on a shared pair of axes.",
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "ir",
+              "raman",
+              "nmr",
+              "uvvis",
+              "cd",
+              "dos",
+              "experimental",
+              "other"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "line_shape": {
+            "anyOf": [
+              {
+                "enum": [
+                  "gaussian",
+                  "lorentzian"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "shape used for the curve",
+            "title": "Line Shape"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "peaks": {
+            "items": {
+              "$ref": "#/components/schemas/SpectrumPeak"
+            },
+            "title": "Peaks",
+            "type": "array"
+          },
+          "provenance": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Provenance"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "width": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "FWHM of the line shape, x units",
+            "title": "Width"
+          },
+          "x": {
+            "$ref": "#/components/schemas/SpectrumAxis"
+          },
+          "x_values": {
+            "description": "broadened curve grid",
+            "items": {
+              "type": "number"
+            },
+            "title": "X Values",
+            "type": "array"
+          },
+          "y": {
+            "$ref": "#/components/schemas/SpectrumAxis"
+          },
+          "y_values": {
+            "description": "broadened curve values",
+            "items": {
+              "type": "number"
+            },
+            "title": "Y Values",
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "name",
+          "x",
+          "y"
+        ],
+        "title": "Spectrum",
+        "type": "object"
+      },
+      "SpectrumAxis": {
+        "additionalProperties": false,
+        "description": "One axis of a spectrum: what is plotted, in which unit, and in which direction.",
+        "properties": {
+          "descending": {
+            "default": false,
+            "description": "draw the axis from high to low (IR wavenumbers, NMR chemical shifts)",
+            "title": "Descending",
+            "type": "boolean"
+          },
+          "label": {
+            "description": "axis label, e.g. 'wavenumber'",
+            "title": "Label",
+            "type": "string"
+          },
+          "unit": {
+            "description": "free-form unit string, e.g. 'cm^-1', 'km/mol', 'ppm'",
+            "title": "Unit",
+            "type": "string"
+          }
+        },
+        "required": [
+          "label",
+          "unit"
+        ],
+        "title": "SpectrumAxis",
+        "type": "object"
+      },
+      "SpectrumPeak": {
+        "additionalProperties": false,
+        "description": "One stick: a transition at ``x`` with ``intensity`` in the spectrum's y unit.",
+        "properties": {
+          "assignment": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "symmetry, nucleus, orbital pair ...",
+            "title": "Assignment"
+          },
+          "intensity": {
+            "title": "Intensity",
+            "type": "number"
+          },
+          "label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "short label drawn next to the stick",
+            "title": "Label"
+          },
+          "source_index": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "index into the originating list (vibrational mode, transition)",
+            "title": "Source Index"
+          },
+          "x": {
+            "title": "X",
+            "type": "number"
+          }
+        },
+        "required": [
+          "x",
+          "intensity"
+        ],
+        "title": "SpectrumPeak",
+        "type": "object"
+      },
+      "SpectrumRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "kind": {
+            "default": "other",
+            "enum": [
+              "ir",
+              "raman",
+              "nmr",
+              "uvvis",
+              "cd",
+              "dos",
+              "experimental",
+              "other"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "name": {
+            "default": "spectrum",
+            "title": "Name",
+            "type": "string"
+          },
+          "peaks": {
+            "items": {
+              "$ref": "#/components/schemas/SpectrumPeak"
+            },
+            "title": "Peaks",
+            "type": "array"
+          },
+          "points": {
+            "default": 1000,
+            "maximum": 20000.0,
+            "minimum": 16.0,
+            "title": "Points",
+            "type": "integer"
+          },
+          "shape": {
+            "default": "gaussian",
+            "enum": [
+              "gaussian",
+              "lorentzian"
+            ],
+            "title": "Shape",
+            "type": "string"
+          },
+          "transmittance": {
+            "default": false,
+            "description": "convert absorbance to transmittance",
+            "title": "Transmittance",
+            "type": "boolean"
+          },
+          "transmittance_scale": {
+            "default": 0.01,
+            "exclusiveMinimum": 0.0,
+            "title": "Transmittance Scale",
+            "type": "number"
+          },
+          "width": {
+            "default": 30.0,
+            "description": "FWHM in x units",
+            "exclusiveMinimum": 0.0,
+            "title": "Width",
+            "type": "number"
+          },
+          "x": {
+            "$ref": "#/components/schemas/SpectrumAxis"
+          },
+          "y": {
+            "$ref": "#/components/schemas/SpectrumAxis"
+          }
+        },
+        "required": [
+          "peaks",
+          "x",
+          "y"
+        ],
+        "title": "SpectrumRequest",
+        "type": "object"
+      },
       "Structure": {
         "additionalProperties": false,
         "description": "The central editable object: atoms, bonds, cell and attached properties.",
@@ -5213,6 +5686,344 @@
         "title": "ValidationReport",
         "type": "object"
       },
+      "VibrationImport": {
+        "additionalProperties": false,
+        "description": "What a quantum-chemistry output yielded: modes, NMR shieldings, transitions.",
+        "properties": {
+          "program": {
+            "title": "Program",
+            "type": "string"
+          },
+          "shieldings": {
+            "items": {
+              "$ref": "#/components/schemas/NmrShielding"
+            },
+            "title": "Shieldings",
+            "type": "array"
+          },
+          "structure": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Structure"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "transitions": {
+            "items": {
+              "$ref": "#/components/schemas/ElectronicTransition"
+            },
+            "title": "Transitions",
+            "type": "array"
+          },
+          "vibrations": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/VibrationalSpectrum"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "program"
+        ],
+        "title": "VibrationImport",
+        "type": "object"
+      },
+      "VibrationalMode": {
+        "additionalProperties": false,
+        "description": "One normal mode.\n\n``displacements`` are *Cartesian* displacement vectors, one per atom, normalised so that\n``sum_i |d_i|^2 == 1``. This is the convention Gaussian and ORCA print (ORCA states that the\n1/sqrt(m) weighting has already been applied to its printed vectors), and it is what an\nanimation needs: atom ``i`` moves along ``amplitude * d_i``. Mass-weighted eigenvectors are\nconverted by dividing by sqrt(m_i) and renormalising.",
+        "properties": {
+          "displacements": {
+            "description": "Cartesian, unit-normalised over all atoms",
+            "items": {
+              "description": "3-vector",
+              "maxItems": 3,
+              "minItems": 3,
+              "prefixItems": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                }
+              ],
+              "type": "array"
+            },
+            "title": "Displacements",
+            "type": "array"
+          },
+          "force_constant": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "mDyne/\u00c5",
+            "title": "Force Constant"
+          },
+          "frequency": {
+            "description": "cm^-1; negative = imaginary",
+            "title": "Frequency",
+            "type": "number"
+          },
+          "ir_intensity": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "km/mol",
+            "title": "Ir Intensity"
+          },
+          "kind": {
+            "default": "vibration",
+            "description": "vibration | translation | rotation (trivial modes are reported separately)",
+            "title": "Kind",
+            "type": "string"
+          },
+          "raman_activity": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "\u00c5^4/amu",
+            "title": "Raman Activity"
+          },
+          "reduced_mass": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "amu",
+            "title": "Reduced Mass"
+          },
+          "symmetry": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Symmetry"
+          }
+        },
+        "required": [
+          "frequency",
+          "displacements"
+        ],
+        "title": "VibrationalMode",
+        "type": "object"
+      },
+      "VibrationalSpectrum": {
+        "additionalProperties": false,
+        "description": "The modes of one structure plus the summary numbers a Vibrations dock shows.",
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "linear": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "True when the molecule is linear",
+            "title": "Linear"
+          },
+          "method": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "how the modes were obtained",
+            "title": "Method"
+          },
+          "modes": {
+            "description": "the 3N-6 (3N-5) vibrational modes",
+            "items": {
+              "$ref": "#/components/schemas/VibrationalMode"
+            },
+            "title": "Modes",
+            "type": "array"
+          },
+          "positions": {
+            "description": "\u00c5, the equilibrium geometry the modes belong to",
+            "items": {
+              "description": "3-vector",
+              "maxItems": 3,
+              "minItems": 3,
+              "prefixItems": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                }
+              ],
+              "type": "array"
+            },
+            "title": "Positions",
+            "type": "array"
+          },
+          "provenance": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Provenance"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "structure_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Structure Id"
+          },
+          "symbols": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Symbols",
+            "type": "array"
+          },
+          "trivial_modes": {
+            "description": "the 6 (5 for linear molecules) translations/rotations, for diagnostics",
+            "items": {
+              "$ref": "#/components/schemas/VibrationalMode"
+            },
+            "title": "Trivial Modes",
+            "type": "array"
+          },
+          "zero_point_energy": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "eV, 1/2 sum h*nu over the real vibrational modes",
+            "title": "Zero Point Energy"
+          }
+        },
+        "required": [
+          "id",
+          "modes"
+        ],
+        "title": "VibrationalSpectrum",
+        "type": "object"
+      },
+      "VibrationsRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "calculator": {
+            "default": "openbabel",
+            "description": "openbabel | emt | lj | morse (ASE built-ins)",
+            "title": "Calculator",
+            "type": "string"
+          },
+          "charge_model": {
+            "default": "gasteiger",
+            "description": "Open Babel charge model for the approximate dipole",
+            "title": "Charge Model",
+            "type": "string"
+          },
+          "delta": {
+            "default": 0.01,
+            "description": "displacement in \u00c5",
+            "exclusiveMinimum": 0.0,
+            "maximum": 0.2,
+            "title": "Delta",
+            "type": "number"
+          },
+          "force_field": {
+            "default": "MMFF94",
+            "description": "Open Babel force field",
+            "title": "Force Field",
+            "type": "string"
+          },
+          "optimize_first": {
+            "default": true,
+            "description": "minimise with the same force field first; a Hessian at a non-stationary geometry mixes real modes into the translations and rotations",
+            "title": "Optimize First",
+            "type": "boolean"
+          },
+          "structure": {
+            "$ref": "#/components/schemas/Structure"
+          }
+        },
+        "required": [
+          "structure"
+        ],
+        "title": "VibrationsRequest",
+        "type": "object"
+      },
+      "VibrationsResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "ir": {
+            "$ref": "#/components/schemas/Spectrum"
+          },
+          "structure": {
+            "$ref": "#/components/schemas/Structure",
+            "description": "the geometry the modes belong to"
+          },
+          "vibrations": {
+            "$ref": "#/components/schemas/VibrationalSpectrum"
+          }
+        },
+        "required": [
+          "vibrations",
+          "structure",
+          "ir"
+        ],
+        "title": "VibrationsResponse",
+        "type": "object"
+      },
       "ViewSettingsBody": {
         "additionalProperties": false,
         "properties": {
@@ -5627,6 +6438,132 @@
   },
   "openapi": "3.1.0",
   "paths": {
+    "/api/analysis/spectrum": {
+      "post": {
+        "description": "Broaden an arbitrary set of peaks into a curve on the given axes.",
+        "operationId": "spectrum_api_analysis_spectrum_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SpectrumRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Spectrum"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Spectrum",
+        "tags": [
+          "analysis"
+        ]
+      }
+    },
+    "/api/analysis/vibrations": {
+      "post": {
+        "description": "Normal modes by finite differences, plus the broadened IR spectrum.",
+        "operationId": "vibrations_api_analysis_vibrations_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VibrationsRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VibrationsResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Vibrations",
+        "tags": [
+          "analysis"
+        ]
+      }
+    },
+    "/api/analysis/vibrations/spectrum": {
+      "post": {
+        "description": "Re-broaden an existing set of modes as an IR or Raman spectrum.",
+        "operationId": "vibrational_spectrum_api_analysis_vibrations_spectrum_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/IrSpectrumRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Spectrum"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Vibrational Spectrum",
+        "tags": [
+          "analysis"
+        ]
+      }
+    },
     "/api/backends": {
       "get": {
         "operationId": "list_backends_api_backends_get",
@@ -8896,6 +9833,90 @@
         ]
       }
     },
+    "/api/io/import/spectrum": {
+      "post": {
+        "description": "Import an experimental spectrum from a TSV/CSV or JCAMP-DX file on this machine.",
+        "operationId": "import_spectrum_path_api_io_import_spectrum_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ImportSpectrumRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Spectrum"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Import Spectrum Path",
+        "tags": [
+          "analysis"
+        ]
+      }
+    },
+    "/api/io/import/spectrum/upload": {
+      "post": {
+        "description": "Import an experimental spectrum from the browser file picker.",
+        "operationId": "import_spectrum_upload_api_io_import_spectrum_upload_post",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_import_spectrum_upload_api_io_import_spectrum_upload_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Spectrum"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Import Spectrum Upload",
+        "tags": [
+          "analysis"
+        ]
+      }
+    },
     "/api/io/import/trajectory": {
       "post": {
         "description": "Read a multi-frame file on this machine (extxyz, ASE .traj, XDATCAR, ...).",
@@ -9019,6 +10040,90 @@
         "summary": "Import Upload",
         "tags": [
           "io"
+        ]
+      }
+    },
+    "/api/io/import/vibrations": {
+      "post": {
+        "description": "Read vibrational/NMR data from a Gaussian, ORCA or Q-Chem output on this machine.",
+        "operationId": "import_vibrations_path_api_io_import_vibrations_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ImportSpectrumRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VibrationImport"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Import Vibrations Path",
+        "tags": [
+          "analysis"
+        ]
+      }
+    },
+    "/api/io/import/vibrations/upload": {
+      "post": {
+        "description": "Read vibrational/NMR data from a file chosen in the browser.",
+        "operationId": "import_vibrations_upload_api_io_import_vibrations_upload_post",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_import_vibrations_upload_api_io_import_vibrations_upload_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VibrationImport"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Import Vibrations Upload",
+        "tags": [
+          "analysis"
         ]
       }
     },

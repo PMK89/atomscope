@@ -3,12 +3,14 @@ import { AnalysisPanel } from './AnalysisPanel';
 import { CalculationPanel } from './CalculationPanel';
 import { CrystalPanel } from './CrystalPanel';
 import { PropertiesPanel } from './PropertiesPanel';
+import { SpectrumPanel } from './SpectrumPanel';
 import { SurfacesPanel } from './SurfacesPanel';
 
-type Tab = 'calculation' | 'analysis' | 'surfaces' | 'crystal' | 'properties';
+type Tab = 'calculation' | 'analysis' | 'spectra' | 'surfaces' | 'crystal' | 'properties';
 const TABS: { id: Tab; label: string }[] = [
   { id: 'calculation', label: 'Calculation' },
   { id: 'analysis', label: 'Analysis' },
+  { id: 'spectra', label: 'Spectra' },
   { id: 'surfaces', label: 'Surfaces' },
   { id: 'crystal', label: 'Crystal' },
   { id: 'properties', label: 'Properties' },
@@ -37,6 +39,9 @@ export function RightDock({ onError }: { onError: (m: string) => void }): JSX.El
       </div>
       <div hidden={tab !== 'analysis'}>
         <AnalysisPanel onError={onError} />
+      </div>
+      <div hidden={tab !== 'spectra'}>
+        <SpectrumPanel onError={onError} />
       </div>
       <div hidden={tab !== 'surfaces'}>
         <SurfacesPanel onError={onError} />

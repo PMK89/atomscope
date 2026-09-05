@@ -3,7 +3,20 @@
 from atomscope.model.common import Provenance, Quantity, StrictModel
 from atomscope.model.constraints import Constraint, FixAtoms, FixBondLength, FixCartesian
 from atomscope.model.grid import GridKind, OrbitalInfo, VolumetricGrid
-from atomscope.model.spectrum import BandStructure, DosSeries, DosSpectrum, KPathLabel, KPathPoint
+from atomscope.model.spectrum import (
+    BandStructure,
+    DosSeries,
+    DosSpectrum,
+    ElectronicTransition,
+    KPathLabel,
+    KPathPoint,
+    LineShape,
+    NmrShielding,
+    Spectrum,
+    SpectrumAxis,
+    SpectrumKind,
+    SpectrumPeak,
+)
 from atomscope.model.structure import (
     Atom,
     AtomicScalarProperty,
@@ -26,6 +39,7 @@ __all__ = [
     "Constraint",
     "DosSeries",
     "DosSpectrum",
+    "ElectronicTransition",
     "FixAtoms",
     "FixBondLength",
     "FixCartesian",
@@ -33,10 +47,16 @@ __all__ = [
     "GridKind",
     "KPathLabel",
     "KPathPoint",
+    "LineShape",
+    "NmrShielding",
     "OrbitalInfo",
     "Provenance",
     "Quantity",
     "Residue",
+    "Spectrum",
+    "SpectrumAxis",
+    "SpectrumKind",
+    "SpectrumPeak",
     "StrictModel",
     "Structure",
     "Trajectory",
