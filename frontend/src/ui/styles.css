@@ -341,7 +341,7 @@ button {
 .dock-tabs {
   border-bottom: 1px solid var(--border);
   padding-bottom: 6px;
-  /* five panels have to fit a 360px dock: let the strip wrap instead of clipping */
+  /* six panels have to fit a 360px dock: let the strip wrap instead of clipping */
   flex-wrap: wrap;
   row-gap: 4px;
 }
