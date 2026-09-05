@@ -14,6 +14,7 @@ import {
 } from 'three';
 import type { StructureDoc } from '../../model/structure';
 import { arrowMatrices } from '../arrow';
+import { sameHidden } from '../atomStyles';
 import type { DisplayLayer, LayerContext } from './Layer';
 
 export interface VectorLayerSettings {
@@ -50,6 +51,9 @@ export class VectorLayer implements DisplayLayer {
   private lastKey = '';
   private lastStructure: StructureDoc | null = null;
   private lastOverride: Float32Array | null | undefined;
+  /** Atoms no engine draws; an arrow on one of them is not drawn either. */
+  private hidden: ReadonlySet<number> | null = null;
+  private lastHidden: ReadonlySet<number> | null = null;
 
   constructor(settings: Partial<VectorLayerSettings> = {}) {
     this.settings = { ...DEFAULT_VECTOR_SETTINGS, ...settings };
@@ -57,6 +61,14 @@ export class VectorLayer implements DisplayLayer {
 
   setSettings(patch: Partial<VectorLayerSettings>): void {
     this.settings = { ...this.settings, ...patch };
+  }
+
+  /**
+   * The atoms display scoping hides. Kept out of `settings` because a Set does not survive the
+   * `JSON.stringify` the cache key uses -- every set would compare equal to every other.
+   */
+  setHidden(hidden: ReadonlySet<number> | null): void {
+    this.hidden = hidden;
   }
 
   /** Number of arrows currently drawn. */
@@ -70,12 +82,14 @@ export class VectorLayer implements DisplayLayer {
     if (
       key === this.lastKey &&
       ctx.structure === this.lastStructure &&
-      override === this.lastOverride
+      override === this.lastOverride &&
+      sameHidden(this.hidden, this.lastHidden)
     )
       return;
     this.lastKey = key;
     this.lastStructure = ctx.structure;
     this.lastOverride = override;
+    this.lastHidden = this.hidden;
     this.rebuild(ctx.structure, override);
   }
 
@@ -107,6 +121,7 @@ export class VectorLayer implements DisplayLayer {
     const usable = override && override.length === s.atoms.length * 3 ? override : null;
     let k = 0;
     for (let i = 0; i < n; i++) {
+      if (this.hidden?.has(i)) continue;
       const vec = vectors![i]!;
       v.set(vec[0] * scale, vec[1] * scale, vec[2] * scale);
       if (v.length() < minLength) continue;

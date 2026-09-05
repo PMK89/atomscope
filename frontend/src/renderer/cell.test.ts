@@ -1,3 +1,5 @@
+import type { InstancedMesh } from 'three';
+import { vi } from 'vitest';
 import { cellEdgeCount, cellEdgePositions, type Mat3 } from './cell';
 import type { LayerContext } from './layers/Layer';
 import { UnitCellLayer } from './layers/UnitCellLayer';
@@ -111,6 +113,24 @@ test('VectorLayer draws one arrow per atom vector above the cutoff, at override 
   expect(layer.count).toBe(0);
   layer.setSettings({ field: 'forces' });
   layer.update(ctx({ structure: doc, positionsOverride: new Float32Array(9) }));
+  expect(layer.count).toBe(3);
+
+  // display scoping: an atom nothing draws does not sprout an arrow either
+  const positionsOverride = new Float32Array(9);
+  layer.setHidden(new Set([0, 1]));
+  layer.update(ctx({ structure: doc, positionsOverride }));
+  expect(layer.count).toBe(1);
+
+  // the set is rebuilt from the document on every frame, so an equal one must not rebuild
+  const shafts = layer.object.children[0] as InstancedMesh;
+  const setMatrixAt = vi.spyOn(shafts, 'setMatrixAt');
+  layer.setHidden(new Set([0, 1]));
+  layer.update(ctx({ structure: doc, positionsOverride }));
+  expect(setMatrixAt).not.toHaveBeenCalled();
+
+  layer.setHidden(null);
+  layer.update(ctx({ structure: doc, positionsOverride }));
+  expect(setMatrixAt).toHaveBeenCalled();
   expect(layer.count).toBe(3);
   layer.dispose();
 });

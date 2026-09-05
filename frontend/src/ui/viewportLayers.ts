@@ -45,6 +45,7 @@ export function syncExtraLayers(
   if (vectors instanceof VectorLayer) {
     vectors.visible = view.showVectors;
     vectors.setSettings({ field: view.vectorField, scale: view.vectorScale });
+    vectors.setHidden(hiddenAtoms);
   }
   const cell = renderer.getLayer('unit-cell');
   if (cell instanceof UnitCellLayer) {
