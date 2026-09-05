@@ -8,11 +8,13 @@ from fastapi import APIRouter, HTTPException, Request, UploadFile, status
 from pydantic import Field
 
 from atomscope.api.state import AppState
+from atomscope.calculations.grids import import_cube
 from atomscope.io import formats, read_structure, write_structure
 from atomscope.io.rdkit_io import from_smiles
 from atomscope.io.registry import FormatError, structure_to_string
-from atomscope.model import Structure
+from atomscope.model import Structure, VolumetricGrid
 from atomscope.model.common import StrictModel
+from atomscope.model.grid import GridKind
 
 router = APIRouter(prefix="/api/io", tags=["io"])
 
@@ -29,6 +31,16 @@ class FormatDescription(StrictModel):
 class ImportPathRequest(StrictModel):
     path: Path
     format: str | None = None
+
+
+class ImportCubeRequest(StrictModel):
+    path: Path
+    kind: GridKind = "other"
+
+
+class ImportCubeResponse(StrictModel):
+    grid: VolumetricGrid
+    structure: Structure
 
 
 class SmilesRequest(StrictModel):
@@ -92,6 +104,19 @@ async def import_upload(file: UploadFile, request: Request) -> Structure:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, str(exc)) from exc
     finally:
         target.unlink(missing_ok=True)
+
+
+@router.post("/import/cube", response_model=ImportCubeResponse)
+def import_cube_file(body: ImportCubeRequest, request: Request) -> ImportCubeResponse:
+    """Import a Gaussian cube file (optionally gzipped) into the open project as a dataset."""
+    project = _state(request).require_project()
+    if not body.path.is_file():
+        raise HTTPException(status.HTTP_404_NOT_FOUND, f"{body.path} not found")
+    try:
+        grid, structure = import_cube(project, body.path, kind=body.kind)
+    except (ValueError, OSError) as exc:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, str(exc)) from exc
+    return ImportCubeResponse(grid=grid, structure=structure)
 
 
 @router.post("/smiles", response_model=Structure)
