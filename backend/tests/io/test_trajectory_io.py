@@ -1,6 +1,7 @@
 from pathlib import Path
 
 import ase.io
+import numpy as np
 import pytest
 from ase import units
 from ase.build import bulk, molecule
@@ -16,9 +17,7 @@ from atomscope.model import Frame, Trajectory
 def _md_extxyz(path: Path, steps: int = 4) -> None:
     atoms = bulk("Cu", cubic=True)
     atoms.calc = EMT()
-    MaxwellBoltzmannDistribution(
-        atoms, temperature_K=300, rng=__import__("numpy").random.default_rng(0)
-    )
+    MaxwellBoltzmannDistribution(atoms, temperature_K=300, rng=np.random.default_rng(0))
     dyn = VelocityVerlet(atoms, 2 * units.fs)
     images = []
     for i in range(steps):

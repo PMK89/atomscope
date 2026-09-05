@@ -127,6 +127,7 @@ export function frameToStructure(
   k: number,
 ): StructureDoc | null {
   if (doc.atoms.length !== t.nAtoms || k < 0 || k >= t.nFrames) return null;
+  if (doc.atoms.some((a, i) => a.element !== t.symbols[i])) return null;
   const src = framePositions(t, k);
   const atoms = doc.atoms.map((a, i) => ({
     ...a,

@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { Renderer } from '../renderer/Renderer';
 import { useSelectionStore } from '../state/selectionStore';
 import { useStructureStore } from '../state/structureStore';
@@ -18,6 +18,15 @@ export function Viewport(): JSX.Element {
   const view = useViewStore();
   const trajectory = useTrajectoryStore((s) => s.trajectory);
   const frame = useTrajectoryStore((s) => s.frame);
+  // stable per frame so layers skip matrix updates on hover/selection-only changes
+  const positionsOverride = useMemo(
+    () => (trajectory ? framePositions(trajectory, frame) : null),
+    [trajectory, frame],
+  );
+  const cellOverride = useMemo(
+    () => (trajectory ? frameCell(trajectory, frame) : null),
+    [trajectory, frame],
+  );
   const lastFitted = useRef<string | null>(null);
   const lastFitRequest = useRef(0);
 
@@ -73,15 +82,15 @@ export function Viewport(): JSX.Element {
       revision,
       selectedAtoms: selected,
       hoveredAtom: hovered,
-      positionsOverride: trajectory ? framePositions(trajectory, frame) : null,
-      cellOverride: trajectory ? frameCell(trajectory, frame) : null,
+      positionsOverride,
+      cellOverride,
     });
     if (lastFitted.current !== doc.id || lastFitRequest.current !== view.fitRequest) {
       lastFitted.current = doc.id;
       lastFitRequest.current = view.fitRequest;
       r.fitToStructure();
     }
-  }, [doc, revision, selected, hovered, view, trajectory, frame]);
+  }, [doc, revision, selected, hovered, view, positionsOverride, cellOverride]);
 
   return <div ref={ref} className="viewport-canvas" data-testid="viewport" />;
 }
