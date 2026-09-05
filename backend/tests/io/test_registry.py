@@ -14,6 +14,7 @@ from atomscope.io.registry import (
     structure_from_string,
     structure_to_string,
 )
+from atomscope.model import Atom, Bond, Structure
 
 
 @pytest.mark.parametrize(
@@ -135,3 +136,19 @@ def test_aromatic_rings_come_back_kekulized() -> None:
     assert len(ring) == 6
     assert sorted(b.order for b in ring) == [1, 1, 1, 2, 2, 2]
     assert all(b.aromatic for b in ring)
+
+
+def test_a_molfile_rdkit_will_not_sanitize_still_round_trips() -> None:
+    # five bonds on a carbon: RDKit refuses to sanitize it, but the coordinates and bond orders
+    # are all a viewer needs, so the reader falls back to the unsanitized parse
+    atoms = [Atom(element="C", position=(0.0, 0.0, 0.0))] + [
+        Atom(element="H", position=(1.0 * i, 0.5 * i, 0.2 * i)) for i in range(1, 6)
+    ]
+    hypervalent = Structure(
+        name="hypervalent",
+        atoms=atoms,
+        bonds=[Bond(a=0, b=i, order=1) for i in range(1, 6)],
+    )
+    back = structure_from_string(structure_to_string(hypervalent, "mol"))
+    assert back.symbols() == hypervalent.symbols()
+    assert len(back.bonds) == 5

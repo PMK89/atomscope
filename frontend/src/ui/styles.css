@@ -198,6 +198,19 @@ button {
   opacity: 0.5;
   cursor: default;
 }
+.help-list li,
+.help-list p {
+  margin: 6px 0;
+  max-width: 60ch;
+}
+.help-table td {
+  padding: 2px 10px 2px 0;
+  vertical-align: top;
+}
+.help-table kbd {
+  font-family: inherit;
+  white-space: nowrap;
+}
 .status-modified {
   color: var(--accent, #c07000);
   font-weight: 700;

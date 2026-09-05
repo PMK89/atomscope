@@ -93,7 +93,7 @@ test('Select SMARTS asks the backend and selects the matching atoms', async () =
   vi.spyOn(window, 'prompt').mockReturnValue('[OX2H]');
 
   render(<MenuBar onError={() => {}} />);
-  fireEvent.click(screen.getByText('Edit'));
+  fireEvent.click(screen.getByRole('button', { name: 'Select' }));
   fireEvent.click(screen.getByText('Select SMARTS…'));
 
   await waitFor(() => expect([...useSelectionStore.getState().atoms]).toEqual([0, 1]));
@@ -106,7 +106,7 @@ test('a SMARTS pattern that matches nothing is reported', async () => {
   const onError = vi.fn();
 
   render(<MenuBar onError={onError} />);
-  fireEvent.click(screen.getByText('Edit'));
+  fireEvent.click(screen.getByRole('button', { name: 'Select' }));
   fireEvent.click(screen.getByText('Select SMARTS…'));
 
   await waitFor(() => expect(onError).toHaveBeenCalledWith('No atom matches [Fe]'));

@@ -49,8 +49,8 @@ export async function saveStructureAs(
     onError(`Save failed: ${(e as Error).message}`);
     return false;
   }
-  // editing continues on the copy: a second Save must not go back to the original
-  state.load(copy);
+  // editing continues on the copy, history and all: a second Save must not go back to the original
+  state.adoptIdentity({ id: copy.id, name: copy.name });
   return true;
 }
 

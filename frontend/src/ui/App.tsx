@@ -34,9 +34,7 @@ export function App(): JSX.Element {
   // the window title carries the document and whether it has unsaved work, and leaving the page
   // with unsaved work asks first (the browser shows its own wording)
   const name = useStructureStore((s) => s.doc.name);
-  const revision = useStructureStore((s) => s.revision);
-  const savedRevision = useStructureStore((s) => s.savedRevision);
-  const modified = revision !== savedRevision;
+  const modified = useStructureStore((s) => s.doc !== s.savedDoc);
   useEffect(() => {
     document.title = `${modified ? '• ' : ''}${name} — Atomscope`;
   }, [name, modified]);

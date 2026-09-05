@@ -120,7 +120,7 @@ test('the Display tab drives the labels drawn into the scene', async ({ page }) 
 
 test('copy, paste, and paste of text from another program', async ({ page }) => {
   await page.goto('/');
-  await page.getByRole('button', { name: 'Edit' }).click();
+  await page.getByRole('menubar').getByRole('button', { name: 'Select' }).click();
   await page.getByRole('menuitem', { name: 'Select all' }).click();
   await page.getByRole('button', { name: 'Edit' }).click();
   await page.getByRole('menuitem', { name: 'Copy Ctrl+C' }).click();

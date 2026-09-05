@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import { vi } from 'vitest';
 
 vi.mock('./Viewport', () => ({
@@ -40,14 +40,14 @@ test('toolbar switches tools and shows the tool settings panel', () => {
   expect(screen.queryByLabelText('Element symbol')).not.toBeInTheDocument();
 });
 
-test('edit menu selects all atoms and the properties tab shows the selection', () => {
+test('the select menu selects all atoms and the properties tab shows the selection', () => {
   render(<App />);
-  fireEvent.click(screen.getByText('Edit'));
+  fireEvent.click(within(screen.getByRole('menubar')).getByRole('button', { name: 'Select' }));
   fireEvent.click(screen.getByText('Select all'));
   expect(screen.getByText('3 selected')).toBeInTheDocument();
   fireEvent.click(screen.getByRole('tab', { name: 'Properties' }));
   expect(screen.getByText(/3 atoms selected/)).toBeInTheDocument();
-  fireEvent.click(screen.getByText('Edit'));
+  fireEvent.click(within(screen.getByRole('menubar')).getByRole('button', { name: 'Select' }));
   fireEvent.click(screen.getByText('Invert selection'));
   expect(screen.getByText('0 selected')).toBeInTheDocument();
 });
@@ -100,4 +100,21 @@ test('the cartesian editor is a modal dialog that traps and restores focus', () 
   expect(screen.queryByRole('dialog')).toBeNull();
   // focus returned to the menu the dialog was opened from
   expect(document.activeElement).toBe(editMenu);
+});
+
+test('the help menu explains the shortcuts and where the guides are', () => {
+  render(<App />);
+  fireEvent.click(screen.getByRole('button', { name: 'Help' }));
+  fireEvent.click(screen.getByRole('menuitem', { name: 'Keyboard shortcuts' }));
+
+  const dialog = screen.getByRole('dialog', { name: 'Keyboard shortcuts' });
+  expect(dialog).toHaveAttribute('aria-modal', 'true');
+  expect(screen.getByText('Cut / Copy / Paste')).toBeInTheDocument();
+
+  fireEvent.keyDown(screen.getByRole('button', { name: 'Close' }), { key: 'Escape' });
+  expect(screen.queryByRole('dialog')).toBeNull();
+
+  fireEvent.click(screen.getByRole('button', { name: 'Help' }));
+  fireEvent.click(screen.getByRole('menuitem', { name: /User guide/ }));
+  expect(screen.getByText(/docs\/user-guide.md/)).toBeInTheDocument();
 });

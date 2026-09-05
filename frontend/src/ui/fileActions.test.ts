@@ -54,6 +54,33 @@ test('save as writes a new structure and continues editing the copy', async () =
   expect(after.isModified()).toBe(false);
 });
 
+test('save as keeps the history, under the new identity', async () => {
+  const store = useStructureStore.getState();
+  store.commit('first', { ...store.doc, charge: 1 });
+  store.commit('second', { ...useStructureStore.getState().doc, charge: 2 });
+
+  expect(await saveStructureAs('copy', onError)).toBe(true);
+  const after = useStructureStore.getState();
+  expect(after.canUndo()).toBe(true);
+  // undoing past the save must not put the original's id back: the next save would overwrite it
+  after.undo();
+  expect(useStructureStore.getState().doc.id).toBe(after.doc.id);
+  expect(useStructureStore.getState().doc.name).toBe('copy');
+  expect(useStructureStore.getState().doc.charge).toBe(1);
+  // and it is modified again, because that is not what was stored
+  expect(useStructureStore.getState().isModified()).toBe(true);
+});
+
+test('undoing back to the saved document clears the marker', async () => {
+  const store = useStructureStore.getState();
+  expect(await saveStructure(onError)).toBe(true);
+  store.commit('edit', { ...store.doc, charge: 3 });
+  expect(useStructureStore.getState().isModified()).toBe(true);
+
+  useStructureStore.getState().undo();
+  expect(useStructureStore.getState().isModified()).toBe(false);
+});
+
 test('saving without a project says so instead of failing silently', async () => {
   useProjectStore.setState({ info: null });
   expect(await saveStructure(onError)).toBe(false);

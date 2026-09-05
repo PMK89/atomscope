@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { api } from '../api/client';
 import { toApiStructure } from '../api/structureBody';
 import { normalizeStructure } from '../model/structure';
@@ -35,10 +35,12 @@ import {
 } from './clipboardActions';
 import { promptSaveAs, saveStructure } from './fileActions';
 import { isEditableTarget } from '../editor/ToolHost';
+import { HelpDialog, type HelpTopic } from './HelpDialog';
 import { Menu, type MenuItem } from './Menu';
 import type { StructureStyle } from '../renderer/layers/StructureLayer';
 
 export function MenuBar({ onError }: { onError: (msg: string) => void }): JSX.Element {
+  const [help, setHelp] = useState<HelpTopic | null>(null);
   const store = useStructureStore();
   const view = useViewStore();
   const selection = useSelectionStore();
@@ -218,6 +220,12 @@ export function MenuBar({ onError }: { onError: (msg: string) => void }): JSX.El
             disabled: store.doc.atoms.length === 0,
             action: clearSelection,
           },
+          { label: 'Cartesian editor…', action: () => openCartesian(true) },
+        ]}
+      />
+      <Menu
+        title="Select"
+        items={[
           {
             label: 'Select all',
             shortcut: 'Ctrl+A',
@@ -242,7 +250,6 @@ export function MenuBar({ onError }: { onError: (msg: string) => void }): JSX.El
               if (pattern) void selectSmarts(pattern);
             },
           },
-          { label: 'Cartesian editor…', action: () => openCartesian(true) },
         ]}
       />
       <Menu
@@ -327,6 +334,16 @@ export function MenuBar({ onError }: { onError: (msg: string) => void }): JSX.El
           },
         ]}
       />
+      <Menu
+        title="Help"
+        items={[
+          { label: 'User guide (docs/user-guide.md)', action: () => setHelp('user-guide') },
+          { label: 'Tutorials (docs/tutorials/)', action: () => setHelp('tutorials') },
+          { label: 'Keyboard shortcuts', action: () => setHelp('shortcuts') },
+          { label: 'About Atomscope', action: () => setHelp('about') },
+        ]}
+      />
+      <HelpDialog topic={help} onClose={() => setHelp(null)} />
       <CartesianEditor />
       <CrystalDialogs onError={onError} />
       <BuildDialogs onError={onError} />

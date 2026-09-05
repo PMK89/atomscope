@@ -14,6 +14,7 @@ import {
   Vector3,
 } from 'three';
 import { elementBySymbol } from '../../model/elements';
+import { adjacency } from '../../model/connectivity';
 import type { StructureDoc } from '../../model/structure';
 import { bondPlaneAxis, cylinderMatrix } from '../math';
 import type { DisplayLayer, LayerContext } from './Layer';
@@ -306,9 +307,16 @@ export class StructureLayer implements DisplayLayer {
    */
   private halvesFor(s: StructureDoc, bonds: StructureDoc['bonds']): BondHalf[] {
     const out: BondHalf[] = [];
+    // one pass over the bonds, rather than a scan per multiple bond: at 1e4 double bonds the
+    // scan was the whole rebuild
+    const multiple = this.settings.multipleBonds && bonds.some((b) => b.order > 1);
+    const adj = multiple ? adjacency(s) : [];
     bonds.forEach((bond, k) => {
       const sticks = this.settings.multipleBonds ? Math.min(3, Math.max(1, bond.order)) : 1;
-      const reference = sticks > 1 ? this.neighbourOf(s, bond.a, bond.b) : -1;
+      const reference =
+        sticks > 1
+          ? (adj[bond.a]?.find((x) => x !== bond.b) ?? adj[bond.b]?.find((x) => x !== bond.a) ?? -1)
+          : -1;
       for (let i = 0; i < sticks; i++) {
         const shift = sticks === 1 ? 0 : i - (sticks - 1) / 2;
         out.push({ bond: k, end: 'a', shift, reference });
@@ -316,17 +324,6 @@ export class StructureLayer implements DisplayLayer {
       }
     });
     return out;
-  }
-
-  /** An atom bonded to `a` or `b` other than each other: it fixes the plane of a multiple bond. */
-  private neighbourOf(s: StructureDoc, a: number, b: number): number {
-    for (const bond of s.bonds) {
-      if (bond.a === a && bond.b !== b) return bond.b;
-      if (bond.b === a && bond.a !== b) return bond.a;
-      if (bond.a === b && bond.b !== a) return bond.b;
-      if (bond.b === b && bond.a !== a) return bond.a;
-    }
-    return -1;
   }
 
   /**

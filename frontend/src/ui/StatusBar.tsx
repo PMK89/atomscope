@@ -13,7 +13,7 @@ export function StatusBar({ message }: { message: string | null }): JSX.Element 
   const tool = useToolStore((s) => s.active);
   const picks = useToolStore((s) => s.measure.atoms);
   const measurement = tool === 'measure' ? formatMeasurement(measure(doc, picks)) : '';
-  const modified = useStructureStore((s) => s.revision !== s.savedRevision);
+  const modified = useStructureStore((s) => s.doc !== s.savedDoc);
   return (
     <footer className="app-statusbar">
       <span>
