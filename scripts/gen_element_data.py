@@ -10,7 +10,7 @@ from __future__ import annotations
 import math
 from pathlib import Path
 
-from ase.data import atomic_masses, chemical_symbols, covalent_radii, vdw_radii
+from ase.data import atomic_masses, atomic_names, chemical_symbols, covalent_radii, vdw_radii
 from ase.data.colors import jmol_colors
 
 out = Path(__file__).resolve().parent.parent / "frontend/src/model/elements.ts"
@@ -19,6 +19,7 @@ lines = [
     "// Colors: Jmol CPK; covalent radii: Cordero et al. 2008; vdW radii: Bondi/Alvarez; masses: IUPAC.",
     "export interface ElementData {",
     "  symbol: string;",
+    "  name: string;",
     "  number: number;",
     "  mass: number;",
     "  covalentRadius: number; // Å",
@@ -35,7 +36,8 @@ for z, sym in enumerate(chemical_symbols):
     vdw = float(vdw_radii[z]) if z < len(vdw_radii) else math.nan
     vdw_s = "NaN" if math.isnan(vdw) else f"{vdw:.2f}"
     lines.append(
-        f"  {{ symbol: '{sym}', number: {z}, mass: {float(atomic_masses[z]):.4f}, "
+        f"  {{ symbol: '{sym}', name: '{atomic_names[z] or sym}', number: {z}, "
+        f"mass: {float(atomic_masses[z]):.4f}, "
         f"covalentRadius: {float(covalent_radii[z]):.2f}, vdwRadius: {vdw_s}, color: [{r}, {g}, {b}] }},"
     )
 lines += [

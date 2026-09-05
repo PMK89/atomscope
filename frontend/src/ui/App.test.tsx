@@ -20,7 +20,8 @@ test('renders the shell with a viewport and demo molecule', () => {
 test('view menu switches representation and edit menu reflects history', () => {
   render(<App />);
   fireEvent.click(screen.getByText('View'));
-  fireEvent.click(screen.getByText('Stick'));
+  // the Display panel offers the same styles, so pick the menu item specifically
+  fireEvent.click(screen.getByRole('menuitemcheckbox', { name: 'Stick' }));
   fireEvent.click(screen.getByText('Edit'));
   expect(screen.getByText('Undo').closest('button')).toBeDisabled();
   const st = useStructureStore.getState();

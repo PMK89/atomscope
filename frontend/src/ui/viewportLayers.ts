@@ -34,6 +34,9 @@ export function syncExtraLayers(renderer: Renderer, view: ViewState): void {
       bonds: view.bondLabels,
       hideHydrogens: !view.showHydrogens,
       lift: view.style === 'vdw' ? 'vdw' : 'small',
+      color: view.labelColor,
+      size: view.labelSize,
+      shift: view.labelShift,
     });
   }
 }

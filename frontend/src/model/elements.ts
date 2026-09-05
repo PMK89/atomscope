@@ -2,6 +2,7 @@
 // Colors: Jmol CPK; covalent radii: Cordero et al. 2008; vdW radii: Bondi/Alvarez; masses: IUPAC.
 export interface ElementData {
   symbol: string;
+  name: string;
   number: number;
   mass: number;
   covalentRadius: number; // Å
@@ -12,6 +13,7 @@ export interface ElementData {
 export const ELEMENTS: readonly ElementData[] = [
   {
     symbol: 'X',
+    name: 'X',
     number: 0,
     mass: 1.0,
     covalentRadius: 0.2,
@@ -20,6 +22,7 @@ export const ELEMENTS: readonly ElementData[] = [
   },
   {
     symbol: 'H',
+    name: 'Hydrogen',
     number: 1,
     mass: 1.008,
     covalentRadius: 0.31,
@@ -28,6 +31,7 @@ export const ELEMENTS: readonly ElementData[] = [
   },
   {
     symbol: 'He',
+    name: 'Helium',
     number: 2,
     mass: 4.0026,
     covalentRadius: 0.28,
@@ -36,6 +40,7 @@ export const ELEMENTS: readonly ElementData[] = [
   },
   {
     symbol: 'Li',
+    name: 'Lithium',
     number: 3,
     mass: 6.94,
     covalentRadius: 1.28,
@@ -44,6 +49,7 @@ export const ELEMENTS: readonly ElementData[] = [
   },
   {
     symbol: 'Be',
+    name: 'Beryllium',
     number: 4,
     mass: 9.0122,
     covalentRadius: 0.96,
@@ -52,6 +58,7 @@ export const ELEMENTS: readonly ElementData[] = [
   },
   {
     symbol: 'B',
+    name: 'Boron',
     number: 5,
     mass: 10.81,
     covalentRadius: 0.84,
@@ -60,6 +67,7 @@ export const ELEMENTS: readonly ElementData[] = [
   },
   {
     symbol: 'C',
+    name: 'Carbon',
     number: 6,
     mass: 12.011,
     covalentRadius: 0.76,
@@ -68,6 +76,7 @@ export const ELEMENTS: readonly ElementData[] = [
   },
   {
     symbol: 'N',
+    name: 'Nitrogen',
     number: 7,
     mass: 14.007,
     covalentRadius: 0.71,
@@ -76,6 +85,7 @@ export const ELEMENTS: readonly ElementData[] = [
   },
   {
     symbol: 'O',
+    name: 'Oxygen',
     number: 8,
     mass: 15.999,
     covalentRadius: 0.66,
@@ -84,6 +94,7 @@ export const ELEMENTS: readonly ElementData[] = [
   },
   {
     symbol: 'F',
+    name: 'Fluorine',
     number: 9,
     mass: 18.9984,
     covalentRadius: 0.57,
@@ -92,6 +103,7 @@ export const ELEMENTS: readonly ElementData[] = [
   },
   {
     symbol: 'Ne',
+    name: 'Neon',
     number: 10,
     mass: 20.1797,
     covalentRadius: 0.58,
@@ -100,6 +112,7 @@ export const ELEMENTS: readonly ElementData[] = [
   },
   {
     symbol: 'Na',
+    name: 'Sodium',
     number: 11,
     mass: 22.9898,
     covalentRadius: 1.66,
@@ -108,6 +121,7 @@ export const ELEMENTS: readonly ElementData[] = [
   },
   {
     symbol: 'Mg',
+    name: 'Magnesium',
     number: 12,
     mass: 24.305,
     covalentRadius: 1.41,
@@ -116,6 +130,7 @@ export const ELEMENTS: readonly ElementData[] = [
   },
   {
     symbol: 'Al',
+    name: 'Aluminium',
     number: 13,
     mass: 26.9815,
     covalentRadius: 1.21,
@@ -124,6 +139,7 @@ export const ELEMENTS: readonly ElementData[] = [
   },
   {
     symbol: 'Si',
+    name: 'Silicon',
     number: 14,
     mass: 28.085,
     covalentRadius: 1.11,
@@ -132,6 +148,7 @@ export const ELEMENTS: readonly ElementData[] = [
   },
   {
     symbol: 'P',
+    name: 'Phosphorus',
     number: 15,
     mass: 30.9738,
     covalentRadius: 1.07,
@@ -140,6 +157,7 @@ export const ELEMENTS: readonly ElementData[] = [
   },
   {
     symbol: 'S',
+    name: 'Sulfur',
     number: 16,
     mass: 32.06,
     covalentRadius: 1.05,
@@ -148,6 +166,7 @@ export const ELEMENTS: readonly ElementData[] = [
   },
   {
     symbol: 'Cl',
+    name: 'Chlorine',
     number: 17,
     mass: 35.45,
     covalentRadius: 1.02,
@@ -156,6 +175,7 @@ export const ELEMENTS: readonly ElementData[] = [
   },
   {
     symbol: 'Ar',
+    name: 'Argon',
     number: 18,
     mass: 39.948,
     covalentRadius: 1.06,
@@ -164,6 +184,7 @@ export const ELEMENTS: readonly ElementData[] = [
   },
   {
     symbol: 'K',
+    name: 'Potassium',
     number: 19,
     mass: 39.0983,
     covalentRadius: 2.03,
@@ -172,6 +193,7 @@ export const ELEMENTS: readonly ElementData[] = [
   },
   {
     symbol: 'Ca',
+    name: 'Calcium',
     number: 20,
     mass: 40.078,
     covalentRadius: 1.76,
@@ -180,6 +202,7 @@ export const ELEMENTS: readonly ElementData[] = [
   },
   {
     symbol: 'Sc',
+    name: 'Scandium',
     number: 21,
     mass: 44.9559,
     covalentRadius: 1.7,
@@ -188,6 +211,7 @@ export const ELEMENTS: readonly ElementData[] = [
   },
   {
     symbol: 'Ti',
+    name: 'Titanium',
     number: 22,
     mass: 47.867,
     covalentRadius: 1.6,
@@ -196,6 +220,7 @@ export const ELEMENTS: readonly ElementData[] = [
   },
   {
     symbol: 'V',
+    name: 'Vanadium',
     number: 23,
     mass: 50.9415,
     covalentRadius: 1.53,
@@ -204,6 +229,7 @@ export const ELEMENTS: readonly ElementData[] = [
   },
   {
     symbol: 'Cr',
+    name: 'Chromium',
     number: 24,
     mass: 51.9961,
     covalentRadius: 1.39,
@@ -212,6 +238,7 @@ export const ELEMENTS: readonly ElementData[] = [
   },
   {
     symbol: 'Mn',
+    name: 'Manganese',
     number: 25,
     mass: 54.938,
     covalentRadius: 1.39,
@@ -220,6 +247,7 @@ export const ELEMENTS: readonly ElementData[] = [
   },
   {
     symbol: 'Fe',
+    name: 'Iron',
     number: 26,
     mass: 55.845,
     covalentRadius: 1.32,
@@ -228,6 +256,7 @@ export const ELEMENTS: readonly ElementData[] = [
   },
   {
     symbol: 'Co',
+    name: 'Cobalt',
     number: 27,
     mass: 58.9332,
     covalentRadius: 1.26,
@@ -236,6 +265,7 @@ export const ELEMENTS: readonly ElementData[] = [
   },
   {
     symbol: 'Ni',
+    name: 'Nickel',
     number: 28,
     mass: 58.6934,
     covalentRadius: 1.24,
@@ -244,6 +274,7 @@ export const ELEMENTS: readonly ElementData[] = [
   },
   {
     symbol: 'Cu',
+    name: 'Copper',
     number: 29,
     mass: 63.546,
     covalentRadius: 1.32,
@@ -252,6 +283,7 @@ export const ELEMENTS: readonly ElementData[] = [
   },
   {
     symbol: 'Zn',
+    name: 'Zinc',
     number: 30,
     mass: 65.38,
     covalentRadius: 1.22,
@@ -260,6 +292,7 @@ export const ELEMENTS: readonly ElementData[] = [
   },
   {
     symbol: 'Ga',
+    name: 'Gallium',
     number: 31,
     mass: 69.723,
     covalentRadius: 1.22,
@@ -268,6 +301,7 @@ export const ELEMENTS: readonly ElementData[] = [
   },
   {
     symbol: 'Ge',
+    name: 'Germanium',
     number: 32,
     mass: 72.63,
     covalentRadius: 1.2,
@@ -276,6 +310,7 @@ export const ELEMENTS: readonly ElementData[] = [
   },
   {
     symbol: 'As',
+    name: 'Arsenic',
     number: 33,
     mass: 74.9216,
     covalentRadius: 1.19,
@@ -284,6 +319,7 @@ export const ELEMENTS: readonly ElementData[] = [
   },
   {
     symbol: 'Se',
+    name: 'Selenium',
     number: 34,
     mass: 78.971,
     covalentRadius: 1.2,
@@ -292,6 +328,7 @@ export const ELEMENTS: readonly ElementData[] = [
   },
   {
     symbol: 'Br',
+    name: 'Bromine',
     number: 35,
     mass: 79.904,
     covalentRadius: 1.2,
@@ -300,6 +337,7 @@ export const ELEMENTS: readonly ElementData[] = [
   },
   {
     symbol: 'Kr',
+    name: 'Krypton',
     number: 36,
     mass: 83.798,
     covalentRadius: 1.16,
@@ -308,6 +346,7 @@ export const ELEMENTS: readonly ElementData[] = [
   },
   {
     symbol: 'Rb',
+    name: 'Rubidium',
     number: 37,
     mass: 85.4678,
     covalentRadius: 2.2,
@@ -316,6 +355,7 @@ export const ELEMENTS: readonly ElementData[] = [
   },
   {
     symbol: 'Sr',
+    name: 'Strontium',
     number: 38,
     mass: 87.62,
     covalentRadius: 1.95,
@@ -324,6 +364,7 @@ export const ELEMENTS: readonly ElementData[] = [
   },
   {
     symbol: 'Y',
+    name: 'Yttrium',
     number: 39,
     mass: 88.9058,
     covalentRadius: 1.9,
@@ -332,6 +373,7 @@ export const ELEMENTS: readonly ElementData[] = [
   },
   {
     symbol: 'Zr',
+    name: 'Zirconium',
     number: 40,
     mass: 91.224,
     covalentRadius: 1.75,
@@ -340,6 +382,7 @@ export const ELEMENTS: readonly ElementData[] = [
   },
   {
     symbol: 'Nb',
+    name: 'Niobium',
     number: 41,
     mass: 92.9064,
     covalentRadius: 1.64,
@@ -348,6 +391,7 @@ export const ELEMENTS: readonly ElementData[] = [
   },
   {
     symbol: 'Mo',
+    name: 'Molybdenum',
     number: 42,
     mass: 95.95,
     covalentRadius: 1.54,
@@ -356,6 +400,7 @@ export const ELEMENTS: readonly ElementData[] = [
   },
   {
     symbol: 'Tc',
+    name: 'Technetium',
     number: 43,
     mass: 97.9072,
     covalentRadius: 1.47,
@@ -364,6 +409,7 @@ export const ELEMENTS: readonly ElementData[] = [
   },
   {
     symbol: 'Ru',
+    name: 'Ruthenium',
     number: 44,
     mass: 101.07,
     covalentRadius: 1.46,
@@ -372,6 +418,7 @@ export const ELEMENTS: readonly ElementData[] = [
   },
   {
     symbol: 'Rh',
+    name: 'Rhodium',
     number: 45,
     mass: 102.9055,
     covalentRadius: 1.42,
@@ -380,6 +427,7 @@ export const ELEMENTS: readonly ElementData[] = [
   },
   {
     symbol: 'Pd',
+    name: 'Palladium',
     number: 46,
     mass: 106.42,
     covalentRadius: 1.39,
@@ -388,6 +436,7 @@ export const ELEMENTS: readonly ElementData[] = [
   },
   {
     symbol: 'Ag',
+    name: 'Silver',
     number: 47,
     mass: 107.8682,
     covalentRadius: 1.45,
@@ -396,6 +445,7 @@ export const ELEMENTS: readonly ElementData[] = [
   },
   {
     symbol: 'Cd',
+    name: 'Cadmium',
     number: 48,
     mass: 112.414,
     covalentRadius: 1.44,
@@ -404,6 +454,7 @@ export const ELEMENTS: readonly ElementData[] = [
   },
   {
     symbol: 'In',
+    name: 'Indium',
     number: 49,
     mass: 114.818,
     covalentRadius: 1.42,
@@ -412,6 +463,7 @@ export const ELEMENTS: readonly ElementData[] = [
   },
   {
     symbol: 'Sn',
+    name: 'Tin',
     number: 50,
     mass: 118.71,
     covalentRadius: 1.39,
@@ -420,6 +472,7 @@ export const ELEMENTS: readonly ElementData[] = [
   },
   {
     symbol: 'Sb',
+    name: 'Antimony',
     number: 51,
     mass: 121.76,
     covalentRadius: 1.39,
@@ -428,6 +481,7 @@ export const ELEMENTS: readonly ElementData[] = [
   },
   {
     symbol: 'Te',
+    name: 'Tellurium',
     number: 52,
     mass: 127.6,
     covalentRadius: 1.38,
@@ -436,6 +490,7 @@ export const ELEMENTS: readonly ElementData[] = [
   },
   {
     symbol: 'I',
+    name: 'Iodine',
     number: 53,
     mass: 126.9045,
     covalentRadius: 1.39,
@@ -444,6 +499,7 @@ export const ELEMENTS: readonly ElementData[] = [
   },
   {
     symbol: 'Xe',
+    name: 'Xenon',
     number: 54,
     mass: 131.293,
     covalentRadius: 1.4,
@@ -452,6 +508,7 @@ export const ELEMENTS: readonly ElementData[] = [
   },
   {
     symbol: 'Cs',
+    name: 'Caesium',
     number: 55,
     mass: 132.9055,
     covalentRadius: 2.44,
@@ -460,6 +517,7 @@ export const ELEMENTS: readonly ElementData[] = [
   },
   {
     symbol: 'Ba',
+    name: 'Barium',
     number: 56,
     mass: 137.327,
     covalentRadius: 2.15,
@@ -468,6 +526,7 @@ export const ELEMENTS: readonly ElementData[] = [
   },
   {
     symbol: 'La',
+    name: 'Lanthanum',
     number: 57,
     mass: 138.9055,
     covalentRadius: 2.07,
@@ -476,6 +535,7 @@ export const ELEMENTS: readonly ElementData[] = [
   },
   {
     symbol: 'Ce',
+    name: 'Cerium',
     number: 58,
     mass: 140.116,
     covalentRadius: 2.04,
@@ -484,6 +544,7 @@ export const ELEMENTS: readonly ElementData[] = [
   },
   {
     symbol: 'Pr',
+    name: 'Praseodymium',
     number: 59,
     mass: 140.9077,
     covalentRadius: 2.03,
@@ -492,6 +553,7 @@ export const ELEMENTS: readonly ElementData[] = [
   },
   {
     symbol: 'Nd',
+    name: 'Neodymium',
     number: 60,
     mass: 144.242,
     covalentRadius: 2.01,
@@ -500,6 +562,7 @@ export const ELEMENTS: readonly ElementData[] = [
   },
   {
     symbol: 'Pm',
+    name: 'Promethium',
     number: 61,
     mass: 144.9128,
     covalentRadius: 1.99,
@@ -508,6 +571,7 @@ export const ELEMENTS: readonly ElementData[] = [
   },
   {
     symbol: 'Sm',
+    name: 'Samarium',
     number: 62,
     mass: 150.36,
     covalentRadius: 1.98,
@@ -516,6 +580,7 @@ export const ELEMENTS: readonly ElementData[] = [
   },
   {
     symbol: 'Eu',
+    name: 'Europium',
     number: 63,
     mass: 151.964,
     covalentRadius: 1.98,
@@ -524,6 +589,7 @@ export const ELEMENTS: readonly ElementData[] = [
   },
   {
     symbol: 'Gd',
+    name: 'Gadolinium',
     number: 64,
     mass: 157.25,
     covalentRadius: 1.96,
@@ -532,6 +598,7 @@ export const ELEMENTS: readonly ElementData[] = [
   },
   {
     symbol: 'Tb',
+    name: 'Terbium',
     number: 65,
     mass: 158.9254,
     covalentRadius: 1.94,
@@ -540,6 +607,7 @@ export const ELEMENTS: readonly ElementData[] = [
   },
   {
     symbol: 'Dy',
+    name: 'Dysprosium',
     number: 66,
     mass: 162.5,
     covalentRadius: 1.92,
@@ -548,6 +616,7 @@ export const ELEMENTS: readonly ElementData[] = [
   },
   {
     symbol: 'Ho',
+    name: 'Holmium',
     number: 67,
     mass: 164.9303,
     covalentRadius: 1.92,
@@ -556,6 +625,7 @@ export const ELEMENTS: readonly ElementData[] = [
   },
   {
     symbol: 'Er',
+    name: 'Erbium',
     number: 68,
     mass: 167.259,
     covalentRadius: 1.89,
@@ -564,6 +634,7 @@ export const ELEMENTS: readonly ElementData[] = [
   },
   {
     symbol: 'Tm',
+    name: 'Thulium',
     number: 69,
     mass: 168.9342,
     covalentRadius: 1.9,
@@ -572,6 +643,7 @@ export const ELEMENTS: readonly ElementData[] = [
   },
   {
     symbol: 'Yb',
+    name: 'Ytterbium',
     number: 70,
     mass: 173.054,
     covalentRadius: 1.87,
@@ -580,6 +652,7 @@ export const ELEMENTS: readonly ElementData[] = [
   },
   {
     symbol: 'Lu',
+    name: 'Lutetium',
     number: 71,
     mass: 174.9668,
     covalentRadius: 1.87,
@@ -588,6 +661,7 @@ export const ELEMENTS: readonly ElementData[] = [
   },
   {
     symbol: 'Hf',
+    name: 'Hafnium',
     number: 72,
     mass: 178.49,
     covalentRadius: 1.75,
@@ -596,6 +670,7 @@ export const ELEMENTS: readonly ElementData[] = [
   },
   {
     symbol: 'Ta',
+    name: 'Tantalum',
     number: 73,
     mass: 180.9479,
     covalentRadius: 1.7,
@@ -604,6 +679,7 @@ export const ELEMENTS: readonly ElementData[] = [
   },
   {
     symbol: 'W',
+    name: 'Tungsten',
     number: 74,
     mass: 183.84,
     covalentRadius: 1.62,
@@ -612,6 +688,7 @@ export const ELEMENTS: readonly ElementData[] = [
   },
   {
     symbol: 'Re',
+    name: 'Rhenium',
     number: 75,
     mass: 186.207,
     covalentRadius: 1.51,
@@ -620,6 +697,7 @@ export const ELEMENTS: readonly ElementData[] = [
   },
   {
     symbol: 'Os',
+    name: 'Osmium',
     number: 76,
     mass: 190.23,
     covalentRadius: 1.44,
@@ -628,6 +706,7 @@ export const ELEMENTS: readonly ElementData[] = [
   },
   {
     symbol: 'Ir',
+    name: 'Iridium',
     number: 77,
     mass: 192.217,
     covalentRadius: 1.41,
@@ -636,6 +715,7 @@ export const ELEMENTS: readonly ElementData[] = [
   },
   {
     symbol: 'Pt',
+    name: 'Platinum',
     number: 78,
     mass: 195.084,
     covalentRadius: 1.36,
@@ -644,6 +724,7 @@ export const ELEMENTS: readonly ElementData[] = [
   },
   {
     symbol: 'Au',
+    name: 'Gold',
     number: 79,
     mass: 196.9666,
     covalentRadius: 1.36,
@@ -652,6 +733,7 @@ export const ELEMENTS: readonly ElementData[] = [
   },
   {
     symbol: 'Hg',
+    name: 'Mercury',
     number: 80,
     mass: 200.592,
     covalentRadius: 1.32,
@@ -660,6 +742,7 @@ export const ELEMENTS: readonly ElementData[] = [
   },
   {
     symbol: 'Tl',
+    name: 'Thallium',
     number: 81,
     mass: 204.38,
     covalentRadius: 1.45,
@@ -668,6 +751,7 @@ export const ELEMENTS: readonly ElementData[] = [
   },
   {
     symbol: 'Pb',
+    name: 'Lead',
     number: 82,
     mass: 207.2,
     covalentRadius: 1.46,
@@ -676,6 +760,7 @@ export const ELEMENTS: readonly ElementData[] = [
   },
   {
     symbol: 'Bi',
+    name: 'Bismuth',
     number: 83,
     mass: 208.9804,
     covalentRadius: 1.48,
@@ -684,6 +769,7 @@ export const ELEMENTS: readonly ElementData[] = [
   },
   {
     symbol: 'Po',
+    name: 'Polonium',
     number: 84,
     mass: 208.9824,
     covalentRadius: 1.4,
@@ -692,6 +778,7 @@ export const ELEMENTS: readonly ElementData[] = [
   },
   {
     symbol: 'At',
+    name: 'Astatine',
     number: 85,
     mass: 209.9872,
     covalentRadius: 1.5,
@@ -700,6 +787,7 @@ export const ELEMENTS: readonly ElementData[] = [
   },
   {
     symbol: 'Rn',
+    name: 'Radon',
     number: 86,
     mass: 222.0176,
     covalentRadius: 1.5,
@@ -708,6 +796,7 @@ export const ELEMENTS: readonly ElementData[] = [
   },
   {
     symbol: 'Fr',
+    name: 'Francium',
     number: 87,
     mass: 223.0197,
     covalentRadius: 2.6,
@@ -716,6 +805,7 @@ export const ELEMENTS: readonly ElementData[] = [
   },
   {
     symbol: 'Ra',
+    name: 'Radium',
     number: 88,
     mass: 226.0254,
     covalentRadius: 2.21,
@@ -724,6 +814,7 @@ export const ELEMENTS: readonly ElementData[] = [
   },
   {
     symbol: 'Ac',
+    name: 'Actinium',
     number: 89,
     mass: 227.0277,
     covalentRadius: 2.15,
@@ -732,6 +823,7 @@ export const ELEMENTS: readonly ElementData[] = [
   },
   {
     symbol: 'Th',
+    name: 'Thorium',
     number: 90,
     mass: 232.0377,
     covalentRadius: 2.06,
@@ -740,6 +832,7 @@ export const ELEMENTS: readonly ElementData[] = [
   },
   {
     symbol: 'Pa',
+    name: 'Protactinium',
     number: 91,
     mass: 231.0359,
     covalentRadius: 2.0,
@@ -748,6 +841,7 @@ export const ELEMENTS: readonly ElementData[] = [
   },
   {
     symbol: 'U',
+    name: 'Uranium',
     number: 92,
     mass: 238.0289,
     covalentRadius: 1.96,
@@ -756,6 +850,7 @@ export const ELEMENTS: readonly ElementData[] = [
   },
   {
     symbol: 'Np',
+    name: 'Neptunium',
     number: 93,
     mass: 237.0482,
     covalentRadius: 1.9,
@@ -764,6 +859,7 @@ export const ELEMENTS: readonly ElementData[] = [
   },
   {
     symbol: 'Pu',
+    name: 'Plutonium',
     number: 94,
     mass: 244.0642,
     covalentRadius: 1.87,
@@ -772,6 +868,7 @@ export const ELEMENTS: readonly ElementData[] = [
   },
   {
     symbol: 'Am',
+    name: 'Americium',
     number: 95,
     mass: 243.0614,
     covalentRadius: 1.8,
@@ -780,6 +877,7 @@ export const ELEMENTS: readonly ElementData[] = [
   },
   {
     symbol: 'Cm',
+    name: 'Curium',
     number: 96,
     mass: 247.0703,
     covalentRadius: 1.69,
@@ -788,6 +886,7 @@ export const ELEMENTS: readonly ElementData[] = [
   },
   {
     symbol: 'Bk',
+    name: 'Berkelium',
     number: 97,
     mass: 247.0703,
     covalentRadius: 0.2,
@@ -796,6 +895,7 @@ export const ELEMENTS: readonly ElementData[] = [
   },
   {
     symbol: 'Cf',
+    name: 'Californium',
     number: 98,
     mass: 251.0796,
     covalentRadius: 0.2,
@@ -804,6 +904,7 @@ export const ELEMENTS: readonly ElementData[] = [
   },
   {
     symbol: 'Es',
+    name: 'Einsteinium',
     number: 99,
     mass: 252.083,
     covalentRadius: 0.2,
@@ -812,6 +913,7 @@ export const ELEMENTS: readonly ElementData[] = [
   },
   {
     symbol: 'Fm',
+    name: 'Fermium',
     number: 100,
     mass: 257.0951,
     covalentRadius: 0.2,
@@ -820,6 +922,7 @@ export const ELEMENTS: readonly ElementData[] = [
   },
   {
     symbol: 'Md',
+    name: 'Mendelevium',
     number: 101,
     mass: 258.0984,
     covalentRadius: 0.2,
@@ -828,6 +931,7 @@ export const ELEMENTS: readonly ElementData[] = [
   },
   {
     symbol: 'No',
+    name: 'Nobelium',
     number: 102,
     mass: 259.101,
     covalentRadius: 0.2,
@@ -836,6 +940,7 @@ export const ELEMENTS: readonly ElementData[] = [
   },
   {
     symbol: 'Lr',
+    name: 'Lawrencium',
     number: 103,
     mass: 262.11,
     covalentRadius: 0.2,

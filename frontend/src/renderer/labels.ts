@@ -11,6 +11,7 @@ export type AtomLabelContent =
   | 'none'
   | 'index'
   | 'symbol'
+  | 'name'
   | 'symbol_index'
   | 'formal_charge'
   | 'partial_charge'
@@ -25,6 +26,7 @@ export const ATOM_LABEL_OPTIONS: { id: AtomLabelContent; label: string }[] = [
   { id: 'none', label: 'None' },
   { id: 'index', label: 'Atom number' },
   { id: 'symbol', label: 'Element symbol' },
+  { id: 'name', label: 'Element name' },
   { id: 'symbol_index', label: 'Symbol & atom number' },
   { id: 'formal_charge', label: 'Formal charge' },
   { id: 'partial_charge', label: 'Partial charge' },
@@ -76,6 +78,8 @@ export function atomLabel(
       return String(index + 1);
     case 'symbol':
       return atom.element;
+    case 'name':
+      return elementBySymbol(atom.element).name;
     case 'symbol_index':
       return `${atom.element}${index + 1}`;
     case 'formal_charge':

@@ -26,9 +26,22 @@ export interface ViewState {
   showLabels: boolean;
   atomLabels: AtomLabelContent;
   bondLabels: BondLabelContent;
+  labelColor: string;
+  labelSize: number;
+  labelShift: [number, number, number];
   toggleLabels: () => void;
   setAtomLabels: (content: AtomLabelContent) => void;
   setBondLabels: (content: BondLabelContent) => void;
+  setLabelStyle: (patch: {
+    color?: string;
+    size?: number;
+    shift?: [number, number, number];
+  }) => void;
+  /** Structure engine settings that the Display panel exposes. */
+  atomScale: number;
+  bondRadius: number;
+  setAtomScale: (scale: number) => void;
+  setBondRadius: (radius: number) => void;
   toggleVectors: () => void;
   setVectorField: (field: string) => void;
   setVectorScale: (scale: number) => void;
@@ -51,6 +64,19 @@ export const useViewStore = create<ViewState>((set) => ({
   showLabels: false,
   atomLabels: 'symbol_index',
   bondLabels: 'none',
+  labelColor: '#222222',
+  labelSize: 0.55,
+  labelShift: [0, 0, 0],
+  setLabelStyle: ({ color, size, shift }) =>
+    set((s) => ({
+      labelColor: color ?? s.labelColor,
+      labelSize: size ?? s.labelSize,
+      labelShift: shift ?? s.labelShift,
+    })),
+  atomScale: 0.35,
+  bondRadius: 0.12,
+  setAtomScale: (atomScale) => set({ atomScale }),
+  setBondRadius: (bondRadius) => set({ bondRadius }),
   toggleLabels: () => set((s) => ({ showLabels: !s.showLabels })),
   setAtomLabels: (atomLabels) => set({ atomLabels, showLabels: true }),
   setBondLabels: (bondLabels) => set({ bondLabels, showLabels: true }),

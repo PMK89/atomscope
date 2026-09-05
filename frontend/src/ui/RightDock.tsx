@@ -2,16 +2,19 @@ import { useState } from 'react';
 import { AnalysisPanel } from './AnalysisPanel';
 import { CalculationPanel } from './CalculationPanel';
 import { CrystalPanel } from './CrystalPanel';
+import { DisplayPanel } from './DisplayPanel';
 import { PropertiesPanel } from './PropertiesPanel';
 import { SpectrumPanel } from './SpectrumPanel';
 import { SurfacesPanel } from './SurfacesPanel';
 
-type Tab = 'calculation' | 'analysis' | 'spectra' | 'surfaces' | 'crystal' | 'properties';
+type Tab =
+  'calculation' | 'analysis' | 'spectra' | 'surfaces' | 'display' | 'crystal' | 'properties';
 const TABS: { id: Tab; label: string }[] = [
   { id: 'calculation', label: 'Calculation' },
   { id: 'analysis', label: 'Analysis' },
   { id: 'spectra', label: 'Spectra' },
   { id: 'surfaces', label: 'Surfaces' },
+  { id: 'display', label: 'Display' },
   { id: 'crystal', label: 'Crystal' },
   { id: 'properties', label: 'Properties' },
 ];
@@ -49,6 +52,7 @@ export function RightDock({ onError }: { onError: (m: string) => void }): JSX.El
       {panel('analysis', <AnalysisPanel onError={onError} />)}
       {panel('spectra', <SpectrumPanel onError={onError} />)}
       {panel('surfaces', <SurfacesPanel onError={onError} />)}
+      {panel('display', <DisplayPanel />)}
       {panel('crystal', <CrystalPanel onError={onError} />)}
       {panel('properties', <PropertiesPanel onError={onError} />)}
     </>

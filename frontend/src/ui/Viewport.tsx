@@ -54,7 +54,12 @@ export function Viewport(): JSX.Element {
   useEffect(() => {
     const r = rendererRef.current;
     if (!r) return;
-    r.structureLayer.setSettings({ style: view.style, showHydrogens: view.showHydrogens });
+    r.structureLayer.setSettings({
+      style: view.style,
+      showHydrogens: view.showHydrogens,
+      atomScale: view.atomScale,
+      bondRadius: view.bondRadius,
+    });
     r.setBackground(BACKGROUND_HEX[view.background]);
     if (r.projection !== view.projection) r.setProjection(view.projection);
     syncExtraLayers(r, view);
