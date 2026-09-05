@@ -33,3 +33,24 @@ test('undo on empty stack is a no-op', () => {
   useStructureStore.getState().undo();
   expect(useStructureStore.getState().revision).toBe(rev);
 });
+
+test('preview does not record history; the following commit undoes to the pre-preview doc', () => {
+  const s = useStructureStore.getState();
+  const rev = s.revision;
+  s.preview({ ...s.doc, name: 'p1' });
+  useStructureStore.getState().preview({ ...useStructureStore.getState().doc, name: 'p2' });
+  expect(useStructureStore.getState().revision).toBe(rev + 2);
+  expect(useStructureStore.getState().canUndo()).toBe(false);
+  useStructureStore.getState().commit('drag', { ...useStructureStore.getState().doc, name: 'p3' });
+  expect(useStructureStore.getState().doc.name).toBe('p3');
+  useStructureStore.getState().undo();
+  expect(useStructureStore.getState().doc.name).toBe('t');
+});
+
+test('cancelPreview restores the pre-preview doc', () => {
+  const s = useStructureStore.getState();
+  s.preview({ ...s.doc, name: 'p1' });
+  useStructureStore.getState().cancelPreview();
+  expect(useStructureStore.getState().doc.name).toBe('t');
+  expect(useStructureStore.getState().previewBase).toBeNull();
+});

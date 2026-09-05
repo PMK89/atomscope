@@ -1,4 +1,6 @@
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { ToolHost } from '../editor/ToolHost';
+import { createTools } from '../editor/tools';
 import { Renderer } from '../renderer/Renderer';
 import { useSelectionStore } from '../state/selectionStore';
 import { useStructureStore } from '../state/structureStore';
@@ -7,11 +9,13 @@ import { frameCell, framePositions } from '../model/trajectory';
 import { installExtraLayers, syncExtraLayers } from './viewportLayers';
 import { BACKGROUND_HEX, useViewStore } from '../state/viewStore';
 import { useIsosurfaceLayers } from './useIsosurfaceLayers';
+import { ViewportOverlay } from './ViewportOverlay';
 
-/** Owns one Renderer for its lifetime, feeds it store snapshots and routes pointer picks. */
+/** Owns one Renderer for its lifetime, feeds it store snapshots and routes input to the tools. */
 export function Viewport(): JSX.Element {
   const ref = useRef<HTMLDivElement>(null);
   const rendererRef = useRef<Renderer | null>(null);
+  const [mounted, setMounted] = useState<{ renderer: Renderer; host: ToolHost } | null>(null);
   const doc = useStructureStore((s) => s.doc);
   const revision = useStructureStore((s) => s.revision);
   const selected = useSelectionStore((s) => s.atoms);
@@ -37,38 +41,13 @@ export function Viewport(): JSX.Element {
     const renderer = new Renderer(ref.current);
     installExtraLayers(renderer);
     rendererRef.current = renderer;
-    const el = renderer.gl.domElement;
-    let downAt: { x: number; y: number } | null = null;
-    const onDown = (e: PointerEvent): void => {
-      downAt = { x: e.clientX, y: e.clientY };
-    };
-    const onUp = (e: PointerEvent): void => {
-      if (!downAt || e.button !== 0) return;
-      const moved = Math.hypot(e.clientX - downAt.x, e.clientY - downAt.y) > 3;
-      downAt = null;
-      if (moved) return;
-      const idx = renderer.pickAtom(e.clientX, e.clientY);
-      const sel = useSelectionStore.getState();
-      if (idx === null) {
-        if (!e.shiftKey && !e.ctrlKey) sel.clear();
-      } else if (e.shiftKey || e.ctrlKey) sel.toggleAtom(idx);
-      else sel.set([idx]);
-    };
-    const onMove = (e: PointerEvent): void => {
-      if (e.buttons !== 0) return;
-      const idx = renderer.pickAtom(e.clientX, e.clientY);
-      if (idx !== useSelectionStore.getState().hoveredAtom)
-        useSelectionStore.getState().setHovered(idx);
-    };
-    el.addEventListener('pointerdown', onDown);
-    el.addEventListener('pointerup', onUp);
-    el.addEventListener('pointermove', onMove);
+    const host = new ToolHost(renderer, createTools(), renderer.gl.domElement);
+    setMounted({ renderer, host });
     return () => {
-      el.removeEventListener('pointerdown', onDown);
-      el.removeEventListener('pointerup', onUp);
-      el.removeEventListener('pointermove', onMove);
+      host.dispose();
       renderer.dispose();
       rendererRef.current = null;
+      setMounted(null);
     };
   }, []);
 
@@ -94,5 +73,9 @@ export function Viewport(): JSX.Element {
     }
   }, [doc, revision, selected, hovered, view, positionsOverride, cellOverride]);
 
-  return <div ref={ref} className="viewport-canvas" data-testid="viewport" />;
+  return (
+    <div ref={ref} className="viewport-canvas" data-testid="viewport">
+      {mounted && <ViewportOverlay renderer={mounted.renderer} host={mounted.host} />}
+    </div>
+  );
 }

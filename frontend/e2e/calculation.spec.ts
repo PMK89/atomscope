@@ -25,7 +25,7 @@ test('create project, configure, run and inspect an ASE calculation', async ({ p
   await page.getByRole('button', { name: 'Create', exact: true }).click();
   await expect(page.getByText('Structures (0)')).toBeVisible();
 
-  await page.getByLabel('Name').fill('water emt');
+  await page.locator('#calc-name').fill('water emt');
   await page.getByLabel('Backend').selectOption('ase_builtin');
   await page.getByLabel('Task').selectOption('relax');
   await page.getByLabel('Maximum steps').fill('20');

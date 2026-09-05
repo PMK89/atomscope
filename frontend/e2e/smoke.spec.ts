@@ -7,7 +7,7 @@ test('app renders the demo molecule into the WebGL canvas', async ({ page }) => 
     if (m.type() === 'error') errors.push(m.text());
   });
   await page.goto('/');
-  await expect(page.getByText('H2O')).toBeVisible();
+  await expect(page.locator('.app-statusbar')).toContainText('H2O');
   const canvas = page.locator('.viewport-canvas canvas');
   await expect(canvas).toBeVisible();
   await page.waitForTimeout(500);

@@ -16,9 +16,9 @@
       0.1341305475616168
     ]
   ],
-  "data_ref": "datasets/2596770186ab.f32",
+  "data_ref": "datasets/a7514bc49a1e.f32",
   "dtype": "float32",
-  "id": "2596770186ab",
+  "id": "a7514bc49a1e",
   "inline_values": null,
   "kind": "electron_density",
   "name": "CP-PAW CUBE FILE",
@@ -29,7 +29,7 @@
     -5.477049747309866
   ],
   "provenance": {
-    "created_at": "2026-09-05T06:44:53.725682Z",
+    "created_at": "2026-09-05T06:51:48.826675Z",
     "notes": "",
     "parents": [],
     "software": null,
@@ -40,6 +40,6 @@
     80,
     80
   ],
-  "structure_id": "3bdbb49c1793",
+  "structure_id": "69d8000acaaa",
   "unit": "e/bohr^3"
 }

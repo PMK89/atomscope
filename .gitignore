@@ -27,3 +27,4 @@ coverage/
 # Private material must never be committed
 *.rstrt
 *.wv
+*.tsbuildinfo

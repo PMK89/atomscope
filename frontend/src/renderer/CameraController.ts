@@ -23,6 +23,8 @@ export class CameraController {
   private readonly quatInv = new Quaternion();
   rotateSpeed = 1.0;
   zoomSpeed = 1.0;
+  /** When false, pointer drags are ignored (editor tools drive the camera explicitly). */
+  enabled = true;
   onChange: (() => void) | null = null;
 
   constructor(
@@ -82,7 +84,68 @@ export class CameraController {
     this.onChange?.();
   }
 
+  /** Move the pivot, keeping the current view direction and distance. */
+  setPivot(center: Vector3): void {
+    this.pivot.copy(center);
+    this.updateCamera();
+  }
+
+  /** Orbit by screen-space deltas (pixels), same mapping as a left drag. */
+  orbit(dx: number, dy: number): void {
+    const h = this.element.clientHeight || 1;
+    this.rotateBy(
+      (2 * Math.PI * dx * this.rotateSpeed) / h,
+      (2 * Math.PI * dy * this.rotateSpeed) / h,
+    );
+  }
+
+  /** Orbit by angles (radians): azimuth about the vertical axis, then polar. */
+  rotateBy(azimuth: number, polar: number): void {
+    this.spherical.theta -= azimuth;
+    this.spherical.phi -= polar;
+    this.spherical.phi = Math.max(1e-3, Math.min(Math.PI - 1e-3, this.spherical.phi));
+    this.updateCamera();
+  }
+
+  /** Camera axes in world space: right, up and forward (towards the pivot). */
+  axes(): { right: Vector3; up: Vector3; forward: Vector3 } {
+    return {
+      right: new Vector3().setFromMatrixColumn(this.camera.matrixWorld, 0).normalize(),
+      up: new Vector3().setFromMatrixColumn(this.camera.matrixWorld, 1).normalize(),
+      forward: this.viewDirection(new Vector3()),
+    };
+  }
+
+  /** Roll the camera about the view direction (radians). */
+  roll(angle: number): void {
+    this.camera.up.applyAxisAngle(this.viewDirection(new Vector3()), angle).normalize();
+    this.updateCamera();
+  }
+
+  /** Undo any roll so the vertical axis is up again. */
+  resetRoll(): void {
+    this.camera.up.set(0, 1, 0);
+    this.updateCamera();
+  }
+
+  /** Zoom by a factor (>1 zooms in), same mapping as the wheel. */
+  zoomBy(factor: number): void {
+    if (this.camera instanceof PerspectiveCamera) {
+      this.spherical.radius = Math.max(0.5, this.spherical.radius / factor);
+    } else {
+      this.camera.zoom = Math.max(0.05, this.camera.zoom * factor);
+      this.camera.updateProjectionMatrix();
+    }
+    this.updateCamera();
+  }
+
+  /** World-space height of the view at the pivot plane per screen pixel. */
+  worldPerPixel(): number {
+    return this.viewHeightAtPivot() / (this.element.clientHeight || 1);
+  }
+
   private readonly onPointerDown = (e: PointerEvent): void => {
+    if (!this.enabled) return;
     if (e.button === 0 && !e.shiftKey) this.mode = 'rotate';
     else this.mode = 'pan';
     this.last.set(e.clientX, e.clientY);
@@ -96,10 +159,7 @@ export class CameraController {
     this.last.set(e.clientX, e.clientY);
     const h = this.element.clientHeight || 1;
     if (this.mode === 'rotate') {
-      this.spherical.theta -= (2 * Math.PI * dx * this.rotateSpeed) / h;
-      this.spherical.phi -= (2 * Math.PI * dy * this.rotateSpeed) / h;
-      this.spherical.phi = Math.max(1e-3, Math.min(Math.PI - 1e-3, this.spherical.phi));
-      this.updateCamera();
+      this.orbit(dx, dy);
     } else if (this.mode === 'pan') {
       const scale = this.viewHeightAtPivot() / h;
       const right = new Vector3().setFromMatrixColumn(this.camera.matrixWorld, 0);
@@ -124,14 +184,7 @@ export class CameraController {
 
   private readonly onWheel = (e: WheelEvent): void => {
     e.preventDefault();
-    const factor = Math.pow(0.95, (-e.deltaY / 53) * this.zoomSpeed);
-    if (this.camera instanceof PerspectiveCamera) {
-      this.spherical.radius = Math.max(0.5, this.spherical.radius / factor);
-    } else {
-      this.camera.zoom = Math.max(0.05, this.camera.zoom * factor);
-      this.camera.updateProjectionMatrix();
-    }
-    this.updateCamera();
+    this.zoomBy(Math.pow(0.95, (-e.deltaY / 53) * this.zoomSpeed));
   };
 
   /** Current view direction (from camera towards pivot). */

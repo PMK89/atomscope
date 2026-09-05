@@ -20,6 +20,8 @@ import { StructureLayer } from './layers/StructureLayer';
 
 export type Projection = 'perspective' | 'orthographic';
 
+export type PickResult = { kind: 'atom'; index: number } | { kind: 'bond'; index: number };
+
 export class Renderer {
   readonly scene = new Scene();
   readonly gl: WebGLRenderer;
@@ -34,6 +36,8 @@ export class Renderer {
   private readonly observer: ResizeObserver;
   private readonly raycaster = new Raycaster();
   private ctx: LayerContext | null = null;
+  /** Called whenever a frame is scheduled (camera or content changed); used by HTML overlays. */
+  onInvalidate: (() => void) | null = null;
 
   constructor(private readonly container: HTMLElement) {
     this.gl = new WebGLRenderer({ antialias: true, alpha: false, preserveDrawingBuffer: true });
@@ -127,34 +131,57 @@ export class Renderer {
 
   /** Atom index under the pointer (client coordinates), or null. */
   pickAtom(clientX: number, clientY: number): number | null {
-    const rect = this.gl.domElement.getBoundingClientRect();
-    const ndc = new Vector2(
-      ((clientX - rect.left) / rect.width) * 2 - 1,
-      -((clientY - rect.top) / rect.height) * 2 + 1,
-    );
-    this.raycaster.setFromCamera(ndc, this.camera);
+    const hit = this.pick(clientX, clientY);
+    return hit?.kind === 'atom' ? hit.index : null;
+  }
+
+  /** Nearest atom or bond under the pointer (client coordinates), or null. */
+  pick(clientX: number, clientY: number): PickResult | null {
+    this.setRay(clientX, clientY);
     const hits = this.raycaster.intersectObjects(this.structureLayer.pickables, false);
     for (const hit of hits) {
-      const idx = this.structureLayer.atomIndexForInstance(hit.object, hit.instanceId);
-      if (idx !== null) return idx;
+      const atom = this.structureLayer.atomIndexForInstance(hit.object, hit.instanceId);
+      if (atom !== null) return { kind: 'atom', index: atom };
+      const bond = this.structureLayer.bondIndexForInstance(hit.object, hit.instanceId);
+      if (bond !== null) return { kind: 'bond', index: bond };
     }
     return null;
   }
 
   /** World-space point on the plane through the pivot facing the camera, for placing atoms. */
   unprojectOnPivotPlane(clientX: number, clientY: number): Vector3 {
+    return this.unprojectOnPlane(clientX, clientY, this.controller.pivot);
+  }
+
+  /** World-space point on the camera-facing plane through `planePoint`. */
+  unprojectOnPlane(clientX: number, clientY: number, planePoint: Vector3): Vector3 {
+    this.setRay(clientX, clientY);
+    const normal = this.controller.viewDirection(new Vector3());
+    const denom = normal.dot(this.raycaster.ray.direction);
+    const t = normal.dot(new Vector3().subVectors(planePoint, this.raycaster.ray.origin)) / denom;
+    return this.raycaster.ray.at(t, new Vector3());
+  }
+
+  /** Project a world point to CSS pixels relative to the canvas' top-left corner. */
+  project(world: Vector3): { x: number; y: number } {
+    const rect = this.gl.domElement.getBoundingClientRect();
+    const v = world.clone().project(this.camera);
+    return { x: ((v.x + 1) / 2) * rect.width, y: ((1 - v.y) / 2) * rect.height };
+  }
+
+  /** Client coordinates -> CSS pixels relative to the canvas' top-left corner. */
+  toCanvasCoords(clientX: number, clientY: number): { x: number; y: number } {
+    const rect = this.gl.domElement.getBoundingClientRect();
+    return { x: clientX - rect.left, y: clientY - rect.top };
+  }
+
+  private setRay(clientX: number, clientY: number): void {
     const rect = this.gl.domElement.getBoundingClientRect();
     const ndc = new Vector2(
       ((clientX - rect.left) / rect.width) * 2 - 1,
       -((clientY - rect.top) / rect.height) * 2 + 1,
     );
     this.raycaster.setFromCamera(ndc, this.camera);
-    const normal = this.controller.viewDirection(new Vector3());
-    const denom = normal.dot(this.raycaster.ray.direction);
-    const t =
-      normal.dot(new Vector3().subVectors(this.controller.pivot, this.raycaster.ray.origin)) /
-      denom;
-    return this.raycaster.ray.at(t, new Vector3());
   }
 
   screenshotDataUrl(type = 'image/png'): string {
@@ -163,6 +190,7 @@ export class Renderer {
   }
 
   invalidate(): void {
+    this.onInvalidate?.();
     if (this.frame !== null) return;
     this.frame = requestAnimationFrame(() => {
       this.frame = null;

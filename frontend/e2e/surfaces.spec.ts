@@ -41,8 +41,8 @@ test('import a cube and render an isosurface', async ({ page, request }) => {
   expect(created.ok()).toBeTruthy();
 
   await page.goto('/');
-  await expect(page.getByText('H2O')).toBeVisible();
-  await page.getByRole('button', { name: 'Surfaces' }).click();
+  await expect(page.locator('.app-statusbar')).toContainText('H2O');
+  await page.getByRole('tab', { name: 'Surfaces' }).click();
   await page.getByLabel('Import cube').fill(CUBE);
   await page.getByRole('button', { name: 'Import' }).click();
   await expect(page.getByText('electron density · 80 × 80 × 80')).toBeVisible();
