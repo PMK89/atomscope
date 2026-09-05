@@ -213,8 +213,9 @@ on the machine running the backend and press `Open` or `Create`. `Create`
 requires the directory to be missing or empty and names the project after the
 last path segment. `Close` detaches it.
 
-**Only one project is open at a time**, per backend process. Opening another
-closes the current one, clears the calculation list and drops loaded grids.
+**Only one project is open at a time**, per backend process. The panel offers
+`Open`/`Create` only when none is open, so close the current one first;
+`Close` also clears the calculation list and drops loaded grids.
 
 **What is persisted.** Structures (explicitly, with `Save current structure`),
 calculations with their full merged parameter values and job record, parsed
@@ -531,15 +532,15 @@ rest queue. Status moves `draft → ready → queued → running → completed |
 failed | cancelled` and is shown as a badge in the project panel, on the
 Calculation panel and in the Analysis header.
 
-Input-only backends cannot be run. Pressing `Run` for `qc_inputs` is refused
-with:
+Input-only backends cannot be run: for `qc_inputs` the `Run` button is
+disabled and carries the tooltip *This backend only generates input files*. The
+API refuses it too, with
 
 ```
 backend 'Quantum chemistry input generators' only generates input files;
 run them with the target program
 ```
 
-and the button carries the tooltip *This backend only generates input files*.
 Take the deck from the `Generated input` tab and run it wherever you like.
 
 **Monitoring.** The job console streams stdout and stderr line by line, and
@@ -622,8 +623,8 @@ does not exist yet, Atomscope exports it **on demand**: it writes a one-step
 restart control file under a separate root (`case_orb`), runs `paw_fast.x` for
 that single step, converts the resulting `.wv` file to a Gaussian cube with
 `paw_wave.x`, registers the grid and adds a surface. The original `case.prot`,
-`case.rstrt` and `case.pdos` are left untouched. On this workstation exporting
-two water orbitals took 2.9 s.
+`case.rstrt` and `case.pdos` are left untouched. On this workstation one orbital took
+8.1 s from pressing `Show` to the surface appearing.
 
 You can also request cubes up front, in the calculation form: `Orbitals to
 export (band indices)` takes **space-separated 1-based band numbers**, e.g.

@@ -47,7 +47,7 @@ Check it with the **Measure** tool (`R`): click H, then O, then the other H.
 The status bar reads
 
 ```
-d12 = 0.969 Å   d23 = 0.969 Å   angle = 104.00°
+d12 = 0.969 Å   d23 = 0.969 Å   angle = 103.98°
 ```
 
 Switch to the **Properties** tab and rename the structure to `water`, then
@@ -271,7 +271,9 @@ from` set to `Restart file (START=F)`. It is a fresh draft, so the form is
 editable again: choose `Task = Geometry optimization (damped dynamics)`, set
 `Time steps` to 1000 and, in the advanced `Species and setups` section,
 `Hydrogen mass (u)` to `2` — the course's trick of making hydrogen heavier so
-larger time steps stay stable.
+larger time steps stay stable. A fork inherits the parent's values, so untick
+`Electron density (cube)` and clear `Orbitals to export` unless you want the
+cubes again.
 
 > The `Name` field is not editable after a calculation exists: a fork is always
 > called `<parent> (fork)` or `<parent> (continued)`. Only the parameter values
@@ -310,7 +312,7 @@ to `1e-7` and run. **Observed: 22 steps, about 10 s.**
 
 | | O–H (Å) | H–O–H (°) | max &#124;F&#124; (eV/Å) | E (eV) |
 |---|---|---|---|---|
-| RDKit/MMFF94 start | 0.969 | 104.00 | — | — |
+| RDKit/MMFF94 start | 0.969 | 103.98 | — | — |
 | after the first relaxation | 0.978 | 103.81 | 0.152 | −471.086437 |
 | after the continuation | 0.980 | 103.80 | 0.014 | −471.086709 |
 | experiment | 0.958 | 104.5 | | |
@@ -358,9 +360,10 @@ The cube does not exist yet, so Atomscope makes it: it writes a one-step
 restart control file under a separate root `case_orb`, runs `paw_fast.x` for
 that single step (`.wv` files are only written in the last step of a run),
 converts the result with `paw_wave.x`, registers the grid and adds a surface.
-The job console shows it, and the whole thing takes a couple of seconds —
-**2.9 s for two orbitals here**. Your `case.prot`, `case.rstrt` and
-`case.pdos` are left untouched.
+The job console shows the whole thing — the `case_orb.prot` of the one-step run
+scrolls past and ends in `PROGRAM FINISHED`. **Observed: 8.1 s** from pressing
+`Show` to the surface appearing, of which the CP-PAW run is about 3 s. Your
+`case.prot`, `case.rstrt` and `case.pdos` are left untouched.
 
 The surface comes up with **± pair** enabled, so you get both lobes: blue for
 positive, red for negative.
@@ -405,12 +408,10 @@ orbitals.
 **Generate a deck for another code** — choose `Quantum chemistry input
 generators`, program `ORCA`, task `Geometry optimization`, method `B3LYP`,
 basis `def2-SVP`, and press `Generate input`. You get a complete `case.inp`
-you can run wherever ORCA is installed. Pressing `Run` is refused on purpose:
-
-```
-backend 'Quantum chemistry input generators' only generates input files;
-run them with the target program
-```
+you can run wherever ORCA is installed. The `Run` button stays greyed out on
+purpose, with the tooltip *This backend only generates input files*; the API
+refuses it with `backend 'Quantum chemistry input generators' only generates
+input files; run them with the target program`.
 
 The same works for Gaussian, NWChem, GAMESS-US, Quantum ESPRESSO and ABINIT.
 

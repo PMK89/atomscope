@@ -70,8 +70,11 @@ Press **Run**. It finishes instantly. The Results tab shows
 Energy: -0.077164 eV
 ```
 
-and the stored result also carries the energy in the force field's **own** unit
-— MMFF94 reports **−1.7794 kcal/mol** — plus the individual terms:
+The Results tab shows only that one number. The stored result — `results/
+results.json` inside the calculation directory, or
+`GET /api/calculations/{id}/results` — also carries the energy in the force
+field's **own** unit (MMFF94 reports **−1.7794 kcal/mol**) and the individual
+terms:
 
 | Term | eV |
 |---|---|
@@ -101,11 +104,14 @@ simulation, UFF when you need an element the others do not cover.
 
 ## 3. Optimize with MMFF94
 
-Fork the calculation (or start a new one with `New`) and set:
+Press **New** to start a fresh calculation (a fork would work too, but a fork
+is always named `<parent> (fork)` — the name can only be chosen at creation):
 
 | Field | Value |
 |---|---|
 | `Name` | `butane MMFF94 optimization` |
+| `Backend` | `Open Babel force fields` |
+| `Force field` | `MMFF94` |
 | `Task` | `Optimize geometry` |
 | `Algorithm` | `Conjugate gradients` |
 | `Number of steps` | `500` |
@@ -212,8 +218,9 @@ That is the textbook picture: one *anti* minimum at 180°, two equivalent
 conformers differ by 0.03 kcal/mol, which is numerical noise in the individual
 optimizations rather than physics — by symmetry they are degenerate.
 
-**Analysis ▸ Convergence** plots the same series, now labelled *conformer* on
-the x axis instead of *step*, so you can see the spread at a glance.
+**Analysis ▸ Convergence** plots the same series, so you can see the spread at
+a glance. (The backend labels the x axis *conformer*; the chart's axis label is
+hard-coded to *step*, so read it as the conformer index here.)
 
 The energy sparkline under the trajectory player shows it too, with a marker on
 whichever conformer you are looking at.
@@ -295,12 +302,16 @@ calculation:
   `Molecule: geometry optimization`, and run — see
   [tutorial 1](01-water-cppaw.md).
 * **Without**: switch to `Quantum chemistry input generators` and produce an
-  ORCA, Gaussian, NWChem or GAMESS-US deck for the optimized geometry. Pressing
-  `Run` is refused on purpose (`this backend only generates input files`);
-  take the file from the `Generated input` tab.
+  ORCA, Gaussian, NWChem or GAMESS-US deck for the optimized geometry, and take
+  the file from the `Generated input` tab.
 * **ASE**: the `ASE workflows` backend can also drive an Open Babel force field
   through ASE's own BFGS optimizer and Langevin thermostat, if you want an MD
   trajectory rather than a conformer list.
+
+The `Run` button is greyed out for the input generators (tooltip: *This
+backend only generates input files*); the API refuses it with `backend
+'Quantum chemistry input generators' only generates input files; run them with
+the target program`.
 
 Because the optimized geometry was saved into the project as
 `butane MMFF94 optimization (result)`, any of these can start from it directly:

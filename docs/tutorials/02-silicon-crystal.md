@@ -102,7 +102,9 @@ The undo label is `Supercell 2x2x2`, so `Ctrl+Z` takes you back.
 
 ## 4. Cut a (111) slab
 
-With the conventional cell in the viewport, choose `Build ▸ Slab…`:
+Press `Ctrl+Z` to undo the supercell (or re-insert `Si-Silicon` from the
+library) so the conventional cell is back in the viewport, then choose
+`Build ▸ Slab…`:
 
 | Field | Value |
 |---|---|
@@ -317,10 +319,10 @@ For section 5 onwards:
   ESPRESSO** `pw.x` deck for the same cell (`Program = espresso`,
   `Functional = PBE`, `Wave-function cutoff = 40 Ry`, `k-point grid = 4 4 4`)
   or an **ABINIT** input, ready to run wherever those codes are installed;
-* the `ASE workflows` backend with the `EMT` calculator will run on silicon,
-  but EMT has no silicon parameters and will refuse with
-  `EMT has no parameters for ['Si']` — use it on Cu or Al instead if you want
-  to exercise the periodic relaxation path;
+* the `ASE workflows` backend with the `EMT` calculator cannot help here —
+  EMT has no silicon parameters and `Validate` reports the error
+  `EMT has no parameters for ['Si']`. Use it on Cu, Al, Ag, Au, Ni, Pd or Pt
+  if you want to exercise the periodic relaxation path;
 * DOS, band structures and orbitals are CP-PAW-only in Atomscope today.
 
 ## Where to go next

@@ -631,11 +631,21 @@ declared in `pyproject.toml`:
 markers = ["cppaw: runs the real CP-PAW executable (slow; skipped when unavailable)"]
 ```
 
-There are 7 of them and they take about 100 s together (a real si2 run, a
-two-stage force evaluation, a two-rank MPI run, an ASE-driven BFGS relaxation
-with CP-PAW forces, restart/fork). They skip themselves when CP-PAW is not
-installed, and CI deselects them explicitly with `-m "not cppaw"`. Run them
-before touching anything in `backends/cppaw/`:
+There are 7 of them and they take about 100 s together:
+
+```
+tests/api/test_cppaw_analysis_api.py::test_cppaw_analysis_tools_over_api
+tests/api/test_cppaw_api.py::test_cppaw_calculation_over_api
+tests/ase_bridge/test_cppaw_calculator.py::test_cppaw_calculator_energy_forces_and_restart
+tests/backends/ase_builtin/test_plugin.py::test_ase_bfgs_drives_cppaw
+tests/backends/cppaw/test_plugin.py::test_real_si2_run
+tests/backends/cppaw/test_plugin.py::test_real_forces_task_through_driver
+tests/backends/cppaw/test_plugin.py::test_real_parallel_run
+```
+
+They skip themselves when CP-PAW is not installed, and CI deselects them
+explicitly with `-m "not cppaw"`. Run them before touching anything in
+`backends/cppaw/`:
 
 ```bash
 cd backend && python -m pytest -q -m cppaw
@@ -645,14 +655,18 @@ cd backend && python -m pytest -q -m cppaw
 calculation flow, surfaces). They drive a real browser against real servers, so
 `make dev-backend` and `make dev-frontend` must be running, and they use
 `workers: 1, fullyParallel: false` because the backend holds one project at a
-time. `PLAYWRIGHT_BASE_URL` points them at a different frontend. Test projects
-are created in temporary directories under `.scratch/`.
+time. `PLAYWRIGHT_BASE_URL` points them at a different frontend. Most specs create
+their project in a temporary directory under `.scratch/`; `surfaces.spec.ts`
+writes into `frontend/test-results/`, which is currently **tracked in git**, so
+running the suite dirties the working tree — check out that directory again
+before committing.
 
 Two practices that are not optional in this repository:
 
-* **A bug becomes a test.** Every entry in `docs/reviews-codex-*.md` that was a
-  real defect has a regression test; the zero-forces trap and the
-  `PROGRAM FINISHED` check are both encoded in tests.
+* **A bug becomes a test.** Findings from the archived reviews
+  (`docs/reviews-codex-*.md`) are expected to come with a regression test; the
+  zero-forces trap and the `PROGRAM FINISHED` completion check are both encoded
+  in tests.
 * **Determinism is a tested property**, not an aspiration: input generation is
   compared byte for byte, and JSON serialization uses sorted keys.
 
