@@ -45,7 +45,11 @@ def test_insert_fragment_replaces_a_hydrogen(methane: Structure) -> None:
     assert merged.formula() == "C2H6"
     assert len(merged.bonds) == 7
     distances = [
-        float(np.linalg.norm(np.array(merged.atoms[b.a].position) - np.array(merged.atoms[b.b].position)))
+        float(
+            np.linalg.norm(
+                np.array(merged.atoms[b.a].position) - np.array(merged.atoms[b.b].position)
+            )
+        )
         for b in merged.bonds
     ]
     assert max(distances) < 1.8  # nothing left dangling far away
@@ -74,6 +78,7 @@ def test_peptide_three_letter_and_conformation() -> None:
     assert a.formula() == b.formula()
     helix = peptide.build_peptide("AAAAA", phi=-57.0, psi=-47.0)
     sheet = peptide.build_peptide("AAAAA", phi=-139.0, psi=135.0)
+
     # the extended sheet spans a longer end-to-end distance than the alpha helix
     def span(s: Structure) -> float:
         p = s.positions()
