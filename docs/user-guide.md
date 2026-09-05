@@ -262,7 +262,7 @@ wheel always zooms, and the browser context menu is suppressed over the canvas.
 | **Select** | `S` | click an atom to select it, click a bond to select both its atoms, click empty space to clear; drag a rubber band; `Shift` adds, `Ctrl`/`Cmd` toggles; double-click selects the whole connected fragment; right-click over nothing clears |
 | **Draw** | `D` | click empty space adds an atom of the current element; click an existing atom changes its element; click a bond cycles its order 1→2→3→1; drag from an atom grows a new bonded atom, or bonds to the atom you release over; right-click deletes an atom (with its hydrogens) or a bond; keys `1`/`2`/`3` set the order for new bonds |
 | **Manipulate** | `M` | left-drag moves the selection (or the atom under the cursor) in the view plane; `Shift`+left-drag moves along the view axis; right-drag rotates about the centroid |
-| **Bond-centric** | `B` | click a bond to select it; left-drag changes its length (the smaller fragment moves, minimum 0.3 Å); right-drag rotates that fragment about the bond axis |
+| **Bond-centric** | `B` | click a bond to select it; left-drag changes its length (the smaller fragment moves, minimum 0.3 Å); right-drag rotates that fragment about the bond axis; left-drag an atom next to the bond to change the angle it makes with it |
 | **Measure** | `R` | click up to four atoms — two give a distance, three an angle, four a dihedral; click a marked atom to unmark it; right-click resets |
 | **Auto-optimize** | `O` | runs the force field continuously; left-drag an atom and it is pinned where you hold it while the rest of the molecule relaxes around it |
 | **Auto-rotate** | `A` | spins the view at the configured x/y/z speeds; any click in the viewport stops it |
@@ -301,7 +301,12 @@ undo history**.
 * **Manipulate** — besides dragging, numeric `Translate (Å)` x/y/z with a
   `Translate` button, and a `Rotate (°)` angle with `About x` / `About y` /
   `About z` buttons. With nothing selected these act on **all** atoms.
-* **Bond-centric** — the selected bond's length as an editable number.
+* **Bond-centric** — the selected bond's length as an editable number, and a
+  reminder that dragging a neighbouring atom bends the angle it makes with the
+  bond. The angle is drawn beside the atom while it is dragged; an atom whose
+  angle sits inside a ring says so instead of moving, because turning one side
+  of a ring about the vertex would tear it open — the same rule the angle table
+  follows.
 * **Measure** — the readout, e.g.
   `d12 = 0.970 Å   d23 = 0.970 Å   angle = 103.80°`.
 * **Auto-optimize** — the force field (whichever Open Babel offers), the

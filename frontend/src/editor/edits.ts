@@ -269,6 +269,13 @@ export function setBondLength(
  * Set the angle a-b-c to `degrees` by turning `movingSide` (which holds `c`, not `a` or `b`)
  * about the axis through the vertex perpendicular to the plane of the three atoms.
  */
+/**
+ * Set the angle a-b-c to `degrees` by turning `movingSide` about the normal of the three.
+ *
+ * `movingSide` is the **c** side of the vertex: the turn is positive about (a-b) x (c-b), which
+ * opens the angle only when it is c that moves. Handing it the a side turns the angle the other
+ * way by the same amount, which reads as a sign bug in the caller.
+ */
 export function setAngle(
   doc: StructureDoc,
   a: number,

@@ -1,4 +1,6 @@
 import { Vector3 } from 'three';
+import { angleDeg } from '../model/geometry';
+import { distance } from '../model/geometry';
 import { formula, makeAtom, makeBond, normalizeStructure } from '../model/structure';
 import { useSelectionStore } from '../state/selectionStore';
 import { useStructureStore } from '../state/structureStore';
@@ -469,6 +471,68 @@ describe('bond-centric', () => {
     click(host, ...at(0.75, 0));
     click(host, 10, 10);
     expect(useToolStore.getState().bondCentric.bond).toBeNull();
+  });
+
+  test('dragging an atom next to the bond opens the angle it makes with it', () => {
+    // H2 hangs off C0 of the C0—C1 bond; the angle H2—C0—C1 is what the drag drives
+    S().load(
+      normalizeStructure({
+        name: 'grabbable',
+        charge: 0,
+        atoms: [makeAtom('C', [0, 0, 0]), makeAtom('C', [1.5, 0, 0]), makeAtom('H', [-0.5, 1, 0])],
+        bonds: [makeBond(0, 1), makeBond(0, 2)],
+      }),
+    );
+    const angle = (): number =>
+      angleDeg(S().doc.atoms[2]!.position, S().doc.atoms[0]!.position, S().doc.atoms[1]!.position);
+    const before = angle();
+
+    click(host, ...at(0.75, 0)); // select the C—C bond
+    expect(useToolStore.getState().bondCentric.bond).toBe(0);
+    drag(host, at(-0.5, 1), [at(-0.5, 1)[0] + 40, at(-0.5, 1)[1]]);
+
+    // dragging right takes the atom right, which here closes the angle: the gesture follows the
+    // pointer rather than a sign that happens to fall out of the rotation axis
+    expect(S().doc.atoms[2]!.position[0]).toBeGreaterThan(-0.5);
+    expect(angle()).toBeLessThan(before);
+    expect(angle()).toBeCloseTo(before - 40 * (1.5 / Math.hypot(1.5, 0.75)) * 0.5, 1);
+    // only the grabbed atom turns, about C0, so the bond it hangs from keeps its length
+    expect(S().doc.atoms[0]!.position).toEqual([0, 0, 0]);
+    expect(S().doc.atoms[1]!.position).toEqual([1.5, 0, 0]);
+    expect(distance(S().doc.atoms[2]!.position, S().doc.atoms[0]!.position)).toBeCloseTo(
+      Math.hypot(0.5, 1),
+      6,
+    );
+    expect(S().undoLabel()).toBe('Change bond angle');
+    undoEdit();
+    expect(angle()).toBeCloseTo(before, 6);
+  });
+
+  test('an angle inside a ring says so instead of tearing the ring open', () => {
+    S().load(
+      normalizeStructure({
+        name: 'square',
+        charge: 0,
+        atoms: [
+          makeAtom('C', [0, 0, 0]),
+          makeAtom('C', [1.5, 0, 0]),
+          makeAtom('C', [1.5, 1.5, 0]),
+          makeAtom('C', [0, 1.5, 0]),
+        ],
+        bonds: [makeBond(0, 1), makeBond(1, 2), makeBond(2, 3), makeBond(3, 0)],
+      }),
+    );
+    click(host, ...at(0.75, 0)); // the C0—C1 bond
+    const positions = S().doc.atoms.map((a) => a.position);
+
+    host.pointerDown(ev(...at(1.5, 1.5), { button: 0, buttons: 1 }));
+    const labels = host.activeTool.overlay!(host.ctx)
+      .filter((s) => s.kind === 'label')
+      .map((s) => (s as { text: string }).text);
+    expect(labels).toContain('angle in a ring');
+    host.pointerMove(ev(at(1.5, 1.5)[0] + 60, at(1.5, 1.5)[1], { buttons: 1 }));
+    host.pointerUp(ev(at(1.5, 1.5)[0] + 60, at(1.5, 1.5)[1], { button: 0 }));
+    expect(S().doc.atoms.map((a) => a.position)).toEqual(positions);
   });
 });
 

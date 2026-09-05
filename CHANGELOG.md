@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- The bond-centric tool bends angles: with a bond selected, dragging an atom
+  next to it changes the angle it makes with the bond, drawn beside the atom as
+  it turns. An angle inside a ring says so rather than tearing the ring open.
+
 - The Properties tab can look a compound's IUPAC name up at PubChem, by the
   InChIKey computed here — the structure itself never leaves.
 

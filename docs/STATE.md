@@ -1,8 +1,8 @@
 # Project state (resume here)
 
-Branch: main; this file is updated in the commit that checkpoints the work, so `git log -1 -- docs/STATE.md` is the last checkpoint. Phases 0-1 done; Phase 2 (editor tools), 3 (volumetric, trajectories, vectors), 4-5 (CP-PAW setup/execution/forces), 6 (CP-PAW analysis: DOS, bands, orbitals), crystallography, molecular mechanics and wavefunction surfaces are merged and working. Parity matrix: 208 IMPLEMENTED, 30 PARTIAL, 73 NOT STARTED, 1 BLOCKED of 312 rows.
+Branch: main; this file is updated in the commit that checkpoints the work, so `git log -1 -- docs/STATE.md` is the last checkpoint. Phases 0-1 done; Phase 2 (editor tools), 3 (volumetric, trajectories, vectors), 4-5 (CP-PAW setup/execution/forces), 6 (CP-PAW analysis: DOS, bands, orbitals), crystallography, molecular mechanics and wavefunction surfaces are merged and working. Parity matrix: 209 IMPLEMENTED, 29 PARTIAL, 73 NOT STARTED, 1 BLOCKED of 312 rows.
 
-Tests: `pytest -q -m "not cppaw"` -> 400 passed, 1 skipped; `pytest -q -m cppaw` -> 7 passed (~90 s, needs the local CP-PAW install); `pnpm vitest run` -> 459 passed; `pnpm exec playwright test` -> 34 passed (against private servers, see below; `make test-e2e` points at the user's 5173, which is stale). **`source env.sh` before Playwright**: without `PLAYWRIGHT_BROWSERS_PATH` it looks in `~/.cache/ms-playwright`, finds nothing, and every test fails at `browserType.launch`. `ruff check`, `mypy` and `pnpm typecheck` are clean. No known failing tests. **Type-check the frontend with `pnpm typecheck` (`tsc -b --noEmit`), never with `pnpm exec tsc --noEmit`:** the root `tsconfig.json` is a solution file with `files: []`, so a bare `tsc --noEmit` checks nothing and exits 0.
+Tests: `pytest -q -m "not cppaw"` -> 400 passed, 1 skipped; `pytest -q -m cppaw` -> 7 passed (~90 s, needs the local CP-PAW install); `pnpm vitest run` -> 461 passed; `pnpm exec playwright test` -> 35 passed (against private servers, see below; `make test-e2e` points at the user's 5173, which is stale). **`source env.sh` before Playwright**: without `PLAYWRIGHT_BROWSERS_PATH` it looks in `~/.cache/ms-playwright`, finds nothing, and every test fails at `browserType.launch`. `ruff check`, `mypy` and `pnpm typecheck` are clean. No known failing tests. **Type-check the frontend with `pnpm typecheck` (`tsc -b --noEmit`), never with `pnpm exec tsc --noEmit`:** the root `tsconfig.json` is a solution file with `files: []`, so a bare `tsc --noEmit` checks nothing and exits 0.
 
 ## Resume commands
 
@@ -99,6 +99,11 @@ run against current code -- Playwright above all -- use the private-server recip
   If the answer has a different shape, `compound_name` in `io/fetch.py` takes the first line of
   the TXT body; the tests supply the body themselves and would not notice.
 
+- Playwright's smoke spec is order-coupled: `Save as writes a second structure` needs a project,
+  and the project is created by a test in *another* spec file. The full suite passes; running
+  `smoke.spec.ts` alone fails that one test with "No project open". Run the whole suite, or create
+  a project in the test before fixing it.
+
 - Installed `/usr/bin/avogadro` is Avogadro 2; live Avogadro 1 comparison BLOCKED (source tree is the reference).
 - pnpm wrote to the global store `~/.local/share/pnpm/store` once before `.npmrc` was placed in `frontend/`; nothing else outside PROJECT_ROOT was modified. Not deleted (outside boundary).
 - Installed CP-PAW binaries need `LD_LIBRARY_PATH` to a libgfortran 13 (auto-detected in conda pkgs); a rebuild with the one-character `paw_trace.f90` fix is the permanent remedy (patched tree prepared in `.scratch/cppaw/build/cp-paw`, not built).
@@ -141,8 +146,8 @@ run against current code -- Playwright above all -- use the private-server recip
      docs/avogadro1-feature-parity.md
    ```
 
-   Today that prints **11 rows, all PARTIAL** -- no CRITICAL or HIGH row is NOT STARTED, which is
-   not the same claim and an earlier version of this file got it wrong. Each of the 11 has a note
+   Today that prints **10 rows, all PARTIAL** -- no CRITICAL or HIGH row is NOT STARTED, which is
+   not the same claim and an earlier version of this file got it wrong. Each of the 10 has a note
    saying which part is missing; they are the honest remaining HIGH work (Set Spacegroup, the Gaussian and GAMESS option dialogs, the wavefunction readers past
    fchk/Molden, frontend plugin registration, modal progress dialogs).
    Run the same awk with `MEDIUM` for what is next: today it lists 41 rows, of which the ones with

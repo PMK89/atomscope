@@ -208,6 +208,7 @@ function BondCentricSettings(): JSX.Element {
           );
         }}
       />
+      <p className="muted">Drag an atom next to the bond to change the angle it makes with it.</p>
     </div>
   );
 }

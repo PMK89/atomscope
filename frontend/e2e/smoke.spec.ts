@@ -750,3 +750,30 @@ test('opening over unsaved work asks first, and Cancel keeps the document', asyn
   await page.getByRole('menuitem', { name: 'New' }).click();
   await expect(page.locator('.app-statusbar')).toContainText('0 atoms');
 });
+
+test('the Properties tab shows the weight, the backend atom type and an editable charge', async ({
+  page,
+}) => {
+  await page.goto('/');
+  await page.getByRole('tab', { name: 'Properties' }).click();
+  await expect(page.getByText('18.015 g/mol')).toBeVisible();
+
+  // the type comes from Open Babel, through /api/chem/atom-types: nothing local computes it
+  await page.locator('button.menu-title', { hasText: 'Select' }).click();
+  page.once('dialog', (d) => void d.accept('O'));
+  await page.getByRole('menuitem', { name: 'Select by element…' }).click();
+  await expect(page.getByText('O3', { exact: true })).toBeVisible();
+  await expect(page.getByText('2 bonds, order sum 2')).toBeVisible();
+
+  // no charges yet, so no charge field and no dipole
+  await expect(page.getByLabel('Partial charge')).toHaveCount(0);
+  await page.getByRole('button', { name: 'Extensions' }).click();
+  await page.getByRole('menuitem', { name: 'Assign partial charges' }).click();
+  await expect(page.getByLabel('Partial charge')).toBeVisible();
+  await expect(page.getByText('dipole moment')).toBeVisible();
+
+  // typing one by hand drops the dipole, which was the sum over the charges as they were
+  await page.getByLabel('Partial charge').fill('-0.9');
+  await page.getByLabel('Partial charge').blur();
+  await expect(page.getByText('dipole moment')).toHaveCount(0);
+});
