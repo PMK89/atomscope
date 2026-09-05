@@ -1236,6 +1236,52 @@
         "title": "DosSpectrum",
         "type": "object"
       },
+      "ElectronicSpectrumRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "circular_dichroism": {
+            "default": false,
+            "description": "plot signed rotatory strengths instead of absorption",
+            "title": "Circular Dichroism",
+            "type": "boolean"
+          },
+          "points": {
+            "default": 1000,
+            "maximum": 20000.0,
+            "minimum": 16.0,
+            "title": "Points",
+            "type": "integer"
+          },
+          "shape": {
+            "default": "gaussian",
+            "enum": [
+              "gaussian",
+              "lorentzian"
+            ],
+            "title": "Shape",
+            "type": "string"
+          },
+          "transitions": {
+            "items": {
+              "$ref": "#/components/schemas/ElectronicTransition"
+            },
+            "title": "Transitions",
+            "type": "array"
+          },
+          "width": {
+            "default": 20.0,
+            "description": "FWHM in nm",
+            "exclusiveMinimum": 0.0,
+            "title": "Width",
+            "type": "number"
+          }
+        },
+        "required": [
+          "transitions"
+        ],
+        "title": "ElectronicSpectrumRequest",
+        "type": "object"
+      },
       "ElectronicTransition": {
         "additionalProperties": false,
         "description": "One electronic excitation, for UV-Vis and CD spectra.",
@@ -2904,6 +2950,58 @@
           "isotropic"
         ],
         "title": "NmrShielding",
+        "type": "object"
+      },
+      "NmrSpectrumRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "element": {
+            "description": "nucleus to plot, e.g. 'H' or 'C'",
+            "title": "Element",
+            "type": "string"
+          },
+          "points": {
+            "default": 1000,
+            "maximum": 20000.0,
+            "minimum": 16.0,
+            "title": "Points",
+            "type": "integer"
+          },
+          "reference": {
+            "default": 0.0,
+            "description": "shielding of the standard (TMS) from the same calculation; with 0 the plot shows negated absolute shieldings, as Avogadro 1 does until a reference is given",
+            "title": "Reference",
+            "type": "number"
+          },
+          "shape": {
+            "default": "lorentzian",
+            "enum": [
+              "gaussian",
+              "lorentzian"
+            ],
+            "title": "Shape",
+            "type": "string"
+          },
+          "shieldings": {
+            "items": {
+              "$ref": "#/components/schemas/NmrShielding"
+            },
+            "title": "Shieldings",
+            "type": "array"
+          },
+          "width": {
+            "default": 0.05,
+            "description": "FWHM in ppm",
+            "exclusiveMinimum": 0.0,
+            "title": "Width",
+            "type": "number"
+          }
+        },
+        "required": [
+          "shieldings",
+          "element"
+        ],
+        "title": "NmrSpectrumRequest",
         "type": "object"
       },
       "NucleicRequest": {
@@ -6438,6 +6536,90 @@
   },
   "openapi": "3.1.0",
   "paths": {
+    "/api/analysis/electronic": {
+      "post": {
+        "description": "UV-Vis absorption, or the signed CD spectrum, from calculated electronic transitions.",
+        "operationId": "electronic_api_analysis_electronic_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ElectronicSpectrumRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Spectrum"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Electronic",
+        "tags": [
+          "analysis"
+        ]
+      }
+    },
+    "/api/analysis/nmr": {
+      "post": {
+        "description": "Chemical-shift spectrum of one nucleus from calculated shieldings.",
+        "operationId": "nmr_api_analysis_nmr_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NmrSpectrumRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Spectrum"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Nmr",
+        "tags": [
+          "analysis"
+        ]
+      }
+    },
     "/api/analysis/spectrum": {
       "post": {
         "description": "Broaden an arbitrary set of peaks into a curve on the given axes.",

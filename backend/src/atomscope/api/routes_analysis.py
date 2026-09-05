@@ -98,6 +98,29 @@ class IrSpectrumRequest(StrictModel):
     raman: bool = Field(default=False, description="plot Raman activities instead of IR")
 
 
+class NmrSpectrumRequest(StrictModel):
+    shieldings: list[NmrShielding]
+    element: str = Field(description="nucleus to plot, e.g. 'H' or 'C'")
+    reference: float = Field(
+        default=0.0,
+        description="shielding of the standard (TMS) from the same calculation; with 0 the plot "
+        "shows negated absolute shieldings, as Avogadro 1 does until a reference is given",
+    )
+    width: float = Field(default=0.05, gt=0, description="FWHM in ppm")
+    shape: LineShape = "lorentzian"
+    points: int = Field(default=1000, ge=16, le=20000)
+
+
+class ElectronicSpectrumRequest(StrictModel):
+    transitions: list[ElectronicTransition]
+    circular_dichroism: bool = Field(
+        default=False, description="plot signed rotatory strengths instead of absorption"
+    )
+    width: float = Field(default=20.0, gt=0, description="FWHM in nm")
+    shape: LineShape = "gaussian"
+    points: int = Field(default=1000, ge=16, le=20000)
+
+
 class ImportSpectrumRequest(StrictModel):
     path: Path
     kind: SpectrumKind = "experimental"
@@ -215,6 +238,32 @@ def spectrum(body: SpectrumRequest) -> Spectrum:
         line_shape=body.shape,
         width=body.width,
     )
+
+
+@router.post("/nmr", response_model=Spectrum)
+def nmr(body: NmrSpectrumRequest) -> Spectrum:
+    """Chemical-shift spectrum of one nucleus from calculated shieldings."""
+    try:
+        return spectra_mod.nmr_spectrum(
+            body.shieldings,
+            body.element,
+            reference=body.reference,
+            width=body.width,
+            shape=body.shape,
+            points=body.points,
+        )
+    except ValueError as exc:
+        raise _bad(exc) from exc
+
+
+@router.post("/electronic", response_model=Spectrum)
+def electronic(body: ElectronicSpectrumRequest) -> Spectrum:
+    """UV-Vis absorption, or the signed CD spectrum, from calculated electronic transitions."""
+    build = spectra_mod.cd_spectrum if body.circular_dichroism else spectra_mod.uvvis_spectrum
+    try:
+        return build(body.transitions, width=body.width, shape=body.shape, points=body.points)
+    except ValueError as exc:
+        raise _bad(exc) from exc
 
 
 def _read_spectrum(name: str, text: str, kind: SpectrumKind) -> Spectrum:

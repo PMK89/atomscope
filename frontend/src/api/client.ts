@@ -52,6 +52,7 @@ export type VibrationalSpectrum = components['schemas']['VibrationalSpectrum'];
 export type VibrationsResponse = components['schemas']['VibrationsResponse'];
 export type VibrationImport = components['schemas']['VibrationImport'];
 export type NmrShielding = components['schemas']['NmrShielding'];
+export type ElectronicTransition = components['schemas']['ElectronicTransition'];
 export type SmartsResult = components['schemas']['SmartsResult'];
 export type FFConstraint = components['schemas']['FFConstraint'];
 export type FragmentInfo = components['schemas']['FragmentInfo'];
@@ -178,6 +179,10 @@ export const api = {
       request<Spectrum>('/api/analysis/vibrations/spectrum', json(body)),
     spectrum: (body: Body<'/api/analysis/spectrum', 'post'>) =>
       request<Spectrum>('/api/analysis/spectrum', json(body)),
+    nmr: (body: Body<'/api/analysis/nmr', 'post'>) =>
+      request<Spectrum>('/api/analysis/nmr', json(body)),
+    electronic: (body: Body<'/api/analysis/electronic', 'post'>) =>
+      request<Spectrum>('/api/analysis/electronic', json(body)),
   },
   crystal: {
     symmetry: (body: Body<'/api/crystal/symmetry', 'post'>) =>

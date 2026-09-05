@@ -4,6 +4,46 @@
  */
 
 export interface paths {
+  '/api/analysis/electronic': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Electronic
+     * @description UV-Vis absorption, or the signed CD spectrum, from calculated electronic transitions.
+     */
+    post: operations['electronic_api_analysis_electronic_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/analysis/nmr': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Nmr
+     * @description Chemical-shift spectrum of one nucleus from calculated shieldings.
+     */
+    post: operations['nmr_api_analysis_nmr_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/analysis/spectrum': {
     parameters: {
       query?: never;
@@ -2306,6 +2346,34 @@ export interface components {
       /** Series */
       series: components['schemas']['DosSeries'][];
     };
+    /** ElectronicSpectrumRequest */
+    ElectronicSpectrumRequest: {
+      /**
+       * Circular Dichroism
+       * @description plot signed rotatory strengths instead of absorption
+       * @default false
+       */
+      circular_dichroism: boolean;
+      /**
+       * Points
+       * @default 1000
+       */
+      points: number;
+      /**
+       * Shape
+       * @default gaussian
+       * @enum {string}
+       */
+      shape: 'gaussian' | 'lorentzian';
+      /** Transitions */
+      transitions: components['schemas']['ElectronicTransition'][];
+      /**
+       * Width
+       * @description FWHM in nm
+       * @default 20
+       */
+      width: number;
+    };
     /**
      * ElectronicTransition
      * @description One electronic excitation, for UV-Vis and CD spectra.
@@ -2967,6 +3035,39 @@ export interface components {
        * @description ppm, 1/3 tr(sigma)
        */
       isotropic: number;
+    };
+    /** NmrSpectrumRequest */
+    NmrSpectrumRequest: {
+      /**
+       * Element
+       * @description nucleus to plot, e.g. 'H' or 'C'
+       */
+      element: string;
+      /**
+       * Points
+       * @default 1000
+       */
+      points: number;
+      /**
+       * Reference
+       * @description shielding of the standard (TMS) from the same calculation; with 0 the plot shows negated absolute shieldings, as Avogadro 1 does until a reference is given
+       * @default 0
+       */
+      reference: number;
+      /**
+       * Shape
+       * @default lorentzian
+       * @enum {string}
+       */
+      shape: 'gaussian' | 'lorentzian';
+      /** Shieldings */
+      shieldings: components['schemas']['NmrShielding'][];
+      /**
+       * Width
+       * @description FWHM in ppm
+       * @default 0.05
+       */
+      width: number;
     };
     /** NucleicRequest */
     NucleicRequest: {
@@ -4420,6 +4521,72 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+  electronic_api_analysis_electronic_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['ElectronicSpectrumRequest'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['Spectrum'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  nmr_api_analysis_nmr_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['NmrSpectrumRequest'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['Spectrum'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
   spectrum_api_analysis_spectrum_post: {
     parameters: {
       query?: never;

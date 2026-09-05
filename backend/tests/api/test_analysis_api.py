@@ -167,6 +167,49 @@ def test_import_vibrations_returns_nmr_shieldings(client: TestClient) -> None:
     assert len(body["shieldings"]) == 6
 
 
+def test_nmr_spectrum_from_imported_shieldings(client: TestClient) -> None:
+    """The shieldings a Q-Chem run reports become a chemical-shift spectrum: delta = ref - sigma,
+    so a more shielded nucleus appears at a smaller shift."""
+    imported = client.post(
+        "/api/io/import/vibrations", json={"path": str(FIXTURES / "ch3oh_nmr.qcout")}
+    ).json()
+    shieldings = imported["shieldings"]
+    protons = [s for s in shieldings if s["element"] == "H"]
+    assert len(protons) > 1
+
+    r = client.post(
+        "/api/analysis/nmr",
+        json={"shieldings": shieldings, "element": "H", "reference": 31.7, "width": 0.05},
+    )
+    assert r.status_code == 200, r.text
+    spectrum = r.json()
+    assert spectrum["kind"] == "nmr" and len(spectrum["peaks"]) == len(protons)
+    most_shielded = max(protons, key=lambda s: s["isotropic"])
+    smallest_shift = min(p["x"] for p in spectrum["peaks"])
+    assert smallest_shift == pytest.approx(31.7 - most_shielded["isotropic"])
+    # only the requested nucleus is plotted
+    assert client.post("/api/analysis/nmr", json={"shieldings": shieldings, "element": "C"}).json()[
+        "peaks"
+    ]
+
+
+def test_uvvis_and_cd_spectra_from_transitions(client: TestClient) -> None:
+    transitions = [
+        {"energy": 3.1, "wavelength": 400.0, "oscillator_strength": 0.4, "rotatory_strength": -2.0},
+        {"energy": 4.0, "wavelength": 310.0, "oscillator_strength": 0.1, "rotatory_strength": 1.5},
+    ]
+    absorption = client.post("/api/analysis/electronic", json={"transitions": transitions}).json()
+    assert absorption["kind"] == "uvvis"
+    assert min(absorption["y_values"]) >= 0  # absorption cannot be negative
+
+    cd = client.post(
+        "/api/analysis/electronic", json={"transitions": transitions, "circular_dichroism": True}
+    ).json()
+    assert cd["kind"] == "cd"
+    # a negative rotatory strength must survive as a negative band
+    assert min(cd["y_values"]) < 0 < max(cd["y_values"])
+
+
 def test_import_vibrations_of_an_unparsable_file_is_400(client: TestClient) -> None:
     r = client.post("/api/io/import/vibrations/upload", files={"file": ("x.log", b"hello world\n")})
     assert r.status_code == 400

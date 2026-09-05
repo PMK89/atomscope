@@ -22,6 +22,7 @@ import {
 } from '../model/vibration';
 import { useSpectrumStore } from '../state/spectrumStore';
 import { useStructureStore } from '../state/structureStore';
+import { OtherSpectra } from './OtherSpectra';
 import { useTrajectoryStore } from '../state/trajectoryStore';
 import { LineChart, type ChartSeries, type ChartStick } from './charts/LineChart';
 
@@ -129,10 +130,14 @@ export function SpectrumPanel({ onError }: { onError: (m: string) => void }): JS
       if (res.structure) {
         useStructureStore.getState().load(normalizeStructure(res.structure));
       }
+      s.setImported(res);
       if (!res.vibrations) {
-        onError(
-          `${file.name} has no vibrational data (${res.shieldings?.length ?? 0} NMR shieldings)`,
-        );
+        // an output with only shieldings or transitions is still a spectrum source
+        const other =
+          (res.shieldings?.length ?? 0) + (res.transitions?.length ?? 0) > 0
+            ? ` (${res.shieldings?.length ?? 0} NMR shieldings, ${res.transitions?.length ?? 0} transitions below)`
+            : '';
+        onError(`${file.name} has no vibrational data${other}`);
         return;
       }
       s.setVibrations(res.vibrations, file.name);
@@ -193,6 +198,8 @@ export function SpectrumPanel({ onError }: { onError: (m: string) => void }): JS
           }}
         />
       </div>
+
+      <OtherSpectra onError={onError} />
 
       {s.vibrations && (
         <>

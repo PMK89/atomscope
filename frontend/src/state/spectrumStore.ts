@@ -8,7 +8,7 @@
  * equilibrium geometry.
  */
 import { create } from 'zustand';
-import { api } from '../api/client';
+import { api, type ElectronicTransition, type NmrShielding } from '../api/client';
 import { toApiStructure } from '../api/structureBody';
 import type { ApiSpectrum, ApiVibrationalSpectrum, SpectrumDoc } from '../model/vibration';
 import {
@@ -32,6 +32,9 @@ export interface SpectrumEntry {
 
 export interface SpectrumState {
   vibrations: ApiVibrationalSpectrum | null;
+  /** NMR shieldings and electronic transitions from the last imported output file. */
+  shieldings: NmrShielding[];
+  transitions: ElectronicTransition[];
   /** Source label for the mode list header (force field name or file name). */
   source: string | null;
   spectra: SpectrumEntry[];
@@ -43,6 +46,10 @@ export interface SpectrumState {
   busy: string | null;
 
   setVibrations: (v: ApiVibrationalSpectrum | null, source: string | null) => void;
+  setImported: (imported: {
+    shieldings?: NmrShielding[];
+    transitions?: ElectronicTransition[];
+  }) => void;
   addSpectrum: (spectrum: ApiSpectrum, experimental: boolean) => void;
   removeSpectrum: (id: string) => void;
   setActiveSpectrum: (id: string | null) => void;
@@ -61,6 +68,8 @@ export interface SpectrumState {
 
 export const useSpectrumStore = create<SpectrumState>((set, get) => ({
   vibrations: null,
+  shieldings: [],
+  transitions: [],
   source: null,
   spectra: [],
   activeSpectrumId: null,
@@ -69,6 +78,8 @@ export const useSpectrumStore = create<SpectrumState>((set, get) => ({
   amplitude: DEFAULT_AMPLITUDE,
   framesPerPeriod: DEFAULT_FRAMES_PER_PERIOD,
   busy: null,
+
+  setImported: ({ shieldings = [], transitions = [] }) => set({ shieldings, transitions }),
 
   setVibrations: (vibrations, source) =>
     set({ vibrations, source, selectedMode: vibrations && vibrations.modes.length ? 0 : -1 }),
