@@ -1,8 +1,8 @@
 # Project state (resume here)
 
-Branch: main; this file is updated in the commit that checkpoints the work, so `git log -1 -- docs/STATE.md` is the last checkpoint. Phases 0-1 done; Phase 2 (editor tools), 3 (volumetric, trajectories, vectors), 4-5 (CP-PAW setup/execution/forces), 6 (CP-PAW analysis: DOS, bands, orbitals), crystallography, molecular mechanics and wavefunction surfaces are merged and working. Parity matrix: 161 IMPLEMENTED, 38 PARTIAL, 112 NOT STARTED, 1 BLOCKED of 312 rows.
+Branch: main; this file is updated in the commit that checkpoints the work, so `git log -1 -- docs/STATE.md` is the last checkpoint. Phases 0-1 done; Phase 2 (editor tools), 3 (volumetric, trajectories, vectors), 4-5 (CP-PAW setup/execution/forces), 6 (CP-PAW analysis: DOS, bands, orbitals), crystallography, molecular mechanics and wavefunction surfaces are merged and working. Parity matrix: 162 IMPLEMENTED, 37 PARTIAL, 112 NOT STARTED, 1 BLOCKED of 312 rows.
 
-Tests: `pytest -q -m "not cppaw"` -> 351 passed, 1 skipped; `pytest -q -m cppaw` -> 7 passed (~90 s, needs the local CP-PAW install); `pnpm vitest run` -> 229 passed; `make test-e2e` -> 8 passed. `ruff check`, `mypy` and `tsc --noEmit` are clean. No known failing tests.
+Tests: `pytest -q -m "not cppaw"` -> 374 passed, 1 skipped; `pytest -q -m cppaw` -> 7 passed (~90 s, needs the local CP-PAW install); `pnpm vitest run` -> 330 passed; `make test-e2e` -> 17 passed (against private servers, see below). `ruff check`, `mypy` and `tsc --noEmit` are clean. No known failing tests.
 
 ## Resume commands
 
@@ -61,8 +61,8 @@ make dev-backend   # 127.0.0.1:8765 ; make dev-frontend -> 127.0.0.1:5173
    and hydrogen-bond display are done. The label engine and the Display tab are done; the Display tab is where the label
    content is chosen (the View menu only switches labels on) and it can give the selection its own
    display type, which is what AV-VIS-001's "restricted to primitives" asks for.
-2. UI gaps recorded as PARTIAL: Extensions menu for the chem operations that only have API routes (add/remove hydrogens, pH, invert chirality, H->methyl, partial charges, Copy as SMILES/InChI), fragment/peptide/DNA/nanotube insert dialogs, Auto-Optimization tool, image export, constraints dialog.
-3. Remaining HIGH parity gaps outside the renderer: colour-by-second-cube (AV-SURF-013), residue-based selection and colouring (AV-BIO-006), paste of crystal text with an identity mapping dialog (AV-XTAL-002).
+2. UI gaps recorded as PARTIAL: Extensions menu for the chem operations that only have API routes (add/remove hydrogens, pH, invert chirality, H->methyl, partial charges, Copy as SMILES/InChI), fragment/peptide/DNA/nanotube insert dialogs, Auto-Optimization tool, image export.
+3. Remaining HIGH parity gaps outside the renderer: residue-based selection and colouring (AV-BIO-006), paste of crystal text with an identity mapping dialog (AV-XTAL-002), the bond properties table (AV-ANAL-003), the auto-optimization tool (AV-EDIT-031) and the Settings dialog (AV-UI-012). Colour-by-second-cube (AV-SURF-013) and the constraints dialog (AV-MM-005) are done.
 4. More wavefunction readers (MOPAC aux, GAMESS, ORCA, Molpro, Slater bases) for AV-SURF-006; ORCA/Gaussian/NWChem input-only plugins; desktop shell ADR.
 5. Known limits and hand-overs:
    - `applyColors` rewrites every instance colour on every hover change (~300k operations per
@@ -71,4 +71,8 @@ make dev-backend   # 127.0.0.1:8765 ; make dev-frontend -> 127.0.0.1:5173
      is O(N^2) around the fixed helper. All measured, all in `docs/performance.md`.
    - The orbit frame rates in `docs/performance.md` predate the tessellation fix; re-running
      `make test-perf` needs a backend and a frontend dev server of one's own, not the user's.
+   - CP-PAW's STRC writer takes only fixed atoms and fixed bond lengths from the constraint list;
+     `fix_angle`, `fix_dihedral` and `ignore_atoms` are silently skipped there, and an ignored
+     atom has no ASE meaning either (it is an Open Babel notion). Open Babel treats a torsion
+     constraint as a restraint: it holds within a few degrees, not exactly.
    - Smaller items: NMR/UV-Vis/CD have parsers and spectrum builders but no route or UI (AV-SPEC-004/006/007); force-field IR intensities are qualitative because topological charge models have no charge flux; `resources` is hard-coded `{cores: 1, mpi: false}` in `CalculationPanel.tsx`, so the CP-PAW MPI path is unreachable from the UI; units render as raw tags; DOS and band results are not reloaded when a project is reopened; calculation renames are silently discarded (no rename endpoint); `ase_builtin` reads an `optimizer` key that its schema does not declare and tags `pressure` as eV rather than eV/A^3; `mode: "diagonalize"` bands still fail on the installed CP-PAW binaries (2025-05-07), which needs a rebuild -- the API now reports that instead of serving the previous run's file.

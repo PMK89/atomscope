@@ -16,6 +16,8 @@ from ase import Atoms
 from ase.constraints import FixAtoms as AseFixAtoms
 from ase.constraints import FixBondLengths as AseFixBondLengths
 from ase.constraints import FixCartesian as AseFixCartesian
+from ase.constraints import FixInternals as AseFixInternals
+from pydantic import TypeAdapter
 
 from atomscope.model import (
     Atom,
@@ -24,9 +26,11 @@ from atomscope.model import (
     Bond,
     Cell,
     Constraint,
+    FixAngle,
     FixAtoms,
     FixBondLength,
     FixCartesian,
+    FixDihedral,
     Provenance,
     Quantity,
     Residue,
@@ -35,6 +39,7 @@ from atomscope.model import (
 from atomscope.units import Unit
 
 INFO_KEY = "atomscope"
+_CONSTRAINT_ADAPTER: TypeAdapter[Constraint] = TypeAdapter(Constraint)
 _BOND_FIELDS = tuple(Bond.model_fields)
 INITIAL_CHARGES_PROPERTY = "initial_charges"
 INITIAL_MAGMOMS_PROPERTY = "initial_magmoms"
@@ -63,6 +68,9 @@ def to_atoms(structure: Structure) -> Atoms:
 
     extra: dict[str, Any] = {
         "id": structure.id,
+        # ASE cannot express every constraint kind (an ignored atom has no ASE meaning), so the
+        # list travels verbatim as well and is what a round trip reads back
+        "constraints": [c.model_dump(mode="json") for c in structure.constraints],
         "name": structure.name,
         "charge": structure.charge,
         "multiplicity": structure.multiplicity,
@@ -173,7 +181,12 @@ def from_atoms(atoms: Atoms, *, name: str | None = None) -> Structure:
         "properties": {
             k: Quantity.model_validate(v) for k, v in extra.get("properties", {}).items()
         },
-        "constraints": _constraints_from_ase(atoms),
+        # a document written by Atomscope carries its constraints losslessly; anything else
+        # (a POSCAR, someone else's .traj) only has what ASE could express
+        "constraints": [
+            _CONSTRAINT_ADAPTER.validate_python(c) for c in extra.get("constraints", [])
+        ]
+        or _constraints_from_ase(atoms),
         "residues": [Residue.model_validate(r) for r in extra.get("residues", [])]
         or _pdb_residues(atoms),
     }
@@ -185,20 +198,40 @@ def from_atoms(atoms: Atoms, *, name: str | None = None) -> Structure:
 
 
 def _constraints_to_ase(constraints: list[Constraint]) -> list[Any]:
+    """The subset ASE understands. ``IgnoreAtoms`` has no ASE counterpart and is left out."""
     out: list[Any] = []
     fixed: list[int] = []
     pairs: list[tuple[int, int]] = []
+    # ASE's FixInternals holds a target value (None = whatever the geometry has now)
+    bonds: list[list[Any]] = []
+    angles: list[list[Any]] = []
+    dihedrals: list[list[Any]] = []
     for c in constraints:
         if isinstance(c, FixAtoms):
             fixed.extend(c.indices)
         elif isinstance(c, FixCartesian):
             out.append(AseFixCartesian(c.index, mask=list(c.mask)))
         elif isinstance(c, FixBondLength):
-            pairs.append((c.a, c.b))
+            if c.value is None:
+                pairs.append((c.a, c.b))
+            else:
+                bonds.append([c.value, [c.a, c.b]])
+        elif isinstance(c, FixAngle):
+            angles.append([c.value, [c.a, c.b, c.c]])
+        elif isinstance(c, FixDihedral):
+            dihedrals.append([c.value, [c.a, c.b, c.c, c.d]])
     if fixed:
         out.append(AseFixAtoms(indices=sorted(set(fixed))))
     if pairs:
         out.append(AseFixBondLengths(pairs))
+    if bonds or angles or dihedrals:
+        out.append(
+            AseFixInternals(
+                bonds=bonds or None,
+                angles_deg=angles or None,
+                dihedrals_deg=dihedrals or None,
+            )
+        )
     return out
 
 
@@ -215,4 +248,32 @@ def _constraints_from_ase(atoms: Atoms) -> list[Constraint]:
         elif isinstance(c, AseFixBondLengths):
             for a, b in c.pairs:
                 out.append(FixBondLength(a=int(a), b=int(b)))
+        elif isinstance(c, AseFixInternals):
+            out.extend(_internals_from_ase(c))
     return out
+
+
+def _internals_from_ase(c: AseFixInternals) -> list[Constraint]:
+    """Bond, angle and dihedral targets out of an ASE ``FixInternals``."""
+    out: list[Constraint] = []
+    for value, idx in c.bonds or []:
+        out.append(FixBondLength(a=int(idx[0]), b=int(idx[1]), value=_target(value)))
+    for value, idx in c.angles or []:
+        out.append(
+            FixAngle(a=int(idx[0]), b=int(idx[1]), c=int(idx[2]), value=_target(value)),
+        )
+    for value, idx in c.dihedrals or []:
+        out.append(
+            FixDihedral(
+                a=int(idx[0]),
+                b=int(idx[1]),
+                c=int(idx[2]),
+                d=int(idx[3]),
+                value=_target(value),
+            )
+        )
+    return out
+
+
+def _target(value: Any) -> float | None:
+    return None if value is None else float(value)

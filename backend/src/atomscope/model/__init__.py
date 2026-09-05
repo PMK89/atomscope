@@ -1,7 +1,15 @@
 """Atomscope scientific data model (pydantic v2, JSON-serializable, unit-explicit)."""
 
 from atomscope.model.common import Provenance, Quantity, StrictModel
-from atomscope.model.constraints import Constraint, FixAtoms, FixBondLength, FixCartesian
+from atomscope.model.constraints import (
+    Constraint,
+    FixAngle,
+    FixAtoms,
+    FixBondLength,
+    FixCartesian,
+    FixDihedral,
+    IgnoreAtoms,
+)
 from atomscope.model.grid import GridKind, OrbitalInfo, VolumetricGrid
 from atomscope.model.spectrum import (
     BandStructure,
@@ -40,10 +48,13 @@ __all__ = [
     "DosSeries",
     "DosSpectrum",
     "ElectronicTransition",
+    "FixAngle",
     "FixAtoms",
     "FixBondLength",
     "FixCartesian",
+    "FixDihedral",
     "Frame",
+    "IgnoreAtoms",
     "GridKind",
     "KPathLabel",
     "KPathPoint",

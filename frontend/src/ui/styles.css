@@ -689,6 +689,30 @@ button {
 .orbital-table tr.selected {
   outline: 1px solid var(--accent);
 }
+.constraint-table th,
+.constraint-table td {
+  text-align: left;
+}
+.panel .constraint-table input:not([type]) {
+  width: 5rem;
+  font-size: 0.8rem;
+}
+.constraint-add {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 0.4rem 0;
+}
+.panel .constraint-add select {
+  width: auto;
+  flex: 1;
+}
+.panel .constraint-add input:not([type]) {
+  width: 3.5rem;
+}
+.panel .constraint-add input.constraint-value {
+  width: 9rem;
+}
 .orbital-table tr.frontier {
   font-weight: 600;
 }

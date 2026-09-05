@@ -11,13 +11,10 @@ from atomscope.model import (
     AtomicScalarProperty,
     AtomicVectorProperty,
     Bond,
-    FixAtoms,
-    FixBondLength,
-    FixCartesian,
     Residue,
     Structure,
 )
-from atomscope.model.constraints import Constraint
+from atomscope.model.constraints import Constraint, remap
 
 
 def remove_atoms(structure: Structure, indices: set[int]) -> Structure:
@@ -42,20 +39,9 @@ def remove_atoms(structure: Structure, indices: set[int]) -> Structure:
         )
         for k, v in structure.atomic_vectors.items()
     }
-    constraints: list[Constraint] = []
-    for c in structure.constraints:
-        if any(i not in new_index for i in c.referenced_atoms()):
-            if isinstance(c, FixAtoms):
-                kept = [new_index[i] for i in c.indices if i in new_index]
-                if kept:
-                    constraints.append(FixAtoms(indices=kept))
-            continue
-        if isinstance(c, FixAtoms):
-            constraints.append(FixAtoms(indices=[new_index[i] for i in c.indices]))
-        elif isinstance(c, FixCartesian):
-            constraints.append(FixCartesian(index=new_index[c.index], mask=c.mask))
-        elif isinstance(c, FixBondLength):
-            constraints.append(FixBondLength(a=new_index[c.a], b=new_index[c.b]))
+    constraints: list[Constraint] = [
+        mapped for c in structure.constraints if (mapped := remap(c, new_index)) is not None
+    ]
     residues = []
     for r in structure.residues:
         atoms = [new_index[i] for i in r.atom_indices if i in new_index]

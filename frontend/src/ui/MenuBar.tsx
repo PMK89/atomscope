@@ -10,6 +10,7 @@ import { useToolStore } from '../editor/toolStore';
 import { atomsOfElement, invertSelection } from '../editor/selectionMath';
 import { normalizeSymbol } from '../editor/cartesian';
 import { CartesianEditor } from './CartesianEditor';
+import { ConstraintsDialog } from './ConstraintsDialog';
 import { BuildDialogs } from './BuildDialogs';
 import { CrystalDialogs } from './CrystalDialogs';
 import { useBuildStore } from '../state/buildStore';
@@ -49,6 +50,7 @@ export function MenuBar({ onError }: { onError: (msg: string) => void }): JSX.El
   const view = useViewStore();
   const selection = useSelectionStore();
   const openCartesian = useToolStore((s) => s.setCartesianEditorOpen);
+  const openConstraints = useToolStore((s) => s.setConstraintsDialogOpen);
   const openCrystalDialog = useCrystalStore((s) => s.openDialog);
   const openBuildDialog = useBuildStore((s) => s.openDialog);
   const trajectoryInput = useRef<HTMLInputElement>(null);
@@ -281,6 +283,7 @@ export function MenuBar({ onError }: { onError: (msg: string) => void }): JSX.El
           { label: 'Remove hydrogens', action: () => void removeHydrogens(onError) },
           { label: 'Perceive bonds', action: () => void perceiveBonds(onError) },
           { label: 'Optimize geometry (MMFF94)', action: () => void optimizeGeometry(onError) },
+          { label: 'Constraints…', action: () => openConstraints(true) },
           {
             label: 'Assign partial charges',
             action: () => void assignPartialCharges(onError),
@@ -346,6 +349,7 @@ export function MenuBar({ onError }: { onError: (msg: string) => void }): JSX.El
       />
       <HelpDialog topic={help} onClose={() => setHelp(null)} />
       <CartesianEditor />
+      <ConstraintsDialog />
       <CrystalDialogs onError={onError} />
       <BuildDialogs onError={onError} />
       <input

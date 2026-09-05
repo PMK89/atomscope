@@ -329,3 +329,37 @@ test('Open reads a file from this machine, with the format named', async ({ page
   await expect(page.locator('.app-statusbar')).toContainText('4 atoms');
   await expect(page.locator('.app-statusbar')).toContainText('H3N'); // Hill order
 });
+
+test('a constrained bond keeps its length through an optimization', async ({ page }) => {
+  await page.goto('/');
+  page.once('dialog', (d) => void d.accept('CCO'));
+  await page.getByRole('button', { name: 'File' }).click();
+  await page.getByRole('menuitem', { name: 'Build from SMILES…' }).click();
+  await expect(page.locator('.app-statusbar')).toContainText('9 atoms');
+
+  await page.getByRole('button', { name: 'Extensions' }).click();
+  await page.getByRole('menuitem', { name: 'Constraints…' }).click();
+  const dialog = page.getByRole('dialog', { name: 'Constraints' });
+  await dialog.getByLabel('Add').selectOption('distance');
+  await dialog.getByLabel('atom 1').fill('1');
+  await dialog.getByLabel('atom 2').fill('2');
+  await dialog.getByLabel('target value').fill('1.8');
+  await dialog.getByRole('button', { name: 'Add' }).click();
+  await expect(dialog.getByRole('cell', { name: 'C1, C2' })).toBeVisible();
+  await page.screenshot({ path: '../.scratch/dev/constraints.png' });
+  await dialog.getByRole('button', { name: 'Close' }).click();
+
+  await page.getByRole('button', { name: 'Extensions' }).click();
+  await page.getByRole('menuitem', { name: 'Optimize geometry (MMFF94)' }).click();
+  await expect(page.locator('.app-statusbar')).toContainText('9 atoms');
+
+  // the constrained C-C bond sits at the length that was asked for, not at MMFF94's own 1.52 A
+  await page.getByRole('button', { name: 'Extensions' }).click();
+  await page.getByRole('menuitem', { name: 'Constraints…' }).click();
+  await expect
+    .poll(async () => {
+      const cells = page.getByRole('row', { name: /Distance/ }).getByRole('cell');
+      return Number(/([\d.]+) Å/.exec((await cells.last().textContent()) ?? '')?.[1] ?? NaN);
+    })
+    .toBeCloseTo(1.8, 1);
+});

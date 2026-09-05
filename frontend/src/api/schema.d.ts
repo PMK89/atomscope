@@ -2575,6 +2575,28 @@ export interface components {
        */
       symprec: number;
     };
+    /**
+     * FixAngle
+     * @description Hold the a-b-c angle, b being the vertex (ASE ``FixInternals``).
+     */
+    FixAngle: {
+      /** A */
+      a: number;
+      /** B */
+      b: number;
+      /** C */
+      c: number;
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      kind: 'fix_angle';
+      /**
+       * Value
+       * @description target angle in degrees; None keeps the current one
+       */
+      value?: number | null;
+    };
     /** FixAtoms */
     FixAtoms: {
       /** Indices */
@@ -2596,6 +2618,11 @@ export interface components {
        * @enum {string}
        */
       kind: 'fix_bond_length';
+      /**
+       * Value
+       * @description target length in A; None keeps the current one
+       */
+      value?: number | null;
     };
     /**
      * FixCartesian
@@ -2618,6 +2645,30 @@ export interface components {
        *     ]
        */
       mask: [boolean, boolean, boolean];
+    };
+    /**
+     * FixDihedral
+     * @description Hold the a-b-c-d torsion (ASE ``FixInternals``).
+     */
+    FixDihedral: {
+      /** A */
+      a: number;
+      /** B */
+      b: number;
+      /** C */
+      c: number;
+      /** D */
+      d: number;
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      kind: 'fix_dihedral';
+      /**
+       * Value
+       * @description target torsion in degrees; None keeps the current one
+       */
+      value?: number | null;
     };
     /** ForceFieldInfo */
     ForceFieldInfo: {
@@ -2853,6 +2904,21 @@ export interface components {
       inchikey: string;
       /** Smiles */
       smiles: string;
+    };
+    /**
+     * IgnoreAtoms
+     * @description Leave these atoms out of the force field entirely (Avogadro's "Ignore Atom").
+     *
+     *     Open Babel understands this; ASE has no equivalent, so an ASE-driven calculation ignores it.
+     */
+    IgnoreAtoms: {
+      /** Indices */
+      indices: number[];
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      kind: 'ignore_atoms';
     };
     /** ImportCubeRequest */
     ImportCubeRequest: {
@@ -4062,6 +4128,9 @@ export interface components {
         | components['schemas']['FixAtoms']
         | components['schemas']['FixCartesian']
         | components['schemas']['FixBondLength']
+        | components['schemas']['FixAngle']
+        | components['schemas']['FixDihedral']
+        | components['schemas']['IgnoreAtoms']
       )[];
       /** Id */
       id?: string;

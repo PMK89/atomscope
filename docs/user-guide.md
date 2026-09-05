@@ -728,9 +728,32 @@ the Calculation tab:
   returns the conformers as a trajectory with one energy per conformer, which
   the Analysis ▸ Convergence chart plots against the conformer index.
 
-Fixed atoms from the structure's constraints are always honoured; extra
-distance/angle/torsion constraints can be given as JSON in the advanced
-`constraints_json` field.
+The structure's own constraints are always honoured, by the force fields here
+and by `Extensions ▸ Optimize geometry (MMFF94)`; extra one-off constraints can
+still be given as JSON in the advanced `constraints_json` field.
+
+### 8.7 Constraints
+
+`Extensions ▸ Constraints…` opens the table of geometric constraints the
+document carries. They are saved with the structure, re-numbered when atoms are
+removed, and dropped when an atom they name goes away.
+
+* **Add** — choose a type, and the fields next to it are filled with the atoms
+  you have selected, in the order you picked them (the numbering is the one the
+  `index` label shows, starting at 1). The types are Avogadro's: `Ignore atom`,
+  `Fix atom`, `Fix X`, `Fix Y`, `Fix Z`, `Distance`, `Angle` and `Torsion`.
+* **Value** — a distance in Å, an angle or torsion in degrees. Leave it empty
+  and the constraint holds whatever the geometry has when the run starts; the
+  `Now` column always shows the current value. The value of a constraint that
+  is already in the table can be typed into its row.
+* **Delete selected** removes the rows you clicked, `Delete all` empties the
+  table, and `Save…`/`Load…` write and read the list as a JSON file.
+
+An ignored atom is left out of the force field entirely. That is an Open Babel
+notion: ASE-driven calculations (and CP-PAW) do not see it, and CP-PAW takes
+only fixed atoms and fixed bond lengths from the list. Open Babel treats a
+torsion constraint as a restraint rather than a hard condition, so a torsion
+holds approximately where a distance or an angle holds exactly.
 
 ---
 

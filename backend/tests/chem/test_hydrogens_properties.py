@@ -4,7 +4,16 @@ from rdkit import Chem
 
 from atomscope.chem import edits, hydrogens, properties
 from atomscope.io.rdkit_io import from_smiles, structure_to_mol
-from atomscope.model import Atom, Bond, FixAtoms, Structure
+from atomscope.model import (
+    Atom,
+    Bond,
+    FixAngle,
+    FixAtoms,
+    FixBondLength,
+    FixDihedral,
+    IgnoreAtoms,
+    Structure,
+)
 from atomscope.units import Unit
 
 
@@ -167,3 +176,22 @@ def test_remove_atoms_keeps_ring_structure_valid() -> None:
     )
     out = hydrogens.remove_atoms(s, {1})
     assert out.n_atoms == 3 and [b.key() for b in out.bonds] == [(1, 2)]
+
+
+def test_removing_atoms_reindexes_or_drops_every_constraint_kind() -> None:
+    s = from_smiles("CCO")  # C C O then six hydrogens
+    s.constraints = [
+        FixAtoms(indices=[0, 3]),
+        IgnoreAtoms(indices=[3, 4]),
+        FixBondLength(a=0, b=1, value=1.5),
+        FixAngle(a=0, b=1, c=2),
+        FixDihedral(a=3, b=0, c=1, d=2, value=60.0),
+    ]
+    out = hydrogens.remove_atoms(s, {3})
+    # atom 3 is gone: the constraints naming it lose it, and later atoms shift down by one
+    assert out.constraints == [
+        FixAtoms(indices=[0]),
+        IgnoreAtoms(indices=[3]),
+        FixBondLength(a=0, b=1, value=1.5),
+        FixAngle(a=0, b=1, c=2),
+    ]

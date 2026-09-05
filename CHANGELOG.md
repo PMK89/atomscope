@@ -24,6 +24,13 @@
 - Fixed: Ctrl+C with text selected in a panel copied the molecule instead of the text; removing
   atoms in the editor left residues and constraints pointing at the old numbering; a copied
   fragment carried no residues.
+- A Constraints dialog (Extensions > Constraints...): ignored and fixed atoms, fixed Cartesian
+  axes, and distance, angle and torsion constraints with an optional target value, added from the
+  selection, saved with the document and honoured by geometry optimization. The data model gained
+  `fix_angle`, `fix_dihedral` and `ignore_atoms`, and bond/angle/torsion constraints gained a
+  target value; all of them survive an ASE round trip and are re-indexed when atoms are removed.
+- A document with a fixed bond length no longer makes Optimize geometry fail: the constraints are
+  derived from the structure the request already carries, where the target value can be measured.
 - A surface can be coloured by a second grid (an electrostatic potential mapped onto an electron
   density). The automatic scale is symmetric about zero, so white on the surface means zero; the
   scale can also be typed in. Sampling allocates nothing per vertex and a range change recolours

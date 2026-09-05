@@ -106,14 +106,26 @@ function reindexed(
     .filter((r) => r.atom_indices.length > 0);
   const kept = (i: number): boolean => remap[i] !== undefined && remap[i]! >= 0;
   const constraints = doc.constraints.flatMap((c) => {
-    if (c.kind === 'fix_atoms') {
-      const kept_indices = c.indices.filter(kept).map((i) => remap[i]!);
-      return kept_indices.length ? [{ ...c, indices: kept_indices }] : [];
+    // a constraint over a set of atoms keeps those that remain; one that ties specific atoms
+    // together (a bond, an angle, a torsion) goes as soon as one of them does
+    if (c.kind === 'fix_atoms' || c.kind === 'ignore_atoms') {
+      const keptIndices = c.indices.filter(kept).map((i) => remap[i]!);
+      return keptIndices.length ? [{ ...c, indices: keptIndices }] : [];
     }
     if (c.kind === 'fix_cartesian') {
       return kept(c.index) ? [{ ...c, index: remap[c.index]! }] : [];
     }
-    return kept(c.a) && kept(c.b) ? [{ ...c, a: remap[c.a]!, b: remap[c.b]! }] : [];
+    if (c.kind === 'fix_bond_length') {
+      return kept(c.a) && kept(c.b) ? [{ ...c, a: remap[c.a]!, b: remap[c.b]! }] : [];
+    }
+    if (c.kind === 'fix_angle') {
+      return kept(c.a) && kept(c.b) && kept(c.c)
+        ? [{ ...c, a: remap[c.a]!, b: remap[c.b]!, c: remap[c.c]! }]
+        : [];
+    }
+    return kept(c.a) && kept(c.b) && kept(c.c) && kept(c.d)
+      ? [{ ...c, a: remap[c.a]!, b: remap[c.b]!, c: remap[c.c]!, d: remap[c.d]! }]
+      : [];
   });
   return { residues, constraints };
 }

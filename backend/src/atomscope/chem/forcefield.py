@@ -15,13 +15,17 @@ import numpy as np
 from openbabel import openbabel as ob
 from pydantic import Field, model_validator
 
+from atomscope.chem.geometry import angle_deg, dihedral_deg
 from atomscope.chem.obmol import OB_LOCK, positions_from_obmol, to_obmol, with_positions
 from atomscope.model import (
     AtomicVectorProperty,
+    FixAngle,
     FixAtoms,
     FixBondLength,
     FixCartesian,
+    FixDihedral,
     Frame,
+    IgnoreAtoms,
     Quantity,
     Structure,
     Trajectory,
@@ -108,8 +112,20 @@ def structure_constraints(structure: Structure) -> list[FFConstraint]:
                     if c.mask[k]:
                         out.append(FFConstraint(kind=name, atoms=[c.index]))  # type: ignore[arg-type]
         elif isinstance(c, FixBondLength):
-            d = float(np.linalg.norm(pos[c.a] - pos[c.b]))
+            d = c.value if c.value is not None else float(np.linalg.norm(pos[c.a] - pos[c.b]))
             out.append(FFConstraint(kind="distance", atoms=[c.a, c.b], value=d))
+        elif isinstance(c, FixAngle):
+            v = c.value if c.value is not None else angle_deg(pos[c.a], pos[c.b], pos[c.c])
+            out.append(FFConstraint(kind="angle", atoms=[c.a, c.b, c.c], value=v))
+        elif isinstance(c, FixDihedral):
+            v = (
+                c.value
+                if c.value is not None
+                else dihedral_deg(pos[c.a], pos[c.b], pos[c.c], pos[c.d])
+            )
+            out.append(FFConstraint(kind="torsion", atoms=[c.a, c.b, c.c, c.d], value=v))
+        elif isinstance(c, IgnoreAtoms):
+            out.extend(FFConstraint(kind="ignore", atoms=[i]) for i in c.indices)
     return out
 
 

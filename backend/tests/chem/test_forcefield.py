@@ -2,9 +2,20 @@ import numpy as np
 import pytest
 
 from atomscope.chem import forcefield as ffm
+from atomscope.chem.geometry import angle_deg, dihedral_deg
 from atomscope.chem.obmol import kekulized_orders, with_positions
 from atomscope.io.rdkit_io import from_smiles
-from atomscope.model import Atom, Bond, FixAtoms, FixBondLength, FixCartesian, Structure
+from atomscope.model import (
+    Atom,
+    Bond,
+    FixAngle,
+    FixAtoms,
+    FixBondLength,
+    FixCartesian,
+    FixDihedral,
+    IgnoreAtoms,
+    Structure,
+)
 
 
 def test_force_fields_discovered() -> None:
@@ -130,3 +141,38 @@ def test_conformer_search_returns_conformers_with_energies() -> None:
     assert res.structure.n_atoms == s.n_atoms
     res2 = ffm.conformer_search(s, "MMFF94", method="random", n_conformers=3, steps=10)
     assert res2.trajectory.n_frames >= 1
+
+
+def test_an_angle_constraint_holds_the_target_it_was_given() -> None:
+    s = from_smiles("CCCC")
+    s.constraints = [FixAngle(a=0, b=1, c=2, value=100.0)]
+    res = ffm.optimize(s, "UFF", max_steps=200)
+    p = res.structure.positions()
+    assert angle_deg(p[0], p[1], p[2]) == pytest.approx(100.0, abs=2.0)
+
+
+def test_a_torsion_constraint_without_a_target_keeps_the_current_one() -> None:
+    """Open Babel treats a torsion constraint as a restraint: it holds, but only approximately."""
+    s = from_smiles("CCCC")
+    pos0 = s.positions()
+    tor0 = dihedral_deg(pos0[0], pos0[1], pos0[2], pos0[3])
+    s.constraints = [FixDihedral(a=0, b=1, c=2, d=3)]
+    res = ffm.optimize(s, "UFF", max_steps=400)
+    p = res.structure.positions()
+    assert dihedral_deg(p[0], p[1], p[2], p[3]) == pytest.approx(tor0, abs=2.0)
+
+
+def test_structure_constraints_cover_every_kind() -> None:
+    s = from_smiles("CCO")
+    pos = s.positions()
+    s.constraints = [
+        FixAngle(a=0, b=1, c=2),
+        FixDihedral(a=0, b=1, c=2, d=3, value=60.0),
+        IgnoreAtoms(indices=[3, 4]),
+    ]
+    got = ffm.structure_constraints(s)
+    assert [c.kind for c in got] == ["angle", "torsion", "ignore", "ignore"]
+    # a constraint without a target value takes the one the geometry has now
+    assert got[0].value == pytest.approx(angle_deg(pos[0], pos[1], pos[2]))
+    assert got[1].value == pytest.approx(60.0)
+    assert [c.atoms for c in got[2:]] == [[3], [4]]

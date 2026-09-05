@@ -2,6 +2,7 @@ import numpy as np
 import pytest
 from ase import Atoms
 from ase.build import bulk, molecule
+from ase.constraints import FixInternals as AseFixInternals
 
 from atomscope.ase_bridge import from_atoms, to_atoms
 from atomscope.model import (
@@ -10,9 +11,12 @@ from atomscope.model import (
     AtomicVectorProperty,
     Bond,
     Cell,
+    FixAngle,
     FixAtoms,
     FixBondLength,
     FixCartesian,
+    FixDihedral,
+    IgnoreAtoms,
     Quantity,
     Structure,
 )
@@ -85,6 +89,34 @@ def test_constraints_map_to_ase_classes() -> None:
     atoms = to_atoms(rich_structure())
     names = sorted(type(c).__name__ for c in atoms.constraints)
     assert names == ["FixAtoms", "FixBondLengths", "FixCartesian"]
+
+
+def test_internal_coordinate_constraints_round_trip() -> None:
+    s = rich_structure()
+    s.constraints = [
+        FixAngle(a=1, b=0, c=2, value=104.5),
+        FixDihedral(a=0, b=1, c=2, d=0),
+        FixBondLength(a=0, b=1, value=0.98),
+        IgnoreAtoms(indices=[2]),
+    ]
+    atoms = to_atoms(s)
+    # angles, dihedrals and a bond with a target value all go into one ASE FixInternals
+    assert sorted(type(c).__name__ for c in atoms.constraints) == ["FixInternals"]
+    back = from_atoms(atoms)
+    # an ignored atom has no ASE meaning, but the verbatim copy in atoms.info keeps it
+    assert back.constraints == s.constraints
+
+
+def test_constraints_come_from_ase_when_the_file_is_not_ours() -> None:
+    atoms = molecule("H2O")
+    atoms.set_constraint(
+        AseFixInternals(angles_deg=[[104.5, [1, 0, 2]]], dihedrals_deg=[[None, [0, 1, 2, 0]]])
+    )
+    s = from_atoms(atoms)
+    assert s.constraints == [
+        FixAngle(a=1, b=0, c=2, value=104.5),
+        FixDihedral(a=0, b=1, c=2, d=0, value=None),
+    ]
 
 
 def test_from_atoms_rejects_non_finite_positions() -> None:

@@ -1526,6 +1526,45 @@
         "title": "FillRequest",
         "type": "object"
       },
+      "FixAngle": {
+        "additionalProperties": false,
+        "description": "Hold the a-b-c angle, b being the vertex (ASE ``FixInternals``).",
+        "properties": {
+          "a": {
+            "title": "A",
+            "type": "integer"
+          },
+          "b": {
+            "title": "B",
+            "type": "integer"
+          },
+          "c": {
+            "title": "C",
+            "type": "integer"
+          },
+          "kind": {
+            "const": "fix_angle",
+            "default": "fix_angle",
+            "title": "Kind",
+            "type": "string"
+          },
+          "value": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "target angle in degrees; None keeps the current one",
+            "title": "Value"
+          }
+        },
+        "required": ["a", "b", "c"],
+        "title": "FixAngle",
+        "type": "object"
+      },
       "FixAtoms": {
         "additionalProperties": false,
         "properties": {
@@ -1563,6 +1602,18 @@
             "default": "fix_bond_length",
             "title": "Kind",
             "type": "string"
+          },
+          "value": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "target length in A; None keeps the current one",
+            "title": "Value"
           }
         },
         "required": ["a", "b"],
@@ -1604,6 +1655,49 @@
         },
         "required": ["index"],
         "title": "FixCartesian",
+        "type": "object"
+      },
+      "FixDihedral": {
+        "additionalProperties": false,
+        "description": "Hold the a-b-c-d torsion (ASE ``FixInternals``).",
+        "properties": {
+          "a": {
+            "title": "A",
+            "type": "integer"
+          },
+          "b": {
+            "title": "B",
+            "type": "integer"
+          },
+          "c": {
+            "title": "C",
+            "type": "integer"
+          },
+          "d": {
+            "title": "D",
+            "type": "integer"
+          },
+          "kind": {
+            "const": "fix_dihedral",
+            "default": "fix_dihedral",
+            "title": "Kind",
+            "type": "string"
+          },
+          "value": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "target torsion in degrees; None keeps the current one",
+            "title": "Value"
+          }
+        },
+        "required": ["a", "b", "c", "d"],
+        "title": "FixDihedral",
         "type": "object"
       },
       "ForceFieldInfo": {
@@ -2189,6 +2283,28 @@
         },
         "required": ["smiles", "inchi", "inchikey"],
         "title": "Identifiers",
+        "type": "object"
+      },
+      "IgnoreAtoms": {
+        "additionalProperties": false,
+        "description": "Leave these atoms out of the force field entirely (Avogadro's \"Ignore Atom\").\n\nOpen Babel understands this; ASE has no equivalent, so an ASE-driven calculation ignores it.",
+        "properties": {
+          "indices": {
+            "items": {
+              "type": "integer"
+            },
+            "title": "Indices",
+            "type": "array"
+          },
+          "kind": {
+            "const": "ignore_atoms",
+            "default": "ignore_atoms",
+            "title": "Kind",
+            "type": "string"
+          }
+        },
+        "required": ["indices"],
+        "title": "IgnoreAtoms",
         "type": "object"
       },
       "ImportCubeRequest": {
@@ -4626,9 +4742,12 @@
             "items": {
               "discriminator": {
                 "mapping": {
+                  "fix_angle": "#/components/schemas/FixAngle",
                   "fix_atoms": "#/components/schemas/FixAtoms",
                   "fix_bond_length": "#/components/schemas/FixBondLength",
-                  "fix_cartesian": "#/components/schemas/FixCartesian"
+                  "fix_cartesian": "#/components/schemas/FixCartesian",
+                  "fix_dihedral": "#/components/schemas/FixDihedral",
+                  "ignore_atoms": "#/components/schemas/IgnoreAtoms"
                 },
                 "propertyName": "kind"
               },
@@ -4641,6 +4760,15 @@
                 },
                 {
                   "$ref": "#/components/schemas/FixBondLength"
+                },
+                {
+                  "$ref": "#/components/schemas/FixAngle"
+                },
+                {
+                  "$ref": "#/components/schemas/FixDihedral"
+                },
+                {
+                  "$ref": "#/components/schemas/IgnoreAtoms"
                 }
               ]
             },
