@@ -1,6 +1,19 @@
-import { fragmentOf, fragments, perceiveBondsForAtom, sideOfBond } from '../model/connectivity';
-import { angleDeg, dihedralDeg, rotateAbout } from '../model/geometry';
-import { makeAtom, makeBond, normalizeStructure, type StructureDoc } from '../model/structure';
+import {
+  fragmentOf,
+  fragments,
+  minimumImageDistance,
+  perceiveBondsForAtom,
+  sideOfBond,
+} from '../model/connectivity';
+import { angleDeg, dihedralDeg, distance, rotateAbout } from '../model/geometry';
+import {
+  makeAtom,
+  makeBond,
+  normalizeStructure,
+  type Cell,
+  type StructureDoc,
+  type Vec3,
+} from '../model/structure';
 import {
   addAtom,
   cycleBondOrder,
@@ -120,6 +133,119 @@ describe('connectivity', () => {
       [1, 2],
     ]);
     expect(perceiveBondsForAtom(d, 0).map((b) => [b.a, b.b])).toEqual([[0, 1]]);
+  });
+});
+
+describe('periodic bond perception', () => {
+  const cellOf = (vectors: Vec3[], pbc: [boolean, boolean, boolean]): Cell =>
+    ({ vectors, pbc }) as Cell;
+  const ortho = (pbc: [boolean, boolean, boolean] = [true, true, true]): Cell =>
+    cellOf(
+      [
+        [10, 0, 0],
+        [0, 10, 0],
+        [0, 0, 10],
+      ],
+      pbc,
+    );
+  // gamma = 60 degrees, |b| = 10
+  const triclinic = cellOf(
+    [
+      [10, 0, 0],
+      [5, 8.6602540378, 0],
+      [0, 0, 10],
+    ],
+    [true, true, true],
+  );
+  /** Shortest distance found by scanning lattice images directly. */
+  const brute = (a: Vec3, b: Vec3, cell: Cell): number => {
+    const [va, vb, vc] = cell.vectors as [Vec3, Vec3, Vec3];
+    let best = Infinity;
+    for (let i = -2; i <= 2; i++)
+      for (let j = -2; j <= 2; j++)
+        for (let k = -2; k <= 2; k++) {
+          const p: Vec3 = [
+            b[0] + i * va[0] + j * vb[0] + k * vc[0],
+            b[1] + i * va[1] + j * vb[1] + k * vc[1],
+            b[2] + i * va[2] + j * vb[2] + k * vc[2],
+          ];
+          best = Math.min(best, distance(a, p));
+        }
+    return best;
+  };
+  const withCell = (
+    atoms: [string, number, number, number][],
+    cell: Cell | null,
+  ): StructureDoc => ({ ...doc(atoms, []), cell });
+
+  test('an orthorhombic cell bonds atoms across the boundary', () => {
+    const atoms: [string, number, number, number][] = [
+      ['C', 0.2, 0, 0],
+      ['C', 8.8, 0, 0],
+    ];
+    // direct distance 8.6, minimum image 1.4 < 1.15 * 1.52
+    expect(perceiveBondsForAtom(withCell(atoms, ortho()), 0).map((b) => [b.a, b.b])).toEqual([
+      [0, 1],
+    ]);
+    // the same atoms without a cell, or with x aperiodic, stay unbonded
+    expect(perceiveBondsForAtom(withCell(atoms, null), 0)).toEqual([]);
+    expect(perceiveBondsForAtom(withCell(atoms, ortho([false, true, true])), 0)).toEqual([]);
+  });
+
+  test('a triclinic cell bonds along the skewed axis', () => {
+    // fractional (0, 0.9, 0): 9.0 Å away directly, 1.0 Å to the image at (0, -0.1, 0)
+    const atoms: [string, number, number, number][] = [
+      ['C', 0, 0, 0],
+      ['C', 4.5, 7.7942286340158, 0],
+    ];
+    expect(perceiveBondsForAtom(withCell(atoms, triclinic), 0).map((b) => [b.a, b.b])).toEqual([
+      [0, 1],
+    ]);
+    expect(
+      minimumImageDistance(atoms[0]!.slice(1) as Vec3, [4.5, 7.7942286340158, 0], triclinic),
+    ).toBeCloseTo(1, 6);
+  });
+
+  test('minimum-image distances match a direct image scan, including a strongly skewed cell', () => {
+    const skewed = cellOf(
+      [
+        [10, 0, 0],
+        [9, 3, 0],
+        [0, 0, 10],
+      ],
+      [true, true, true],
+    );
+    const pairs: [Vec3, Vec3][] = [
+      [
+        [0, 0, 0],
+        [9.5, 1.5, 0],
+      ],
+      [
+        [1, 2, 3],
+        [8.4, 0.6, 9.2],
+      ],
+      [
+        [0.5, 0.5, 0.5],
+        [1.5, 0.5, 0.5],
+      ],
+    ];
+    for (const [a, b] of pairs) {
+      for (const cell of [ortho(), triclinic, skewed]) {
+        expect(minimumImageDistance(a, b, cell)).toBeCloseTo(brute(a, b, cell), 9);
+      }
+    }
+  });
+
+  test('a singular cell falls back to Cartesian distances', () => {
+    const flat = cellOf(
+      [
+        [10, 0, 0],
+        [10, 0, 0],
+        [0, 0, 10],
+      ],
+      [true, true, true],
+    );
+    expect(minimumImageDistance([0, 0, 0], [3, 4, 0], flat)).toBeCloseTo(5, 9);
   });
 });
 

@@ -1,10 +1,11 @@
 /**
  * Graph helpers over a StructureDoc plus distance-based bond perception. The bonding rule is the
- * same as the backend (`atomscope.chem.bonds`): bonded when d < tolerance * (r_i + r_j).
+ * same as the backend (`atomscope.chem.bonds`): bonded when d < tolerance * (r_i + r_j), with
+ * `d` the minimum-image distance across the periodic directions of the cell.
  */
 import { elementBySymbol } from './elements';
-import { distance } from './geometry';
-import type { Bond, StructureDoc } from './structure';
+import { distance, dot, invert3, mulRow, sub, type Mat3 } from './geometry';
+import type { Bond, Cell, StructureDoc, Vec3 } from './structure';
 
 export const BOND_TOLERANCE = 1.15;
 
@@ -91,6 +92,57 @@ export function sideOfBond(doc: StructureDoc, bondIndex: number, atom: number): 
   return side.has(other) ? new Set([atom]) : side;
 }
 
+// ---- periodic distances ------------------------------------------------------------------------
+
+/** Cell vectors, their inverse and the periodic flags; null when the structure is not periodic. */
+interface Lattice {
+  vectors: Mat3;
+  inverse: Mat3;
+  pbc: Cell['pbc'];
+}
+
+function latticeOf(cell: Cell | null): Lattice | null {
+  if (!cell) return null;
+  const pbc = cell.pbc;
+  if (!pbc.some(Boolean)) return null;
+  const vectors = cell.vectors as Mat3;
+  try {
+    return { vectors, inverse: invert3(vectors), pbc };
+  } catch {
+    return null; // singular cell: fall back to plain Cartesian distances
+  }
+}
+
+const SHIFTS: readonly number[] = [0, -1, 1];
+
+function distanceIn(a: Vec3, b: Vec3, lattice: Lattice | null): number {
+  if (!lattice) return distance(a, b);
+  const { vectors, inverse, pbc } = lattice;
+  const f = mulRow(sub(b, a), inverse);
+  // wrap the fractional difference into [-1/2, 1/2) on the periodic axes
+  if (pbc[0]) f[0] -= Math.round(f[0]);
+  if (pbc[1]) f[1] -= Math.round(f[1]);
+  if (pbc[2]) f[2] -= Math.round(f[2]);
+  // the rounded image is the nearest one only for near-orthogonal cells; scanning the adjacent
+  // images as well makes this exact for strongly skewed (triclinic) lattices too
+  let best = Infinity;
+  const range = (k: 0 | 1 | 2): readonly number[] => (pbc[k] ? SHIFTS : [0]);
+  for (const s0 of range(0)) {
+    for (const s1 of range(1)) {
+      for (const s2 of range(2)) {
+        const d = mulRow([f[0] + s0, f[1] + s1, f[2] + s2], vectors);
+        best = Math.min(best, dot(d, d));
+      }
+    }
+  }
+  return Math.sqrt(best);
+}
+
+/** Shortest distance between two positions across the cell's periodic directions. */
+export function minimumImageDistance(a: Vec3, b: Vec3, cell: Cell | null): number {
+  return distanceIn(a, b, latticeOf(cell));
+}
+
 /** Bonds `atom` should have to existing atoms by the distance rule (excluding already-bonded). */
 export function perceiveBondsForAtom(
   doc: StructureDoc,
@@ -99,12 +151,13 @@ export function perceiveBondsForAtom(
 ): Bond[] {
   const me = doc.atoms[atom];
   if (!me) return [];
+  const lattice = latticeOf(doc.cell);
   const rMe = elementBySymbol(me.element).covalentRadius;
   const out: Bond[] = [];
   doc.atoms.forEach((other, j) => {
     if (j === atom || findBond(doc, atom, j) >= 0) return;
     const cutoff = tolerance * (rMe + elementBySymbol(other.element).covalentRadius);
-    if (distance(me.position, other.position) < cutoff) {
+    if (distanceIn(me.position, other.position, lattice) < cutoff) {
       out.push({ a: Math.min(atom, j), b: Math.max(atom, j), order: 1, aromatic: false });
     }
   });

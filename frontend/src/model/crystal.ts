@@ -3,10 +3,11 @@
  * conversion and the text grammars of the matrix and fractional-coordinate editors.
  */
 import { parseCartesian, type ParsedLine } from '../editor/cartesian';
-import { cross, dot, length } from './geometry';
+import { cross, dot, invert3, length, mulRow, type Mat3 } from './geometry';
 import type { Cell, StructureDoc, Vec3 } from './structure';
 
-export type Mat3 = [Vec3, Vec3, Vec3];
+export { invert3 };
+export type { Mat3 };
 
 export interface CellParameters {
   a: number;
@@ -48,31 +49,6 @@ export function cellParameters(cell: Cell): CellParameters {
 export function cellVolume(cell: Cell): number {
   const [va, vb, vc] = cell.vectors as Mat3;
   return Math.abs(dot(va, cross(vb, vc)));
-}
-
-/** Inverse of a 3x3 row-vector matrix; throws on a singular cell. */
-export function invert3(m: Mat3): Mat3 {
-  const [a, b, c] = m;
-  const r0 = cross(b, c);
-  const r1 = cross(c, a);
-  const r2 = cross(a, b);
-  const det = dot(a, r0);
-  if (Math.abs(det) < 1e-12) throw new Error('cell is singular');
-  // rows of the inverse are the columns of [r0 r1 r2] / det
-  return [
-    [r0[0] / det, r1[0] / det, r2[0] / det],
-    [r0[1] / det, r1[1] / det, r2[1] / det],
-    [r0[2] / det, r1[2] / det, r2[2] / det],
-  ];
-}
-
-/** Row vector times matrix (rows are lattice vectors): frac -> cart uses `cell`, cart -> frac its inverse. */
-function mulRow(v: Vec3, m: Mat3): Vec3 {
-  return [
-    v[0] * m[0][0] + v[1] * m[1][0] + v[2] * m[2][0],
-    v[0] * m[0][1] + v[1] * m[1][1] + v[2] * m[2][1],
-    v[0] * m[0][2] + v[1] * m[1][2] + v[2] * m[2][2],
-  ];
 }
 
 export function fracToCart(frac: Vec3, cell: Cell): Vec3 {

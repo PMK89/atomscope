@@ -13,6 +13,34 @@ export const cross = (a: Vec3, b: Vec3): Vec3 => [
 export const length = (a: Vec3): number => Math.sqrt(dot(a, a));
 export const distance = (a: Vec3, b: Vec3): number => length(sub(a, b));
 
+/** 3x3 matrix as three row vectors (lattice vectors, grid axes). */
+export type Mat3 = [Vec3, Vec3, Vec3];
+
+/** Inverse of a 3x3 row-vector matrix; throws on a singular matrix. */
+export function invert3(m: Mat3): Mat3 {
+  const [a, b, c] = m;
+  const r0 = cross(b, c);
+  const r1 = cross(c, a);
+  const r2 = cross(a, b);
+  const det = dot(a, r0);
+  if (Math.abs(det) < 1e-12) throw new Error('cell is singular');
+  // rows of the inverse are the columns of [r0 r1 r2] / det
+  return [
+    [r0[0] / det, r1[0] / det, r2[0] / det],
+    [r0[1] / det, r1[1] / det, r2[1] / det],
+    [r0[2] / det, r1[2] / det, r2[2] / det],
+  ];
+}
+
+/** Row vector times matrix (rows are basis vectors): frac -> cart uses the cell, cart -> frac its inverse. */
+export function mulRow(v: Vec3, m: Mat3): Vec3 {
+  return [
+    v[0] * m[0][0] + v[1] * m[1][0] + v[2] * m[2][0],
+    v[0] * m[0][1] + v[1] * m[1][1] + v[2] * m[2][1],
+    v[0] * m[0][2] + v[1] * m[1][2] + v[2] * m[2][2],
+  ];
+}
+
 export function normalize(a: Vec3, fallback: Vec3 = [1, 0, 0]): Vec3 {
   const l = length(a);
   return l < 1e-9 ? fallback : scale(a, 1 / l);
