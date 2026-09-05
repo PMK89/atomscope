@@ -4,3179 +4,3294 @@
  */
 
 export interface paths {
-  '/api/backends': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/backends": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Backends */
+        get: operations["list_backends_api_backends_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    /** List Backends */
-    get: operations['list_backends_api_backends_get'];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/backends/{backend_id}/presets': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/backends/{backend_id}/presets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Backend Presets */
+        get: operations["backend_presets_api_backends__backend_id__presets_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    /** Backend Presets */
-    get: operations['backend_presets_api_backends__backend_id__presets_get'];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/backends/{backend_id}/schema': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/backends/{backend_id}/schema": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Backend Schema */
+        get: operations["backend_schema_api_backends__backend_id__schema_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    /** Backend Schema */
-    get: operations['backend_schema_api_backends__backend_id__schema_get'];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/calculations': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/calculations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Calculations */
+        get: operations["list_calculations_api_calculations_get"];
+        put?: never;
+        /** Create Calculation */
+        post: operations["create_calculation_api_calculations_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    /** List Calculations */
-    get: operations['list_calculations_api_calculations_get'];
-    put?: never;
-    /** Create Calculation */
-    post: operations['create_calculation_api_calculations_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/calculations/{calc_id}': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/calculations/{calc_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Calculation */
+        get: operations["get_calculation_api_calculations__calc_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    /** Get Calculation */
-    get: operations['get_calculation_api_calculations__calc_id__get'];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/calculations/{calc_id}/cancel': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/calculations/{calc_id}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Cancel Calculation */
+        post: operations["cancel_calculation_api_calculations__calc_id__cancel_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    get?: never;
-    put?: never;
-    /** Cancel Calculation */
-    post: operations['cancel_calculation_api_calculations__calc_id__cancel_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/calculations/{calc_id}/fork': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/calculations/{calc_id}/fork": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Fork Calculation */
+        post: operations["fork_calculation_api_calculations__calc_id__fork_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    get?: never;
-    put?: never;
-    /** Fork Calculation */
-    post: operations['fork_calculation_api_calculations__calc_id__fork_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/calculations/{calc_id}/generate': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/calculations/{calc_id}/generate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Generate Inputs */
+        post: operations["generate_inputs_api_calculations__calc_id__generate_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    get?: never;
-    put?: never;
-    /** Generate Inputs */
-    post: operations['generate_inputs_api_calculations__calc_id__generate_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/calculations/{calc_id}/log': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/calculations/{calc_id}/log": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Read Log
+         * @description Return the last ``tail`` lines of stdout/stderr or a watched file from the work directory.
+         */
+        get: operations["read_log_api_calculations__calc_id__log_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    /**
-     * Read Log
-     * @description Return the last ``tail`` lines of stdout/stderr or a watched file from the work directory.
-     */
-    get: operations['read_log_api_calculations__calc_id__log_get'];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/calculations/{calc_id}/results': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/calculations/{calc_id}/results": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Results */
+        get: operations["results_api_calculations__calc_id__results_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    /** Results */
-    get: operations['results_api_calculations__calc_id__results_get'];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/calculations/{calc_id}/run': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/calculations/{calc_id}/run": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Run Calculation
+         * @description Async so that JobManager.submit runs inside the server's event loop.
+         */
+        post: operations["run_calculation_api_calculations__calc_id__run_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    get?: never;
-    put?: never;
-    /**
-     * Run Calculation
-     * @description Async so that JobManager.submit runs inside the server's event loop.
-     */
-    post: operations['run_calculation_api_calculations__calc_id__run_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/calculations/{calc_id}/trajectory': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/calculations/{calc_id}/trajectory": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Trajectory */
+        get: operations["trajectory_api_calculations__calc_id__trajectory_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    /** Trajectory */
-    get: operations['trajectory_api_calculations__calc_id__trajectory_get'];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/calculations/{calc_id}/trajectory/positions': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/calculations/{calc_id}/trajectory/positions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Trajectory Positions
+         * @description Raw little-endian float32 positions, frames x atoms x 3 (Å), one frame per chunk.
+         */
+        get: operations["trajectory_positions_api_calculations__calc_id__trajectory_positions_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    /**
-     * Trajectory Positions
-     * @description Raw little-endian float32 positions, frames x atoms x 3 (Å), one frame per chunk.
-     */
-    get: operations['trajectory_positions_api_calculations__calc_id__trajectory_positions_get'];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/calculations/{calc_id}/trajectory/scalars': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/calculations/{calc_id}/trajectory/scalars": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Trajectory Scalars */
+        get: operations["trajectory_scalars_api_calculations__calc_id__trajectory_scalars_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    /** Trajectory Scalars */
-    get: operations['trajectory_scalars_api_calculations__calc_id__trajectory_scalars_get'];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/calculations/{calc_id}/validate': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/calculations/{calc_id}/validate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Validate Calculation */
+        get: operations["validate_calculation_api_calculations__calc_id__validate_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    /** Validate Calculation */
-    get: operations['validate_calculation_api_calculations__calc_id__validate_get'];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/calculations/{calc_id}/values': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/calculations/{calc_id}/values": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Update Values */
+        put: operations["update_values_api_calculations__calc_id__values_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    get?: never;
-    /** Update Values */
-    put: operations['update_values_api_calculations__calc_id__values_put'];
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/grids': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/grids": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List All */
+        get: operations["list_all_api_grids_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    /** List All */
-    get: operations['list_all_api_grids_get'];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/grids/{grid_id}': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/grids/{grid_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Grid */
+        get: operations["get_grid_api_grids__grid_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    /** Get Grid */
-    get: operations['get_grid_api_grids__grid_id__get'];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/grids/{grid_id}/data': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/grids/{grid_id}/data": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Grid Data
+         * @description Raw little-endian float32 values in C order (shape in the X-Grid-Shape header).
+         */
+        get: operations["get_grid_data_api_grids__grid_id__data_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    /**
-     * Get Grid Data
-     * @description Raw little-endian float32 values in C order (shape in the X-Grid-Shape header).
-     */
-    get: operations['get_grid_data_api_grids__grid_id__data_get'];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/grids/{grid_id}/stats': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/grids/{grid_id}/stats": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Grid Stats */
+        get: operations["get_grid_stats_api_grids__grid_id__stats_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    /** Get Grid Stats */
-    get: operations['get_grid_stats_api_grids__grid_id__stats_get'];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/health': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/health": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Health */
+        get: operations["health_api_health_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    /** Health */
-    get: operations['health_api_health_get'];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/io/export': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/io/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Export Structure */
+        post: operations["export_structure_api_io_export_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    get?: never;
-    put?: never;
-    /** Export Structure */
-    post: operations['export_structure_api_io_export_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/io/export/trajectory': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/io/export/trajectory": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Export Trajectory
+         * @description Write a trajectory as extended XYZ (energy, forces, cell, time per frame).
+         */
+        post: operations["export_trajectory_api_io_export_trajectory_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    get?: never;
-    put?: never;
-    /**
-     * Export Trajectory
-     * @description Write a trajectory as extended XYZ (energy, forces, cell, time per frame).
-     */
-    post: operations['export_trajectory_api_io_export_trajectory_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/io/formats': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/io/formats": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Formats */
+        get: operations["list_formats_api_io_formats_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    /** List Formats */
-    get: operations['list_formats_api_io_formats_get'];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/io/import/cube': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/io/import/cube": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Import Cube File
+         * @description Import a Gaussian cube file (optionally gzipped) into the open project as a dataset.
+         */
+        post: operations["import_cube_file_api_io_import_cube_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    get?: never;
-    put?: never;
-    /**
-     * Import Cube File
-     * @description Import a Gaussian cube file (optionally gzipped) into the open project as a dataset.
-     */
-    post: operations['import_cube_file_api_io_import_cube_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/io/import/path': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/io/import/output": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Import Output
+         * @description Import a quantum-chemistry output file (Gaussian, ORCA, NWChem, QE): final structure with
+         *     energy/forces/dipole/charges and the optimization trajectory.
+         */
+        post: operations["import_output_api_io_import_output_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    get?: never;
-    put?: never;
-    /**
-     * Import Path
-     * @description Read a structure from a file on this machine (the backend is local-only).
-     */
-    post: operations['import_path_api_io_import_path_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/io/import/trajectory': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/io/import/path": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Import Path
+         * @description Read a structure from a file on this machine (the backend is local-only).
+         */
+        post: operations["import_path_api_io_import_path_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    get?: never;
-    put?: never;
-    /**
-     * Import Trajectory Path
-     * @description Read a multi-frame file on this machine (extxyz, ASE .traj, XDATCAR, ...).
-     */
-    post: operations['import_trajectory_path_api_io_import_trajectory_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/io/import/trajectory/upload': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/io/import/trajectory": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Import Trajectory Path
+         * @description Read a multi-frame file on this machine (extxyz, ASE .traj, XDATCAR, ...).
+         */
+        post: operations["import_trajectory_path_api_io_import_trajectory_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    get?: never;
-    put?: never;
-    /**
-     * Import Trajectory Upload
-     * @description Read a multi-frame file from the browser file picker (name kept for format detection).
-     */
-    post: operations['import_trajectory_upload_api_io_import_trajectory_upload_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/io/import/upload': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/io/import/trajectory/upload": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Import Trajectory Upload
+         * @description Read a multi-frame file from the browser file picker (name kept for format detection).
+         */
+        post: operations["import_trajectory_upload_api_io_import_trajectory_upload_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    get?: never;
-    put?: never;
-    /**
-     * Import Upload
-     * @description Read a structure from an uploaded file (browser file picker).
-     */
-    post: operations['import_upload_api_io_import_upload_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/io/smiles': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/io/import/upload": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Import Upload
+         * @description Read a structure from an uploaded file (browser file picker).
+         */
+        post: operations["import_upload_api_io_import_upload_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    get?: never;
-    put?: never;
-    /** Build From Smiles */
-    post: operations['build_from_smiles_api_io_smiles_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/project': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/io/smiles": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Build From Smiles */
+        post: operations["build_from_smiles_api_io_smiles_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    /** Current Project */
-    get: operations['current_project_api_project_get'];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/project/close': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/project": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Current Project */
+        get: operations["current_project_api_project_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    get?: never;
-    put?: never;
-    /** Close Project */
-    post: operations['close_project_api_project_close_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/project/create': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/project/close": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Close Project */
+        post: operations["close_project_api_project_close_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    get?: never;
-    put?: never;
-    /** Create Project */
-    post: operations['create_project_api_project_create_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/project/open': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/project/create": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create Project */
+        post: operations["create_project_api_project_create_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    get?: never;
-    put?: never;
-    /** Open Project */
-    post: operations['open_project_api_project_open_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/project/view-settings': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/project/open": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Open Project */
+        post: operations["open_project_api_project_open_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    /** Get View Settings */
-    get: operations['get_view_settings_api_project_view_settings_get'];
-    /**
-     * Put View Settings
-     * @description Persist UI view settings (representation, background, layer toggles) with the project.
-     */
-    put: operations['put_view_settings_api_project_view_settings_put'];
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/structures': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/project/view-settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get View Settings */
+        get: operations["get_view_settings_api_project_view_settings_get"];
+        /**
+         * Put View Settings
+         * @description Persist UI view settings (representation, background, layer toggles) with the project.
+         */
+        put: operations["put_view_settings_api_project_view_settings_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    /** List Structures */
-    get: operations['list_structures_api_structures_get'];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/structures/{structure_id}': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/structures": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Structures */
+        get: operations["list_structures_api_structures_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    /** Get Structure */
-    get: operations['get_structure_api_structures__structure_id__get'];
-    /**
-     * Put Structure
-     * @description Create or replace a structure. The path id must match the body id.
-     */
-    put: operations['put_structure_api_structures__structure_id__put'];
-    post?: never;
-    /** Delete Structure */
-    delete: operations['delete_structure_api_structures__structure_id__delete'];
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
+    "/api/structures/{structure_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Structure */
+        get: operations["get_structure_api_structures__structure_id__get"];
+        /**
+         * Put Structure
+         * @description Create or replace a structure. The path id must match the body id.
+         */
+        put: operations["put_structure_api_structures__structure_id__put"];
+        post?: never;
+        /** Delete Structure */
+        delete: operations["delete_structure_api_structures__structure_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
-  schemas: {
-    /**
-     * Atom
-     * @description One atom. Positions are Cartesian in Å.
-     */
-    Atom: {
-      /**
-       * Element
-       * @description chemical symbol, e.g. 'C'
-       */
-      element: string;
-      /**
-       * Formal Charge
-       * @default 0
-       */
-      formal_charge: number;
-      /** Label */
-      label?: string | null;
-      /**
-       * Position
-       * @description 3-vector
-       */
-      position: [number, number, number];
-      /**
-       * Uid
-       * @description stable id surviving re-indexing
-       */
-      uid?: string;
-    };
-    /**
-     * AtomicScalarProperty
-     * @description One float per atom (partial charges, magnetic moments, ...).
-     */
-    AtomicScalarProperty: {
-      /**
-       * Description
-       * @default
-       */
-      description: string;
-      unit: components['schemas']['Unit'];
-      /** Values */
-      values: number[];
-    };
-    /**
-     * AtomicVectorProperty
-     * @description One 3-vector per atom (forces, velocities, magnetic moment vectors, ...).
-     */
-    AtomicVectorProperty: {
-      /**
-       * Description
-       * @default
-       */
-      description: string;
-      unit: components['schemas']['Unit'];
-      /** Values */
-      values: [number, number, number][];
-    };
-    /** BackendCapabilities */
-    BackendCapabilities: {
-      /**
-       * Bands
-       * @default false
-       */
-      bands: boolean;
-      /**
-       * Density
-       * @default false
-       */
-      density: boolean;
-      /**
-       * Dos
-       * @default false
-       */
-      dos: boolean;
-      /**
-       * Energy
-       * @default false
-       */
-      energy: boolean;
-      /**
-       * Executes
-       * @description False for input-generation-only plugins
-       * @default true
-       */
-      executes: boolean;
-      /**
-       * Forces
-       * @default false
-       */
-      forces: boolean;
-      /**
-       * Molecular
-       * @default true
-       */
-      molecular: boolean;
-      /**
-       * Molecular Dynamics
-       * @default false
-       */
-      molecular_dynamics: boolean;
-      /**
-       * Orbitals
-       * @default false
-       */
-      orbitals: boolean;
-      /**
-       * Periodic
-       * @default true
-       */
-      periodic: boolean;
-      /**
-       * Relaxation
-       * @default false
-       */
-      relaxation: boolean;
-      /**
-       * Stress
-       * @default false
-       */
-      stress: boolean;
-      /**
-       * Vibrations
-       * @default false
-       */
-      vibrations: boolean;
-    };
-    /** BackendInfo */
-    BackendInfo: {
-      capabilities: components['schemas']['BackendCapabilities'];
-      executables: components['schemas']['ExecutableReport'];
-      /** Id */
-      id: string;
-      /** Name */
-      name: string;
-    };
-    /** Body_import_trajectory_upload_api_io_import_trajectory_upload_post */
-    Body_import_trajectory_upload_api_io_import_trajectory_upload_post: {
-      /** File */
-      file: string;
-    };
-    /** Body_import_upload_api_io_import_upload_post */
-    Body_import_upload_api_io_import_upload_post: {
-      /** File */
-      file: string;
-    };
-    /**
-     * Bond
-     * @description A bond between two atom indices of the owning structure.
-     */
-    Bond: {
-      /** A */
-      a: number;
-      /**
-       * Aromatic
-       * @default false
-       */
-      aromatic: boolean;
-      /** B */
-      b: number;
-      /**
-       * Order
-       * @default 1
-       * @enum {integer}
-       */
-      order: 1 | 2 | 3;
-    };
-    /**
-     * Calculation
-     * @description Persisted as ``calculations/<id>/calculation.json`` inside the project.
-     */
-    Calculation: {
-      /** Backend Id */
-      backend_id: string;
-      /**
-       * Created At
-       * Format: date-time
-       */
-      created_at?: string;
-      generated?: components['schemas']['GeneratedInputs'] | null;
-      /** Id */
-      id?: string;
-      job?: components['schemas']['JobRecord'] | null;
-      /** Name */
-      name: string;
-      /**
-       * Notes
-       * @default
-       */
-      notes: string;
-      /**
-       * Parent Calculation Id
-       * @description for reruns/restarts
-       */
-      parent_calculation_id?: string | null;
-      provenance?: components['schemas']['Provenance'] | null;
-      resources?: components['schemas']['Resources'];
-      /** Result Structure Id */
-      result_structure_id?: string | null;
-      results?: components['schemas']['ResultBundle'] | null;
-      /**
-       * Schema Version
-       * @default 1
-       */
-      schema_version: number;
-      /**
-       * Status
-       * @default draft
-       * @enum {string}
-       */
-      status: 'draft' | 'ready' | 'queued' | 'running' | 'completed' | 'failed' | 'cancelled';
-      /**
-       * Structure Id
-       * @description input structure (a copy is stored with the calculation)
-       */
-      structure_id: string;
-      /**
-       * Values
-       * @description full merged parameter values
-       */
-      values?: {
-        [key: string]: unknown;
-      };
-    };
-    /**
-     * Cell
-     * @description Periodic cell: three lattice vectors (Å) and periodicity flags.
-     */
-    Cell: {
-      /**
-       * Pbc
-       * @default [
-       *       true,
-       *       true,
-       *       true
-       *     ]
-       */
-      pbc: [boolean, boolean, boolean];
-      /**
-       * Vectors
-       * @description 3x3 matrix as three row vectors
-       */
-      vectors: [[number, number, number], [number, number, number], [number, number, number]];
-    };
-    /** Choice */
-    Choice: {
-      /**
-       * Help
-       * @default
-       */
-      help: string;
-      /** Label */
-      label: string;
-      /** Value */
-      value: string | number | boolean;
-    };
-    /** CreateCalculationRequest */
-    CreateCalculationRequest: {
-      /** Backend Id */
-      backend_id: string;
-      /** Name */
-      name: string;
-      resources?: components['schemas']['Resources'];
-      /** Structure Id */
-      structure_id: string;
-      /** Values */
-      values?: {
-        [key: string]: unknown;
-      };
-    };
-    /** CreateProjectRequest */
-    CreateProjectRequest: {
-      /** Name */
-      name: string;
-      /**
-       * Path
-       * Format: path
-       * @description absolute path of a new (empty or missing) directory
-       */
-      path: string;
-    };
-    /** ExecutableReport */
-    ExecutableReport: {
-      /** Available */
-      available: boolean;
-      /**
-       * Executables
-       * @description role -> absolute path
-       */
-      executables?: {
-        [key: string]: string;
-      };
-      /** Messages */
-      messages?: string[];
-    };
-    /** ExportRequest */
-    ExportRequest: {
-      /** Format */
-      format: string;
-      /**
-       * Path
-       * @description write here if given, else return text
-       */
-      path?: string | null;
-      structure: components['schemas']['Structure'];
-    };
-    /** ExportResponse */
-    ExportResponse: {
-      /** Path */
-      path?: string | null;
-      /** Text */
-      text?: string | null;
-    };
-    /** ExportTrajectoryRequest */
-    ExportTrajectoryRequest: {
-      /**
-       * Path
-       * @description write here if given, else return text
-       */
-      path?: string | null;
-      trajectory: components['schemas']['Trajectory'];
-    };
-    /** ExportTrajectoryResponse */
-    ExportTrajectoryResponse: {
-      /** Path */
-      path?: string | null;
-      /** Text */
-      text?: string | null;
-    };
-    /** FixAtoms */
-    FixAtoms: {
-      /** Indices */
-      indices: number[];
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      kind: 'fix_atoms';
-    };
-    /** FixBondLength */
-    FixBondLength: {
-      /** A */
-      a: number;
-      /** B */
-      b: number;
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      kind: 'fix_bond_length';
-    };
-    /**
-     * FixCartesian
-     * @description Fix selected Cartesian components (mask True = fixed) of one atom.
-     */
-    FixCartesian: {
-      /** Index */
-      index: number;
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      kind: 'fix_cartesian';
-      /**
-       * Mask
-       * @default [
-       *       true,
-       *       true,
-       *       true
-       *     ]
-       */
-      mask: [boolean, boolean, boolean];
-    };
-    /** ForkRequest */
-    ForkRequest: {
-      /** Name */
-      name?: string | null;
-      /**
-       * Restart From Parent
-       * @default false
-       */
-      restart_from_parent: boolean;
-      /**
-       * Structure Id
-       * @description use another structure instead of the parent's
-       */
-      structure_id?: string | null;
-      /** Values */
-      values?: {
-        [key: string]: unknown;
-      };
-    };
-    /** FormatDescription */
-    FormatDescription: {
-      /** Can Read */
-      can_read: boolean;
-      /** Can Write */
-      can_write: boolean;
-      /** Description */
-      description: string;
-      /** Extensions */
-      extensions: string[];
-      /** Library */
-      library: string;
-      /** Name */
-      name: string;
-    };
-    /**
-     * Frame
-     * @description One frame: positions (Å) and optional cell, plus per-frame scalars/vectors.
-     */
-    Frame: {
-      /** Cell */
-      cell?: [[number, number, number], [number, number, number], [number, number, number]] | null;
-      /**
-       * Energy
-       * @description eV
-       */
-      energy?: number | null;
-      /** Extra */
-      extra?: {
-        [key: string]: number;
-      };
-      /**
-       * Forces
-       * @description eV/Å
-       */
-      forces?: [number, number, number][] | null;
-      /** Positions */
-      positions: [number, number, number][];
-      /** Step */
-      step?: number | null;
-      /**
-       * Temperature
-       * @description K
-       */
-      temperature?: number | null;
-      /**
-       * Time
-       * @description fs
-       */
-      time?: number | null;
-    };
-    /** GeneratedFile */
-    GeneratedFile: {
-      /**
-       * Name
-       * @description file name inside the input directory
-       */
-      name: string;
-      /**
-       * Role
-       * @description input | structure | control | script
-       * @default input
-       */
-      role: string;
-      /** Text */
-      text: string;
-    };
-    /** GeneratedInputs */
-    GeneratedInputs: {
-      /** Files */
-      files: components['schemas']['GeneratedFile'][];
-      /**
-       * Root Name
-       * @description base name of the calculation, e.g. 'case'
-       */
-      root_name: string;
-      /**
-       * Summary
-       * @default
-       */
-      summary: string;
-    };
-    /**
-     * GridRef
-     * @description A grid and where it lives: a calculation's results or a standalone dataset.
-     */
-    GridRef: {
-      /** Calculation Id */
-      calculation_id?: string | null;
-      grid: components['schemas']['VolumetricGrid'];
-    };
-    /** GridStats */
-    GridStats: {
-      /** Abs Max */
-      abs_max: number;
-      /** Has Negative */
-      has_negative: boolean;
-      /** Max */
-      max: number;
-      /** Mean */
-      mean: number;
-      /** Min */
-      min: number;
-      /**
-       * Rule
-       * @description how suggested_isovalue was chosen
-       */
-      rule: string;
-      /** Suggested Isovalue */
-      suggested_isovalue: number;
-    };
-    /** HTTPValidationError */
-    HTTPValidationError: {
-      /** Detail */
-      detail?: components['schemas']['ValidationError'][];
-    };
-    /** HealthResponse */
-    HealthResponse: {
-      /** Ase Version */
-      ase_version: string;
-      /**
-       * Status
-       * @default ok
-       */
-      status: string;
-      /** Version */
-      version: string;
-    };
-    /** ImportCubeRequest */
-    ImportCubeRequest: {
-      /**
-       * Kind
-       * @default other
-       * @enum {string}
-       */
-      kind:
-        | 'electron_density'
-        | 'spin_density'
-        | 'orbital'
-        | 'orbital_density'
-        | 'electrostatic_potential'
-        | 'density_difference'
-        | 'other';
-      /**
-       * Path
-       * Format: path
-       */
-      path: string;
-    };
-    /** ImportCubeResponse */
-    ImportCubeResponse: {
-      grid: components['schemas']['VolumetricGrid'];
-      structure: components['schemas']['Structure'];
-    };
-    /** ImportPathRequest */
-    ImportPathRequest: {
-      /** Format */
-      format?: string | null;
-      /**
-       * Path
-       * Format: path
-       */
-      path: string;
-    };
-    /** ImportTrajectoryRequest */
-    ImportTrajectoryRequest: {
-      /**
-       * Format
-       * @description ASE format name; auto-detected if None
-       */
-      format?: string | null;
-      /**
-       * Path
-       * Format: path
-       */
-      path: string;
-    };
-    /** JobRecord */
-    JobRecord: {
-      /** Calculation Id */
-      calculation_id?: string | null;
-      /**
-       * Created At
-       * Format: date-time
-       */
-      created_at?: string;
-      /** Error */
-      error?: string | null;
-      /** Exit Code */
-      exit_code?: number | null;
-      /** Finished At */
-      finished_at?: string | null;
-      /** Id */
-      id?: string;
-      /** Pid */
-      pid?: number | null;
-      spec: components['schemas']['RunSpec'];
-      /** Started At */
-      started_at?: string | null;
-      /**
-       * Status
-       * @default queued
-       * @enum {string}
-       */
-      status: 'queued' | 'running' | 'completed' | 'failed' | 'cancelled';
-    };
-    /** LogResponse */
-    LogResponse: {
-      /** Lines */
-      lines: string[];
-      /** Stream */
-      stream: string;
-    };
-    /** OpenProjectRequest */
-    OpenProjectRequest: {
-      /**
-       * Path
-       * Format: path
-       * @description absolute path of an existing project directory
-       */
-      path: string;
-    };
-    /**
-     * OrbitalInfo
-     * @description Metadata describing one orbital (band) for orbital selection UIs.
-     */
-    OrbitalInfo: {
-      /**
-       * Energy
-       * @description eV
-       */
-      energy?: number | null;
-      /**
-       * Index
-       * @description 0-based orbital/band index within its spin channel
-       */
-      index: number;
-      /** Kpoint */
-      kpoint?: number | null;
-      /**
-       * Label
-       * @description e.g. 'HOMO', 'LUMO+1', symmetry label
-       */
-      label?: string | null;
-      /** Occupation */
-      occupation?: number | null;
-      /**
-       * Spin
-       * @default none
-       * @enum {string}
-       */
-      spin: 'up' | 'down' | 'none';
-      /** Symmetry */
-      symmetry?: string | null;
-    };
-    /** ParameterSchema */
-    ParameterSchema: {
-      /** Backend */
-      backend: string;
-      /**
-       * Id
-       * @description e.g. 'cppaw'
-       */
-      id: string;
-      /** Sections */
-      sections: components['schemas']['Section'][];
-      /** Title */
-      title: string;
-      /**
-       * Version
-       * @default 1
-       */
-      version: number;
-    };
-    /** ParameterSpec */
-    ParameterSpec: {
-      /**
-       * Advanced
-       * @default false
-       */
-      advanced: boolean;
-      /**
-       * Backend Path
-       * @description where the value lands in the backend input, e.g. 'CONTROL/GENERIC/NSTEP'
-       */
-      backend_path?: string | null;
-      /**
-       * Choices
-       * @description for type 'enum'
-       */
-      choices?: components['schemas']['Choice'][] | null;
-      /** Default */
-      default?: unknown;
-      /**
-       * Exclusive Minimum
-       * @default false
-       */
-      exclusive_minimum: boolean;
-      /**
-       * Group
-       * @description UI sub-grouping inside a section
-       */
-      group?: string | null;
-      /**
-       * Help
-       * @default
-       */
-      help: string;
-      /**
-       * Integer Vector
-       * @description vector of ints instead of floats
-       * @default false
-       */
-      integer_vector: boolean;
-      /**
-       * Key
-       * @description unique within the schema, e.g. 'nstep'
-       */
-      key: string;
-      /** Label */
-      label: string;
-      /**
-       * Length
-       * @description for type 'vector'
-       */
-      length?: number | null;
-      /** Maximum */
-      maximum?: number | null;
-      /** Minimum */
-      minimum?: number | null;
-      /**
-       * Reference
-       * @description manual section / paper
-       */
-      reference?: string | null;
-      /**
-       * Required
-       * @default false
-       */
-      required: boolean;
-      /**
-       * Type
-       * @enum {string}
-       */
-      type: 'integer' | 'number' | 'boolean' | 'string' | 'enum' | 'vector' | 'text';
-      unit?: components['schemas']['Unit'] | null;
-      /** Visible When */
-      visible_when?: components['schemas']['VisibleWhen'][];
-    };
-    /** Preset */
-    Preset: {
-      /**
-       * Description
-       * @default
-       */
-      description: string;
-      /** Id */
-      id: string;
-      /** Name */
-      name: string;
-      /** Schema Id */
-      schema_id: string;
-      /**
-       * Values
-       * @description partial: only keys that differ
-       */
-      values?: {
-        [key: string]: unknown;
-      };
-    };
-    /** ProjectInfo */
-    ProjectInfo: {
-      manifest: components['schemas']['ProjectManifest'];
-      /**
-       * Path
-       * Format: path
-       */
-      path: string;
-    };
-    /** ProjectManifest */
-    ProjectManifest: {
-      /** Calculation Ids */
-      calculation_ids?: string[];
-      /**
-       * Created At
-       * Format: date-time
-       */
-      created_at?: string;
-      /** Dataset Ids */
-      dataset_ids?: string[];
-      /**
-       * Format Version
-       * @default 1
-       */
-      format_version: number;
-      /** Id */
-      id?: string;
-      /**
-       * Modified At
-       * Format: date-time
-       */
-      modified_at?: string;
-      /**
-       * Name
-       * @default untitled project
-       */
-      name: string;
-      /**
-       * Notes
-       * @default
-       */
-      notes: string;
-      /** Structure Ids */
-      structure_ids?: string[];
-      /** View Settings */
-      view_settings?: {
-        [key: string]: unknown;
-      };
-    };
-    /**
-     * Provenance
-     * @description Where a piece of data came from.
-     */
-    Provenance: {
-      /**
-       * Created At
-       * Format: date-time
-       */
-      created_at?: string;
-      /**
-       * Notes
-       * @default
-       */
-      notes: string;
-      /**
-       * Parents
-       * @description ids of parent objects
-       */
-      parents?: string[];
-      /**
-       * Software
-       * @description e.g. 'CP-PAW aa467ef', 'ASE 3.26'
-       */
-      software?: string | null;
-      /**
-       * Source
-       * @description file path, backend id, tool name or 'user'
-       */
-      source: string;
-    };
-    /**
-     * Quantity
-     * @description A scalar with an explicit unit.
-     */
-    Quantity: {
-      unit: components['schemas']['Unit'];
-      /** Value */
-      value: number;
-    };
-    /**
-     * Residue
-     * @description Residue/chain information for biomolecules.
-     */
-    Residue: {
-      /** Atom Indices */
-      atom_indices: number[];
-      /**
-       * Chain
-       * @default
-       */
-      chain: string;
-      /** Name */
-      name: string;
-      /** Number */
-      number: number;
-    };
-    /** Resources */
-    Resources: {
-      /**
-       * Cores
-       * @default 1
-       */
-      cores: number;
-      /**
-       * Mpi
-       * @default false
-       */
-      mpi: boolean;
-    };
-    /**
-     * ResultBundle
-     * @description Parsed results in Atomscope model types. Backend-specific data stays in ``extra``.
-     */
-    ResultBundle: {
-      /**
-       * Complete
-       * @description the program's own normal-termination marker was found
-       */
-      complete?: boolean | null;
-      /** Converged */
-      converged?: boolean | null;
-      /** Extra */
-      extra?: {
-        [key: string]: unknown;
-      };
-      final_structure?: components['schemas']['Structure'] | null;
-      /** Grids */
-      grids?: components['schemas']['VolumetricGrid'][];
-      /** Properties */
-      properties?: {
-        [key: string]: components['schemas']['Quantity'];
-      };
-      /** Series */
-      series?: components['schemas']['ScalarSeries'][];
-      trajectory?: components['schemas']['Trajectory'] | null;
-      /** Warnings */
-      warnings?: string[];
-    };
-    /**
-     * RunSpec
-     * @description Everything needed to start a process. Built by backend plugins, executed by JobManager.
-     */
-    RunSpec: {
-      /**
-       * Argv
-       * @description argv[0] is an absolute executable path
-       */
-      argv: string[];
-      /**
-       * Cwd
-       * Format: path
-       */
-      cwd: string;
-      /**
-       * Description
-       * @default
-       */
-      description: string;
-      /**
-       * Env
-       * @description added to a minimal base env
-       */
-      env?: {
-        [key: string]: string;
-      };
-      /**
-       * Soft Stop Seconds
-       * @description seconds given to the process itself (SIGTERM to its PID) before the whole process group is signalled
-       * @default 5
-       */
-      soft_stop_seconds: number;
-      /**
-       * Stderr Name
-       * @default stderr.log
-       */
-      stderr_name: string;
-      /**
-       * Stdout Name
-       * @default stdout.log
-       */
-      stdout_name: string;
-      /**
-       * Watch Files
-       * @description files (relative to cwd) whose growth is streamed
-       */
-      watch_files?: string[];
-    };
-    /**
-     * ScalarSeries
-     * @description A named 1-D series (e.g. energy per iteration) with units.
-     */
-    ScalarSeries: {
-      /** Name */
-      name: string;
-      /** X */
-      x: number[];
-      /** X Label */
-      x_label: string;
-      /**
-       * X Unit
-       * @default
-       */
-      x_unit: string;
-      /** Y */
-      y: number[];
-      /** Y Label */
-      y_label: string;
-      /**
-       * Y Unit
-       * @default
-       */
-      y_unit: string;
-    };
-    /** Section */
-    Section: {
-      /**
-       * Advanced
-       * @default false
-       */
-      advanced: boolean;
-      /**
-       * Help
-       * @default
-       */
-      help: string;
-      /** Id */
-      id: string;
-      /** Label */
-      label: string;
-      /** Parameters */
-      parameters?: components['schemas']['ParameterSpec'][];
-    };
-    /** SmilesRequest */
-    SmilesRequest: {
-      /**
-       * Add Hydrogens
-       * @default true
-       */
-      add_hydrogens: boolean;
-      /** Smiles */
-      smiles: string;
-    };
-    /**
-     * Structure
-     * @description The central editable object: atoms, bonds, cell and attached properties.
-     */
-    Structure: {
-      /** Atomic Scalars */
-      atomic_scalars?: {
-        [key: string]: components['schemas']['AtomicScalarProperty'];
-      };
-      /** Atomic Vectors */
-      atomic_vectors?: {
-        [key: string]: components['schemas']['AtomicVectorProperty'];
-      };
-      /** Atoms */
-      atoms?: components['schemas']['Atom'][];
-      /** Bonds */
-      bonds?: components['schemas']['Bond'][];
-      cell?: components['schemas']['Cell'] | null;
-      /**
-       * Charge
-       * @description total charge in e
-       * @default 0
-       */
-      charge: number;
-      /** Constraints */
-      constraints?: (
-        | components['schemas']['FixAtoms']
-        | components['schemas']['FixCartesian']
-        | components['schemas']['FixBondLength']
-      )[];
-      /** Id */
-      id?: string;
-      /**
-       * Multiplicity
-       * @description 2S+1; None = unspecified
-       */
-      multiplicity?: number | null;
-      /**
-       * Name
-       * @default untitled
-       */
-      name: string;
-      /** Properties */
-      properties?: {
-        [key: string]: components['schemas']['Quantity'];
-      };
-      provenance?: components['schemas']['Provenance'] | null;
-      /** Residues */
-      residues?: components['schemas']['Residue'][];
-    };
-    /** StructureSummary */
-    StructureSummary: {
-      /** Formula */
-      formula: string;
-      /** Id */
-      id: string;
-      /** N Atoms */
-      n_atoms: number;
-      /** Name */
-      name: string;
-      /** Periodic */
-      periodic: boolean;
-    };
-    /**
-     * Trajectory
-     * @description A sequence of frames sharing the topology of ``structure_id``.
-     */
-    Trajectory: {
-      /** Frames */
-      frames?: components['schemas']['Frame'][];
-      /** Id */
-      id: string;
-      /**
-       * Kind
-       * @description optimization | md | neb | vibration | generic
-       * @default generic
-       */
-      kind: string;
-      /** Name */
-      name: string;
-      provenance?: components['schemas']['Provenance'] | null;
-      /** Structure Id */
-      structure_id?: string | null;
-      /** Symbols */
-      symbols: string[];
-    };
-    /** TrajectoryImport */
-    TrajectoryImport: {
-      /** @description first frame, with perceived bonds */
-      structure: components['schemas']['Structure'];
-      trajectory: components['schemas']['Trajectory'];
-    };
-    /**
-     * TrajectoryScalars
-     * @description Per-frame scalars and cells; the companion of the binary positions stream.
-     */
-    TrajectoryScalars: {
-      /** Cells */
-      cells: (
-        [[number, number, number], [number, number, number], [number, number, number]] | null
-      )[];
-      /** Energy */
-      energy: (number | null)[];
-      /** Id */
-      id: string;
-      /** Kind */
-      kind: string;
-      /** N Atoms */
-      n_atoms: number;
-      /** N Frames */
-      n_frames: number;
-      /** Name */
-      name: string;
-      /** Step */
-      step: (number | null)[];
-      /** Symbols */
-      symbols: string[];
-      /** Temperature */
-      temperature: (number | null)[];
-      /** Time */
-      time: (number | null)[];
-    };
-    /**
-     * Unit
-     * @description Units that can appear on quantities in the data model.
-     * @enum {string}
-     */
-    Unit:
-      | 'angstrom'
-      | 'bohr'
-      | 'nm'
-      | 'eV'
-      | 'hartree'
-      | 'kJ/mol'
-      | 'kcal/mol'
-      | 'rydberg'
-      | 'eV/angstrom'
-      | 'hartree/bohr'
-      | 'fs'
-      | 'atomic_time'
-      | 'ps'
-      | 'e'
-      | 'muB'
-      | 'K'
-      | 'cm^-1'
-      | 'debye'
-      | 'e*angstrom'
-      | ''
-      | 'e/angstrom^3'
-      | 'e/bohr^3'
-      | 'V'
-      | 'hartree/e';
-    /** UpdateValuesRequest */
-    UpdateValuesRequest: {
-      /** Values */
-      values: {
-        [key: string]: unknown;
-      };
-    };
-    /** ValidationError */
-    ValidationError: {
-      /** Context */
-      ctx?: Record<string, never>;
-      /** Input */
-      input?: unknown;
-      /** Location */
-      loc: (string | number)[];
-      /** Message */
-      msg: string;
-      /** Error Type */
-      type: string;
-    };
-    /** ValidationIssue */
-    ValidationIssue: {
-      /** Key */
-      key: string | null;
-      /** Message */
-      message: string;
-      /**
-       * Severity
-       * @default error
-       * @enum {string}
-       */
-      severity: 'error' | 'warning';
-    };
-    /** ValidationReport */
-    ValidationReport: {
-      /** Issues */
-      issues?: components['schemas']['ValidationIssue'][];
-    };
-    /** ViewSettingsBody */
-    ViewSettingsBody: {
-      /** Settings */
-      settings: {
-        [key: string]: unknown;
-      };
-    };
-    /**
-     * VisibleWhen
-     * @description Show a parameter only when another parameter satisfies a condition.
-     */
-    VisibleWhen: {
-      /** Key */
-      key: string;
-      /**
-       * Op
-       * @default eq
-       * @enum {string}
-       */
-      op: 'eq' | 'ne' | 'in' | 'not_in' | 'truthy' | 'falsy';
-      /** Value */
-      value?: unknown;
-    };
-    /**
-     * VolumetricGrid
-     * @description A regular 3D grid. Voxel (i,j,k) sits at origin + i*axes[0] + j*axes[1] + k*axes[2].
-     *
-     *     Values are stored in a binary sidecar (``data_ref``: path relative to the owning
-     *     project/calculation, little-endian float32 or float64, C order matching ``shape``) or
-     *     inline for small grids. Exactly one of ``data_ref`` / ``inline_values`` is set.
-     */
-    VolumetricGrid: {
-      /**
-       * Axes
-       * @description step vectors in Å
-       */
-      axes: [[number, number, number], [number, number, number], [number, number, number]];
-      /** Data Ref */
-      data_ref?: string | null;
-      /**
-       * Dtype
-       * @default float32
-       * @enum {string}
-       */
-      dtype: 'float32' | 'float64';
-      /** Id */
-      id: string;
-      /** Inline Values */
-      inline_values?: number[] | null;
-      /**
-       * Kind
-       * @default other
-       * @enum {string}
-       */
-      kind:
-        | 'electron_density'
-        | 'spin_density'
-        | 'orbital'
-        | 'orbital_density'
-        | 'electrostatic_potential'
-        | 'density_difference'
-        | 'other';
-      /** Name */
-      name: string;
-      orbital?: components['schemas']['OrbitalInfo'] | null;
-      /**
-       * Origin
-       * @description Å
-       */
-      origin: [number, number, number];
-      provenance?: components['schemas']['Provenance'] | null;
-      /** Shape */
-      shape: [number, number, number];
-      /**
-       * Structure Id
-       * @description structure the grid belongs to
-       */
-      structure_id?: string | null;
-      unit: components['schemas']['Unit'];
-    };
-  };
-  responses: never;
-  parameters: never;
-  requestBodies: never;
-  headers: never;
-  pathItems: never;
+    schemas: {
+        /**
+         * Atom
+         * @description One atom. Positions are Cartesian in Å.
+         */
+        Atom: {
+            /**
+             * Element
+             * @description chemical symbol, e.g. 'C'
+             */
+            element: string;
+            /**
+             * Formal Charge
+             * @default 0
+             */
+            formal_charge: number;
+            /** Label */
+            label?: string | null;
+            /**
+             * Position
+             * @description 3-vector
+             */
+            position: [
+                number,
+                number,
+                number
+            ];
+            /**
+             * Uid
+             * @description stable id surviving re-indexing
+             */
+            uid?: string;
+        };
+        /**
+         * AtomicScalarProperty
+         * @description One float per atom (partial charges, magnetic moments, ...).
+         */
+        AtomicScalarProperty: {
+            /**
+             * Description
+             * @default
+             */
+            description: string;
+            unit: components["schemas"]["Unit"];
+            /** Values */
+            values: number[];
+        };
+        /**
+         * AtomicVectorProperty
+         * @description One 3-vector per atom (forces, velocities, magnetic moment vectors, ...).
+         */
+        AtomicVectorProperty: {
+            /**
+             * Description
+             * @default
+             */
+            description: string;
+            unit: components["schemas"]["Unit"];
+            /** Values */
+            values: [
+                number,
+                number,
+                number
+            ][];
+        };
+        /** BackendCapabilities */
+        BackendCapabilities: {
+            /**
+             * Bands
+             * @default false
+             */
+            bands: boolean;
+            /**
+             * Density
+             * @default false
+             */
+            density: boolean;
+            /**
+             * Dos
+             * @default false
+             */
+            dos: boolean;
+            /**
+             * Energy
+             * @default false
+             */
+            energy: boolean;
+            /**
+             * Executes
+             * @description False for input-generation-only plugins
+             * @default true
+             */
+            executes: boolean;
+            /**
+             * Forces
+             * @default false
+             */
+            forces: boolean;
+            /**
+             * Molecular
+             * @default true
+             */
+            molecular: boolean;
+            /**
+             * Molecular Dynamics
+             * @default false
+             */
+            molecular_dynamics: boolean;
+            /**
+             * Orbitals
+             * @default false
+             */
+            orbitals: boolean;
+            /**
+             * Periodic
+             * @default true
+             */
+            periodic: boolean;
+            /**
+             * Relaxation
+             * @default false
+             */
+            relaxation: boolean;
+            /**
+             * Stress
+             * @default false
+             */
+            stress: boolean;
+            /**
+             * Vibrations
+             * @default false
+             */
+            vibrations: boolean;
+        };
+        /** BackendInfo */
+        BackendInfo: {
+            capabilities: components["schemas"]["BackendCapabilities"];
+            executables: components["schemas"]["ExecutableReport"];
+            /** Id */
+            id: string;
+            /** Name */
+            name: string;
+        };
+        /** Body_import_trajectory_upload_api_io_import_trajectory_upload_post */
+        Body_import_trajectory_upload_api_io_import_trajectory_upload_post: {
+            /** File */
+            file: string;
+        };
+        /** Body_import_upload_api_io_import_upload_post */
+        Body_import_upload_api_io_import_upload_post: {
+            /** File */
+            file: string;
+        };
+        /**
+         * Bond
+         * @description A bond between two atom indices of the owning structure.
+         */
+        Bond: {
+            /** A */
+            a: number;
+            /**
+             * Aromatic
+             * @default false
+             */
+            aromatic: boolean;
+            /** B */
+            b: number;
+            /**
+             * Order
+             * @default 1
+             * @enum {integer}
+             */
+            order: 1 | 2 | 3;
+        };
+        /**
+         * Calculation
+         * @description Persisted as ``calculations/<id>/calculation.json`` inside the project.
+         */
+        Calculation: {
+            /** Backend Id */
+            backend_id: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at?: string;
+            generated?: components["schemas"]["GeneratedInputs"] | null;
+            /** Id */
+            id?: string;
+            job?: components["schemas"]["JobRecord"] | null;
+            /** Name */
+            name: string;
+            /**
+             * Notes
+             * @default
+             */
+            notes: string;
+            /**
+             * Parent Calculation Id
+             * @description for reruns/restarts
+             */
+            parent_calculation_id?: string | null;
+            provenance?: components["schemas"]["Provenance"] | null;
+            resources?: components["schemas"]["Resources"];
+            /** Result Structure Id */
+            result_structure_id?: string | null;
+            results?: components["schemas"]["ResultBundle"] | null;
+            /**
+             * Schema Version
+             * @default 1
+             */
+            schema_version: number;
+            /**
+             * Status
+             * @default draft
+             * @enum {string}
+             */
+            status: "draft" | "ready" | "queued" | "running" | "completed" | "failed" | "cancelled";
+            /**
+             * Structure Id
+             * @description input structure (a copy is stored with the calculation)
+             */
+            structure_id: string;
+            /**
+             * Values
+             * @description full merged parameter values
+             */
+            values?: {
+                [key: string]: unknown;
+            };
+        };
+        /**
+         * Cell
+         * @description Periodic cell: three lattice vectors (Å) and periodicity flags.
+         */
+        Cell: {
+            /**
+             * Pbc
+             * @default [
+             *       true,
+             *       true,
+             *       true
+             *     ]
+             */
+            pbc: [
+                boolean,
+                boolean,
+                boolean
+            ];
+            /**
+             * Vectors
+             * @description 3x3 matrix as three row vectors
+             */
+            vectors: [
+                [
+                    number,
+                    number,
+                    number
+                ],
+                [
+                    number,
+                    number,
+                    number
+                ],
+                [
+                    number,
+                    number,
+                    number
+                ]
+            ];
+        };
+        /** Choice */
+        Choice: {
+            /**
+             * Help
+             * @default
+             */
+            help: string;
+            /** Label */
+            label: string;
+            /** Value */
+            value: string | number | boolean;
+        };
+        /** CreateCalculationRequest */
+        CreateCalculationRequest: {
+            /** Backend Id */
+            backend_id: string;
+            /** Name */
+            name: string;
+            resources?: components["schemas"]["Resources"];
+            /** Structure Id */
+            structure_id: string;
+            /** Values */
+            values?: {
+                [key: string]: unknown;
+            };
+        };
+        /** CreateProjectRequest */
+        CreateProjectRequest: {
+            /** Name */
+            name: string;
+            /**
+             * Path
+             * Format: path
+             * @description absolute path of a new (empty or missing) directory
+             */
+            path: string;
+        };
+        /** ExecutableReport */
+        ExecutableReport: {
+            /** Available */
+            available: boolean;
+            /**
+             * Executables
+             * @description role -> absolute path
+             */
+            executables?: {
+                [key: string]: string;
+            };
+            /** Messages */
+            messages?: string[];
+        };
+        /** ExportRequest */
+        ExportRequest: {
+            /** Format */
+            format: string;
+            /**
+             * Path
+             * @description write here if given, else return text
+             */
+            path?: string | null;
+            structure: components["schemas"]["Structure"];
+        };
+        /** ExportResponse */
+        ExportResponse: {
+            /** Path */
+            path?: string | null;
+            /** Text */
+            text?: string | null;
+        };
+        /** ExportTrajectoryRequest */
+        ExportTrajectoryRequest: {
+            /**
+             * Path
+             * @description write here if given, else return text
+             */
+            path?: string | null;
+            trajectory: components["schemas"]["Trajectory"];
+        };
+        /** ExportTrajectoryResponse */
+        ExportTrajectoryResponse: {
+            /** Path */
+            path?: string | null;
+            /** Text */
+            text?: string | null;
+        };
+        /** FixAtoms */
+        FixAtoms: {
+            /** Indices */
+            indices: number[];
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "fix_atoms";
+        };
+        /** FixBondLength */
+        FixBondLength: {
+            /** A */
+            a: number;
+            /** B */
+            b: number;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "fix_bond_length";
+        };
+        /**
+         * FixCartesian
+         * @description Fix selected Cartesian components (mask True = fixed) of one atom.
+         */
+        FixCartesian: {
+            /** Index */
+            index: number;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "fix_cartesian";
+            /**
+             * Mask
+             * @default [
+             *       true,
+             *       true,
+             *       true
+             *     ]
+             */
+            mask: [
+                boolean,
+                boolean,
+                boolean
+            ];
+        };
+        /** ForkRequest */
+        ForkRequest: {
+            /** Name */
+            name?: string | null;
+            /**
+             * Restart From Parent
+             * @default false
+             */
+            restart_from_parent: boolean;
+            /**
+             * Structure Id
+             * @description use another structure instead of the parent's
+             */
+            structure_id?: string | null;
+            /** Values */
+            values?: {
+                [key: string]: unknown;
+            };
+        };
+        /** FormatDescription */
+        FormatDescription: {
+            /** Can Read */
+            can_read: boolean;
+            /** Can Write */
+            can_write: boolean;
+            /** Description */
+            description: string;
+            /** Extensions */
+            extensions: string[];
+            /** Library */
+            library: string;
+            /** Name */
+            name: string;
+        };
+        /**
+         * Frame
+         * @description One frame: positions (Å) and optional cell, plus per-frame scalars/vectors.
+         */
+        Frame: {
+            /** Cell */
+            cell?: [
+                [
+                    number,
+                    number,
+                    number
+                ],
+                [
+                    number,
+                    number,
+                    number
+                ],
+                [
+                    number,
+                    number,
+                    number
+                ]
+            ] | null;
+            /**
+             * Energy
+             * @description eV
+             */
+            energy?: number | null;
+            /** Extra */
+            extra?: {
+                [key: string]: number;
+            };
+            /**
+             * Forces
+             * @description eV/Å
+             */
+            forces?: [
+                number,
+                number,
+                number
+            ][] | null;
+            /** Positions */
+            positions: [
+                number,
+                number,
+                number
+            ][];
+            /** Step */
+            step?: number | null;
+            /**
+             * Temperature
+             * @description K
+             */
+            temperature?: number | null;
+            /**
+             * Time
+             * @description fs
+             */
+            time?: number | null;
+        };
+        /** GeneratedFile */
+        GeneratedFile: {
+            /**
+             * Name
+             * @description file name inside the input directory
+             */
+            name: string;
+            /**
+             * Role
+             * @description input | structure | control | script
+             * @default input
+             */
+            role: string;
+            /** Text */
+            text: string;
+        };
+        /** GeneratedInputs */
+        GeneratedInputs: {
+            /** Files */
+            files: components["schemas"]["GeneratedFile"][];
+            /**
+             * Root Name
+             * @description base name of the calculation, e.g. 'case'
+             */
+            root_name: string;
+            /**
+             * Summary
+             * @default
+             */
+            summary: string;
+        };
+        /**
+         * GridRef
+         * @description A grid and where it lives: a calculation's results or a standalone dataset.
+         */
+        GridRef: {
+            /** Calculation Id */
+            calculation_id?: string | null;
+            grid: components["schemas"]["VolumetricGrid"];
+        };
+        /** GridStats */
+        GridStats: {
+            /** Abs Max */
+            abs_max: number;
+            /** Has Negative */
+            has_negative: boolean;
+            /** Max */
+            max: number;
+            /** Mean */
+            mean: number;
+            /** Min */
+            min: number;
+            /**
+             * Rule
+             * @description how suggested_isovalue was chosen
+             */
+            rule: string;
+            /** Suggested Isovalue */
+            suggested_isovalue: number;
+        };
+        /** HTTPValidationError */
+        HTTPValidationError: {
+            /** Detail */
+            detail?: components["schemas"]["ValidationError"][];
+        };
+        /** HealthResponse */
+        HealthResponse: {
+            /** Ase Version */
+            ase_version: string;
+            /**
+             * Status
+             * @default ok
+             */
+            status: string;
+            /** Version */
+            version: string;
+        };
+        /** ImportCubeRequest */
+        ImportCubeRequest: {
+            /**
+             * Kind
+             * @default other
+             * @enum {string}
+             */
+            kind: "electron_density" | "spin_density" | "orbital" | "orbital_density" | "electrostatic_potential" | "density_difference" | "other";
+            /**
+             * Path
+             * Format: path
+             */
+            path: string;
+        };
+        /** ImportCubeResponse */
+        ImportCubeResponse: {
+            grid: components["schemas"]["VolumetricGrid"];
+            structure: components["schemas"]["Structure"];
+        };
+        /** ImportPathRequest */
+        ImportPathRequest: {
+            /** Format */
+            format?: string | null;
+            /**
+             * Path
+             * Format: path
+             */
+            path: string;
+        };
+        /** ImportTrajectoryRequest */
+        ImportTrajectoryRequest: {
+            /**
+             * Format
+             * @description ASE format name; auto-detected if None
+             */
+            format?: string | null;
+            /**
+             * Path
+             * Format: path
+             */
+            path: string;
+        };
+        /** JobRecord */
+        JobRecord: {
+            /** Calculation Id */
+            calculation_id?: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at?: string;
+            /** Error */
+            error?: string | null;
+            /** Exit Code */
+            exit_code?: number | null;
+            /** Finished At */
+            finished_at?: string | null;
+            /** Id */
+            id?: string;
+            /** Pid */
+            pid?: number | null;
+            spec: components["schemas"]["RunSpec"];
+            /** Started At */
+            started_at?: string | null;
+            /**
+             * Status
+             * @default queued
+             * @enum {string}
+             */
+            status: "queued" | "running" | "completed" | "failed" | "cancelled";
+        };
+        /** LogResponse */
+        LogResponse: {
+            /** Lines */
+            lines: string[];
+            /** Stream */
+            stream: string;
+        };
+        /** OpenProjectRequest */
+        OpenProjectRequest: {
+            /**
+             * Path
+             * Format: path
+             * @description absolute path of an existing project directory
+             */
+            path: string;
+        };
+        /**
+         * OrbitalInfo
+         * @description Metadata describing one orbital (band) for orbital selection UIs.
+         */
+        OrbitalInfo: {
+            /**
+             * Energy
+             * @description eV
+             */
+            energy?: number | null;
+            /**
+             * Index
+             * @description 0-based orbital/band index within its spin channel
+             */
+            index: number;
+            /** Kpoint */
+            kpoint?: number | null;
+            /**
+             * Label
+             * @description e.g. 'HOMO', 'LUMO+1', symmetry label
+             */
+            label?: string | null;
+            /** Occupation */
+            occupation?: number | null;
+            /**
+             * Spin
+             * @default none
+             * @enum {string}
+             */
+            spin: "up" | "down" | "none";
+            /** Symmetry */
+            symmetry?: string | null;
+        };
+        /** OutputImport */
+        OutputImport: {
+            /** N Frames */
+            n_frames: number;
+            /** Program Format */
+            program_format: string;
+            structure: components["schemas"]["Structure"];
+            trajectory?: components["schemas"]["Trajectory"] | null;
+        };
+        /** ParameterSchema */
+        ParameterSchema: {
+            /** Backend */
+            backend: string;
+            /**
+             * Id
+             * @description e.g. 'cppaw'
+             */
+            id: string;
+            /** Sections */
+            sections: components["schemas"]["Section"][];
+            /** Title */
+            title: string;
+            /**
+             * Version
+             * @default 1
+             */
+            version: number;
+        };
+        /** ParameterSpec */
+        ParameterSpec: {
+            /**
+             * Advanced
+             * @default false
+             */
+            advanced: boolean;
+            /**
+             * Backend Path
+             * @description where the value lands in the backend input, e.g. 'CONTROL/GENERIC/NSTEP'
+             */
+            backend_path?: string | null;
+            /**
+             * Choices
+             * @description for type 'enum'
+             */
+            choices?: components["schemas"]["Choice"][] | null;
+            /** Default */
+            default?: unknown;
+            /**
+             * Exclusive Minimum
+             * @default false
+             */
+            exclusive_minimum: boolean;
+            /**
+             * Group
+             * @description UI sub-grouping inside a section
+             */
+            group?: string | null;
+            /**
+             * Help
+             * @default
+             */
+            help: string;
+            /**
+             * Integer Vector
+             * @description vector of ints instead of floats
+             * @default false
+             */
+            integer_vector: boolean;
+            /**
+             * Key
+             * @description unique within the schema, e.g. 'nstep'
+             */
+            key: string;
+            /** Label */
+            label: string;
+            /**
+             * Length
+             * @description for type 'vector'
+             */
+            length?: number | null;
+            /** Maximum */
+            maximum?: number | null;
+            /** Minimum */
+            minimum?: number | null;
+            /**
+             * Reference
+             * @description manual section / paper
+             */
+            reference?: string | null;
+            /**
+             * Required
+             * @default false
+             */
+            required: boolean;
+            /**
+             * Type
+             * @enum {string}
+             */
+            type: "integer" | "number" | "boolean" | "string" | "enum" | "vector" | "text";
+            unit?: components["schemas"]["Unit"] | null;
+            /** Visible When */
+            visible_when?: components["schemas"]["VisibleWhen"][];
+        };
+        /** Preset */
+        Preset: {
+            /**
+             * Description
+             * @default
+             */
+            description: string;
+            /** Id */
+            id: string;
+            /** Name */
+            name: string;
+            /** Schema Id */
+            schema_id: string;
+            /**
+             * Values
+             * @description partial: only keys that differ
+             */
+            values?: {
+                [key: string]: unknown;
+            };
+        };
+        /** ProjectInfo */
+        ProjectInfo: {
+            manifest: components["schemas"]["ProjectManifest"];
+            /**
+             * Path
+             * Format: path
+             */
+            path: string;
+        };
+        /** ProjectManifest */
+        ProjectManifest: {
+            /** Calculation Ids */
+            calculation_ids?: string[];
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at?: string;
+            /** Dataset Ids */
+            dataset_ids?: string[];
+            /**
+             * Format Version
+             * @default 1
+             */
+            format_version: number;
+            /** Id */
+            id?: string;
+            /**
+             * Modified At
+             * Format: date-time
+             */
+            modified_at?: string;
+            /**
+             * Name
+             * @default untitled project
+             */
+            name: string;
+            /**
+             * Notes
+             * @default
+             */
+            notes: string;
+            /** Structure Ids */
+            structure_ids?: string[];
+            /** View Settings */
+            view_settings?: {
+                [key: string]: unknown;
+            };
+        };
+        /**
+         * Provenance
+         * @description Where a piece of data came from.
+         */
+        Provenance: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at?: string;
+            /**
+             * Notes
+             * @default
+             */
+            notes: string;
+            /**
+             * Parents
+             * @description ids of parent objects
+             */
+            parents?: string[];
+            /**
+             * Software
+             * @description e.g. 'CP-PAW aa467ef', 'ASE 3.26'
+             */
+            software?: string | null;
+            /**
+             * Source
+             * @description file path, backend id, tool name or 'user'
+             */
+            source: string;
+        };
+        /**
+         * Quantity
+         * @description A scalar with an explicit unit.
+         */
+        Quantity: {
+            unit: components["schemas"]["Unit"];
+            /** Value */
+            value: number;
+        };
+        /**
+         * Residue
+         * @description Residue/chain information for biomolecules.
+         */
+        Residue: {
+            /** Atom Indices */
+            atom_indices: number[];
+            /**
+             * Chain
+             * @default
+             */
+            chain: string;
+            /** Name */
+            name: string;
+            /** Number */
+            number: number;
+        };
+        /** Resources */
+        Resources: {
+            /**
+             * Cores
+             * @default 1
+             */
+            cores: number;
+            /**
+             * Mpi
+             * @default false
+             */
+            mpi: boolean;
+        };
+        /**
+         * ResultBundle
+         * @description Parsed results in Atomscope model types. Backend-specific data stays in ``extra``.
+         */
+        ResultBundle: {
+            /**
+             * Complete
+             * @description the program's own normal-termination marker was found
+             */
+            complete?: boolean | null;
+            /** Converged */
+            converged?: boolean | null;
+            /** Extra */
+            extra?: {
+                [key: string]: unknown;
+            };
+            final_structure?: components["schemas"]["Structure"] | null;
+            /** Grids */
+            grids?: components["schemas"]["VolumetricGrid"][];
+            /** Properties */
+            properties?: {
+                [key: string]: components["schemas"]["Quantity"];
+            };
+            /** Series */
+            series?: components["schemas"]["ScalarSeries"][];
+            trajectory?: components["schemas"]["Trajectory"] | null;
+            /** Warnings */
+            warnings?: string[];
+        };
+        /**
+         * RunSpec
+         * @description Everything needed to start a process. Built by backend plugins, executed by JobManager.
+         */
+        RunSpec: {
+            /**
+             * Argv
+             * @description argv[0] is an absolute executable path
+             */
+            argv: string[];
+            /**
+             * Cwd
+             * Format: path
+             */
+            cwd: string;
+            /**
+             * Description
+             * @default
+             */
+            description: string;
+            /**
+             * Env
+             * @description added to a minimal base env
+             */
+            env?: {
+                [key: string]: string;
+            };
+            /**
+             * Soft Stop Seconds
+             * @description seconds given to the process itself (SIGTERM to its PID) before the whole process group is signalled
+             * @default 5
+             */
+            soft_stop_seconds: number;
+            /**
+             * Stderr Name
+             * @default stderr.log
+             */
+            stderr_name: string;
+            /**
+             * Stdout Name
+             * @default stdout.log
+             */
+            stdout_name: string;
+            /**
+             * Watch Files
+             * @description files (relative to cwd) whose growth is streamed
+             */
+            watch_files?: string[];
+        };
+        /**
+         * ScalarSeries
+         * @description A named 1-D series (e.g. energy per iteration) with units.
+         */
+        ScalarSeries: {
+            /** Name */
+            name: string;
+            /** X */
+            x: number[];
+            /** X Label */
+            x_label: string;
+            /**
+             * X Unit
+             * @default
+             */
+            x_unit: string;
+            /** Y */
+            y: number[];
+            /** Y Label */
+            y_label: string;
+            /**
+             * Y Unit
+             * @default
+             */
+            y_unit: string;
+        };
+        /** Section */
+        Section: {
+            /**
+             * Advanced
+             * @default false
+             */
+            advanced: boolean;
+            /**
+             * Help
+             * @default
+             */
+            help: string;
+            /** Id */
+            id: string;
+            /** Label */
+            label: string;
+            /** Parameters */
+            parameters?: components["schemas"]["ParameterSpec"][];
+        };
+        /** SmilesRequest */
+        SmilesRequest: {
+            /**
+             * Add Hydrogens
+             * @default true
+             */
+            add_hydrogens: boolean;
+            /** Smiles */
+            smiles: string;
+        };
+        /**
+         * Structure
+         * @description The central editable object: atoms, bonds, cell and attached properties.
+         */
+        Structure: {
+            /** Atomic Scalars */
+            atomic_scalars?: {
+                [key: string]: components["schemas"]["AtomicScalarProperty"];
+            };
+            /** Atomic Vectors */
+            atomic_vectors?: {
+                [key: string]: components["schemas"]["AtomicVectorProperty"];
+            };
+            /** Atoms */
+            atoms?: components["schemas"]["Atom"][];
+            /** Bonds */
+            bonds?: components["schemas"]["Bond"][];
+            cell?: components["schemas"]["Cell"] | null;
+            /**
+             * Charge
+             * @description total charge in e
+             * @default 0
+             */
+            charge: number;
+            /** Constraints */
+            constraints?: (components["schemas"]["FixAtoms"] | components["schemas"]["FixCartesian"] | components["schemas"]["FixBondLength"])[];
+            /** Id */
+            id?: string;
+            /**
+             * Multiplicity
+             * @description 2S+1; None = unspecified
+             */
+            multiplicity?: number | null;
+            /**
+             * Name
+             * @default untitled
+             */
+            name: string;
+            /** Properties */
+            properties?: {
+                [key: string]: components["schemas"]["Quantity"];
+            };
+            provenance?: components["schemas"]["Provenance"] | null;
+            /** Residues */
+            residues?: components["schemas"]["Residue"][];
+        };
+        /** StructureSummary */
+        StructureSummary: {
+            /** Formula */
+            formula: string;
+            /** Id */
+            id: string;
+            /** N Atoms */
+            n_atoms: number;
+            /** Name */
+            name: string;
+            /** Periodic */
+            periodic: boolean;
+        };
+        /**
+         * Trajectory
+         * @description A sequence of frames sharing the topology of ``structure_id``.
+         */
+        Trajectory: {
+            /** Frames */
+            frames?: components["schemas"]["Frame"][];
+            /** Id */
+            id: string;
+            /**
+             * Kind
+             * @description optimization | md | neb | vibration | generic
+             * @default generic
+             */
+            kind: string;
+            /** Name */
+            name: string;
+            provenance?: components["schemas"]["Provenance"] | null;
+            /** Structure Id */
+            structure_id?: string | null;
+            /** Symbols */
+            symbols: string[];
+        };
+        /** TrajectoryImport */
+        TrajectoryImport: {
+            /** @description first frame, with perceived bonds */
+            structure: components["schemas"]["Structure"];
+            trajectory: components["schemas"]["Trajectory"];
+        };
+        /**
+         * TrajectoryScalars
+         * @description Per-frame scalars and cells; the companion of the binary positions stream.
+         */
+        TrajectoryScalars: {
+            /** Cells */
+            cells: ([
+                [
+                    number,
+                    number,
+                    number
+                ],
+                [
+                    number,
+                    number,
+                    number
+                ],
+                [
+                    number,
+                    number,
+                    number
+                ]
+            ] | null)[];
+            /** Energy */
+            energy: (number | null)[];
+            /** Id */
+            id: string;
+            /** Kind */
+            kind: string;
+            /** N Atoms */
+            n_atoms: number;
+            /** N Frames */
+            n_frames: number;
+            /** Name */
+            name: string;
+            /** Step */
+            step: (number | null)[];
+            /** Symbols */
+            symbols: string[];
+            /** Temperature */
+            temperature: (number | null)[];
+            /** Time */
+            time: (number | null)[];
+        };
+        /**
+         * Unit
+         * @description Units that can appear on quantities in the data model.
+         * @enum {string}
+         */
+        Unit: "angstrom" | "bohr" | "nm" | "eV" | "hartree" | "kJ/mol" | "kcal/mol" | "rydberg" | "eV/angstrom" | "hartree/bohr" | "fs" | "atomic_time" | "ps" | "e" | "muB" | "K" | "cm^-1" | "debye" | "e*angstrom" | "" | "e/angstrom^3" | "e/bohr^3" | "V" | "hartree/e";
+        /** UpdateValuesRequest */
+        UpdateValuesRequest: {
+            /** Values */
+            values: {
+                [key: string]: unknown;
+            };
+        };
+        /** ValidationError */
+        ValidationError: {
+            /** Context */
+            ctx?: Record<string, never>;
+            /** Input */
+            input?: unknown;
+            /** Location */
+            loc: (string | number)[];
+            /** Message */
+            msg: string;
+            /** Error Type */
+            type: string;
+        };
+        /** ValidationIssue */
+        ValidationIssue: {
+            /** Key */
+            key: string | null;
+            /** Message */
+            message: string;
+            /**
+             * Severity
+             * @default error
+             * @enum {string}
+             */
+            severity: "error" | "warning";
+        };
+        /** ValidationReport */
+        ValidationReport: {
+            /** Issues */
+            issues?: components["schemas"]["ValidationIssue"][];
+        };
+        /** ViewSettingsBody */
+        ViewSettingsBody: {
+            /** Settings */
+            settings: {
+                [key: string]: unknown;
+            };
+        };
+        /**
+         * VisibleWhen
+         * @description Show a parameter only when another parameter satisfies a condition.
+         */
+        VisibleWhen: {
+            /** Key */
+            key: string;
+            /**
+             * Op
+             * @default eq
+             * @enum {string}
+             */
+            op: "eq" | "ne" | "in" | "not_in" | "truthy" | "falsy";
+            /** Value */
+            value?: unknown;
+        };
+        /**
+         * VolumetricGrid
+         * @description A regular 3D grid. Voxel (i,j,k) sits at origin + i*axes[0] + j*axes[1] + k*axes[2].
+         *
+         *     Values are stored in a binary sidecar (``data_ref``: path relative to the owning
+         *     project/calculation, little-endian float32 or float64, C order matching ``shape``) or
+         *     inline for small grids. Exactly one of ``data_ref`` / ``inline_values`` is set.
+         */
+        VolumetricGrid: {
+            /**
+             * Axes
+             * @description step vectors in Å
+             */
+            axes: [
+                [
+                    number,
+                    number,
+                    number
+                ],
+                [
+                    number,
+                    number,
+                    number
+                ],
+                [
+                    number,
+                    number,
+                    number
+                ]
+            ];
+            /** Data Ref */
+            data_ref?: string | null;
+            /**
+             * Dtype
+             * @default float32
+             * @enum {string}
+             */
+            dtype: "float32" | "float64";
+            /** Id */
+            id: string;
+            /** Inline Values */
+            inline_values?: number[] | null;
+            /**
+             * Kind
+             * @default other
+             * @enum {string}
+             */
+            kind: "electron_density" | "spin_density" | "orbital" | "orbital_density" | "electrostatic_potential" | "density_difference" | "other";
+            /** Name */
+            name: string;
+            orbital?: components["schemas"]["OrbitalInfo"] | null;
+            /**
+             * Origin
+             * @description Å
+             */
+            origin: [
+                number,
+                number,
+                number
+            ];
+            provenance?: components["schemas"]["Provenance"] | null;
+            /** Shape */
+            shape: [
+                number,
+                number,
+                number
+            ];
+            /**
+             * Structure Id
+             * @description structure the grid belongs to
+             */
+            structure_id?: string | null;
+            unit: components["schemas"]["Unit"];
+        };
+    };
+    responses: never;
+    parameters: never;
+    requestBodies: never;
+    headers: never;
+    pathItems: never;
 }
 export type $defs = Record<string, never>;
 export interface operations {
-  list_backends_api_backends_get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['BackendInfo'][];
-        };
-      };
-    };
-  };
-  backend_presets_api_backends__backend_id__presets_get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        backend_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['Preset'][];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  backend_schema_api_backends__backend_id__schema_get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        backend_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ParameterSchema'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  list_calculations_api_calculations_get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['Calculation'][];
-        };
-      };
-    };
-  };
-  create_calculation_api_calculations_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['CreateCalculationRequest'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      201: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['Calculation'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  get_calculation_api_calculations__calc_id__get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        calc_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['Calculation'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  cancel_calculation_api_calculations__calc_id__cancel_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        calc_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['Calculation'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  fork_calculation_api_calculations__calc_id__fork_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        calc_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['ForkRequest'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      201: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['Calculation'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  generate_inputs_api_calculations__calc_id__generate_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        calc_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['GeneratedInputs'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  read_log_api_calculations__calc_id__log_get: {
-    parameters: {
-      query?: {
-        stream?: string;
-        tail?: number;
-      };
-      header?: never;
-      path: {
-        calc_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['LogResponse'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  results_api_calculations__calc_id__results_get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        calc_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ResultBundle'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  run_calculation_api_calculations__calc_id__run_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        calc_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['Calculation'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  trajectory_api_calculations__calc_id__trajectory_get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        calc_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['Trajectory'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  trajectory_positions_api_calculations__calc_id__trajectory_positions_get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        calc_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/octet-stream': unknown;
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  trajectory_scalars_api_calculations__calc_id__trajectory_scalars_get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        calc_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['TrajectoryScalars'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  validate_calculation_api_calculations__calc_id__validate_get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        calc_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ValidationReport'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  update_values_api_calculations__calc_id__values_put: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        calc_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['UpdateValuesRequest'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['Calculation'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  list_all_api_grids_get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['GridRef'][];
-        };
-      };
-    };
-  };
-  get_grid_api_grids__grid_id__get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        grid_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['VolumetricGrid'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  get_grid_data_api_grids__grid_id__data_get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        grid_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/octet-stream': unknown;
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  get_grid_stats_api_grids__grid_id__stats_get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        grid_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['GridStats'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  health_api_health_get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HealthResponse'];
-        };
-      };
-    };
-  };
-  export_structure_api_io_export_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['ExportRequest'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ExportResponse'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  export_trajectory_api_io_export_trajectory_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['ExportTrajectoryRequest'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ExportTrajectoryResponse'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  list_formats_api_io_formats_get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['FormatDescription'][];
-        };
-      };
-    };
-  };
-  import_cube_file_api_io_import_cube_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['ImportCubeRequest'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ImportCubeResponse'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  import_path_api_io_import_path_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['ImportPathRequest'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['Structure'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  import_trajectory_path_api_io_import_trajectory_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['ImportTrajectoryRequest'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['TrajectoryImport'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  import_trajectory_upload_api_io_import_trajectory_upload_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'multipart/form-data': components['schemas']['Body_import_trajectory_upload_api_io_import_trajectory_upload_post'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['TrajectoryImport'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  import_upload_api_io_import_upload_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'multipart/form-data': components['schemas']['Body_import_upload_api_io_import_upload_post'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['Structure'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  build_from_smiles_api_io_smiles_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['SmilesRequest'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['Structure'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  current_project_api_project_get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ProjectInfo'] | null;
-        };
-      };
-    };
-  };
-  close_project_api_project_close_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      204: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content?: never;
-      };
-    };
-  };
-  create_project_api_project_create_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['CreateProjectRequest'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      201: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ProjectInfo'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  open_project_api_project_open_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['OpenProjectRequest'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ProjectInfo'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  get_view_settings_api_project_view_settings_get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': {
-            [key: string]: unknown;
-          };
-        };
-      };
-    };
-  };
-  put_view_settings_api_project_view_settings_put: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['ViewSettingsBody'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': {
-            [key: string]: unknown;
-          };
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  list_structures_api_structures_get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['StructureSummary'][];
-        };
-      };
-    };
-  };
-  get_structure_api_structures__structure_id__get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        structure_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['Structure'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  put_structure_api_structures__structure_id__put: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        structure_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['Structure'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['StructureSummary'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  delete_structure_api_structures__structure_id__delete: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        structure_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      204: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content?: never;
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
+    list_backends_api_backends_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BackendInfo"][];
+                };
+            };
+        };
+    };
+    backend_presets_api_backends__backend_id__presets_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                backend_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Preset"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    backend_schema_api_backends__backend_id__schema_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                backend_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ParameterSchema"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_calculations_api_calculations_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Calculation"][];
+                };
+            };
+        };
+    };
+    create_calculation_api_calculations_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateCalculationRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Calculation"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_calculation_api_calculations__calc_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                calc_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Calculation"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    cancel_calculation_api_calculations__calc_id__cancel_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                calc_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Calculation"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    fork_calculation_api_calculations__calc_id__fork_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                calc_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ForkRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Calculation"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    generate_inputs_api_calculations__calc_id__generate_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                calc_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GeneratedInputs"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    read_log_api_calculations__calc_id__log_get: {
+        parameters: {
+            query?: {
+                stream?: string;
+                tail?: number;
+            };
+            header?: never;
+            path: {
+                calc_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LogResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    results_api_calculations__calc_id__results_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                calc_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResultBundle"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    run_calculation_api_calculations__calc_id__run_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                calc_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Calculation"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    trajectory_api_calculations__calc_id__trajectory_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                calc_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Trajectory"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    trajectory_positions_api_calculations__calc_id__trajectory_positions_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                calc_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/octet-stream": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    trajectory_scalars_api_calculations__calc_id__trajectory_scalars_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                calc_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TrajectoryScalars"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    validate_calculation_api_calculations__calc_id__validate_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                calc_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationReport"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_values_api_calculations__calc_id__values_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                calc_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateValuesRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Calculation"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_all_api_grids_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GridRef"][];
+                };
+            };
+        };
+    };
+    get_grid_api_grids__grid_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                grid_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VolumetricGrid"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_grid_data_api_grids__grid_id__data_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                grid_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/octet-stream": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_grid_stats_api_grids__grid_id__stats_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                grid_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GridStats"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    health_api_health_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HealthResponse"];
+                };
+            };
+        };
+    };
+    export_structure_api_io_export_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ExportRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExportResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    export_trajectory_api_io_export_trajectory_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ExportTrajectoryRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExportTrajectoryResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_formats_api_io_formats_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FormatDescription"][];
+                };
+            };
+        };
+    };
+    import_cube_file_api_io_import_cube_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ImportCubeRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ImportCubeResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    import_output_api_io_import_output_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ImportPathRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OutputImport"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    import_path_api_io_import_path_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ImportPathRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Structure"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    import_trajectory_path_api_io_import_trajectory_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ImportTrajectoryRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TrajectoryImport"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    import_trajectory_upload_api_io_import_trajectory_upload_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_import_trajectory_upload_api_io_import_trajectory_upload_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TrajectoryImport"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    import_upload_api_io_import_upload_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_import_upload_api_io_import_upload_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Structure"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    build_from_smiles_api_io_smiles_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SmilesRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Structure"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    current_project_api_project_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProjectInfo"] | null;
+                };
+            };
+        };
+    };
+    close_project_api_project_close_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    create_project_api_project_create_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateProjectRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProjectInfo"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    open_project_api_project_open_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OpenProjectRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProjectInfo"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_view_settings_api_project_view_settings_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+        };
+    };
+    put_view_settings_api_project_view_settings_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ViewSettingsBody"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_structures_api_structures_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StructureSummary"][];
+                };
+            };
+        };
+    };
+    get_structure_api_structures__structure_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                structure_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Structure"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    put_structure_api_structures__structure_id__put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                structure_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Structure"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StructureSummary"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_structure_api_structures__structure_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                structure_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
 }

@@ -10,6 +10,7 @@ from pydantic import Field
 from atomscope.api.state import AppState
 from atomscope.calculations.grids import import_cube
 from atomscope.io import formats, read_structure, write_structure
+from atomscope.io.qc_outputs import OutputImport, read_output
 from atomscope.io.rdkit_io import from_smiles
 from atomscope.io.registry import FormatError, structure_to_string
 from atomscope.model import Structure, VolumetricGrid
@@ -117,6 +118,18 @@ def import_cube_file(body: ImportCubeRequest, request: Request) -> ImportCubeRes
     except (ValueError, OSError) as exc:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, str(exc)) from exc
     return ImportCubeResponse(grid=grid, structure=structure)
+
+
+@router.post("/import/output", response_model=OutputImport)
+def import_output(body: ImportPathRequest) -> OutputImport:
+    """Import a quantum-chemistry output file (Gaussian, ORCA, NWChem, QE): final structure with
+    energy/forces/dipole/charges and the optimization trajectory."""
+    if not body.path.is_file():
+        raise HTTPException(status.HTTP_404_NOT_FOUND, f"{body.path} not found")
+    try:
+        return read_output(body.path, body.format)
+    except (ValueError, OSError) as exc:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, str(exc)) from exc
 
 
 @router.post("/smiles", response_model=Structure)
