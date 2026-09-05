@@ -6,12 +6,14 @@ import { create } from 'zustand';
 import { api } from '../api/client';
 import {
   advanceFrame,
+  isTrajectoryCompatible,
   trajectoryFromJson,
   trajectoryFromScalars,
   type ApiTrajectory,
   type LoopMode,
   type TrajectoryData,
 } from '../model/trajectory';
+import { useStructureStore } from './structureStore';
 
 export interface TrajectoryState {
   trajectory: TrajectoryData | null;
@@ -80,3 +82,11 @@ export const useTrajectoryStore = create<TrajectoryState>((set, get) => ({
   setFps: (fps) => set({ fps: Math.min(Math.max(fps, 1), 120) }),
   setLoop: (loop) => set({ loop }),
 }));
+
+// Loading another structure retires a trajectory that does not describe it, so its frames can
+// never override an unrelated document.
+useStructureStore.subscribe((s, prev) => {
+  if (s.doc.id === prev.doc.id) return;
+  const t = useTrajectoryStore.getState().trajectory;
+  if (t && !isTrajectoryCompatible(s.doc, t)) useTrajectoryStore.getState().clear();
+});
