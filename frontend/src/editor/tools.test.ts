@@ -7,6 +7,7 @@ import type { PointerLike, ToolCamera, ToolRenderer } from './Tool';
 import { ToolHost } from './ToolHost';
 import { useToolStore } from './toolStore';
 import { api } from '../api/client';
+import { undoEdit } from '../ui/historyActions';
 import { AutoOptimizeTool } from './tools/AutoOptimizeTool';
 import { AutoRotateTool } from './tools/AutoRotateTool';
 import { createTools } from './tools';
@@ -581,7 +582,7 @@ describe('auto-optimize', () => {
     expect(useStructureStore.getState().previewBase).toBe(null);
   });
 
-  test('an undo during a run stops it rather than optimizing the restored geometry', async () => {
+  test('undo during a run reverts the run, and keeps the edit before it', async () => {
     vi.spyOn(api.chem, 'optimizeStep').mockImplementation(() => Promise.resolve(shrink() as never));
     // something to undo: the run itself only previews
     S().commit('Move 1 atom', { ...S().doc, name: 'moved' });
@@ -590,7 +591,23 @@ describe('auto-optimize', () => {
     useToolStore.getState().update('autoOptimize', { running: true });
     await vi.waitFor(() => expect(S().doc).not.toBe(before));
 
-    S().undo();
+    undoEdit();
+    expect(useToolStore.getState().autoOptimize.running).toBe(false);
+    // the run is one step: undoing it gives back the document it started from, not the one before
+    expect(S().doc.name).toBe('moved');
+    expect(S().doc.atoms.map((a) => a.position)).toEqual(before.atoms.map((a) => a.position));
+    expect(S().undoLabel()).toBe('Move 1 atom');
+    expect(S().redoLabel()).toBe('Auto-optimize');
+  });
+
+  test('a run started on one structure stops when another is loaded', async () => {
+    vi.spyOn(api.chem, 'optimizeStep').mockImplementation(() => Promise.resolve(shrink() as never));
+    const before = S().doc;
+    armed();
+    useToolStore.getState().update('autoOptimize', { running: true });
+    await vi.waitFor(() => expect(S().doc).not.toBe(before));
+
+    S().load(normalizeStructure({ name: 'other', atoms: [makeAtom('C', [0, 0, 0])] }));
     expect(useToolStore.getState().autoOptimize.running).toBe(false);
   });
 

@@ -50,7 +50,9 @@ export class AutoOptimizeTool implements Tool {
     });
     // an undo or redo during a run would be swallowed by the next round: stop instead
     const unsubscribeHistory = ctx.structure.subscribe((s, prev) => {
-      if (s.historyRevision !== prev.historyRevision && this.running) {
+      const changedUnderneath =
+        s.historyRevision !== prev.historyRevision || s.doc.id !== prev.doc.id;
+      if (changedUnderneath && this.running) {
         this.shown = null;
         this.changed = false;
         ctx.tools.getState().update('autoOptimize', { running: false });
@@ -137,6 +139,8 @@ export class AutoOptimizeTool implements Tool {
     else if (!commit) st.cancelPreview();
     this.changed = false;
     this.shown = null;
+    // a round that failed mid-drag would otherwise keep previewing under the pointer
+    this.drag = null;
   }
 
   /** One round. A round that is still in flight is never joined by a second one. */

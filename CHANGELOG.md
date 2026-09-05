@@ -30,7 +30,8 @@
   `structureId`, unchecked tuple indexing in the cell-extent maths, several test casts).
 - An Auto-optimize tool (`O`): the force field runs continuously and an atom can be dragged while
   it does, pinned where it is held while the rest of the molecule relaxes around it. One request in
-  flight at a time, and the whole run is a single undo step.
+  flight at a time, and the whole run is a single undo step -- Undo during a run stops it and
+  reverts the run itself rather than taking the edit before it along.
 - A bond properties table on the Properties tab: every bond (or every bond of the selection) with
   its order, whether it can rotate, and an editable length. A bond across a periodic boundary
   reports its minimum-image length (read-only), as does the per-atom bond list above it.

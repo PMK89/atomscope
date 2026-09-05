@@ -287,8 +287,11 @@ undo history**.
   the whole run is a single undo step named `Auto-optimize`, and a force field
   that cannot type the molecule stops the run with the reason in the status bar.
   The panel shows the energy of the last round. Undo or redo during a run stops
-  it rather than immediately optimizing the restored geometry, and dragging does
-  nothing until the run is started.
+  it first, so the undo reverts the run itself and leaves the edit before it
+  alone (`Redo Auto-optimize` puts it back); dragging does nothing until the run
+  is started, and loading another structure stops it. An edit made *elsewhere*
+  while it runs — a bond order in the Properties tab, say — takes the
+  optimization so far into its own undo entry.
 * **Auto-rotate** — three speed sliders (−180…180 °/s; defaults x 0, y 20,
   z 0) with `Start`/`Stop` and `Reset`.
 

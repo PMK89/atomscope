@@ -10,6 +10,7 @@ import { useToolStore } from '../editor/toolStore';
 import { atomsOfElement, invertSelection } from '../editor/selectionMath';
 import { normalizeSymbol } from '../editor/cartesian';
 import { CartesianEditor } from './CartesianEditor';
+import { redoEdit, undoEdit } from './historyActions';
 import { ConstraintsDialog } from './ConstraintsDialog';
 import { BuildDialogs } from './BuildDialogs';
 import { CrystalDialogs } from './CrystalDialogs';
@@ -112,10 +113,10 @@ export function MenuBar({ onError }: { onError: (msg: string) => void }): JSX.El
       if ((key === 'z' || key === 'y' || key === 'a') && isEditableTarget(e.target)) return;
       if (key === 'z' && !e.shiftKey) {
         e.preventDefault();
-        store.undo();
+        undoEdit();
       } else if ((key === 'z' && e.shiftKey) || key === 'y') {
         e.preventDefault();
-        store.redo();
+        redoEdit();
       } else if (key === 'o') {
         e.preventDefault();
         setImportOpen(true);
@@ -181,13 +182,13 @@ export function MenuBar({ onError }: { onError: (msg: string) => void }): JSX.El
             label: store.undoLabel() ? `Undo ${store.undoLabel()}` : 'Undo',
             shortcut: 'Ctrl+Z',
             disabled: !store.canUndo(),
-            action: store.undo,
+            action: undoEdit,
           },
           {
             label: store.redoLabel() ? `Redo ${store.redoLabel()}` : 'Redo',
             shortcut: 'Ctrl+Shift+Z',
             disabled: !store.canRedo(),
-            action: store.redo,
+            action: redoEdit,
           },
           {
             label: 'Cut',
