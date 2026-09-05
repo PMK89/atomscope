@@ -9,6 +9,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from atomscope.api import (
+    routes_analysis,
     routes_backends,
     routes_build,
     routes_calculations,
@@ -53,4 +54,6 @@ def create_app() -> FastAPI:
     app.include_router(routes_trajectory.io_router)
     app.include_router(routes_chem.router)
     app.include_router(routes_build.router)
+    app.include_router(routes_analysis.router)
+    app.include_router(routes_analysis.io_router)
     return app

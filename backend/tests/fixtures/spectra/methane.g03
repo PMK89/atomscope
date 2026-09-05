@@ -1,0 +1,141 @@
+ Excerpt of testfiles/methane.g03 from the Avogadro 1 test corpus (see PROVENANCE.md).
+ Only the input orientation and the harmonic-frequency section are kept.
+
+ GradGradGradGradGradGradGradGradGradGradGradGradGradGradGradGradGradGrad
+
+ (Enter /usr/local/lib/g03/l202.exe)
+                          Input orientation:                          
+ ---------------------------------------------------------------------
+ Center     Atomic     Atomic              Coordinates (Angstroms)
+ Number     Number      Type              X           Y           Z
+ ---------------------------------------------------------------------
+    1          0             0        0.000000    0.000000    0.000000
+    2          6             0       -0.000920    0.000000   -0.002890
+    3          1             0       -0.629710   -0.930950   -0.196670
+    4          1             0       -0.629510    0.930990   -0.197090
+    5          1             0        0.921460   -0.000250   -0.672830
+    6          1             0        0.343260    0.000210    1.083920
+ ---------------------------------------------------------------------
+                    Distance matrix (angstroms):
+                    1          2          3          4          5
+
+                 3.10516280D+01
+ Mass of ghost atom number    1 set to   0.001.
+ Full mass-weighted force constant matrix:
+ Low frequencies ---   -0.0015   -0.0014   -0.0012    0.0000    0.0000    0.0000
+ Low frequencies ---  656.1052  663.4437  670.6808
+ ******    1 imaginary frequencies (negative Signs) ****** 
+ Diagonal vibrational polarizability:
+        0.3035360       0.3034213       0.3303397
+ Diagonal vibrational hyperpolarizability:
+       -1.9180960      -0.0004637      -6.3688022
+ Harmonic frequencies (cm**-1), IR intensities (KM/Mole), Raman scattering
+ activities (A**4/AMU), depolarization ratios for plane and unpolarized
+ incident light, reduced masses (AMU), force constants (mDyne/A),
+ and normal coordinates:
+                     1                      2                      3
+                    ?A                     ?A                     ?A
+ Frequencies --     0.0000                 0.0126                 0.0127
+ Red. masses --     0.0010                 0.0010                 0.0010
+ Frc consts  --     0.0000                 0.0000                 0.0000
+ IR Inten    --     0.0000                 0.0000                 0.0000
+ Raman Activ --     0.0000                 0.0000                 0.0000
+ Depolar (P) --     0.0000                 0.0000                 0.7500
+ Depolar (U) --     0.0000                 0.0000                 0.8571
+ Atom AN      X      Y      Z        X      Y      Z        X      Y      Z
+   1   0     0.30   0.00   0.95     0.00   1.00   0.00     0.95   0.00  -0.30
+   2   6     0.00   0.00   0.00     0.00   0.00   0.00     0.00   0.00   0.00
+   3   1     0.00   0.00   0.00     0.00   0.00   0.00     0.00   0.00   0.00
+   4   1     0.00   0.00   0.00     0.00   0.00   0.00     0.00   0.00   0.00
+   5   1     0.00   0.00   0.00     0.00   0.00   0.00     0.00   0.00   0.00
+   6   1     0.00   0.00   0.00     0.00   0.00   0.00     0.00   0.00   0.00
+                     4                      5                      6
+                    ?A                     ?A                     ?A
+ Frequencies --  1575.7247              1581.4013              1584.1918
+ Red. masses --     1.1864                 1.1846                 1.1842
+ Frc consts  --     1.7356                 1.7455                 1.7511
+ IR Inten    --    13.7596                12.3060                12.4057
+ Raman Activ --     3.4382                 3.9867                 4.0189
+ Depolar (P) --     0.7480                 0.7500                 0.7499
+ Depolar (U) --     0.8559                 0.8571                 0.8571
+ Atom AN      X      Y      Z        X      Y      Z        X      Y      Z
+   1   0     0.00   0.00   0.00     0.00   0.00   0.00     0.00   0.00   0.00
+   2   6     0.01   0.00   0.13     0.00   0.13   0.00     0.13   0.00  -0.01
+   3   1     0.03   0.12  -0.57     0.31  -0.15   0.09    -0.41   0.30   0.12
+   4   1     0.03  -0.12  -0.57    -0.31  -0.15  -0.09    -0.41  -0.30   0.12
+   5   1    -0.34   0.00  -0.39     0.00  -0.62   0.00    -0.13   0.00  -0.29
+   6   1     0.14   0.00   0.03     0.00  -0.59   0.00    -0.55   0.00   0.19
+                     7                      8                      9
+                    ?A                     ?A                     ?A
+ Frequencies --  1718.8498              1723.3635              2710.6044
+ Red. masses --     1.0079                 1.0079                 1.0079
+ Frc consts  --     1.7544                 1.7636                 4.3630
+ IR Inten    --     0.0046                 0.0046                 0.0084
+ Raman Activ --    47.4008                47.6854               177.7841
+ Depolar (P) --     0.7500                 0.7499                 0.0003
+ Depolar (U) --     0.8571                 0.8571                 0.0005
+ Atom AN      X      Y      Z        X      Y      Z        X      Y      Z
+   1   0     0.00   0.00   0.00     0.00   0.00   0.00     0.00   0.00   0.00
+   2   6     0.00   0.00   0.00     0.00   0.00   0.00     0.00   0.00   0.00
+   3   1    -0.15   0.00   0.48     0.38  -0.28   0.13    -0.28  -0.42  -0.09
+   4   1     0.15   0.00  -0.48     0.38   0.28   0.13    -0.28   0.42  -0.09
+   5   1     0.00   0.49   0.00    -0.30   0.00  -0.40     0.41   0.00  -0.30
+   6   1     0.00  -0.51   0.00    -0.49   0.00   0.15     0.14   0.00   0.45
+                    10                     11                     12
+                    ?A                     ?A                     ?A
+ Frequencies --  2770.5840              2775.4371              2778.9718
+ Red. masses --     1.0952                 1.0967                 1.0970
+ Frc consts  --     4.9534                 4.9775                 4.9914
+ IR Inten    --    51.9130                48.9196                48.6338
+ Raman Activ --    86.3627                83.5771                82.2135
+ Depolar (P) --     0.7476                 0.7500                 0.7498
+ Depolar (U) --     0.8556                 0.8571                 0.8570
+ Atom AN      X      Y      Z        X      Y      Z        X      Y      Z
+   1   0     0.00   0.00   0.00     0.00   0.00   0.00     0.00   0.00   0.00
+   2   6     0.00   0.00   0.09     0.00   0.09   0.00     0.09   0.00   0.00
+   3   1    -0.09  -0.13   0.00    -0.40  -0.57  -0.13    -0.23  -0.39  -0.08
+   4   1    -0.08   0.13   0.00     0.40  -0.56   0.13    -0.24   0.40  -0.08
+   5   1     0.40   0.00  -0.26     0.00   0.03   0.00    -0.56   0.00   0.43
+   6   1    -0.26   0.00  -0.80     0.00   0.03   0.00    -0.04   0.00  -0.24
+
+ -------------------
+ - Thermochemistry -
+ -------------------
+ Temperature   298.150 Kelvin.  Pressure   1.00000 Atm.
+ Atom  1 has atomic number  0 and mass   0.00100
+ Atom  2 has atomic number  6 and mass  12.00000
+ Atom  3 has atomic number  1 and mass   1.00783
+ Atom  4 has atomic number  1 and mass   1.00783
+ Atom  5 has atomic number  1 and mass   1.00783
+ Atom  6 has atomic number  1 and mass   1.00783
+ Molecular mass:    16.03230 amu.
+ Principal axes and moments of inertia in atomic units:
+                           1         2         3
+     EIGENVALUES --    12.37554  12.47031  12.57188
+           X            1.00000  -0.00010  -0.00039
+           Y            0.00010   1.00000   0.00011
+           Z            0.00039  -0.00011   1.00000
+ This molecule is an asymmetric top.
+ Rotational symmetry number  1.
+ Rotational temperatures (Kelvin)      6.99879     6.94560     6.88949
+ Rotational constants (GHZ):         145.83127   144.72305   143.55376
+    1 imaginary frequencies ignored.
+ Zero-point vibrational energy     114956.1 (Joules/Mol)
+                                   27.47516 (Kcal/Mol)
+ Warning -- explicit consideration of   2 degrees of freedom as
+           vibrations may cause significant error
+ Vibrational temperatures:      0.02     0.02  2267.11  2275.28  2279.30
+          (Kelvin)           2473.04  2479.53  3899.95  3986.25  3993.23
+                             3998.32
+ 
+ Zero-point correction=                           0.043784 (Hartree/Particle)
+ Thermal correction to Energy=                    0.048520
+ Thermal correction to Enthalpy=                  0.049464
+ Thermal correction to Gibbs Free Energy=         0.005670
+ Sum of electronic and zero-point Energies=            -40.128375
+ Sum of electronic and thermal Energies=               -40.123640
+ Sum of electronic and thermal Enthalpies=             -40.122696
+ Sum of electronic and thermal Free Energies=          -40.166490
+ 
+                     E (Thermal)             CV                S
+                      KCal/Mol        Cal/Mol-Kelvin    Cal/Mol-Kelvin
