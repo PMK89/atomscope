@@ -1,12 +1,14 @@
 import { useState } from 'react';
+import { AnalysisPanel } from './AnalysisPanel';
 import { CalculationPanel } from './CalculationPanel';
 import { CrystalPanel } from './CrystalPanel';
 import { PropertiesPanel } from './PropertiesPanel';
 import { SurfacesPanel } from './SurfacesPanel';
 
-type Tab = 'calculation' | 'surfaces' | 'crystal' | 'properties';
+type Tab = 'calculation' | 'analysis' | 'surfaces' | 'crystal' | 'properties';
 const TABS: { id: Tab; label: string }[] = [
   { id: 'calculation', label: 'Calculation' },
+  { id: 'analysis', label: 'Analysis' },
   { id: 'surfaces', label: 'Surfaces' },
   { id: 'crystal', label: 'Crystal' },
   { id: 'properties', label: 'Properties' },
@@ -32,6 +34,9 @@ export function RightDock({ onError }: { onError: (m: string) => void }): JSX.El
       </div>
       <div hidden={tab !== 'calculation'}>
         <CalculationPanel onError={onError} />
+      </div>
+      <div hidden={tab !== 'analysis'}>
+        <AnalysisPanel onError={onError} />
       </div>
       <div hidden={tab !== 'surfaces'}>
         <SurfacesPanel onError={onError} />

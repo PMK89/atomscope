@@ -13,7 +13,7 @@ from pathlib import Path
 from atomscope.backends.base import GeneratedInputs, Resources, ResultBundle
 from atomscope.backends.registry import BackendRegistry
 from atomscope.calculations.grids import materialize_grids
-from atomscope.calculations.models import Calculation
+from atomscope.calculations.models import AnalysisJob, Calculation
 from atomscope.jobs import JobManager
 from atomscope.jobs.models import StatusEvent
 from atomscope.model import Provenance, Structure
@@ -278,10 +278,69 @@ class CalculationService:
         self.save(calc)
         return results
 
+    # ---- post-processing ---------------------------------------------------------------------
+    def run_analysis(self, calc_id: str, kind: str, options: dict[str, object]) -> Calculation:
+        """Run a backend analysis tool (DOS, bands, orbital export) on a completed calculation as
+        a job in its work directory. Outputs are fetched through the backend-specific routes."""
+        calc = self.get(calc_id)
+        if calc.status != "completed":
+            msg = f"calculation is {calc.status}; analysis needs a completed calculation"
+            raise CalculationError(msg)
+        if any(a.job.is_active for a in calc.analysis_jobs):
+            msg = "an analysis job is already running for this calculation"
+            raise CalculationError(msg)
+        plugin = self.registry.get(calc.backend_id)
+        make_spec = getattr(plugin, "analysis_run_spec", None)
+        if not callable(make_spec):
+            msg = f"backend {calc.backend_id} has no analysis tools"
+            raise CalculationError(msg)
+        work = self._dir(calc.id) / "work"
+        try:
+            spec = make_spec(work, kind, options)
+        except (ValueError, RuntimeError, FileNotFoundError, OSError) as exc:
+            raise CalculationError(str(exc)) from exc
+        record = self.jobs.submit(spec, calculation_id=calc.id)
+        calc.analysis_jobs.append(AnalysisJob(kind=kind, options=options, job=record))
+        self.save(calc)
+        return calc
+
+    def _collect_analysis(self, calc: Calculation, analysis: AnalysisJob) -> None:
+        """Register the grids an analysis job produced with the calculation's results."""
+        plugin = self.registry.get(calc.backend_id)
+        collect = getattr(plugin, "analysis_collect", None)
+        if not callable(collect) or calc.results is None:
+            return
+        work = self._dir(calc.id) / "work"
+        bundle = ResultBundle(grids=collect(work, analysis.kind, analysis.options))
+        materialize_grids(bundle, work, calc.id, self.project)
+        new_ids = {g.id for g in bundle.grids}
+        results = calc.results
+        results.grids = [
+            g
+            for g in results.grids
+            if g.id not in new_ids
+            and not any(
+                g.kind == "orbital" and g.orbital is not None and g.orbital == n.orbital
+                for n in bundle.grids
+            )
+        ] + bundle.grids
+        results.warnings.extend(bundle.warnings)
+        (self._dir(calc.id) / "results" / "results.json").write_text(
+            results.model_dump_json(indent=2), encoding="utf-8"
+        )
+        self.save(calc)
+
     def _on_job_event(self, event: object) -> None:
         if not isinstance(event, StatusEvent):
             return
         for calc in list(self._cache.values()):
+            for analysis in calc.analysis_jobs:
+                if analysis.job.id == event.job_id:
+                    analysis.job = self.jobs.jobs[event.job_id]
+                    self.save(calc)
+                    if event.status == "completed":
+                        with contextlib.suppress(Exception):
+                            self._collect_analysis(calc, analysis)
             if calc.job is not None and calc.job.id == event.job_id:
                 calc.job = self.jobs.jobs[event.job_id]
                 calc.status = event.status

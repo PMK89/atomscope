@@ -570,3 +570,141 @@ button {
   max-height: 50vh;
   overflow-y: auto;
 }
+
+/* ---- analysis panel (convergence, orbitals, DOS, bands) ---- */
+.analysis-panel h3 {
+  margin-top: 1rem;
+}
+.analysis-panel .chart-row {
+  margin: 0.25rem 0 0.5rem;
+}
+.line-chart {
+  width: 100%;
+  height: auto;
+  display: block;
+  font-size: 10px;
+  user-select: none;
+}
+.line-chart .chart-plot {
+  fill: transparent;
+}
+.line-chart .chart-grid {
+  stroke: var(--border);
+  stroke-width: 1;
+}
+.line-chart .chart-axis {
+  stroke: var(--fg);
+  stroke-width: 1;
+  opacity: 0.6;
+}
+.line-chart .chart-marker {
+  stroke: var(--accent);
+  stroke-width: 1;
+  stroke-dasharray: 3 3;
+}
+.line-chart .chart-cursor {
+  stroke: var(--fg);
+  stroke-width: 1;
+  opacity: 0.4;
+}
+.line-chart .chart-tick,
+.line-chart .chart-label,
+.line-chart .chart-title,
+.line-chart .chart-readout {
+  fill: var(--fg);
+}
+.line-chart .chart-tick {
+  opacity: 0.8;
+}
+.line-chart .chart-readout {
+  font-size: 9px;
+}
+.chart-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.75rem;
+  font-size: 0.8rem;
+  margin: 0.1rem 0 0.5rem;
+}
+.chart-legend i {
+  display: inline-block;
+  width: 0.9em;
+  height: 0.9em;
+  border-radius: 2px;
+  vertical-align: -0.1em;
+  margin-right: 0.3em;
+}
+.orbital-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+  max-height: 14rem;
+}
+.orbital-table-wrap {
+  max-height: 14rem;
+  overflow-y: auto;
+  border: 1px solid var(--border);
+  margin: 0.25rem 0;
+}
+.orbital-table th,
+.orbital-table td {
+  padding: 0.1rem 0.4rem;
+  text-align: right;
+  white-space: nowrap;
+}
+.orbital-table th:first-child,
+.orbital-table td:first-child {
+  text-align: left;
+}
+.orbital-table tr {
+  cursor: pointer;
+}
+.orbital-table tr.selected {
+  outline: 1px solid var(--accent);
+}
+.orbital-table tr.frontier {
+  font-weight: 600;
+}
+.orbital-table tr.exported td:first-child::after {
+  content: ' •';
+  color: var(--accent);
+}
+.button-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  margin: 0.3rem 0;
+}
+
+/* analysis panel */
+.analysis-panel svg {
+  max-width: 100%;
+}
+.orbital-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+  font-size: 12px;
+}
+.orbital-table th,
+.orbital-table td {
+  text-align: right;
+  padding: 1px 4px;
+  border-bottom: 1px solid var(--border);
+}
+.orbital-table th:last-child,
+.orbital-table td:last-child {
+  text-align: left;
+}
+.orbital-table tbody tr {
+  cursor: pointer;
+}
+.orbital-table tbody tr:hover {
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+}
+.orbital-table tr.selected {
+  background: color-mix(in srgb, var(--accent) 22%, transparent);
+}
+.orbital-table tr.frontier td {
+  font-weight: 600;
+}

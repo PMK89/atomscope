@@ -30,6 +30,17 @@ export type TrajectoryImport = components['schemas']['TrajectoryImport'];
 export type ExportTrajectoryResponse = components['schemas']['ExportTrajectoryResponse'];
 export type SymmetryInfo = components['schemas']['SymmetryInfo'];
 export type LibraryEntry = components['schemas']['LibraryEntry'];
+export type ScalarSeries = components['schemas']['ScalarSeries'];
+export type AnalysisJob = components['schemas']['AnalysisJob'];
+export type OrbitalEntry = components['schemas']['OrbitalEntry'];
+export type OrbitalList = components['schemas']['OrbitalList'];
+export type DosSpectrum = components['schemas']['DosSpectrum'];
+export type DosSeries = components['schemas']['DosSeries'];
+export type DosOptions = components['schemas']['DosOptions'];
+export type BandStructure = components['schemas']['BandStructure'];
+export type BandOptions = components['schemas']['BandOptions'];
+export type KPathPoint = components['schemas']['KPathPoint'];
+export type KPath = components['schemas']['KPath'];
 export type ParameterValues = Record<string, unknown>;
 
 export class ApiError extends Error {
@@ -228,5 +239,28 @@ export const api = {
     /** WebSocket URL for job events (relative to the page origin; Vite proxies /api). */
     eventsUrl: () =>
       `${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host}/api/calculations/ws`,
+  },
+  /** CP-PAW post-processing of a completed calculation (jobs run in its work directory). */
+  cppaw: {
+    orbitals: (id: string) =>
+      request<OrbitalList>(`/api/cppaw/calculations/${encodeURIComponent(id)}/orbitals`),
+    exportOrbitals: (
+      id: string,
+      body: Body<'/api/cppaw/calculations/{calc_id}/orbitals/export', 'post'>,
+    ) =>
+      request<Calculation>(
+        `/api/cppaw/calculations/${encodeURIComponent(id)}/orbitals/export`,
+        json(body),
+      ),
+    requestDos: (id: string, body: DosOptions) =>
+      request<Calculation>(`/api/cppaw/calculations/${encodeURIComponent(id)}/dos`, json(body)),
+    dos: (id: string) =>
+      request<DosSpectrum>(`/api/cppaw/calculations/${encodeURIComponent(id)}/dos`),
+    requestBands: (id: string, body: BandOptions) =>
+      request<Calculation>(`/api/cppaw/calculations/${encodeURIComponent(id)}/bands`, json(body)),
+    bands: (id: string) =>
+      request<BandStructure>(`/api/cppaw/calculations/${encodeURIComponent(id)}/bands`),
+    bandPath: (id: string) =>
+      request<KPath>(`/api/cppaw/calculations/${encodeURIComponent(id)}/bands/path`),
   },
 };

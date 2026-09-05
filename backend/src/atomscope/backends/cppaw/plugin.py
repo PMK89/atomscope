@@ -19,7 +19,17 @@ from atomscope.backends.base import (
     Values,
 )
 from atomscope.backends.cppaw import settings as cppaw_settings
+from atomscope.backends.cppaw.analysis import (
+    AnalysisKind,
+    OrbitalEntry,
+    default_kpath,
+    electronic_info,
+    list_orbitals,
+    orbital_label,
+)
+from atomscope.backends.cppaw.bands import read_bands
 from atomscope.backends.cppaw.cntl import analysis_files, cntl_text, force_stage_values
+from atomscope.backends.cppaw.dos import read_dos
 from atomscope.backends.cppaw.results import collect
 from atomscope.backends.cppaw.schema import PRESETS, SCHEMA
 from atomscope.backends.cppaw.setups import SetupsLibrary
@@ -29,8 +39,22 @@ from atomscope.backends.cppaw.strc import (
     parse_occupation_states,
     strc_text,
 )
+from atomscope.backends.cppaw.tools import (
+    BandOptions,
+    DosOptions,
+    OrbitalExportOptions,
+    band_sidecar,
+    band_sidecar_text,
+    bcntl_text,
+    dcntl_text,
+    orbital_cntl_text,
+    orbital_root,
+    orbital_wave_file,
+)
 from atomscope.jobs.models import RunSpec
-from atomscope.model import Structure
+from atomscope.model import OrbitalInfo, Structure, VolumetricGrid
+from atomscope.model.spectrum import BandStructure, DosSpectrum, KPathPoint
+from atomscope.parsers.cube import read_cube
 from atomscope.schemas import (
     ParameterSchema,
     Preset,
@@ -39,6 +63,7 @@ from atomscope.schemas import (
     merge_values,
     validate,
 )
+from atomscope.units import Unit
 
 Vec3 = tuple[float, float, float]
 
@@ -221,22 +246,14 @@ class CppawPlugin:
     def run_spec(
         self, input_dir: Path, work_dir: Path, generated: GeneratedInputs, resources: Resources
     ) -> RunSpec:
-        exe = self.settings.find(cppaw_settings.MAIN_EXE)
-        if exe is None:
-            msg = "paw_fast.x not found"
-            raise FileNotFoundError(msg)
+        exe = self._executable(cppaw_settings.MAIN_EXE)
         mpi_args: list[str] = []
         if resources.cores > 1:
-            par = self.settings.find(cppaw_settings.PARALLEL_EXE)
-            if par is None or not self.settings.mpirun:
-                msg = "parallel run requested but ppaw_fast.x or mpirun is not available"
+            if not self.settings.mpirun:
+                msg = "parallel run requested but mpirun is not available"
                 raise RuntimeError(msg)
-            exe = par
+            exe = self._executable(cppaw_settings.PARALLEL_EXE)
             mpi_args = ["--mpirun", self.settings.mpirun, "--np", str(resources.cores)]
-        if not self.settings.runtime_verified:
-            problem = cppaw_settings.ensure_runtime(self.settings)
-            if problem:
-                raise RuntimeError(problem)
         structure = self._structure_from_inputs(input_dir)
         values = self._values_from_inputs(input_dir)
         argv = [
@@ -278,6 +295,18 @@ class CppawPlugin:
             description=generated.summary,
             soft_stop_seconds=120.0,  # runner touches ROOT.exit and waits for PROGRAM FINISHED
         )
+
+    def _executable(self, name: str) -> Path:
+        """Absolute path of a CP-PAW executable with a verified libgfortran runtime."""
+        exe = self.settings.find(name)
+        if exe is None:
+            msg = f"{name} not found"
+            raise FileNotFoundError(msg)
+        if not self.settings.runtime_verified:
+            problem = cppaw_settings.ensure_runtime(self.settings)
+            if problem:
+                raise RuntimeError(problem)
+        return exe
 
     def _values_from_inputs(self, input_dir: Path) -> Values:
         import json  # noqa: PLC0415
@@ -326,6 +355,156 @@ class CppawPlugin:
             analysis=analysis_files(generated.root_name, values),
             forces_at_input_geometry=task == "forces",
         )
+
+    # ---- post-processing (DOS, bands, orbital export) -----------------------------------------
+    def analysis_run_spec(
+        self, work_dir: Path, kind: AnalysisKind, options: dict[str, object]
+    ) -> RunSpec:
+        """Job that runs one analysis tool in the finished calculation's work directory. The
+        control file is written here; outputs are read back by :meth:`analysis_result` /
+        :meth:`analysis_collect`."""
+        input_dir = work_dir.parent / "input"
+        structure = self._structure_from_inputs(input_dir)
+        values = self._values_from_inputs(input_dir)
+        root = "case"
+        info = electronic_info(work_dir, root)
+        env = self.settings.env()
+        if kind == "dos":
+            exe = self._executable("paw_dos.x")
+            (work_dir / f"{root}.dcntl").write_text(
+                dcntl_text(root, structure, DosOptions.model_validate(options)), encoding="utf-8"
+            )
+            return RunSpec(
+                argv=[str(exe), f"{root}.dcntl"],
+                cwd=work_dir,
+                env=env,
+                stdout_name="dos.log",
+                stderr_name="dos.err",
+                watch_files=[f"{root}.dprot"],
+                description=f"DOS of {structure.formula()}",
+            )
+        if kind == "bands":
+            exe = self._executable("paw_bands.x")
+            bopts = BandOptions.model_validate(options)
+            path = bopts.path or default_kpath(structure)
+            nb = info.n_bands or 20
+            (work_dir / f"{root}.bcntl").write_text(
+                bcntl_text(root, path, bopts, nb, info.n_spins), encoding="utf-8"
+            )
+            (work_dir / band_sidecar(root)).write_text(
+                band_sidecar_text(path, bopts, info.n_spins), encoding="utf-8"
+            )
+            return RunSpec(
+                argv=[str(exe), f"{root}.bcntl"],
+                cwd=work_dir,
+                env=env,
+                stdout_name="bands.log",
+                stderr_name="bands.err",
+                watch_files=[f"{root}.bprot"],
+                description=f"band structure of {structure.formula()}",
+            )
+        if kind == "orbitals":
+            exe = self._executable(cppaw_settings.MAIN_EXE)
+            wave = self._executable("paw_wave.x")
+            opts = OrbitalExportOptions.model_validate(options)
+            for req in opts.orbitals:
+                if (
+                    req.band > info.n_bands
+                    or req.kpoint > info.n_kpoints
+                    or req.spin > info.n_spins
+                ):
+                    msg = f"orbital band={req.band} k={req.kpoint} spin={req.spin} does not exist"
+                    raise ValueError(msg)
+            if not (work_dir / f"{root}.rstrt").is_file():
+                msg = f"{root}.rstrt not found: the calculation has no restart file"
+                raise FileNotFoundError(msg)
+            orb = orbital_root(root)
+            (work_dir / f"{orb}.cntl").write_text(
+                orbital_cntl_text(root, values, opts.orbitals), encoding="utf-8"
+            )
+            argv = [
+                sys.executable,
+                "-m",
+                "atomscope.backends.cppaw.runner",
+                str(work_dir),
+                orb,
+                str(exe),
+            ]
+            argv += ["--wave", str(wave)]
+            for req in opts.orbitals:
+                argv += ["--cube", f"orbital:{req.band}={orbital_wave_file(orb, req)}"]
+            origin, vectors = self._view_box(structure, values)
+            argv += [
+                "--box",
+                *[f"{x:.6f}" for x in origin],
+                *[f"{x:.6f}" for row in vectors for x in row],
+            ]
+            return RunSpec(
+                argv=argv,
+                cwd=work_dir,
+                env=env,
+                stdout_name="orbitals.log",
+                stderr_name="orbitals.err",
+                watch_files=[f"{orb}.prot"],
+                description=f"orbital export ({len(opts.orbitals)}) of {structure.formula()}",
+                soft_stop_seconds=60.0,
+            )
+        msg = f"unknown analysis kind {kind!r}"
+        raise ValueError(msg)
+
+    def analysis_collect(
+        self, work_dir: Path, kind: AnalysisKind, options: dict[str, object]
+    ) -> list[VolumetricGrid]:
+        """Grids produced by a finished analysis job (only orbital exports make grids)."""
+        if kind != "orbitals":
+            return []
+        root = "case"
+        info = electronic_info(work_dir, root)
+        opts = OrbitalExportOptions.model_validate(options)
+        grids: list[VolumetricGrid] = []
+        for req in opts.orbitals:
+            cube = work_dir / f"{Path(orbital_wave_file(orbital_root(root), req)).stem}.cub"
+            if not cube.is_file():
+                continue
+            grid = read_cube(cube, kind="orbital", unit=Unit.E_PER_BOHR3).grid
+            grid.name = f"orbital b{req.band} k{req.kpoint} s{req.spin}"
+            grid.data_ref = cube.name
+            eig = next(
+                (e for e in info.eigenvalues if e.kpoint == req.kpoint and e.spin == req.spin), None
+            )
+            energy = (
+                eig.energies_ev[req.band - 1]
+                if eig is not None and req.band - 1 < len(eig.energies_ev)
+                else None
+            )
+            homo = info.homo(req.spin)
+            grid.orbital = OrbitalInfo(
+                index=req.band - 1,
+                energy=energy,
+                occupation=(2.0 if info.n_spins == 1 else 1.0)
+                if homo is not None and req.band <= homo
+                else 0.0,
+                spin="none" if info.n_spins == 1 else ("up" if req.spin == 1 else "down"),
+                kpoint=req.kpoint,
+                label=orbital_label(req.band, homo),
+            )
+            grids.append(grid)
+        return grids
+
+    def orbitals(self, work_dir: Path, grids: list[VolumetricGrid]) -> list[OrbitalEntry]:
+        return list_orbitals(electronic_info(work_dir, "case"), grids)
+
+    def dos_result(self, work_dir: Path) -> DosSpectrum:
+        info = electronic_info(work_dir, "case")
+        return read_dos(work_dir, "case", homo_energy=info.homo_energy, n_spins=info.n_spins)
+
+    def bands_result(self, work_dir: Path) -> BandStructure:
+        return read_bands(
+            work_dir, "case", homo_energy=electronic_info(work_dir, "case").homo_energy
+        )
+
+    def default_band_path(self, work_dir: Path) -> list[KPathPoint]:
+        return default_kpath(self._structure_from_inputs(work_dir.parent / "input"))
 
 
 plugin = CppawPlugin()
