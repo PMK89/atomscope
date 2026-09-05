@@ -23,9 +23,10 @@ Status: investigation report, 2026-09-05. Everything below was derived from the 
 | Parallel binaries | `/home/pmk/cp-paw/bin/fast_parallel/ppaw_*.x` — present (`ppaw_fast.x`, 11.8 MB, and a `ppaw_*` copy of every tool). Launched via `doppaw.sh -n N ROOT`, which runs `export OMP_NUM_THREADS=1; $(which mpirun) -np N --oversubscribe $(which ppaw_fast.x) ROOT.cntl 1>out 2>&1` (`doppaw.sh:119-125`; it also creates a private `TMPDIR`); `mpirun` is `/usr/bin/mpirun` (Open MPI). Not exercised in this analysis. |
 | Debug binaries | `/home/pmk/cp-paw/bin/dbg/` |
 | Build system | `paw_install` (top level) loops over `dbg fast fast_parallel` and calls `src/Buildtools/paw_build.sh -v -j10 -c <choice> [-z]`; `parmfile` (bash, sourced by paw_build.sh) picks the compiler (`gfortran` here, `mpif90` for parallel), libraries via `pkg-config` (openblas, fftw3, libxcf03) and sets `BINDIR=$(pwd)/bin/<choice>`, `BUILDDIR=$(pwd)/bin/Build_<choice>` (module files, `big.mk`), `DOCDIR=$(pwd)/doc` (manual built with latexmk unless `-z`). Preprocessor `paw_dollar_ok.sh` rewrites `$` in identifiers to `__`, so `MPE$STOPALL` appears as `MPE__STOPALL` in messages. |
+| Compile parameters (`paw_fast.x --parmfile` writes `parms.in_use` into the cwd; identical to `bin/Build_fast/etc/parms.in_use`) | `FC=/usr/bin/gfortran`, `FCFLAGS=-I/usr/include/x86_64-linux-gnu/openblas-pthread/ -ftree-vectorize -funroll-loops -O3 -finline-functions -fwhole-program -flto=3 -march=native`, `LIBS=-L/usr/lib/x86_64-linux-gnu/openblas-pthread/ -lopenblas -lfftw3 -lxcf03`, `INCLUDES=/usr/include/fftw3.f03 /usr/include/xc_f03_lib_m.mod`, `CPPFLAGS=""`, `PARALLEL=false`, `SUFFIX=fast`. Note `-march=native`: the binary is tied to this CPU family. |
 | Linked libraries (`ldd paw_fast.x`) | libopenblas.so.0, libfftw3.so.3, libxcf03.so.9 (LibXC 5.2.3), libgfortran.so.5, libmvec, libm, libc |
 | Environment on this machine | `PAWDIR=/home/pmk/cp-paw` is exported; `PATH` contains `bin/fast`, `bin/fast_parallel`, `bin/dbg`. The binaries themselves read **no** environment variable except `HOSTNAME` (`paw_trace.f90:75`); `PAWDIR` is only used by the shell scripts and by the documentation (`$PAWDIR/parameters/stp.cntl`, which does not exist here). |
-| Runtime blocker | The current system `libgfortran5` (GCC 16 runtime, installed 2026-03-22) rejects a malformed run-time FORMAT in `paw_trace.f90` → **every** `paw_*.x` aborts before reading input. See section 7.1 for the evidence and the two remedies. All results in this document were obtained with `LD_LIBRARY_PATH=/home/pmk/miniconda3/pkgs/libgfortran5-13.2.0-ha4646dd_0/lib`. |
+| Runtime blocker | The current system `libgfortran5` (GCC 16 runtime, installed 2026-03-22) rejects a malformed run-time FORMAT in `paw_trace.f90` → every actual run of `paw_fast.x` (and of every tool that calls `TRACE$PUSH` before reading input: `paw_dos.x`, `paw_tra.x`, `paw_grab.x`, `paw_cleantra.x`) aborts within 0.2 s. `paw_fast.x --version|--help|--parmfile`, `paw_wave.x -h`, `paw_bands.x -h` still work because they exit before the first trace call — a health check must therefore run a real (tiny) deck. See section 7.1 for the evidence and the two remedies. All results in this document were obtained with `LD_LIBRARY_PATH=/home/pmk/miniconda3/pkgs/libgfortran5-13.2.0-ha4646dd_0/lib`. |
 | Manual | `/home/pmk/cp-paw/src/Docs/manual.tex` (12,500 lines; rendered `/home/pmk/cp-paw/doc/manual.pdf`). Block/keyword documentation is fully regular (`\block{}`, `\brules{}`, `\bdescr{}`, `\mbax{\key{} \vdescr{} \vformat{} \vrules{} \vdefault{}}`) — 147 active blocks, 487 keys. |
 | Examples / tests | `src/Docs/Examples/si2.{cntl,strc}`; `tests/unittests`, `tests/fulltests/si2` (reference energy asserted by `analyse.sh`); `src/Tools/Preopt/case.{pcntl,strc}`. |
 
@@ -137,7 +138,7 @@ every `NWRITE` steps (and restart file update) → stop → final reports →
 | Autopilot convergence | `!PSIDYN!AUTO` (and/or `!RDYN!AUTO`) present: total energy within `ETOL` (default 1e-5 H) for `AUTOCONV` (default 20) steps | `.prot`: ` STOP SIGNAL FROM AUTOPILOT` then ` STOP SIGNAL RECEIVED`, one more step, regular end. **This fires during atomic dynamics too** (si2_rdyn probe stopped after 23/30 steps). |
 | Exit file | `touch $ROOT.exit` (name via `!FILES!FILE ID='EXIT'`) | checked once per step (`paw_driver.f90:744`); ` STOP SIGNAL RECEIVED`, regular end; stale exit file is deleted at the start of the next run (`paw_driver.f90:707`) |
 | Wall-clock limit | `!GENERIC RUNTIME=h m s` | same soft stop |
-| Signal | `kill -30 PID` (SIGUSR1) | soft stop after next iteration; manual discourages it (may corrupt files) |
+| Signal | `kill -30 PID` (manual l.700-711) | described as a soft stop after the next iteration, discouraged by the manual; **no signal handler exists in the current sources** (no `SIGNAL`/`SIGUSR` call anywhere in `src/*.f90`), so on this build a signal simply kills the process |
 | Hard kill | SIGTERM/SIGKILL | no final reports; `.rstrt` is only as recent as the last `NWRITE` update |
 
 `STOP=T` in `!PSIDYN` / `!RDYN` does **not** mean "stop when converged" — it
@@ -168,7 +169,7 @@ zeroes the initial velocities of wave functions / atoms (manual l.1242, l.1541).
 
 * A file is a tree of **blocks**. A block opens with `!NAME` and closes with `!END`; the last top-level block is followed by `!EOB` (end of buffer). Text after `!EOB` is ignored (a second mechanism for comments). Lines whose first non-blank character is `#` are ignored.
 * Inside a block, **data** are `KEY=value [value ...]`; keys and values are separated by blanks or line breaks; indentation and ordering are arbitrary except where the manual says a block is "multiple" and order-dependent (e.g. `!ATOM`, `!SPECIES`, `!FILE`). The `=` is mandatory and must follow the key directly (`R= 0.25 0.25 0.25` and `R=0.25 0.25 0.25` are both fine).
-* **Keywords are case-insensitive** (the hands-on decks mix `!wcntl`, `!files`, `id=`; the h2o deck uses `minfric=`). Quoted string *values* keep their case but are compared case-insensitively by the code in most places (setup IDs, atom names are converted to upper case internally: `ID='SI_.75_6.0'`, `NAME='Si1'` both work).
+* **Block names and keywords are case-insensitive** — verified: the si2 deck's `minfric=` was accepted (not listed as unused), the course `h2o.wcntl` is entirely lower case (`!wcntl`, `!files`, `id=`), and `paw_dos.x` accepted `prefix=`. Quoted string *values* are read verbatim; the code upper-cases setup IDs and file IDs before comparison (`ID='SI_.75_6.0'` and `id='wave'` both work), while atom/species names are used as given — keep them consistent in case (the decks use upper case).
 * **Type inference** (l.436-447, in this order): contains `'` or `"` → character; contains `(` → complex; `T`, `F`, `.true.`, `.false.` → logical; contains `.` → real; otherwise integer. Integers given where reals are expected are converted; reals given where integers are expected are rounded silently. Repetition shorthand `3*0.` = `0. 0. 0.`.
 * Arrays: elements separated by blanks; multi-dimensional arrays in Fortran order (first index fastest): `T= t1x t1y t1z  t2x t2y t2z  t3x t3y t3z`.
 * Units are part of the keyword name: `CHARGE[E]`, `LUNIT[AA]`, `T[K]`, `FREQ[THZ]`, `EMIN[EV]`, `RANDOM[K]`, `RAD/RCOV`, `RC/RCOV` — a key without suffix is in atomic units.
@@ -1218,7 +1219,7 @@ END IF
 
 * `TDYN` is set from `ATOMS$SETL4('MOVE', <!CONTROL!RDYN block exists>)` (`paw_ioroutines.f90:1526-1530`): **forces are printed only when a `!RDYN` block is present** (`.prot` says `ATOMS ARE PROPAGATED`). Without it the header still shows `FORCE[MH/ABOHR]` but the column is empty (h2o above, si2 §7.2). This is the root cause of audit finding PARSE-1.
 * `TSTOP` = `!RDYN STOP=T`; it is cleared after the first propagation step (`paw_atoms.f90:454-457`), so with `STOP=T` the *initial* ATOMLIST has no forces and all later ones do. Verified in `si2_rdyn` (§7.4): `SI1 (0.00000, 0.00000, 0.00000) 28.0855 0.5365 -0.00000 ( 0.01, 0.01, 0.01)`.
-* Units: positions Å, masses u, `Q[E]` = −(Gaussian-fit point charge), forces **milli-Hartree/Bohr with 2 decimals** (resolution 0.01 mH/a₀ = 5e-4 eV/Å). For precise forces use `_f.tra` (`!ANALYSE!TRA FORCE=T`, full double precision), not the protocol.
+* Units: positions Å, masses u, `Q[E]` = −(Gaussian-fit point charge), forces **milli-Hartree/Bohr with 2 decimals** (resolution 0.01 mH/a₀ = 5e-4 eV/Å). There is no higher-precision force output in this build: `_f.tra` (`!ANALYSE!TRA FORCE=T`) is written but contains zeros (verified with and without `!RDYN`, §7.4). For tighter relaxations let CP-PAW relax (`!RDYN!AUTO`) rather than driving an external optimiser from protocol forces.
 * Column layout is fixed: name 1-9, `(x, y, z)` 10-42, M 43-50, MPSI_EFF 53-60, Q 63-70, force 73-97. Regex: `^(\S{1,9})\s*\(\s*(-?\d+\.\d+),\s*(-?\d+\.\d+),\s*(-?\d+\.\d+)\)\s+(\S+)\s+(\S+)\s+(\S+)(?:\s+\(\s*(-?\d+\.\d+),\s*(-?\d+\.\d+),\s*(-?\d+\.\d+)\))?\s*$`.
 
 Where to find things in `.prot`:
@@ -1288,7 +1289,7 @@ Written when `TLAST .OR. (TPRINT .AND. .NOT.TFIRST)` (`paw_driver.f90:120`) i.e.
 |---|---|---|
 | `_r.tra` | 9+8·NAT | lattice `T` (9, column-major), positions `R` (3·NAT), point charges `Q` (NAT), `(q,mx,my,mz)` per atom (4·NAT) |
 | `_e.tra` | 8 | T[K], EKINC, EKINP, ETOT, ECONS, ENOSEE, ENOSEP, HEAT |
-| `_f.tra` | 4·NAT | forces (3·NAT, H/a₀) + NAT zeros |
+| `_f.tra` | 4·NAT | intended: forces (3·NAT, H/a₀) + NAT zeros; **observed: all zeros in this build**, with and without `!RDYN` |
 
 ```python
 import struct
@@ -1383,7 +1384,7 @@ Produced by `!CONTROL!ANALYSE!WAVE` / `!DENSITY` / `!POTENTIAL` blocks in the CN
 !EOB
 ```
 
-The **root of the `.wcntl` file** determines the default output names (`case_total_density.wcntl` → `case_total_density.dx/.cub/.wrl/.wprot`). Cube file: line 1 `CP-PAW CUBE FILE`, line 2 comment, line 3 `NAT ox oy oz` (Bohr), lines 4-6 `NRi  dx dy dz` (Bohr), then `NAT` lines `Z  charge  x y z` (Bohr) — 27 atoms for h2o because the 3×3×3 periodic images that fall into the view box are included — then the values in Gaussian-cube order (`MAKECUBE`, `paw_wave.f90:366`). The `.dx` file is the OpenDX general array format (23 MB for 80³ points); `.wrl` an isosurface scene. Atomscope should generate the cube only (`!FILE ID='WAVEDX' NAME='/dev/null'` is not possible — the tool always writes `.dx` when the ID is registered; it simply costs time and disk).
+The **root of the `.wcntl` file** determines the default output names (`case_total_density.wcntl` → `case_total_density.dx/.cub/.wrl/.wprot`). Cube file: line 1 `CP-PAW CUBE FILE`, line 2 comment, line 3 `NAT ox oy oz` (Bohr), lines 4-6 `NRi  dx dy dz` (Bohr), then `NAT` lines `Z  charge  x y z` (Bohr) — 27 atoms for h2o because the 3×3×3 periodic images that fall into the view box are included — then the values in Gaussian-cube order (`MAKECUBE`, `paw_wave.f90:366`). The `.dx` file is the OpenDX general array format (23 MB for 80³ points); `.wrl` an isosurface scene. Atomscope should generate the cube only: `!FILE ID='WAVEDX' EXT=F NAME='/dev/null' !END` (and likewise `VRML`) works — verified, the `.wprot` FILE REPORT then shows `WAVEDX /dev/null` and no `.dx` is written.
 
 ### 4.10 Other files
 
@@ -1433,7 +1434,7 @@ Where units appear in the inputs and outputs:
 | `.strc_out` | same units as input (`LUNIT` is written back; values printed in Fortran free format, one number per line) |
 | `_r.tra` | atomic units (Bohr, Hartree, τ₀) — see section 4 |
 | `.cub` (paw_wave.x) | Bohr for origin/axes/atoms, density in e/a₀³ (standard Gaussian cube convention) |
-| `.pdos`, `.banddata` | Hartree internally; paw_dos.x/paw_bands.x write eV when asked via `[EV]` keys in their control files |
+| `.pdos`, `.banddata` | Hartree (binary); `paw_dos.x` `.dos` files and `paw_bands.x` `.dat` files are always written in **eV** (`E/EV` in `paw_dos.f90`, `EBI` in eV in `paw_bands.f90`); grid/window keys of `.dcntl` carry `[EV]`/`[K]` suffixes |
 
 ## 6. Tutorial deck families (candidate integration-test fixtures)
 
@@ -1489,12 +1490,12 @@ TRACE-PUSH(  1): LEVEL=    1 INTO MAIN
 Root cause: `src/paw_trace.f90` builds the run-time format string
 `FMT_MEM='("TRACE-MEM(",I3,"): MAXMEM[MBYTE]=",F10.5' // '," TIME",A8," ",A10)'`
 (lines 146-147 and 200-201) — there is no comma between `F10.5` and `" TIME"`.
-The binary (built 2025-05-07 against GCC 13/15) tolerated this; the system
+The binary (built 2025-05-07 with the gfortran of that time) tolerated this; the system
 `libgfortran5` has since been upgraded to the GCC 16 runtime
 (`libgfortran5 16-20260322-1ubuntu1`, `/usr/lib/x86_64-linux-gnu/libgfortran.so.5.0.0`,
-installed 2026-03-22) which rejects the format at run time. Every `paw_*.x`
-binary is affected because every program calls `TRACE$PUSH('MAIN')` before
-reading any input (the `out` file of the May-2025 h2o run shows the same
+installed 2026-03-22) which rejects the format at run time. Every real run is affected because `TRACE$PUSH('MAIN')` is called before
+reading any input; `--version`/`--help`/`--parmfile` exit earlier and still work, so they
+cannot be used as a health check (the `out` file of the May-2025 h2o run shows the same
 TRACE-MEM lines printing fine back then).
 
 Work-around used for all runs below (no files outside the scratch dir touched):
@@ -1652,13 +1653,14 @@ O and H, isolated-molecule cell, `NSPIN=2`, `EMPTY=15`) is unmodified.
 | Atomic dynamics / forces | `si2_rdyn/` | si2 `START=F` from `si2.rstrt`, `!RDYN FRIC=0.1 STOP=F !END`, `NSTEP=30 NWRITE=10` | `.prot`: `ATOMS ARE PROPAGATED`; ATOMLIST now carries the force vector: `SI1 ( 0.00000, 0.00000, 0.00000) 28.0855 0.5365 -0.00000 ( 0.01, 0.01, 0.01)` (mH/Bohr, 2 decimals). Run stopped after 23 of 30 steps by the **PSIDYN autopilot** (energy constant) even though atoms were moving. |
 | Geometry from STRC on restart | `si2_newstrc/` | as above + `NEWSTRC=T`, Si2 moved to (0.27,0.25,0.25) | Without NEWSTRC the edited STRC geometry was **silently ignored** (`INITIAL POSITIONS TAKEN FROM RESTART FILE`); with `NEWSTRC=T`: `INITIAL POSITIONS TAKEN FROM STRUCTURE FILE`, Si2 at (1.46593, 1.35734, 1.35734) Å. |
 | Exit file | `si2_exit/` | `NSTEP=5000`, `!AUTO_OFF`; `touch si2.exit` after 4 s | ` STOP SIGNAL RECEIVED` at NFI 29, normal `PROGRAM FINISHED`, exit code 0, `si2.rstrt` written, `si2.exit` left in place (it is deleted only at the *start* of the next run, `paw_driver.f90:707`). |
+| Force trajectory | `si2_ftra/` (single point + `!ANALYSE !TRA FORCE=T E=T !END !END`, 60 steps) and `si2_force/` (`!RDYN FRIC=1.0 STOP=T`, `NEWSTRC=T`, `NWRITE=1`, 5 steps) | | `si2_f.tra`/`si2_e.tra` are written (59 records, NSIZE 8); `_e.tra` holds `[T, EKINC, EKINP, ETOT, ECONS, ...]` = `[0, 0.0716, 0, -7.8689, -7.7973, ...]`; **`_f.tra` is all zeros in both runs** although the ATOMLIST of `si2_force` shows `(-189.17, -0.02, -0.03)` mH/a₀. With `FRIC=1.0` the displaced Si atom moved 1.46593 → 1.46584 Å in 5 steps. |
 | Input error | `si2_broken/` | STRC without `!SPECIES` | exit code **1**; stdout: `ERROR STOP ERROR STOP IN MPE__STOPALL` + gfortran backtrace, then the message; `.prot` ends with `NO ATOM TYPES !STRUCTURE!SPECIES SPECIFIED. ... STOP IN STRCIN_SPECIES` and has no `PROGRAM FINISHED` line. |
 
 ## 8. Known traps
 
 Sources: the third-party audit of the earlier web workbench (`/home/pmk/cp-paw/docs/third_party_audit_report.md`), the workbench code (`/home/pmk/cp-paw/backend/app/protocol.py`, `restarts.py`, ...), the manual, the Fortran sources and the probes of section 7. Status: **VERIFIED** = reproduced here or read in the source at the cited line; **MANUAL** = stated by the manual; **AUDIT** = reported by the audit, consistent with the source.
 
-1. **Forces appear in the protocol only when `!CONTROL!RDYN` exists** (`paw_atoms.f90:257`, `TDYN`), and with `STOP=T` not in the first ATOMLIST. A single-point deck therefore yields no forces; the workbench's ASE calculator read `[0,0,0]` and BFGS "converged" at step 0 (audit PARSE-1). VERIFIED (§7.2 vs §7.4). Remedy: force evaluation = `!RDYN FRIC=1.0 STOP=T !END` (steepest descent → atoms barely move; friction 1 = pure steepest descent) with `NSTEP` small, or better, read `_f.tra` (`!ANALYSE!TRA FORCE=T`).
+1. **Forces appear in the protocol only when `!CONTROL!RDYN` exists** (`paw_atoms.f90:257`, `TDYN`), and with `STOP=T` not in the first ATOMLIST. A single-point deck therefore yields no forces; the workbench's ASE calculator read `[0,0,0]` and BFGS "converged" at step 0 (audit PARSE-1). VERIFIED (§7.2 vs §7.4). Remedy: force evaluation = `!RDYN FRIC=1.0 STOP=T !END` (friction 1 = steepest descent) with a small `NSTEP` and `NWRITE=1`, then read the ATOMLIST of the last step. Verified (`si2_force/`, Si2 displaced by 0.02 lattice units, `NEWSTRC=T`, 5 steps): forces appear from the first propagated step on (`(-189.17, -0.02, -0.03)` → `(-141.40, 0.13, -0.41)` mH/a₀ as the wave functions re-converge for the new geometry), the atom moved only 1.46593 → 1.46584 Å. Forces are only meaningful once the electrons are converged for the *current* geometry, so run enough steps for `EKIN(PSI)` to drop. **Do not use `_f.tra` as the force source: in this build it contains only zeros**, both without `!RDYN` (`si2_ftra/`: 59 records, all 0.0) and with `!RDYN` (`si2_force/`: records 144-147 all 0.0 while the ATOMLIST shows −189 mH/a₀).
 2. **Protocol forces have 2 decimals in mH/a₀** (`F7.2`); resolution 5·10⁻⁴ eV/Å — too coarse for tight relaxations; `Q[E]` overflows to `********` for |Q|≥100 in early unconverged steps (seen in ch3cli). VERIFIED.
 3. **`.prot`, `_r.tra`, `_constr.report` are opened in APPEND mode** — re-running in the same directory concatenates runs; `NFI` is not unique across runs (and does not advance at all if `RESTART_OUT=/dev/null`). Always split on `PROGRAM STARTED` and use the last run, or run each job in a fresh directory. VERIFIED (h2o reference: 9 runs in one file).
 4. **`START=F` is the default** and silently ignores the geometry and cell in `.strc` (positions, cell, occupations come from `.rstrt`) unless `NEWSTRC=T`. A "changed geometry, re-run" workflow that forgets `NEWSTRC=T` or `START=T` computes the old structure. VERIFIED (§7.4). Conversely `START=T` discards converged wave functions.
@@ -1666,7 +1668,7 @@ Sources: the third-party audit of the earlier web workbench (`/home/pmk/cp-paw/d
 6. **The autopilot stops MD/relaxation runs early**: the energy-window criterion fires whenever the total energy is flat for AUTOCONV steps, also while atoms are still moving slowly (si2_rdyn: 23 of 30 steps). For MD, omit `!PSIDYN!AUTO`/`!RDYN!AUTO` or use a fixed friction; for relaxations, check `STOP SIGNAL FROM AUTOPILOT` and the last forces. VERIFIED.
 7. **Misspelled/misplaced blocks are silently ignored** (manual l.427), but the protocol *does* list them under `UNUSED ELEMENTS FROM INPUT FILE` — parse that list and surface it. The h2o reference deck has `!RDYN_x` (disabled by suffix) and `!ISOLATE` nested inside `!GENERIC`/`!LATTICE`/`!OCCUPATIONS` instead of directly under `!STRUCTURE`; the latter are *not* reported (empty blocks have no data to report) and the electrostatic decoupling was never active. VERIFIED (no `ISOLATE ENERGY` line in any h2o protocol).
 8. **Duplicate keys: first wins, no warning** (manual l.429). MANUAL.
-9. **Installed binaries crash on the current libgfortran** (`paw_trace.f90:146/200` malformed FORMAT; every `paw_*.x`, including `paw_tra.x`, `paw_dos.x`, `paw_grab.x`, `paw_cleantra.x`). Failure signature: exit code 2 and `Fortran runtime error: Missing comma between descriptors` within the first second. VERIFIED (§7.1). The workbench's Docker image (Ubuntu with an older runtime) masked this.
+9. **Installed binaries crash on the current libgfortran** (`paw_trace.f90:146/200` malformed FORMAT): every real run of `paw_fast.x` and every tool run (`paw_wave.x`, `paw_dos.x`, `paw_bands.x`, `paw_tra.x`, `paw_grab.x`, ...) dies at the first `TRACE$PUSH`, while `--version`/`--help`/`--parmfile` still succeed — so a version probe is **not** a health check. Failure signature: exit code 2 and `Fortran runtime error: Missing comma between descriptors` within the first second. VERIFIED (§7.1). The workbench's Docker image (Ubuntu with an older runtime) masked this.
 10. **The reference energy of `tests/fulltests/si2/analyse.sh` is stale** relative to the corrected-PBE binary (audit SCOPE-3: −7.4076060 vs main's −7.3657485); our si2 run gives −7.9050265 H with `EPWPSI=30`, `R=10` k-mesh — different deck, do not compare. AUDIT.
 11. **Charge and spin are easy to drop when regenerating STRC from an ASE `Atoms`** (`CHARGE[E]`, `SPIN[HBAR]`, `NSPIN`, `!OCCUPATIONS!STATE`) — audit ARCH-1. Keep them as first-class fields of the Atomscope model, not derived from ASE. AUDIT.
 12. **Editing generated decks vs. raw decks**: the workbench let a raw deck override GUI edits silently (audit FE-1). Atomscope must have one source of truth (either structured model → generated deck, or raw text) and show a diff. AUDIT.
@@ -1680,7 +1682,7 @@ Sources: the third-party audit of the earlier web workbench (`/home/pmk/cp-paw/d
 20. **`!ANALYSE!DENSITY/!WAVE` files are written only at the last step**, so a run killed by `timeout`/SIGKILL yields no `.wv`; a soft stop (exit file) does. VERIFIED in source (`paw_driver.f90:114`).
 21. **`.rstrt` is refreshed only every `NWRITE` steps** (default 100); a hard kill loses up to NWRITE steps. For long MD runs Atomscope should set `NWRITE` explicitly. MANUAL l.912-916.
 22. **Setup IDs**: `ID='EL_TYPE'` splits at the *first* underscore (`paw_setups.f90:1400-1402`), so element symbols with `_` padding work (`O_.75_6.0` → EL=`O_`, type `.75_6.0`). Unknown type → `SETUP TYPE NOT RECOGNIZED ... NO SETUP FILE HAS BEEN READ`, exit 1. The hands-on decks avoid IDs and inline `!AUGMENT` blocks via `paw_resolve -f SETUPS=setups.rslv`. VERIFIED.
-23. **`paw_wave.x` output names derive from the `.wcntl` root**, not from the `.wv` name, and it always writes the large `.dx` alongside the `.cub`. VERIFIED (§7.3).
+23. **`paw_wave.x` output names derive from the `.wcntl` root**, not from the `.wv` name, and by default it writes the large `.dx` (23 MB for 80³) and `.wrl` alongside the `.cub`; suppress them with `!FILE ID='WAVEDX' EXT=F NAME='/dev/null' !END` (verified) — the same `/dev/null` trick works for `RESTART_OUT` in the CNTL (used by the ase-cp-paw deck). VERIFIED (§7.3).
 24. **Eigenvalues/gaps in `.prot` use the fixed-occupation path**; with `!MERMIN` the printed numbers are diagonal Hamiltonian elements (manual l.9293-9304) and the band gap lines change. MANUAL.
 25. The old workbench regexes worth keeping: timestamp `:\s*([A-Z]{3})\s+(\d{2})\s+([A-Z]{3})\s+(\d{4})\s+(\d{2}):(\d{2})\s+\(([-+0-9.]+)S\)` (matches `PROGRAM STARTED on FRI 04 SEP 2026 22:56 (27.557S)`), ATOMLIST row `^\s*(\S+)\s+\(\s*([-+0-9.Ee]+),\s*([-+0-9.Ee]+),\s*([-+0-9.Ee]+)\)`; the one to fix: forces must be taken from the optional 4th parenthesised triple **and** their absence must be reported as "no forces", never as zeros.
 
@@ -1688,14 +1690,14 @@ Sources: the third-party audit of the earlier web workbench (`/home/pmk/cp-paw/d
 
 **Runtime**
 
-* Locate binaries via `PAWDIR` (`$PAWDIR/bin/fast`, `$PAWDIR/bin/fast_parallel`) or an explicit setting; verify with `paw_fast.x --version` (exit 0, parse `hash=`) at configuration time. Detect the libgfortran incompatibility from the `Fortran runtime error: Missing comma between descriptors` signature and offer the `LD_LIBRARY_PATH` remedy / rebuild instructions (§7.1). Do not depend on `PAWDIR` inside CP-PAW itself — it does not read it.
+* Locate binaries via `PAWDIR` (`$PAWDIR/bin/fast`, `$PAWDIR/bin/fast_parallel`) or an explicit setting; verify with `paw_fast.x --version` (exit 0, parse `hash=`) **and** a 12-second si2 run at configuration time — `--version` succeeds even when real runs crash. Detect the libgfortran incompatibility from the `Fortran runtime error: Missing comma between descriptors` signature of that test run and offer the `LD_LIBRARY_PATH` remedy / rebuild instructions (§7.1). Do not depend on `PAWDIR` inside CP-PAW itself — it does not read it.
 * Run each calculation in its **own directory** with a fixed root (`case`), `cwd` = that directory, command `paw_fast.x case.cntl`, stdout+stderr captured to `case.out`. Parallel: `mpirun -np N --oversubscribe ppaw_fast.x case.cntl` with `OMP_NUM_THREADS=1` (as `doppaw.sh` does).
 * Never reuse a directory for a second run without either (a) deleting `case.prot`, `case_r.tra`, `case_constr.report` (append mode) or (b) parsing "last run only". Prefer (a) plus copying `.rstrt` in for restarts.
 
 **Files to generate**
 
 * `case.strc` from the Atomscope structure model: `!GENERIC LUNIT[AA]=1.0` (write Å directly), `!LATTICE T=`, `!SPECIES` per element (name = symbol padded with `_`, `NPRO`/`LRHOX` from a per-element table; setups either as internal `ID='<EL>_NDLSS_V0'`/`'.75_6.0'` or inline `!AUGMENT` copied from `setups.rslv`), `!ATOM NAME='<sym><n>' R=`, `!OCCUPATIONS NSPIN= CHARGE[E]= SPIN[HBAR]= EMPTY=`, optional `!KPOINTS DIV=|R=`, `!ISOLATE` directly under `!STRUCTURE` for molecules, `!CONSTRAINTS` (`!FREEZE`, `!BOND` for scans).
-* `case.cntl` from a small task model: single point (`START=T`, `!PSIDYN!AUTO`, no `!RDYN`), forces (`+ !RDYN FRIC=1.0 STOP=T`, few steps), relaxation (`!RDYN` + `!RDYN!AUTO`), MD (`!RDYN FRIC=0` + `!THERMOSTAT`, no `!AUTO`, explicit `NWRITE`), continuation (`START=F`, optional `NEWSTRC=T`), analysis (`!ANALYSE!DENSITY/!WAVE`, `!ANALYSE!TRA FORCE=T E=T`). Always write `!FILES !FILE ID='EXIT' ...` only if a non-default name is needed; keep `!DFT TYPE=10`, `!FOURIER EPWPSI CDUAL` explicit.
+* `case.cntl` from a small task model: single point (`START=T`, `!PSIDYN!AUTO`, no `!RDYN`), forces (`+ !RDYN FRIC=1.0 STOP=T NWRITE=1`, a few steps, `NEWSTRC=T` when continuing from a restart file; read the last ATOMLIST), relaxation (`!RDYN` + `!RDYN!AUTO`), MD (`!RDYN FRIC=0` + `!THERMOSTAT`, no `!AUTO`, explicit `NWRITE`), continuation (`START=F`, optional `NEWSTRC=T`), analysis (`!ANALYSE!DENSITY/!WAVE`, `!ANALYSE!TRA E=T` for the energy trajectory; `FORCE=T` yields zeros in this build). Always write `!FILES !FILE ID='EXIT' ...` only if a non-default name is needed; keep `!DFT TYPE=10`, `!FOURIER EPWPSI CDUAL` explicit.
 * Tool control files on demand: `.wcntl` (cube export), `.dcntl` (DOS), `.bcntl` (bands), `.tcntl` (movie/xyz). Use `.strc_out` as their structure input.
 * Validate generated and imported decks against the schema JSON (unknown keys → warning; mandatory keys `!SPECIES NPRO`, `!LATTICE T`, `!ATOM NAME/R`), and after a run compare with the protocol's `UNUSED ELEMENTS` list.
 
@@ -1713,7 +1715,7 @@ Sources: the third-party audit of the earlier web workbench (`/home/pmk/cp-paw/d
 
 **Parsing / post-processing**
 
-* Final energy: last `TOTAL ENERGY` of the last run (H → eV ×27.211396). Forces: last ATOMLIST with a force triple (mH/a₀ → eV/Å ×0.0514220675) or `_f.tra` (H/a₀). Geometry: `.strc_out` (× LUNIT → Bohr → Å) or ATOMLIST (Å). Gap/HOMO/LUMO: `ABSOLUTE GAP`, `HOMO-ENERGY`, `LUMO-ENERGY` (eV). Trajectory: `_r.tra` reader above (positions in Bohr, time in a.u.). Temperature/energies vs time: `!>` columns or `_e.tra`.
+* Final energy: last `TOTAL ENERGY` of the last run (H → eV ×27.211396). Forces: last ATOMLIST with a force triple (mH/a₀ → eV/Å ×0.0514220675); `_f.tra` is unusable (zeros). Geometry: `.strc_out` (× LUNIT → Bohr → Å) or ATOMLIST (Å). Gap/HOMO/LUMO: `ABSOLUTE GAP`, `HOMO-ENERGY`, `LUMO-ENERGY` (eV). Trajectory: `_r.tra` reader above (positions in Bohr, time in a.u.). Temperature/energies vs time: `!>` columns or `_e.tra`.
 * Volumetric data: run `paw_wave.x` on the `.wv` with a generated `.wcntl` (view box = cell for periodic systems, molecule bounding box + margin for isolated ones) and load the `.cub` (Bohr; atom list may include periodic images — use the structure model for atoms, the cube only for the grid).
 * DOS/bands: `paw_dos.x` (`.dos` = E[eV], DOS, DOS·occ; spin-down negative), `paw_bands.x` (`x, E1..ENB` eV; k-path from `!LINE KVEC1/KVEC2/KVECSCALE`). Fermi level from the `.dprot` (`FERMI LEVEL`) or HOMO from `.prot`.
 * Keep the tool protocols (`.wprot`, `.dprot`, `.bprot`) and check their `UNUSED ELEMENTS` too.
