@@ -1,5 +1,5 @@
 import { Vector3 } from 'three';
-import { makeAtom, makeBond, normalizeStructure } from '../model/structure';
+import { formula, makeAtom, makeBond, normalizeStructure } from '../model/structure';
 import { useSelectionStore } from '../state/selectionStore';
 import { useStructureStore } from '../state/structureStore';
 import type { PickResult } from '../renderer/Renderer';
@@ -240,6 +240,31 @@ describe('draw', () => {
     expect(S().doc.atoms[1]!.element).toBe('O');
     expect(S().doc.atoms.filter((a) => a.element === 'H')).toHaveLength(1);
     expect(S().undoLabel()).toBe('Change to O');
+  });
+  test('adding a carbon next to methane yields ethane, not an over-coordinated carbon', () => {
+    // methane with one C-H bond along -x, so a new carbon at +1.53 Å only reaches the carbon
+    useStructureStore.getState().load(
+      normalizeStructure({
+        name: 'methane',
+        charge: 0,
+        atoms: [
+          makeAtom('C', [0, 0, 0]),
+          makeAtom('H', [-1.09, 0, 0]),
+          makeAtom('H', [0.3633, 1.0277, 0]),
+          makeAtom('H', [0.3633, -0.5138, 0.89]),
+          makeAtom('H', [0.3633, -0.5138, -0.89]),
+        ],
+        bonds: [makeBond(0, 1), makeBond(0, 2), makeBond(0, 3), makeBond(0, 4)],
+      }),
+    );
+    useToolStore.getState().update('draw', { element: 'C', adjustHydrogens: true });
+    click(host, ...at(1.53, 0));
+    const doc = S().doc;
+    expect(formula(doc)).toBe('C2H6');
+    // the pre-existing carbon lost one hydrogen when it gained the C-C bond
+    expect(doc.bonds.filter((b) => b.a === 0 || b.b === 0)).toHaveLength(4);
+    S().undo();
+    expect(formula(S().doc)).toBe('CH4');
   });
   test('click on a bond cycles its order', () => {
     click(host, ...at(0.75, 0));
