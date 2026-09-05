@@ -48,8 +48,8 @@ run against current code -- Playwright above all -- use the private-server recip
   (`/api/chem/optimize-step` in a loop, drag an atom while it runs, one undo step); residue and
   chain and secondary-structure colour schemes with `Select residues…`/`Select solvent`; the
   Settings dialog (quality, depth cueing, projection, background, backend list); Display scope
-  (a display type per atom, keyed by uid, with hidden atoms dropped from the meshes, the labels
-  and the picking); the colour maps Avogadro carries as colour plugins -- atom index, distance
+  (a display type and a colour per atom, keyed by uid, with hidden atoms dropped from the meshes,
+  the labels, the picking, the ribbon and the hydrogen bonds); the colour maps Avogadro carries as colour plugins -- atom index, distance
   from the first atom, partial charge and a single custom colour; a colour map per engine (the
   ribbon now has its own, next to the structure layer's and each isosurface's); a File > Export
   dialog over every format the backend can write, which refuses to overwrite until asked twice;
@@ -106,10 +106,8 @@ run against current code -- Playwright above all -- use the private-server recip
    saying which part is missing; they are the honest remaining HIGH work (bond selection mode,
    arbitrary background colour, Set Spacegroup, the Gaussian and GAMESS option dialogs, the
    wavefunction readers past fchk/Molden, frontend plugin registration, modal progress dialogs).
-   Run the same awk with `MEDIUM` for what is next: today it lists 50 rows, of which the ones with a
-   real workflow
-   behind them are crystal-text paste (AV-XTAL-002), a per-atom colour override (AV-COLOR-010,
-   which the uid-keyed `atomStyles` plumbing already does for display types), named selections
+   Run the same awk with `MEDIUM` for what is next: today it lists 49 rows, of which the ones with
+   a real workflow behind them are crystal-text paste (AV-XTAL-002), named selections
    (AV-SEL-013), PDB/name fetch (AV-FILE-013/014, AV-BIO-010) and recent files (AV-FILE-007).
 
    **The matrix drifts the other way too.** Flipping AV-VIS-042 turned up three rows that were
@@ -143,10 +141,11 @@ run against current code -- Playwright above all -- use the private-server recip
    - Colouring by secondary structure (like the ribbons) asks the backend for a new DSSP
      assignment on every document revision, so a run of the auto-optimizer costs one DSSP request
      per round next to the optimize-step. Debounce `bioStore.load` if that ever bites.
-   - Display scope (AV-VIS-029) is not persisted with the project, and the ribbon and
-     hydrogen-bond layers ignore it: a hidden backbone atom still gets its ribbon segment. The
-     scope is dropped whenever a document is rebuilt from the backend with a different atom count
-     (`Add hydrogens`), because the atom uids it is keyed by are regenerated then.
+   - Display scope (AV-VIS-029) and the per-atom colours (AV-COLOR-010) are not persisted with the
+     project, and both are dropped whenever a document is rebuilt from the backend with a
+     different atom count (`Add hydrogens`), because the atom uids they are keyed by are
+     regenerated then. The ribbon and hydrogen-bond layers now honour hidden atoms; the
+     isosurfaces do not, which is right -- a surface is not made of atoms.
    - `removeAtoms` now filters the per-atom properties with the atoms, but adding or pasting atoms
      leaves `atomic_scalars`/`atomic_vectors` shorter than the atom list. Every reader checks the
      length, so charges and forces then read as absent rather than as belonging to the wrong atom

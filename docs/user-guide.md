@@ -489,7 +489,7 @@ of the right dock, which is Avogadro's Display Types dock:
 | Section | What it holds |
 |---|---|
 | Structure | display type, **colour by**, atom radius, bond radius, multiple bonds, hydrogens, and a display type for the **selected atoms only** (ball-and-stick on the active site, wireframe on the rest) |
-| Display scope | which atoms a display type applies to: assign one to the selection, show only the selection, hide the selection, or put everything back |
+| Display scope | which atoms a display type applies to: assign one to the selection, show only the selection, hide the selection, or put everything back; and a colour for the selection, painted over the scheme |
 | Labels | on/off, what atoms and bonds are labelled with (index, symbol, name, formal or partial charge, residue name or number, uid, custom; bond order or length), colour, size, offset |
 | Hydrogen bonds | on/off, cut-off distance and angle; drawn as dashed sticks from the geometry on screen |
 | Ribbons | cartoon, ribbon or backbone rendering of a protein, a **colour by** of its own (secondary structure, chain or residue) and a width; helices red, strands yellow with an arrowhead, coil thin |
@@ -552,9 +552,15 @@ thing is a display type *per atom*, plus atoms that nothing draws:
 * **Hide selection** — the selection is hidden and nothing else changes.
 * **Show all** — every atom goes back to the global display type.
 
-A hidden atom is drawn by nothing: no sphere, no bond, no label, and the mouse
-cannot pick it. The assignment follows the *atoms*, not their positions in the
-list, so deleting an atom, optimizing the geometry or undoing does not hand one
+The same section assigns a **colour** to the selection: **Colour selection**
+paints the selected atoms with the colour well beside it, over whatever
+**Colour by** scheme is chosen, and **Clear colours** gives them back to it.
+An atom with a colour of its own still takes the selection and hover tints, so
+deselect to see the colour you assigned.
+
+A hidden atom is drawn by nothing: no sphere, no bond, no label, no ribbon
+through it, no hydrogen bond to it, and the mouse cannot pick it. The
+assignment follows the *atoms*, not their positions in the list, so deleting an atom, optimizing the geometry or undoing does not hand one
 atom's display type to another; an operation that rebuilds the whole document
 (`Add hydrogens`, opening another file) starts from a clean slate. It is a view
 setting, not part of the document, and is not saved with the project.

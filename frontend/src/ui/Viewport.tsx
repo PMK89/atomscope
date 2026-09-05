@@ -8,7 +8,7 @@ import { useTrajectoryStore } from '../state/trajectoryStore';
 import { frameCell, framePositions, isTrajectoryCompatible } from '../model/trajectory';
 import { installExtraLayers, syncExtraLayers } from './viewportLayers';
 import { BACKGROUND_HEX, useViewStore } from '../state/viewStore';
-import { atomColors } from '../renderer/atomColors';
+import { atomColorArray, atomColors } from '../renderer/atomColors';
 import { partialCharges } from '../renderer/labels';
 import { hiddenAtoms, styleArray } from '../renderer/atomStyles';
 import { useBioStore } from '../state/bioStore';
@@ -53,7 +53,7 @@ export function Viewport(): JSX.Element {
   }, [scheme, doc]);
   const custom = view.customColor;
   const palette = view.residuePalette;
-  const atomColorOverride = useMemo(
+  const schemeColors = useMemo(
     () =>
       atomColors(residues, atomCount, scheme, secondary, {
         atoms: colorAtoms,
@@ -62,6 +62,13 @@ export function Viewport(): JSX.Element {
         palette,
       }),
     [residues, atomCount, scheme, secondary, colorAtoms, colorCharges, custom, palette],
+  );
+  // per-atom colours are painted over the scheme, and give the array back untouched when there
+  // are none -- so an unassigned document keeps the identity the structure layer compares
+  const perAtom = view.atomColorOverrides;
+  const atomColorOverride = useMemo(
+    () => atomColorArray(schemeColors, doc, perAtom),
+    [schemeColors, doc, perAtom],
   );
   // engine primitive scoping: uid-keyed in the store, resolved to one entry per atom here, and
   // stable while neither the atoms nor the assignment change (a new array rebuilds the meshes)

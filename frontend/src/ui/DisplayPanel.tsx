@@ -11,7 +11,10 @@ import { useState } from 'react';
 import type { RibbonStyle } from '../model/ribbon';
 import { ATOM_LABEL_OPTIONS, BOND_LABEL_OPTIONS } from '../renderer/labels';
 import {
+  assignAtomColor,
+  assignedColorCount,
   COLOR_SCHEMES,
+  NO_ATOM_COLORS,
   PALETTE_LABELS,
   type ColorScheme,
   type ResiduePalette,
@@ -95,9 +98,13 @@ function DisplayScope(): JSX.Element {
   const selected = useSelectionStore((s) => s.atoms);
   const assignment = useViewStore((s) => s.atomStyles);
   const setAtomStyles = useViewStore((s) => s.setAtomStyles);
+  const colors = useViewStore((s) => s.atomColorOverrides);
+  const setColors = useViewStore((s) => s.setAtomColorOverrides);
   const globalStyle = useViewStore((s) => s.style);
   const [style, setStyle] = useState<StructureStyle>(globalStyle);
+  const [color, setColor] = useState('#ffb000');
   const counts = assignmentCounts(doc, assignment);
+  const colored = assignedColorCount(doc, colors);
   const nothingSelected = selected.size === 0;
 
   return (
@@ -154,6 +161,33 @@ function DisplayScope(): JSX.Element {
           ? 'Every atom is drawn with the display type above the scope section.'
           : `${counts.assigned} of ${doc.atoms.length} atoms have a display type of their own` +
             (counts.hidden > 0 ? `, ${counts.hidden} of them hidden.` : '.')}
+      </p>
+      <div className="form-row">
+        <label htmlFor="display-scope-color">Colour to assign</label>
+        <input
+          id="display-scope-color"
+          type="color"
+          value={color}
+          onChange={(e) => setColor(e.target.value)}
+        />
+      </div>
+      <div className="button-row">
+        <button
+          type="button"
+          disabled={nothingSelected}
+          onClick={() => setColors(assignAtomColor(colors, doc, selected, color))}
+        >
+          Colour selection
+        </button>
+        <button type="button" disabled={colored === 0} onClick={() => setColors(NO_ATOM_COLORS)}>
+          Clear colours
+        </button>
+      </div>
+      <p className="muted">
+        {colored === 0
+          ? 'Every atom takes its colour from the scheme above.'
+          : `${colored} of ${doc.atoms.length} atoms have a colour of their own, painted over the ` +
+            'scheme.'}
       </p>
     </>
   );

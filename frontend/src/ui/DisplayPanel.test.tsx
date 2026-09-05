@@ -1,6 +1,7 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import { beforeEach, expect, test } from 'vitest';
 import { makeAtom, normalizeStructure } from '../model/structure';
+import { atomColorArray, NO_ATOM_COLORS } from '../renderer/atomColors';
 import { NO_STYLES, styleArray } from '../renderer/atomStyles';
 import { useSelectionStore } from '../state/selectionStore';
 import { useStructureStore } from '../state/structureStore';
@@ -133,6 +134,32 @@ test('display scope assigns a display type to the selection and hides the rest',
 
   fireEvent.click(screen.getByRole('button', { name: 'Show all' }));
   expect(styleArray(doc, useViewStore.getState().atomStyles)).toBeNull();
+});
+
+test('display scope gives the selection a colour of its own, over the scheme', () => {
+  const doc = normalizeStructure({
+    name: 'c3',
+    atoms: [makeAtom('C', [0, 0, 0]), makeAtom('C', [1.5, 0, 0]), makeAtom('O', [3, 0, 0])],
+  } as never);
+  useStructureStore.getState().load(doc);
+  useViewStore.setState({ atomColorOverrides: NO_ATOM_COLORS, colorScheme: 'element' });
+  useSelectionStore.getState().clear();
+  render(<DisplayPanel />);
+
+  expect(screen.getByRole('button', { name: 'Colour selection' })).toBeDisabled();
+  expect(screen.getByRole('button', { name: 'Clear colours' })).toBeDisabled();
+  expect(screen.getByText(/Every atom takes its colour from the scheme/)).toBeInTheDocument();
+
+  act(() => useSelectionStore.getState().set([2]));
+  fireEvent.change(screen.getByLabelText('Colour to assign'), { target: { value: '#ff8000' } });
+  fireEvent.click(screen.getByRole('button', { name: 'Colour selection' }));
+
+  const colors = atomColorArray(null, doc, useViewStore.getState().atomColorOverrides)!;
+  expect([...colors.slice(6, 9)].map((v) => Math.round(v * 255))).toEqual([255, 128, 0]);
+  expect(screen.getByText(/1 of 3 atoms have a colour of their own/)).toBeInTheDocument();
+
+  fireEvent.click(screen.getByRole('button', { name: 'Clear colours' }));
+  expect(atomColorArray(null, doc, useViewStore.getState().atomColorOverrides)).toBeNull();
 });
 
 test('the colour schemes that need data say so, and one colour is chosen in the panel', () => {

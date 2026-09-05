@@ -1,5 +1,10 @@
 import { create } from 'zustand';
-import type { ColorScheme, ResiduePalette } from '../renderer/atomColors';
+import {
+  NO_ATOM_COLORS,
+  type AtomColorAssignment,
+  type ColorScheme,
+  type ResiduePalette,
+} from '../renderer/atomColors';
 import { NO_STYLES, type StyleAssignment } from '../renderer/atomStyles';
 import type { Quality, StructureStyle } from '../renderer/layers/StructureLayer';
 import type { Projection } from '../renderer/Renderer';
@@ -86,6 +91,12 @@ export interface ViewState {
    */
   atomStyles: StyleAssignment;
   setAtomStyles: (styles: StyleAssignment) => void;
+  /**
+   * Per-atom colours, keyed by atom uid, painted over whatever colour scheme is chosen. Not
+   * persisted with the project, for the same reason as `atomStyles`.
+   */
+  atomColorOverrides: AtomColorAssignment;
+  setAtomColorOverrides: (colors: AtomColorAssignment) => void;
   setAtomScale: (scale: number) => void;
   setBondRadius: (radius: number) => void;
   setSelectionStyle: (style: StructureStyle | null) => void;
@@ -154,6 +165,8 @@ export const useViewStore = create<ViewState>((set) => ({
   selectionStyle: null,
   atomStyles: NO_STYLES,
   setAtomStyles: (atomStyles) => set({ atomStyles }),
+  atomColorOverrides: NO_ATOM_COLORS,
+  setAtomColorOverrides: (atomColorOverrides) => set({ atomColorOverrides }),
   setAtomScale: (atomScale) => set({ atomScale }),
   setBondRadius: (bondRadius) => set({ bondRadius }),
   setSelectionStyle: (selectionStyle) => set({ selectionStyle }),

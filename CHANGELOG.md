@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Display scope: a colour per atom as well as a display type, painted over whatever colour scheme
+  is chosen, and hidden atoms are now left out of the ribbon and the hydrogen bonds too.
+
 - Wavefunction surfaces: Gaussian fchk and Molden readers, molecular orbital / electron density /
   spin density / electrostatic potential / van der Waals fields on a grid, and a Create surfaces
   panel that shows the grid cost before the request.

@@ -61,6 +61,37 @@ test('an unchanged scope in a new array does not rebuild the meshes', () => {
   layer.dispose();
 });
 
+test('an unchanged colour array in a new Float32Array does not repaint', () => {
+  const layer = new StructureLayer();
+  const base = doc();
+  const colors = (): Float32Array =>
+    new Float32Array([1, 0, 0, 0, 1, 0, 0, 0, 1].slice(0, base.atoms.length * 3));
+  // one selection for all three frames: a new Set is a repaint of its own, and this test is
+  // about the colour array
+  const selectedAtoms = new Set<number>();
+  const frame = (): LayerContext => ({ ...ctx(base), selectedAtoms });
+  layer.setSettings({ atomColors: colors() });
+  layer.update(frame());
+  const [atomMesh] = meshes(layer);
+  const painted = atomMesh!.instanceColor;
+  const setColorAt = vi.spyOn(atomMesh!, 'setColorAt');
+
+  // a per-atom colour override rebuilds the array from the document, so a drag frame hands the
+  // layer a new array holding the colours it has already drawn
+  layer.setSettings({ atomColors: colors() });
+  layer.update(frame());
+  expect(setColorAt).not.toHaveBeenCalled();
+  expect(meshes(layer)[0]!.instanceColor).toBe(painted);
+
+  // a colour that really changed does repaint
+  const changed = colors();
+  changed[0] = 0.25;
+  layer.setSettings({ atomColors: changed });
+  layer.update(frame());
+  expect(setColorAt).toHaveBeenCalled();
+  layer.dispose();
+});
+
 test('a bond, an element or a settings change does recreate the meshes', () => {
   const layer = new StructureLayer();
   const base = doc();

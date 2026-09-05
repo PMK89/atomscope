@@ -7,6 +7,7 @@
  * colour. Selection and hover tints are applied on top of it by the layer, as before.
  */
 import type { SecondaryStructureData } from './layers/RibbonLayer';
+import { elementBySymbol } from '../model/elements';
 import { KIND_COLOR } from '../model/ribbon';
 import type { StructureDoc } from '../model/structure';
 
@@ -297,4 +298,75 @@ export function atomColors(
     for (const i of residue.atom_indices) write(out, i, KIND_COLOR[a.kind]);
   }
   return out;
+}
+
+/**
+ * Avogadro's per-atom custom colour (Color ▸ Custom, applied to a selection): an explicit colour
+ * for named atoms that wins over whatever scheme is chosen.
+ *
+ * Keyed by atom **uid**, like the display-type assignment, so deleting one atom does not hand
+ * another atom's colour to its neighbour. The value is `#rrggbb`, which is what a colour input
+ * gives and what the project file stores.
+ */
+export type AtomColorAssignment = ReadonlyMap<string, string>;
+
+export const NO_ATOM_COLORS: AtomColorAssignment = new Map();
+
+/** Give `atoms` the colour `hex`; `null` takes it away, so they follow the scheme again. */
+export function assignAtomColor(
+  current: AtomColorAssignment,
+  doc: StructureDoc,
+  atoms: Iterable<number>,
+  hex: string | null,
+): AtomColorAssignment {
+  const next = new Map(current);
+  for (const i of atoms) {
+    const uid = doc.atoms[i]?.uid;
+    if (!uid) continue;
+    if (hex === null) next.delete(uid);
+    else next.set(uid, hex);
+  }
+  return next;
+}
+
+/**
+ * `base` (a scheme's colours, or null for the element colours) with the assigned atoms painted
+ * over it. Returns `base` itself when nothing is assigned, which keeps the array identity the
+ * structure layer compares -- the fast path is the usual one.
+ *
+ * An atom with no scheme colour under it starts from its element colour, so assigning one atom
+ * a colour does not repaint the rest of the structure grey.
+ */
+export function atomColorArray(
+  base: Float32Array | null,
+  doc: StructureDoc,
+  assignment: AtomColorAssignment,
+): Float32Array | null {
+  if (assignment.size === 0) return base;
+  let out: Float32Array | null = null;
+  for (let i = 0; i < doc.atoms.length; i++) {
+    const uid = doc.atoms[i]!.uid;
+    const hex = uid ? assignment.get(uid) : undefined;
+    if (hex === undefined) continue;
+    if (!out) {
+      out = new Float32Array(doc.atoms.length * 3);
+      if (base && base.length === out.length) out.set(base);
+      else for (let j = 0; j < doc.atoms.length; j++) write(out, j, elementColor(doc, j));
+    }
+    write(out, i, parseHexColor(hex));
+  }
+  return out ?? base;
+}
+
+const elementColor = (doc: StructureDoc, atom: number): RGB => {
+  const el = elementBySymbol(doc.atoms[atom]!.element);
+  return [el.color[0], el.color[1], el.color[2]];
+};
+
+/** How many atoms of this document carry a colour of their own. */
+export function assignedColorCount(doc: StructureDoc, assignment: AtomColorAssignment): number {
+  if (assignment.size === 0) return 0;
+  let n = 0;
+  for (const atom of doc.atoms) if (atom.uid && assignment.has(atom.uid)) n++;
+  return n;
 }

@@ -108,6 +108,18 @@ interface BondHalf {
 }
 
 /** Whether two per-atom style arrays say the same thing (both null counts as the same). */
+/**
+ * Whether two colour arrays hold the same colours. Identity is the fast path; the element-wise
+ * pass is there because a per-atom colour override rebuilds the array from the document, so a
+ * drag or an optimizer round hands the layer a new array holding the colours it already drew.
+ */
+function sameColors(a: Float32Array | null, b: Float32Array | null): boolean {
+  if (a === b) return true;
+  if (!a || !b || a.length !== b.length) return false;
+  for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) return false;
+  return true;
+}
+
 function sameStyles(
   a: ReadonlyArray<AtomStyle | null> | null,
   b: ReadonlyArray<AtomStyle | null> | null,
@@ -232,11 +244,11 @@ export class StructureLayer implements DisplayLayer {
 
   update(ctx: LayerContext): void {
     const s = ctx.structure;
-    // the colour array is per atom and identified by identity: stringifying it every frame would
-    // cost more than drawing does
+    // the colour array is per atom and compared element-wise, never stringified: a JSON key over
+    // three floats per atom would cost more every frame than drawing does
     const { atomColors, atomStyles, ...keyed } = this.settings;
     const settingsKey = JSON.stringify(keyed);
-    const colorsChanged = atomColors !== this.lastAtomColors;
+    const colorsChanged = !sameColors(atomColors, this.lastAtomColors);
     // one entry per atom, and compared element-wise: a drag or an optimizer round hands the
     // viewport a new document every frame, and with it a new array of the same display types --
     // taking that for a change would dispose and rebuild both meshes at the frame rate

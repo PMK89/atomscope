@@ -616,13 +616,33 @@ test('atoms can be coloured by partial charge and by one colour', async ({ page 
   // one colour paints everything, and it is the one the panel says
   await page.locator('#display-color-scheme').selectOption('custom');
   await page.locator('#display-custom-color').fill('#00ff00');
+  const greenness = async (): Promise<number> => {
+    const [r, g, b] = await mean();
+    return g - Math.max(r, b);
+  };
   // the next frame is what carries the new colour, so poll rather than read once
-  await expect
-    .poll(async () => {
-      const [r, g, b] = await mean();
-      return g - Math.max(r, b);
-    })
-    .toBeGreaterThan(40);
+  await expect.poll(greenness).toBeGreaterThan(40);
+
+  // a per-atom colour is painted over the scheme: the oxygen alone turns red while the two
+  // hydrogens stay the scheme's green
+  await page.locator('button.menu-title', { hasText: 'Select' }).click();
+  page.once('dialog', (d) => void d.accept('O'));
+  await page.getByRole('menuitem', { name: 'Select by element…' }).click();
+  await expect(page.locator('.app-statusbar')).toContainText('1 selected');
+  await page.getByRole('tab', { name: 'Display' }).click();
+  await page.locator('#display-scope-color').fill('#ff0000');
+  await page.getByRole('button', { name: 'Colour selection' }).click();
+  await expect(page.getByText(/1 of 3 atoms have a colour of their own/)).toBeVisible();
+  // the selection tint is drawn over the atom colour, so the picture only shows the assignment
+  // once the oxygen is no longer selected
+  await page.locator('button.menu-title', { hasText: 'Select' }).click();
+  await page.getByRole('menuitem', { name: 'Select none' }).click();
+  await expect.poll(greenness).toBeLessThan(0);
+  await page.screenshot({ path: '../.scratch/dev/atom-colour.png' });
+
+  // and clearing gives the oxygen back to the scheme
+  await page.getByRole('button', { name: 'Clear colours' }).click();
+  await expect.poll(greenness).toBeGreaterThan(40);
 });
 
 test('Export writes a file on this machine, in the format the name asks for', async ({
