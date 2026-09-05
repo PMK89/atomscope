@@ -105,7 +105,7 @@ the Calculation panel greys it out — nothing else changes.
 | Crystallography (spglib): symmetry, supercells, slabs, Niggli, primitive | Density of states / projected DOS |
 | Open Babel force fields (MMFF94, MMFF94s, UFF, GAFF, Ghemical): energy, optimization, conformer search | Band structures |
 | ASE built-in calculators (EMT, Lennard-Jones, Morse) with BFGS and Langevin MD | |
-| Quantum-chemistry **input generation** (ORCA, Gaussian, NWChem, GAMESS-US, Quantum ESPRESSO, ABINIT) | |
+| Quantum-chemistry **input generation** (ORCA, Gaussian, NWChem, GAMESS-US, MOPAC, Quantum ESPRESSO, ABINIT) | |
 
 CP-PAW is located by looking, in order, at `$ATOMSCOPE_CPPAW_DIR/bin/fast`,
 `$PAWDIR/bin/fast`, `~/cp-paw/bin/fast` and then `PATH`. Set
@@ -617,7 +617,7 @@ appended and the entry disabled when its executables are missing.
 | `CP-PAW` | yes | plane-wave/PAW DFT: single point, forces, damped relaxation, Car-Parrinello MD, densities, orbitals, DOS, band structures |
 | `ASE workflows (built-in calculators or CP-PAW)` | yes | EMT, Lennard-Jones, Morse, an Open Babel force field, or CP-PAW forces; single point, BFGS relaxation, Langevin MD |
 | `Open Babel force fields` | yes | MMFF94, MMFF94s, UFF, GAFF, Ghemical: single point, optimization, conformer search |
-| `Quantum chemistry input generators` | **no** | writes ready-to-run decks for ORCA, Gaussian, NWChem, GAMESS-US, Quantum ESPRESSO and ABINIT |
+| `Quantum chemistry input generators` | **no** | writes ready-to-run decks for ORCA, Gaussian, NWChem, GAMESS-US, MOPAC, Quantum ESPRESSO and ABINIT |
 
 ### 7.2 The parameter form
 
@@ -680,7 +680,18 @@ backend 'Quantum chemistry input generators' only generates input files;
 run them with the target program
 ```
 
-Take the deck from the `Generated input` tab and run it wherever you like.
+Take the deck from the `Generated input` tab and run it wherever you like: it
+is stored with the calculation under `calculations/<id>/input` with the
+program's own extension (`.inp`, `.gjf`, `.nw`, `.pwi`, `.abi`, `.mop`), and
+`Save input files…` downloads it.
+
+MOPAC is configured differently from the others, as it is semi-empirical: the
+`Hamiltonian` list (AM1, PM3, PM6, PM7, RM1, MNDO, MNDO-d) replaces the method
+and the basis set, and the deck's keyword line carries the task (`1SCF` for a
+single point, nothing for an optimization — MOPAC's default — `FORCE` for
+frequencies), the charge, the multiplicity as a word, and `UHF` for an open
+shell. Coordinates are Cartesian, each with its optimization flag; there is no
+Z-matrix output.
 
 **Monitoring.** The job console streams stdout and stderr line by line, and
 additionally tails the files the program writes itself — `case.prot` for

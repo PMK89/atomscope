@@ -33,6 +33,9 @@
   residue colours survive `Add hydrogens`.
 - Deleting atoms now takes their per-atom properties with them: partial charges and forces used to
   keep the old length and were then silently ignored by everything that reads them.
+- A MOPAC input generator (`qc_inputs` ▸ Program: MOPAC): the semi-empirical Hamiltonian
+  (AM1, PM3, PM6, PM7, RM1, MNDO, MNDO-d) in place of a method and a basis set, single point,
+  optimization or FORCE, and the charge and multiplicity the structure carries.
 - `File ▸ Export…`: one dialog over every format the backend can write (ASE, RDKit and Open Babel
   -- xyz, extxyz, cif, pdb, vasp, mol, sdf, xsf, json, gaussian-in, turbomole, espresso-in, cml,
   smi), with the format and the file name following one another, and a write to a path on this

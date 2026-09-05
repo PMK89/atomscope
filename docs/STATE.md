@@ -1,8 +1,8 @@
 # Project state (resume here)
 
-Branch: main; this file is updated in the commit that checkpoints the work, so `git log -1 -- docs/STATE.md` is the last checkpoint. Phases 0-1 done; Phase 2 (editor tools), 3 (volumetric, trajectories, vectors), 4-5 (CP-PAW setup/execution/forces), 6 (CP-PAW analysis: DOS, bands, orbitals), crystallography, molecular mechanics and wavefunction surfaces are merged and working. Parity matrix: 175 IMPLEMENTED, 34 PARTIAL, 102 NOT STARTED, 1 BLOCKED of 312 rows.
+Branch: main; this file is updated in the commit that checkpoints the work, so `git log -1 -- docs/STATE.md` is the last checkpoint. Phases 0-1 done; Phase 2 (editor tools), 3 (volumetric, trajectories, vectors), 4-5 (CP-PAW setup/execution/forces), 6 (CP-PAW analysis: DOS, bands, orbitals), crystallography, molecular mechanics and wavefunction surfaces are merged and working. Parity matrix: 177 IMPLEMENTED, 33 PARTIAL, 101 NOT STARTED, 1 BLOCKED of 312 rows.
 
-Tests: `pytest -q -m "not cppaw"` -> 376 passed, 1 skipped; `pytest -q -m cppaw` -> 7 passed (~90 s, needs the local CP-PAW install); `pnpm vitest run` -> 380 passed; `pnpm exec playwright test` -> 24 passed (against private servers, see below; `make test-e2e` points at the user's 5173, which is stale). `ruff check`, `mypy` and `pnpm typecheck` are clean. No known failing tests. **Type-check the frontend with `pnpm typecheck` (`tsc -b --noEmit`), never with `pnpm exec tsc --noEmit`:** the root `tsconfig.json` is a solution file with `files: []`, so a bare `tsc --noEmit` checks nothing and exits 0.
+Tests: `pytest -q -m "not cppaw"` -> 378 passed, 1 skipped; `pytest -q -m cppaw` -> 7 passed (~90 s, needs the local CP-PAW install); `pnpm vitest run` -> 380 passed; `pnpm exec playwright test` -> 25 passed (against private servers, see below; `make test-e2e` points at the user's 5173, which is stale). `ruff check`, `mypy` and `pnpm typecheck` are clean. No known failing tests. **Type-check the frontend with `pnpm typecheck` (`tsc -b --noEmit`), never with `pnpm exec tsc --noEmit`:** the root `tsconfig.json` is a solution file with `files: []`, so a bare `tsc --noEmit` checks nothing and exits 0.
 
 ## Resume commands
 
@@ -52,7 +52,8 @@ run against current code -- Playwright above all -- use the private-server recip
   and the picking); the colour maps Avogadro carries as colour plugins -- atom index, distance
   from the first atom, partial charge and a single custom colour; a colour map per engine (the
   ribbon now has its own, next to the structure layer's and each isosurface's); a File > Export
-  dialog over every format the backend can write, which refuses to overwrite until asked twice. Fixes found on the way: Optimize geometry sent valueless force-field
+  dialog over every format the backend can write, which refuses to overwrite until asked twice;
+  a MOPAC input generator in the qc_inputs plugin. Fixes found on the way: Optimize geometry sent valueless force-field
   constraints and was rejected with a 422; `add_hydrogens` dropped every residue of a PDB
   structure; `tsc --noEmit` at the repository root checks nothing (the real check is
   `pnpm typecheck`), which had hidden 37 type errors; depth cueing haloed a transparent image
@@ -86,7 +87,7 @@ run against current code -- Playwright above all -- use the private-server recip
    residue/chain/secondary-structure colour schemes.
 2. Rows still PARTIAL worth finishing: the angle and torsion property tables (AV-ANAL-004/005,
    they would reuse `BondTable`), MD at 300/600/900 K in the auto-optimize tool (AV-MM-010, the
-   backend has no MD minimizer) and the MOPAC input generator (AV-QM-007). The colour rows left
+   backend has no MD minimizer). The colour rows left
    are the residue palettes Shapely and hydrophobicity (AV-COLOR-005), a SMARTS colour
    (AV-COLOR-006), a per-atom colour override (AV-COLOR-010) and colours as plugins
    (AV-COLOR-009).
@@ -99,8 +100,8 @@ run against current code -- Playwright above all -- use the private-server recip
      docs/avogadro1-feature-parity.md
    ```
 
-   Today that is two HIGH `NOT STARTED`: a painter abstraction for POV-Ray/VRML export
-   (AV-VIS-042) and the MOPAC input generator (AV-QM-007). Nothing CRITICAL is left open -- the
+   Today that is one HIGH `NOT STARTED`: a painter abstraction for POV-Ray/VRML export
+   (AV-VIS-042), which is renderer architecture rather than a feature. Nothing CRITICAL is left open -- the
    two that were PARTIAL were decided in this checkpoint: AV-MM-002 is the `openbabel_ff` schema
    in the Calculation panel (the menu path shows no modal, which is the only difference) and
    AV-FILE-003 is now the Export dialog. AV-XTAL-003 was decided the same way: Avogadro's
@@ -126,6 +127,10 @@ run against current code -- Playwright above all -- use the private-server recip
      hydrogen-bond layers ignore it: a hidden backbone atom still gets its ribbon segment. The
      scope is dropped whenever a document is rebuilt from the backend with a different atom count
      (`Add hydrogens`), because the atom uids it is keyed by are regenerated then.
+   - `removeAtoms` now filters the per-atom properties with the atoms, but adding or pasting atoms
+     leaves `atomic_scalars`/`atomic_vectors` shorter than the atom list. Every reader checks the
+     length, so charges and forces then read as absent rather than as belonging to the wrong atom
+     -- honest, but they are silently gone and are still saved with the project.
    - CP-PAW's STRC writer takes only fixed atoms and fixed bond lengths from the constraint list;
      `fix_angle`, `fix_dihedral` and `ignore_atoms` are silently skipped there, and an ignored
      atom has no ASE meaning either (it is an Open Babel notion). Open Babel treats a torsion

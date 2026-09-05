@@ -37,6 +37,8 @@ export function ExportDialog({
   const first = useRef<HTMLInputElement>(null);
   const dialog = useRef<HTMLDivElement>(null);
 
+  // `onError` is the App's setState, which never changes identity: this effect sets the format and
+  // the path, so it must not re-run while the dialog is open or it would overwrite what is typed.
   useEffect(() => {
     if (!open) return;
     const previous = document.activeElement as HTMLElement | null;

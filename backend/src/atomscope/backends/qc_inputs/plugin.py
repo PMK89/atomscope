@@ -43,7 +43,13 @@ from atomscope.schemas import (
 from atomscope.schemas.engine import Choice
 from atomscope.units import Unit
 
-MOLECULAR = ("orca", "gaussian", "nwchem", "gamess")
+MOLECULAR = ("orca", "gaussian", "nwchem", "gamess", "mopac")
+"""Semi-empirical Hamiltonians MOPAC understands; the method is the first keyword of the deck."""
+MOPAC_METHODS = ("AM1", "PM3", "PM6", "PM7", "RM1", "MNDO", "MNDOD")
+"""MOPAC spells the multiplicity as a word (a closed shell is SINGLET and needs no UHF)."""
+MOPAC_MULTIPLICITY = {1: "SINGLET", 2: "DOUBLET", 3: "TRIPLET", 4: "QUARTET", 5: "QUINTET"}
+"""Programs with a method and a basis set to choose; MOPAC has a Hamiltonian instead."""
+_AB_INITIO = ("orca", "gaussian", "nwchem", "gamess")
 PERIODIC = ("espresso", "abinit")
 
 SCHEMA = ParameterSchema(
@@ -65,6 +71,7 @@ SCHEMA = ParameterSchema(
                         Choice(value="gaussian", label="Gaussian"),
                         Choice(value="nwchem", label="NWChem"),
                         Choice(value="gamess", label="GAMESS-US"),
+                        Choice(value="mopac", label="MOPAC (semi-empirical)"),
                         Choice(value="espresso", label="Quantum ESPRESSO (pw.x)"),
                         Choice(value="abinit", label="ABINIT"),
                     ],
@@ -86,7 +93,7 @@ SCHEMA = ParameterSchema(
                     type="string",
                     default="B3LYP",
                     help="e.g. HF, B3LYP, PBE, MP2, CCSD(T)",
-                    visible_when=[VisibleWhen(key="program", op="in", value=list(MOLECULAR))],
+                    visible_when=[VisibleWhen(key="program", op="in", value=list(_AB_INITIO))],
                 ),
                 ParameterSpec(
                     key="basis",
@@ -94,7 +101,16 @@ SCHEMA = ParameterSchema(
                     type="string",
                     default="def2-SVP",
                     help="e.g. def2-SVP, 6-31G*, cc-pVTZ",
-                    visible_when=[VisibleWhen(key="program", op="in", value=list(MOLECULAR))],
+                    visible_when=[VisibleWhen(key="program", op="in", value=list(_AB_INITIO))],
+                ),
+                ParameterSpec(
+                    key="mopac_method",
+                    label="Hamiltonian",
+                    type="enum",
+                    default="PM7",
+                    choices=[Choice(value=m, label=m) for m in MOPAC_METHODS],
+                    help="MOPAC's semi-empirical Hamiltonian; there is no basis set to choose.",
+                    visible_when=[VisibleWhen(key="program", value="mopac")],
                 ),
                 ParameterSpec(
                     key="multiplicity",
@@ -181,6 +197,12 @@ PRESETS = [
         values={"program": "gaussian", "task": "frequencies", "method": "B3LYP", "basis": "6-31G*"},
     ),
     Preset(
+        id="mopac_pm7_opt",
+        name="MOPAC: PM7 optimization",
+        schema_id="qc_inputs",
+        values={"program": "mopac", "task": "optimize", "mopac_method": "PM7"},
+    ),
+    Preset(
         id="espresso_scf",
         name="Quantum ESPRESSO: PBE SCF",
         schema_id="qc_inputs",
@@ -191,6 +213,37 @@ PRESETS = [
 
 def _write(buf: io.StringIO, atoms: Any, fmt: str, **kw: Any) -> None:
     ase.io.write(buf, atoms, format=fmt, **kw)
+
+
+def _mopac_deck(
+    atoms: Any,
+    title: str,
+    *,
+    hamiltonian: str,
+    keyword: str,
+    charge: int,
+    mult: int,
+    extra: str,
+) -> str:
+    """
+    A MOPAC deck: one keyword line, a title line, a comment line, then the atoms with a
+    optimization flag after each coordinate (1 = optimize it, which is what MOPAC expects even
+    for a single point). An open shell needs UHF next to the multiplicity word.
+    """
+    words = [hamiltonian]
+    if keyword:
+        words.append(keyword)
+    if charge:
+        words.append(f"CHARGE={charge}")
+    words.append(MOPAC_MULTIPLICITY.get(mult, "SINGLET"))
+    if mult > 1:
+        words.append("UHF")
+    if extra:
+        words.append(extra)
+    lines = [" ".join(words), title, ""]
+    for symbol, (x, y, z) in zip(atoms.get_chemical_symbols(), atoms.positions, strict=True):
+        lines.append(f" {symbol:<2} {x:14.8f} 1 {y:14.8f} 1 {z:14.8f} 1")
+    return "\n".join(lines) + "\n"
 
 
 def _multiplicity(structure: Structure, values: Values) -> int:
@@ -316,6 +369,22 @@ class QcInputsPlugin:
                 contrl["dfttyp"] = method
             _write(buf, atoms, "gamess-us-in", contrl=contrl, basis={"gbasis": basis})
             name = f"{root_name}.inp"
+        elif program == "mopac":
+            hamiltonian = str(merged.get("mopac_method", "PM7"))
+            # 1SCF is a single point; an optimization is MOPAC's default; FORCE is the Hessian
+            keyword = {"energy": "1SCF", "optimize": "", "frequencies": "FORCE"}[task]
+            buf.write(
+                _mopac_deck(
+                    atoms,
+                    root_name,
+                    hamiltonian=hamiltonian,
+                    keyword=keyword,
+                    charge=charge,
+                    mult=mult,
+                    extra=extra,
+                )
+            )
+            name = f"{root_name}.mop"
         elif program == "espresso":
             calc = {"energy": "scf", "optimize": "relax", "frequencies": "scf"}[task]
             pseudos = {sym: f"{sym}.UPF" for sym in sorted(set(atoms.get_chemical_symbols()))}
