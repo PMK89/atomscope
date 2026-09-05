@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
 import { makeAtom, makeBond, normalizeStructure } from '../model/structure';
 import { useStructureStore } from '../state/structureStore';
-import { CalculationPanel } from './CalculationPanel';
+import { RightDock } from './RightDock';
+import { ToolBar } from './ToolBar';
+import { ToolSettings } from './ToolSettings';
 import { JobConsole } from './JobConsole';
 import { MenuBar } from './MenuBar';
 import { ProjectPanel } from './ProjectPanel';
@@ -42,13 +44,17 @@ export function App(): JSX.Element {
           <ProjectPanel onError={setError} />
         </aside>
         <section className="app-center">
-          <div className="app-viewport">
-            <Viewport />
+          <div className="app-editor">
+            <ToolBar />
+            <div className="app-viewport">
+              <Viewport />
+              <ToolSettings />
+            </div>
           </div>
           <JobConsole />
         </section>
         <aside className="app-dock app-dock-right">
-          <CalculationPanel onError={setError} />
+          <RightDock onError={setError} />
         </aside>
       </main>
       <StatusBar message={error} />

@@ -17,8 +17,21 @@ Principles:
 - The structure document is immutable; edits produce a new document via `commit(label, next)`,
   which is what makes undo/redo trivial and lets the renderer diff by `revision`.
 - React components contain no chemistry. Geometry and chemistry rules live in `model/`,
-  `editor/` or on the backend (valence, hydrogens, bond perception are backend services so the
-  rules exist once).
+  `editor/` or on the backend. The backend remains the authority for valence, hydrogens and
+  bond perception; a deliberately minimal subset is duplicated in TypeScript so that
+  interactive drawing needs no round trip: `model/connectivity.ts` guesses bonds geometrically
+  with the same rule as `atomscope.chem.bonds` (bonded when d < 1.15 * (r_i + r_j), Cordero
+  covalent radii) and `editor/valence.ts` carries a small valence table (H1 C4 N3 O2 F1 Si4 P3
+  S2 Cl1 Br1 I1) with template-based hydrogen placement (linear / trigonal / tetrahedral; H at
+  1.09/1.01/0.96 Å for C/N/O, covalent-radius sum otherwise). Anything beyond this (aromaticity,
+  pH models, force fields) stays on the backend.
+- Editor tools (`editor/Tool.ts`) are plain classes driven by `editor/ToolHost.ts`, which binds
+  the canvas events, keyboard shortcuts and hover. Tools see a `ToolRenderer` facade (pick,
+  project, unproject on a plane, camera subset) so they are unit-tested against a fake renderer.
+  Drags call `structureStore.preview(doc)` for live feedback and `commit(label, doc)` once on
+  pointer-up, so every gesture is a single undo step. Tool overlays (measurement lines, rubber
+  band, bond labels) are returned as shapes in canvas pixels and drawn by an SVG layer
+  (`ui/ViewportOverlay.tsx`); nothing tool-related is rendered inside the WebGL scene.
 - The renderer is framework-agnostic; `Viewport.tsx` is the only bridge between React and
   Three.js.
 - Forms are rendered from `ParameterSchema` JSON (`ui/forms/SchemaForm.tsx`); adding a backend

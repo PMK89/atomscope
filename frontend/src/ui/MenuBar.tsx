@@ -3,6 +3,11 @@ import { api } from '../api/client';
 import { normalizeStructure } from '../model/structure';
 import { useStructureStore } from '../state/structureStore';
 import { useViewStore } from '../state/viewStore';
+import { useSelectionStore } from '../state/selectionStore';
+import { useToolStore } from '../editor/toolStore';
+import { atomsOfElement, invertSelection } from '../editor/selectionMath';
+import { normalizeSymbol } from '../editor/cartesian';
+import { CartesianEditor } from './CartesianEditor';
 import type { StructureStyle } from '../renderer/layers/StructureLayer';
 
 interface MenuItem {
@@ -11,6 +16,10 @@ interface MenuItem {
   action: () => void;
   disabled?: boolean;
   checked?: boolean;
+}
+
+function isEditable(target: EventTarget | null): boolean {
+  return target instanceof HTMLElement && ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName);
 }
 
 function Menu({ title, items }: { title: string; items: MenuItem[] }): JSX.Element {
@@ -56,6 +65,8 @@ function Menu({ title, items }: { title: string; items: MenuItem[] }): JSX.Eleme
 export function MenuBar({ onError }: { onError: (msg: string) => void }): JSX.Element {
   const store = useStructureStore();
   const view = useViewStore();
+  const selection = useSelectionStore();
+  const openCartesian = useToolStore((s) => s.setCartesianEditorOpen);
   const fileInput = useRef<HTMLInputElement>(null);
 
   const openFile = async (file: File): Promise<void> => {
@@ -104,6 +115,10 @@ export function MenuBar({ onError }: { onError: (msg: string) => void }): JSX.El
       } else if (e.key === 'o') {
         e.preventDefault();
         fileInput.current?.click();
+      } else if (e.key === 'a' && !isEditable(e.target)) {
+        e.preventDefault();
+        if (e.shiftKey) useSelectionStore.getState().clear();
+        else useSelectionStore.getState().set(store.doc.atoms.map((_, i) => i));
       }
     };
     window.addEventListener('keydown', onKey);
@@ -148,6 +163,24 @@ export function MenuBar({ onError }: { onError: (msg: string) => void }): JSX.El
             disabled: !store.canRedo(),
             action: store.redo,
           },
+          {
+            label: 'Select all',
+            shortcut: 'Ctrl+A',
+            action: () => selection.set(store.doc.atoms.map((_, i) => i)),
+          },
+          { label: 'Select none', shortcut: 'Ctrl+Shift+A', action: selection.clear },
+          {
+            label: 'Invert selection',
+            action: () => selection.set(invertSelection(store.doc, selection.atoms)),
+          },
+          {
+            label: 'Select by element…',
+            action: () => {
+              const sym = window.prompt('Element symbol');
+              if (sym) selection.set(atomsOfElement(store.doc, normalizeSymbol(sym)));
+            },
+          },
+          { label: 'Cartesian editor…', action: () => openCartesian(true) },
         ]}
       />
       <Menu
@@ -179,6 +212,7 @@ export function MenuBar({ onError }: { onError: (msg: string) => void }): JSX.El
           },
         ]}
       />
+      <CartesianEditor />
       <input
         ref={fileInput}
         type="file"
