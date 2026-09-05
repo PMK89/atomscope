@@ -11,14 +11,19 @@ Data model + units, ASE bridge, project store/format, IO registry (ASE/RDKit/Ope
 JobManager, calculation service, REST/WebSocket API with generated TS types, Three.js renderer, docks.
 
 ## Phase 2 — Molecular editor — DONE (core), IN PROGRESS (breadth)
-Tools: navigate, select, draw, manipulate, bond-centric, measure, auto-rotate; properties panel; Cartesian
-editor; undo/redo; SMILES; import/export. Remaining: bond-angle adjustment, Z-matrix editor, clipboard
-copy/paste of structures, custom atom colors/radii, label rendering.
+Tools: navigate, select, draw, manipulate, bond-centric, measure, auto-optimize, auto-rotate; properties panel
+with editable bond, angle and torsion tables; constraints dialog; display scope (a display type per atom);
+Cartesian editor; undo/redo; SMILES; clipboard copy/paste; import/export. Remaining: Z-matrix tool and editor
+(AV-EDIT-024), align tool (AV-EDIT-030), per-atom colour/radius/label overrides (AV-EDIT-034, AV-COLOR-010),
+MMFF94 pre-set for the draw tool's auto-geometry (AV-EDIT-011).
 
-## Phase 3 — Scientific visualization — DONE (core)
-Isosurfaces (worker marching cubes, ± lobes, transparency), grid API and sidecars, trajectory playback,
-vector/unit-cell/axes layers. Remaining: labels layer, ribbons/cartoons, H-bond layer, color-by-property,
-screenshot/POV-Ray export, clipping planes, GPU picking for very large systems.
+## Phase 3 — Scientific visualization — DONE
+Isosurfaces (worker marching cubes, ± lobes, transparency, coloured by a second grid), grid API and sidecars,
+trajectory playback, vector/unit-cell/axes/label/ribbon/H-bond layers, colour maps per engine (element,
+residue in Jmol's three palettes, chain, secondary structure, index, distance, partial charge, one colour),
+rendering quality and depth cueing, image and POV-Ray export. Remaining: ring and polygon engines
+(AV-VIS-021/022), QTAIM engine, per-engine opacity (AV-VIS-007/011), clipping planes, GPU picking for very
+large systems, vector-graphics export (AV-EXPORT-002) and VRML/glTF (AV-EXPORT-004).
 
 ## Phase 4 — CP-PAW setup — DONE
 Task-oriented schema with course presets, STRC/CNTL generation (validated against the manual), input preview.
@@ -29,23 +34,31 @@ raw-deck import with unknown-key validation against `manual-schema.json`.
 Driver with soft stop, staged runs, completion check, libgfortran work-around, failure diagnosis, fork/restart.
 Remaining: MPI (`ppaw_fast.x`), wall-clock limits, remote/HPC runner.
 
-## Phase 6 — CP-PAW analysis — IN PROGRESS (feat/cppaw-analysis)
-Energies, forces, geometry, trajectory, density/orbital cubes, eigenvalues/gaps DONE. DOS/PDOS (`paw_dos.x`),
-band structure (`paw_bands.x`), orbital browser with on-demand export, convergence plots IN PROGRESS.
+## Phase 6 — CP-PAW analysis — DONE (core)
+Energies, forces, geometry, trajectory, density/orbital cubes, eigenvalues/gaps, DOS/PDOS (`paw_dos.x`),
+band structure (`paw_bands.x`), orbital browser with on-demand export, convergence plots. Remaining:
+`mode: diagonalize` bands need a CP-PAW rebuild (see docs/STATE.md), and DOS/band results are not reloaded
+when a project is reopened.
 
 ## Phase 7 — ASE workflows — DONE (core)
-ASE built-in calculators, BFGS/L-BFGS/FIRE, Langevin MD, CP-PAW forces through `CppawCalculator` (verified).
-Remaining: NEB, constraints in ASE runs, vibrations (finite differences), Open Babel calculator (feat/molecular-mechanics).
+ASE built-in calculators, BFGS/L-BFGS/FIRE, Langevin MD, CP-PAW forces through `CppawCalculator` (verified),
+vibrations by finite differences, the Open Babel calculator, and the constraint model round-tripping through
+ASE (`FixAtoms`, `FixCartesian`, `FixBondLengths`, `FixInternals`). Remaining: NEB, MD in the interactive
+auto-optimize tool (AV-MM-010, the backend has no MD minimizer).
 
 ## Phase 8 — Avogadro parity expansion — IN PROGRESS
-Crystallography (feat/crystallography), molecular mechanics + builders (feat/molecular-mechanics), then
-biomolecules (residues, ribbons, peptide/DNA builders), spectra (IR/DOS/UV plots), vibrations (modes from
-CP-PAW/ORCA outputs), symmetry (point groups), QTAIM-style analysis, remaining file formats.
+Crystallography, molecular mechanics and builders, biomolecules (residues, ribbons, DSSP, peptide/DNA
+builders), spectra (IR/UV/CD), vibrations, symmetry (point groups) and the file formats are merged.
+**No CRITICAL or HIGH row of the parity matrix is open** (185 IMPLEMENTED, 34 PARTIAL, 92 NOT STARTED, 1
+BLOCKED of 312 — re-derive with the awk in `docs/STATE.md`, do not trust this number). What is left is
+MEDIUM and below: crystal-text paste (AV-XTAL-002), named selections, Python scripting and the plugin
+manager, multi-document/multi-view, network fetch (PDB, by name), QTAIM.
 
 ## Phase 9 — Additional backends — IN PROGRESS
-`qc_inputs` (ORCA, Gaussian, NWChem, GAMESS-US, Quantum ESPRESSO, ABINIT input generation) DONE;
-Open Babel force fields IN PROGRESS. Planned: ORCA/xTB execution adapters when binaries exist, output parsers
-(ORCA/Gaussian via ASE + cclib-style readers).
+`qc_inputs` (ORCA, Gaussian, NWChem, GAMESS-US, MOPAC, Quantum ESPRESSO, ABINIT input generation) and the
+Open Babel force fields are DONE. Planned: ORCA/xTB execution adapters when binaries exist, more output
+parsers (ORCA output analysis AV-QM-017), the input generators Avogadro does not have either
+(PSI4, Q-Chem, Dalton, MOLPRO, LAMMPS).
 
 ## Phase 10 — Packaging and hardening — PLANNED
 Desktop shell ADR (Electron vs Tauri vs pywebview), reproducible install script, performance profiling with

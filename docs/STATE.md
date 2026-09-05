@@ -1,6 +1,6 @@
 # Project state (resume here)
 
-Branch: main; this file is updated in the commit that checkpoints the work, so `git log -1 -- docs/STATE.md` is the last checkpoint. Phases 0-1 done; Phase 2 (editor tools), 3 (volumetric, trajectories, vectors), 4-5 (CP-PAW setup/execution/forces), 6 (CP-PAW analysis: DOS, bands, orbitals), crystallography, molecular mechanics and wavefunction surfaces are merged and working. Parity matrix: 181 IMPLEMENTED, 33 PARTIAL, 97 NOT STARTED, 1 BLOCKED of 312 rows.
+Branch: main; this file is updated in the commit that checkpoints the work, so `git log -1 -- docs/STATE.md` is the last checkpoint. Phases 0-1 done; Phase 2 (editor tools), 3 (volumetric, trajectories, vectors), 4-5 (CP-PAW setup/execution/forces), 6 (CP-PAW analysis: DOS, bands, orbitals), crystallography, molecular mechanics and wavefunction surfaces are merged and working. Parity matrix: 185 IMPLEMENTED, 34 PARTIAL, 92 NOT STARTED, 1 BLOCKED of 312 rows.
 
 Tests: `pytest -q -m "not cppaw"` -> 379 passed, 1 skipped; `pytest -q -m cppaw` -> 7 passed (~90 s, needs the local CP-PAW install); `pnpm vitest run` -> 399 passed; `pnpm exec playwright test` -> 27 passed (against private servers, see below; `make test-e2e` points at the user's 5173, which is stale). `ruff check`, `mypy` and `pnpm typecheck` are clean. No known failing tests. **Type-check the frontend with `pnpm typecheck` (`tsc -b --noEmit`), never with `pnpm exec tsc --noEmit`:** the root `tsconfig.json` is a solution file with `files: []`, so a bare `tsc --noEmit` checks nothing and exits 0.
 
@@ -103,7 +103,17 @@ run against current code -- Playwright above all -- use the private-server recip
 
    Today that is **none**: every CRITICAL and HIGH row is IMPLEMENTED. AV-VIS-042 was the last
    one, as a POV-Ray scene export written from the three.js scene rather than as a painter
-   abstraction (VRML is not done; the row's note says what else differs). Nothing CRITICAL is left open -- the
+   abstraction (VRML is not done; the row's note says what else differs). Run the same awk with
+   `MEDIUM` for what is next: today it lists 57 rows, of which the ones with a real workflow
+   behind them are crystal-text paste (AV-XTAL-002), a per-atom colour override (AV-COLOR-010,
+   which the uid-keyed `atomStyles` plumbing already does for display types), named selections
+   (AV-SEL-013), PDB/name fetch (AV-FILE-013/014, AV-BIO-010) and recent files (AV-FILE-007).
+
+   **The matrix drifts the other way too.** Flipping AV-VIS-042 turned up three rows that were
+   done but never flipped (AV-SEL-011 Select residues, AV-SEL-012 Select solvent, AV-VIS-031
+   render quality) and one that was more done than it said (AV-VIS-032 depth cueing). Before
+   starting anything, read the rows of the category you are about to touch: the status column is
+   only as true as the last person's bookkeeping. Nothing CRITICAL is left open -- the
    two that were PARTIAL were decided in this checkpoint: AV-MM-002 is the `openbabel_ff` schema
    in the Calculation panel (the menu path shows no modal, which is the only difference) and
    AV-FILE-003 is now the Export dialog. AV-XTAL-003 was decided the same way: Avogadro's
