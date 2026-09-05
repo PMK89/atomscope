@@ -90,6 +90,19 @@ function invert3(m: [Vec3, Vec3, Vec3]): { inv: number[]; det: number } {
   };
 }
 
+/**
+ * Fine-grid indices sampled along one axis for a downsample factor: `0, step, 2*step, …` always
+ * closed by `n - 1`, so the last (possibly shorter) slab is meshed instead of being dropped.
+ */
+export function sampledIndices(n: number, step: number): Int32Array {
+  if (n <= 1) return Int32Array.of(0);
+  const s = Math.max(1, Math.floor(step));
+  const out: number[] = [];
+  for (let i = 0; i < n - 1; i += s) out.push(i);
+  out.push(n - 1);
+  return Int32Array.from(out);
+}
+
 export function marchingCubes(
   values: Float32Array,
   grid: GridGeometry,
@@ -100,39 +113,36 @@ export function marchingCubes(
   const iso = opts.isovalue;
   const below = opts.inside === 'below';
   if (values.length !== n0 * n1 * n2) throw new Error('values length does not match shape');
-  // samples per axis on the coarse lattice
-  const m0 = Math.floor((n0 - 1) / step) + 1;
-  const m1 = Math.floor((n1 - 1) / step) + 1;
-  const m2 = Math.floor((n2 - 1) / step) + 1;
+  // sampled fine-grid indices per axis; the final stride may be shorter than `step`
+  const idx0 = sampledIndices(n0, step);
+  const idx1 = sampledIndices(n1, step);
+  const idx2 = sampledIndices(n2, step);
+  const m0 = idx0.length;
+  const m1 = idx1.length;
+  const m2 = idx2.length;
   const { inv, det } = invert3(grid.axes);
   const swapWinding = det < 0;
   const sample = (I: number, J: number, K: number): number =>
-    values[(I * step * n1 + J * step) * n2 + K * step]!;
+    values[(idx0[I]! * n1 + idx1[J]!) * n2 + idx2[K]!]!;
 
-  // index-space gradient (per coarse step) by central differences, one-sided at the borders
+  /** Central difference along one axis, one-sided at the borders, per fine-index unit. */
+  const derivative = (
+    at: number,
+    m: number,
+    ix: Int32Array,
+    f: (offset: number) => number,
+  ): number => {
+    const lo = at === 0 ? 0 : at - 1;
+    const hi = at === m - 1 ? at : at + 1;
+    const span = ix[hi]! - ix[lo]!;
+    return span === 0 ? 0 : (f(hi - at) - f(lo - at)) / span;
+  };
+
+  // index-space gradient (per fine-grid index) by central differences
   const gradAt = (I: number, J: number, K: number, out: Vec3): void => {
-    const f = (a: number, b: number, c: number): number => sample(a, b, c);
-    const dI =
-      I === 0
-        ? f(1, J, K) - f(0, J, K)
-        : I === m0 - 1
-          ? f(I, J, K) - f(I - 1, J, K)
-          : 0.5 * (f(I + 1, J, K) - f(I - 1, J, K));
-    const dJ =
-      J === 0
-        ? f(I, 1, K) - f(I, 0, K)
-        : J === m1 - 1
-          ? f(I, J, K) - f(I, J - 1, K)
-          : 0.5 * (f(I, J + 1, K) - f(I, J - 1, K));
-    const dK =
-      K === 0
-        ? f(I, J, 1) - f(I, J, 0)
-        : K === m2 - 1
-          ? f(I, J, K) - f(I, J, K - 1)
-          : 0.5 * (f(I, J, K + 1) - f(I, J, K - 1));
-    out[0] = dI;
-    out[1] = dJ;
-    out[2] = dK;
+    out[0] = derivative(I, m0, idx0, (d) => sample(I + d, J, K));
+    out[1] = derivative(J, m1, idx1, (d) => sample(I, J + d, K));
+    out[2] = derivative(K, m2, idx2, (d) => sample(I, J, K + d));
   };
 
   const positions: number[] = [];
@@ -159,9 +169,13 @@ export function marchingCubes(
     let t = vb === va ? 0.5 : (iso - va) / (vb - va);
     t = Math.min(1, Math.max(0, t));
     // index-space position (fine-grid units)
-    const pi = (I + A[0] + t * (B[0] - A[0])) * step;
-    const pj = (J + A[1] + t * (B[1] - A[1])) * step;
-    const pk = (K + A[2] + t * (B[2] - A[2])) * step;
+    const lerpIdx = (ix: Int32Array, base: number, a: number, b: number): number => {
+      const ia = ix[base + a]!;
+      return ia + t * (ix[base + b]! - ia);
+    };
+    const pi = lerpIdx(idx0, I, A[0], B[0]);
+    const pj = lerpIdx(idx1, J, A[1], B[1]);
+    const pk = lerpIdx(idx2, K, A[2], B[2]);
     const [a0, a1, a2] = grid.axes;
     positions.push(
       grid.origin[0] + pi * a0[0] + pj * a1[0] + pk * a2[0],
@@ -173,8 +187,8 @@ export function marchingCubes(
     const gi = ga[0] + t * (gb[0] - ga[0]);
     const gj = ga[1] + t * (gb[1] - ga[1]);
     const gk = ga[2] + t * (gb[2] - ga[2]);
-    // world gradient = inv(A) * grad_idx (A has the axes as rows); the 1/step factor cancels
-    // in the normalisation.
+    // world gradient = inv(A) * grad_idx (A has the axes as rows); grad_idx is per fine-grid
+    // index on every axis, so a shorter final stride does not skew the direction.
     let nx = inv[0]! * gi + inv[1]! * gj + inv[2]! * gk;
     let ny = inv[3]! * gi + inv[4]! * gj + inv[5]! * gk;
     let nz = inv[6]! * gi + inv[7]! * gj + inv[8]! * gk;

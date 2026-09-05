@@ -1,4 +1,10 @@
-import { marchingCubes, type GridGeometry, type IsosurfaceMesh, type Vec3 } from './marchingCubes';
+import {
+  marchingCubes,
+  sampledIndices,
+  type GridGeometry,
+  type IsosurfaceMesh,
+  type Vec3,
+} from './marchingCubes';
 
 const N = 41;
 const H = 0.1; // grid spans [-2, 2]^3
@@ -176,6 +182,36 @@ test('downsampling by step keeps a closed, coarser surface', () => {
   expect(isWatertight(coarse)).toBe(true);
   expect(Math.abs(area(coarse) - 4 * Math.PI) / (4 * Math.PI)).toBeLessThan(0.08);
   expect(windingAgreement(coarse)).toBe(1);
+});
+
+test('sampled index arrays always close on n - 1', () => {
+  expect([...sampledIndices(6, 4)]).toEqual([0, 4, 5]);
+  expect([...sampledIndices(6, 2)]).toEqual([0, 2, 4, 5]);
+  expect([...sampledIndices(9, 4)]).toEqual([0, 4, 8]);
+  expect([...sampledIndices(5, 1)]).toEqual([0, 1, 2, 3, 4]);
+  expect([...sampledIndices(1, 4)]).toEqual([0]);
+});
+
+test('downsampling meshes the final slab when the size is not divisible by the step', () => {
+  // 6 samples per axis with step 4 samples fine indices 0, 4, 5: the last slab is 4..5
+  const g: GridGeometry = {
+    shape: [6, 6, 6],
+    origin: [0, 0, 0],
+    axes: [
+      [1, 0, 0],
+      [0, 1, 0],
+      [0, 0, 1],
+    ],
+  };
+  const field = sampleField(g, (p) => p[0]);
+  const m = marchingCubes(field, g, { isovalue: 4.5, step: 4 });
+  expect(m.triangleCount).toBeGreaterThan(0);
+  for (let v = 0; v < m.vertexCount; v++) {
+    // the plane sits at x = 4.5, inside the shorter final stride
+    expect(m.positions[3 * v]!).toBeCloseTo(4.5, 6);
+    // `above` normals point down the gradient, i.e. towards -x
+    expect(m.normals[3 * v]!).toBeCloseTo(-1, 6);
+  }
 });
 
 test('an isovalue outside the data range yields no triangles', () => {
