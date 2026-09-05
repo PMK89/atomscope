@@ -15,6 +15,11 @@ make lint typecheck
 make dev-backend   # 127.0.0.1:8765 ; make dev-frontend -> 127.0.0.1:5173
 ```
 
+8765 and 5173 are usually already held by the user's own long-running servers (they are stale and
+do not reload); starting ours there fails with `address already in use`. For anything that has to
+run against current code -- Playwright above all -- use the private-server recipe under
+**Known problems**, which binds 8791 and 5191 instead.
+
 ## Completed
 - Repository, licensing ADR (GPL-3.0-or-later provisional), provenance, toolchain (uv venv Python 3.12, pnpm store in-project).
 - Investigation reports: `docs/avogadro1-feature-parity.md` (312 rows), `docs/ase-analysis.md`, `docs/cppaw-analysis.md` (1.7k lines, smoke-tested).
@@ -77,10 +82,24 @@ make dev-backend   # 127.0.0.1:8765 ; make dev-frontend -> 127.0.0.1:5173
    they would reuse `BondTable`), MD at 300/600/900 K in the auto-optimize tool (AV-MM-010, the
    backend has no MD minimizer), per-engine colour maps (AV-COLOR-008), the MOPAC input generator
    (AV-QM-007), engine primitive scoping / an Objects tab (AV-VIS-029).
-3. Remaining HIGH gap outside the renderer: paste of crystal text with an identity mapping dialog
-   (AV-XTAL-002). The constraints dialog (AV-MM-005), the bond properties table (AV-ANAL-003), the
-   auto-optimize tool (AV-EDIT-031), residue selection and colouring (AV-BIO-006), the Settings
-   dialog (AV-UI-012) and colour-by-second-cube (AV-SURF-013) are done.
+3. What is left at HIGH or CRITICAL, from the matrix itself (an earlier version of this list said
+   AV-XTAL-002 was the last HIGH gap; it is MEDIUM -- re-derive the list, do not trust prose):
+
+   ```bash
+   awk -F'|' 'NR>51 && /^\|/ {gsub(/^ +| +$/,"",$2); gsub(/^ +| +$/,"",$7); gsub(/^ +| +$/,"",$11);
+     if(($7=="CRITICAL"||$7=="HIGH") && $11!="IMPLEMENTED") print $2, $7, $11}' \
+     docs/avogadro1-feature-parity.md
+   ```
+
+   Today that is five HIGH `NOT STARTED` -- engine primitive scoping (AV-VIS-029), a painter
+   abstraction for POV-Ray/VRML export (AV-VIS-042), per-engine colour maps (AV-COLOR-008), the
+   crystallography editor dock (AV-XTAL-003), the MOPAC input generator (AV-QM-007) -- and two
+   CRITICAL `PARTIAL` whose notes say the remaining difference is only the shape of a dialog
+   (AV-MM-002 force-field setup, AV-FILE-003 Save As with a format chooser); decide once whether
+   those two are done rather than leaving them to be re-read. The constraints dialog (AV-MM-005),
+   the bond properties table (AV-ANAL-003), the auto-optimize tool (AV-EDIT-031), residue selection
+   and colouring (AV-BIO-006), the Settings dialog (AV-UI-012) and colour-by-second-cube
+   (AV-SURF-013) are done.
 4. More wavefunction readers (MOPAC aux, GAMESS, ORCA, Molpro, Slater bases) for AV-SURF-006;
    ORCA/Gaussian/NWChem input-only plugins; desktop shell ADR.
 5. Known limits and hand-overs:

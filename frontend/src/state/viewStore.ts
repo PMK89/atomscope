@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import type { ColorScheme } from '../renderer/atomColors';
-import type { StructureStyle } from '../renderer/layers/StructureLayer';
+import type { Quality, StructureStyle } from '../renderer/layers/StructureLayer';
 import type { Projection } from '../renderer/Renderer';
 import type { AtomLabelContent, BondLabelContent } from '../renderer/labels';
 import type { RibbonStyle } from '../model/ribbon';
@@ -15,7 +15,7 @@ export interface ViewState {
   showHydrogens: boolean;
   background: 'white' | 'black' | 'gray';
   /** Renderer quality and depth cueing (Settings > Preferences). */
-  quality: 'low' | 'auto' | 'high';
+  quality: Quality;
   fog: boolean;
   setQuality: (q: ViewState['quality']) => void;
   setFog: (on: boolean) => void;

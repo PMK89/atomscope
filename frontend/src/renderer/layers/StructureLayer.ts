@@ -21,6 +21,9 @@ import type { DisplayLayer, LayerContext } from './Layer';
 
 export type StructureStyle = 'ball-and-stick' | 'stick' | 'vdw' | 'wireframe';
 
+/** Tessellation override for spheres and cylinders; `auto` picks it from the atom count. */
+export type Quality = 'low' | 'auto' | 'high';
+
 export interface StructureLayerSettings {
   style: StructureStyle;
   /** Fraction of the covalent radius used for ball-and-stick spheres. */
@@ -46,7 +49,7 @@ export interface StructureLayerSettings {
    * Tessellation of the spheres and cylinders. `auto` coarsens with the number of atoms, which is
    * what keeps a hundred thousand of them interactive; the other two override that choice.
    */
-  quality: 'low' | 'auto' | 'high';
+  quality: Quality;
   /**
    * Style for the selected atoms, when they should be drawn differently from the rest (Avogadro
    * restricts an engine to a set of primitives; this is the same effect with one engine). Null

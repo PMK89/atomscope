@@ -32,7 +32,8 @@
   residue of the heavy atom it is bonded to, so the ribbons, residue labels, residue selection and
   residue colours survive `Add hydrogens`.
 - A `Settings ▸ Preferences…` dialog: rendering quality, depth cueing (fog), projection,
-  background, and the backend list with what each one found on the machine.
+  background, and the backend list with what each one found on the machine. Depth cueing is turned
+  off for a transparent image export, where fading towards the background colour would leave a halo.
 - Residue-aware selection and colouring: `Select ▸ Select residues…` (names, numbers, ranges,
   chain-qualified) and `Select ▸ Select solvent`, and a `Colour by` on the Display tab with
   residue (RasMol amino colours), chain and secondary-structure schemes.

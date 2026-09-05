@@ -286,11 +286,17 @@ export class Renderer {
     }
     const target = new WebGLRenderTarget(width, height, { samples: 4 });
     const background = this.scene.background;
+    const fog = this.scene.fog;
     const alpha = this.gl.getClearAlpha();
     const aspect = this.perspective.aspect;
     if (transparent) {
       this.scene.background = null;
       this.gl.setClearAlpha(0);
+      // fog fades distant atoms towards the background colour, which is not there any more:
+      // over transparency it would leave an opaque halo the viewport never showed.
+      this.scene.fog = null;
+    } else {
+      this.updateFog();
     }
     this.perspective.aspect = width / height;
     this.perspective.updateProjectionMatrix();
@@ -306,6 +312,7 @@ export class Renderer {
     } finally {
       this.gl.setRenderTarget(null);
       this.scene.background = background;
+      this.scene.fog = fog;
       this.gl.setClearAlpha(alpha);
       this.perspective.aspect = aspect;
       this.perspective.updateProjectionMatrix();

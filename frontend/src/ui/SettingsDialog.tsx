@@ -8,10 +8,11 @@
 import { useEffect, useRef, useState } from 'react';
 import { api, type BackendInfo } from '../api/client';
 import { useToolStore } from '../editor/toolStore';
+import type { Quality } from '../renderer/layers/StructureLayer';
 import { useViewStore } from '../state/viewStore';
 import { dialogKeyHandler } from './dialogKeys';
 
-const QUALITIES: { id: 'low' | 'auto' | 'high'; label: string }[] = [
+const QUALITIES: { id: Quality; label: string }[] = [
   { id: 'low', label: 'Low (fastest)' },
   { id: 'auto', label: 'Automatic (by size)' },
   { id: 'high', label: 'High' },
@@ -57,7 +58,7 @@ export function SettingsDialog(): JSX.Element | null {
           <select
             id="settings-quality"
             value={view.quality}
-            onChange={(e) => view.setQuality(e.target.value as 'low' | 'auto' | 'high')}
+            onChange={(e) => view.setQuality(e.target.value as Quality)}
           >
             {QUALITIES.map((q) => (
               <option key={q.id} value={q.id}>
