@@ -14,6 +14,7 @@ from atomscope.api import (
     routes_io,
     routes_project,
     routes_structures,
+    routes_trajectory,
 )
 from atomscope.api.schemas import HealthResponse
 from atomscope.api.state import AppState
@@ -40,4 +41,6 @@ def create_app() -> FastAPI:
     app.include_router(routes_io.router)
     app.include_router(routes_backends.router)
     app.include_router(routes_calculations.router)
+    app.include_router(routes_trajectory.calc_router)
+    app.include_router(routes_trajectory.io_router)
     return app
