@@ -53,6 +53,10 @@ export type VibrationsResponse = components['schemas']['VibrationsResponse'];
 export type VibrationImport = components['schemas']['VibrationImport'];
 export type NmrShielding = components['schemas']['NmrShielding'];
 export type SmartsResult = components['schemas']['SmartsResult'];
+export type ChargesResult = components['schemas']['ChargesResult'];
+export type Identifiers = components['schemas']['Identifiers'];
+export type OptimizeResult = components['schemas']['OptimizeResult'];
+export type ForceFieldInfo = components['schemas']['ForceFieldInfo'];
 export type PointGroupResult = components['schemas']['PointGroupResult'];
 export type ParameterValues = Record<string, unknown>;
 
@@ -225,6 +229,23 @@ export const api = {
     },
   },
   chem: {
+    forceFields: () => request<ForceFieldInfo>('/api/chem/force-fields'),
+    optimize: (body: Body<'/api/chem/optimize', 'post'>) =>
+      request<OptimizeResult>('/api/chem/optimize', json(body)),
+    addHydrogens: (body: Body<'/api/chem/add-hydrogens', 'post'>) =>
+      request<Structure>('/api/chem/add-hydrogens', json(body)),
+    removeHydrogens: (body: Body<'/api/chem/remove-hydrogens', 'post'>) =>
+      request<Structure>('/api/chem/remove-hydrogens', json(body)),
+    perceiveBonds: (body: Body<'/api/chem/perceive-bonds', 'post'>) =>
+      request<Structure>('/api/chem/perceive-bonds', json(body)),
+    partialCharges: (body: Body<'/api/chem/partial-charges', 'post'>) =>
+      request<ChargesResult>('/api/chem/partial-charges', json(body)),
+    identifiers: (body: Body<'/api/chem/identifiers', 'post'>) =>
+      request<Identifiers>('/api/chem/identifiers', json(body)),
+    invertChirality: (body: Body<'/api/chem/invert-chirality', 'post'>) =>
+      request<Structure>('/api/chem/invert-chirality', json(body)),
+    hToMethyl: (body: Body<'/api/chem/h-to-methyl', 'post'>) =>
+      request<Structure>('/api/chem/h-to-methyl', json(body)),
     smarts: (body: Body<'/api/chem/smarts', 'post'>) =>
       request<SmartsResult>('/api/chem/smarts', json(body)),
     pointGroup: (body: Body<'/api/chem/point-group', 'post'>) =>

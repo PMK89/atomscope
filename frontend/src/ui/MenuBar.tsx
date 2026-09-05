@@ -13,6 +13,16 @@ import { CartesianEditor } from './CartesianEditor';
 import { CrystalDialogs } from './CrystalDialogs';
 import { useCrystalStore } from '../state/crystalStore';
 import { toggleCell } from './crystalActions';
+import {
+  addHydrogens,
+  assignPartialCharges,
+  copyIdentifier,
+  hydrogenToMethyl,
+  invertChirality,
+  optimizeGeometry,
+  perceiveBonds,
+  removeHydrogens,
+} from './chemActions';
 import { isEditableTarget } from '../editor/ToolHost';
 import { Menu, type MenuItem } from './Menu';
 import type { StructureStyle } from '../renderer/layers/StructureLayer';
@@ -189,6 +199,34 @@ export function MenuBar({ onError }: { onError: (msg: string) => void }): JSX.El
           },
           { label: 'Slab…', disabled: !store.doc.cell, action: () => openCrystalDialog('slab') },
           { label: 'Crystal library…', action: () => openCrystalDialog('library') },
+        ]}
+      />
+      <Menu
+        title="Extensions"
+        items={[
+          { label: 'Add hydrogens', action: () => void addHydrogens(onError) },
+          {
+            label: 'Add hydrogens for pH…',
+            action: () => {
+              const ph = Number(window.prompt('pH', '7.4'));
+              if (Number.isFinite(ph)) void addHydrogens(onError, ph);
+            },
+          },
+          { label: 'Remove hydrogens', action: () => void removeHydrogens(onError) },
+          { label: 'Perceive bonds', action: () => void perceiveBonds(onError) },
+          { label: 'Optimize geometry (MMFF94)', action: () => void optimizeGeometry(onError) },
+          {
+            label: 'Assign partial charges',
+            action: () => void assignPartialCharges(onError),
+          },
+          // the status bar is the only transient-message channel, so a success notice goes there
+          {
+            label: 'Copy as SMILES',
+            action: () => void copyIdentifier('smiles', onError, onError),
+          },
+          { label: 'Copy as InChI', action: () => void copyIdentifier('inchi', onError, onError) },
+          { label: 'Invert chirality', action: () => void invertChirality(onError) },
+          { label: 'Hydrogen → methyl', action: () => void hydrogenToMethyl(onError) },
         ]}
       />
       <Menu

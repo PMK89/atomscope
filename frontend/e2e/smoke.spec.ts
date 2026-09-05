@@ -43,3 +43,18 @@ test('view menu switches to stick and status bar shows selection on click', asyn
   const text = await page.locator('.app-statusbar').innerText();
   expect(text).toMatch(/[01] selected/);
 });
+
+test('Extensions menu runs a chemistry operation against the backend', async ({ page }) => {
+  await page.goto('/');
+  await expect(page.locator('.app-statusbar')).toContainText('3 atoms');
+
+  // remove then re-add the hydrogens: both go through /api/chem and commit as undo steps
+  await page.getByRole('button', { name: 'Extensions' }).click();
+  await page.getByRole('menuitem', { name: 'Remove hydrogens' }).click();
+  await expect(page.locator('.app-statusbar')).toContainText('1 atoms');
+
+  await page.getByRole('button', { name: 'Extensions' }).click();
+  await page.getByRole('menuitem', { name: 'Add hydrogens', exact: true }).click();
+  await expect(page.locator('.app-statusbar')).toContainText('3 atoms');
+  await expect(page.locator('.app-statusbar')).toContainText('H2O');
+});
