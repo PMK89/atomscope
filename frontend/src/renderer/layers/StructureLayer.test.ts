@@ -159,3 +159,64 @@ test('a bond between two styles is drawn once, at the thinner radius', () => {
   expect(new Vector3().setFromMatrixColumn(m, 0).length()).toBeCloseTo(0.12 * 0.35, 3);
   layer.dispose();
 });
+
+/** Ethene: a C=C with two hydrogens on each carbon, all in the xy plane. */
+const ethene = (): StructureDoc =>
+  normalizeStructure({
+    name: 'ethene',
+    atoms: [
+      makeAtom('C', [0, 0, 0]),
+      makeAtom('C', [1.33, 0, 0]),
+      makeAtom('H', [-0.55, 0.94, 0]),
+      makeAtom('H', [-0.55, -0.94, 0]),
+      makeAtom('H', [1.88, 0.94, 0]),
+      makeAtom('H', [1.88, -0.94, 0]),
+    ],
+    bonds: [makeBond(0, 1, 2), makeBond(0, 2), makeBond(0, 3), makeBond(1, 4), makeBond(1, 5)],
+  } as never);
+
+test('a double bond is drawn as two sticks in the plane of the molecule', () => {
+  const layer = new StructureLayer();
+  const doc = ethene();
+  layer.update(ctx(doc));
+
+  const bondMesh = meshes(layer)[1]!;
+  // four single bonds (2 halves each) plus the double bond (2 sticks x 2 halves)
+  expect(bondMesh.count).toBe(4 * 2 + 4);
+
+  // the two sticks of the C=C are offset from the axis, symmetrically, and stay in z = 0
+  const m = new Matrix4();
+  const positions: number[][] = [];
+  for (let i = 0; i < bondMesh.count; i++) {
+    bondMesh.getMatrixAt(i, m);
+    positions.push([m.elements[12]!, m.elements[13]!, m.elements[14]!]);
+  }
+  const doubleHalves = positions.filter((p) => Math.abs(p[1]!) > 1e-6 && p[0]! < 1.0 && p[0]! > 0);
+  expect(doubleHalves.length).toBeGreaterThanOrEqual(2);
+  expect(doubleHalves.every((p) => Math.abs(p[2]!) < 1e-6)).toBe(true);
+  const ys = doubleHalves.map((p) => p[1]!).sort((a, b) => a - b);
+  expect(ys[0]).toBeCloseTo(-ys[ys.length - 1]!);
+  layer.dispose();
+});
+
+test('switching multiple bonds off draws one stick again', () => {
+  const layer = new StructureLayer();
+  layer.setSettings({ multipleBonds: false });
+  layer.update(ctx(ethene()));
+  expect(meshes(layer)[1]!.count).toBe(5 * 2);
+  layer.dispose();
+});
+
+test('picking still finds the bond a stick belongs to', () => {
+  const layer = new StructureLayer();
+  const doc = ethene();
+  layer.update(ctx(doc));
+  const bondMesh = meshes(layer)[1]!;
+  const found = new Set<number>();
+  for (let i = 0; i < bondMesh.count; i++) {
+    found.add(layer.bondIndexForInstance(bondMesh, i)!);
+  }
+  // every bond of the document is reachable, and nothing points past the end of the list
+  expect([...found].sort((a, b) => a - b)).toEqual([0, 1, 2, 3, 4]);
+  layer.dispose();
+});

@@ -22,6 +22,13 @@ def mol_to_structure(mol: Chem.Mol, name: str = "untitled") -> Structure:
     if mol.GetNumConformers() == 0:
         msg = "molecule has no 3D coordinates"
         raise ValueError(msg)
+    # Kekulize so that an aromatic ring carries alternating single and double bonds: an aromatic
+    # bond has no order of its own, and a renderer that draws multiple bonds would otherwise show
+    # benzene as six single sticks. The aromatic flags are kept, so nothing downstream loses that.
+    try:
+        Chem.Kekulize(mol, clearAromaticFlags=False)
+    except Chem.KekulizeException:
+        pass  # a structure RDKit cannot kekulize keeps the orders it came with
     conf = mol.GetConformer()
     atoms = []
     for a in mol.GetAtoms():

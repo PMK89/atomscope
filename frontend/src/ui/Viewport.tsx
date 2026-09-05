@@ -62,6 +62,7 @@ export function Viewport(): JSX.Element {
       atomScale: view.atomScale,
       bondRadius: view.bondRadius,
       selectionStyle: view.selectionStyle,
+      multipleBonds: view.multipleBonds,
     });
     r.setBackground(BACKGROUND_HEX[view.background]);
     if (r.projection !== view.projection) r.setProjection(view.projection);

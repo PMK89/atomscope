@@ -55,6 +55,9 @@ export interface ViewState {
   /** Structure engine settings that the Display panel exposes. */
   atomScale: number;
   bondRadius: number;
+  /** Draw double and triple bonds as two or three sticks. */
+  multipleBonds: boolean;
+  toggleMultipleBonds: () => void;
   /** Style for the selected atoms, or null to draw them like the rest. */
   selectionStyle: StructureStyle | null;
   setAtomScale: (scale: number) => void;
@@ -108,6 +111,8 @@ export const useViewStore = create<ViewState>((set) => ({
   setRibbonScale: (ribbonScale) => set({ ribbonScale }),
   atomScale: 0.35,
   bondRadius: 0.12,
+  multipleBonds: true,
+  toggleMultipleBonds: () => set((s) => ({ multipleBonds: !s.multipleBonds })),
   selectionStyle: null,
   setAtomScale: (atomScale) => set({ atomScale }),
   setBondRadius: (bondRadius) => set({ bondRadius }),

@@ -126,3 +126,12 @@ def test_a_named_format_wins_over_the_sniffer() -> None:
 def test_unreadable_text_is_a_format_error() -> None:
     with pytest.raises(FormatError):
         structure_from_string("nothing chemical here at all\nsecond line\n")
+
+
+def test_aromatic_rings_come_back_kekulized() -> None:
+    # an aromatic bond has no order of its own; a renderer drawing multiple bonds needs one
+    benzene = from_smiles("c1ccccc1")
+    ring = [b for b in benzene.bonds if b.aromatic]
+    assert len(ring) == 6
+    assert sorted(b.order for b in ring) == [1, 1, 1, 2, 2, 2]
+    assert all(b.aromatic for b in ring)

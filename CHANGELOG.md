@@ -24,6 +24,9 @@
 - Fixed: Ctrl+C with text selected in a panel copied the molecule instead of the text; removing
   atoms in the editor left residues and constraints pointing at the old numbering; a copied
   fragment carried no residues.
+- Double and triple bonds are drawn as two or three parallel sticks, in the plane of the molecule,
+  with a toggle in the Display tab; RDKit-derived structures are kekulized so an aromatic ring has
+  bond orders to draw.
 - File > Save (Ctrl+S) and Save as… (Ctrl+Shift+S): Save as writes a copy under a new id and
   continues editing it, so an optimized or supercelled structure no longer overwrites its source.
   Unsaved work is marked in the window title and the status bar, and leaving the page asks first.

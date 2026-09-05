@@ -105,6 +105,12 @@ export function DisplayPanel(): JSX.Element {
         </select>
       </div>
       <Toggle
+        id="display-multiple-bonds"
+        label="Show multiple bonds"
+        checked={view.multipleBonds}
+        onChange={view.toggleMultipleBonds}
+      />
+      <Toggle
         id="display-hydrogens"
         label="Show hydrogens"
         checked={view.showHydrogens}

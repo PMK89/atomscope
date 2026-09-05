@@ -232,3 +232,24 @@ test('Save as writes a second structure and keeps editing the copy', async ({ pa
   await expect(page.locator('.app-statusbar')).toContainText('water plus fragment');
   await expect(page.locator('.status-modified')).toHaveCount(0);
 });
+
+test('benzene from SMILES is drawn with alternating double bonds', async ({ page }) => {
+  await page.goto('/');
+  page.once('dialog', (d) => void d.accept('c1ccccc1'));
+  await page.getByRole('button', { name: 'File' }).click();
+  await page.getByRole('menuitem', { name: 'Build from SMILES…' }).click();
+  await expect(page.locator('.app-statusbar')).toContainText('12 atoms, 12 bonds');
+
+  // 12 bonds: nine single (two half-cylinders each) and three double (two sticks each)
+  const halves = async (): Promise<number> =>
+    page.evaluate(() => {
+      const renderer = (window as unknown as { __atomscopeRenderer?: unknown })
+        .__atomscopeRenderer as { structureLayer: { pickables: { count?: number }[] } };
+      return renderer.structureLayer.pickables[1]?.count ?? 0;
+    });
+  await expect.poll(halves).toBe(9 * 2 + 3 * 4);
+
+  await page.getByRole('tab', { name: 'Display' }).click();
+  await page.getByLabel('Show multiple bonds').uncheck();
+  await expect.poll(halves).toBe(12 * 2);
+});

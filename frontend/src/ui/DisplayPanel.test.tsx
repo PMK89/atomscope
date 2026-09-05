@@ -12,6 +12,7 @@ beforeEach(() => {
     showRibbon: false,
     ribbonStyle: 'cartoon',
     showHBonds: false,
+    multipleBonds: true,
     showLabels: false,
     atomLabels: 'symbol_index',
     bondLabels: 'none',
@@ -33,6 +34,9 @@ test('the panel drives the display settings the renderer reads', () => {
 
   fireEvent.change(screen.getByLabelText('Atom radius'), { target: { value: '0.6' } });
   expect(useViewStore.getState().atomScale).toBe(0.6);
+
+  fireEvent.click(screen.getByLabelText('Show multiple bonds'));
+  expect(useViewStore.getState().multipleBonds).toBe(false);
 
   fireEvent.click(screen.getByLabelText('Show axes'));
   expect(useViewStore.getState().showAxes).toBe(true);

@@ -15,7 +15,7 @@ import {
 } from 'three';
 import { elementBySymbol } from '../../model/elements';
 import type { StructureDoc } from '../../model/structure';
-import { cylinderMatrix } from '../math';
+import { bondPlaneAxis, cylinderMatrix } from '../math';
 import type { DisplayLayer, LayerContext } from './Layer';
 
 export type StructureStyle = 'ball-and-stick' | 'stick' | 'vdw' | 'wireframe';
@@ -28,6 +28,8 @@ export interface StructureLayerSettings {
   vdwScale: number;
   bondRadius: number;
   showHydrogens: boolean;
+  /** Draw double and triple bonds as two or three parallel sticks. */
+  multipleBonds: boolean;
   /**
    * Style for the selected atoms, when they should be drawn differently from the rest (Avogadro
    * restricts an engine to a set of primitives; this is the same effect with one engine). Null
@@ -43,6 +45,7 @@ export const DEFAULT_STRUCTURE_SETTINGS: StructureLayerSettings = {
   vdwScale: 1.0,
   bondRadius: 0.12,
   showHydrogens: true,
+  multipleBonds: true,
   selectionStyle: null,
 };
 
@@ -52,6 +55,18 @@ const DETAIL_LEVELS: [number, number, number][] = [
   [16, 12, 12],
   [32, 24, 24],
 ];
+
+/** Centre-to-centre distance between the sticks of a multiple bond, in bond radii. */
+const MULTIPLE_BOND_GAP = 2.6;
+
+/** One half-cylinder: which drawn bond it belongs to, which end, and its offset from the axis. */
+interface BondHalf {
+  bond: number;
+  end: 'a' | 'b';
+  shift: number;
+  /** atom whose direction fixes the plane of a multiple bond, or -1 */
+  reference: number;
+}
 
 const SELECTION_COLOR = new Color(0.2, 0.6, 1.0);
 const HOVER_COLOR = new Color(1.0, 0.85, 0.2);
@@ -81,6 +96,8 @@ export class StructureLayer implements DisplayLayer {
   private instanceRadius: Float32Array = new Float32Array(0);
   /** per bond half-cylinder radius, which differs when the selection has its own style */
   private bondRadii: Float32Array = new Float32Array(0);
+  /** One half-cylinder per entry, in instance order (a multiple bond contributes several). */
+  private bondHalves: BondHalf[] = [];
   private lastOverride: Float32Array | null = null;
   private lastSelected: ReadonlySet<number> | null = null;
   private lastHovered: number | null = null;
@@ -102,7 +119,8 @@ export class StructureLayer implements DisplayLayer {
   /** Index into `structure.bonds` for an intersected instance of the bond mesh, or null. */
   bondIndexForInstance(mesh: Object3D, instanceId: number | undefined): number | null {
     if (mesh !== this.bondMesh || instanceId === undefined) return null;
-    return this.bondMeshBondIndices[Math.floor(instanceId / 2)] ?? null;
+    const half = this.bondHalves[instanceId];
+    return half ? (this.bondMeshBondIndices[half.bond] ?? null) : null;
   }
 
   /** True when `obj` is the atom mesh (as opposed to the bond mesh). */
@@ -193,13 +211,30 @@ export class StructureLayer implements DisplayLayer {
       this.atomMesh.instanceMatrix.needsUpdate = true;
     }
     if (this.bondMesh) {
-      this.bondMeshBonds.forEach((bond, k) => {
-        const radius = this.bondRadii[k]!;
+      const ref = new Vector3();
+      const offset = new Vector3();
+      this.bondHalves.forEach((half, k) => {
+        const bond = this.bondMeshBonds[half.bond]!;
+        const radius = this.bondRadii[half.bond]!;
         read(bond.a, a);
         read(bond.b, b);
         mid.addVectors(a, b).multiplyScalar(0.5);
-        this.bondMesh!.setMatrixAt(2 * k, cylinderMatrix(a, mid, radius, m));
-        this.bondMesh!.setMatrixAt(2 * k + 1, cylinderMatrix(mid, b, radius, m));
+        offset.set(0, 0, 0);
+        if (half.shift !== 0) {
+          // the sticks of a multiple bond lie in the plane of the bond and a neighbouring atom,
+          // which is where a chemist expects to see them; the perpendicular is computed per frame
+          // so that a trajectory keeps them in that plane
+          bondPlaneAxis(a, b, half.reference >= 0 ? read(half.reference, ref) : null, offset);
+          offset.multiplyScalar(half.shift * radius * MULTIPLE_BOND_GAP);
+        }
+        a.add(offset);
+        b.add(offset);
+        mid.add(offset);
+        const first = half.end === 'a';
+        this.bondMesh!.setMatrixAt(
+          k,
+          first ? cylinderMatrix(a, mid, radius, m) : cylinderMatrix(mid, b, radius, m),
+        );
       });
       this.bondMesh.instanceMatrix.needsUpdate = true;
     }
@@ -255,13 +290,43 @@ export class StructureLayer implements DisplayLayer {
     });
     this.bondMeshBondIndices = bondIndices;
     this.bondRadii = new Float32Array(radii);
-    if (bonds.length) {
-      const bondMesh = new InstancedMesh(cylinder, this.material, bonds.length * 2);
+    this.bondHalves = this.halvesFor(s, bonds);
+    if (this.bondHalves.length) {
+      const bondMesh = new InstancedMesh(cylinder, this.material, this.bondHalves.length);
       bondMesh.frustumCulled = false;
       this.bondMesh = bondMesh;
       this.bondMeshBonds = bonds;
       this.object.add(bondMesh);
     }
+  }
+
+  /**
+   * The half-cylinders to draw: two per single bond, two per stick of a double or triple one.
+   * The shifts are symmetric about the bond axis (-1,+1 for a double, -1,0,+1 for a triple).
+   */
+  private halvesFor(s: StructureDoc, bonds: StructureDoc['bonds']): BondHalf[] {
+    const out: BondHalf[] = [];
+    bonds.forEach((bond, k) => {
+      const sticks = this.settings.multipleBonds ? Math.min(3, Math.max(1, bond.order)) : 1;
+      const reference = sticks > 1 ? this.neighbourOf(s, bond.a, bond.b) : -1;
+      for (let i = 0; i < sticks; i++) {
+        const shift = sticks === 1 ? 0 : i - (sticks - 1) / 2;
+        out.push({ bond: k, end: 'a', shift, reference });
+        out.push({ bond: k, end: 'b', shift, reference });
+      }
+    });
+    return out;
+  }
+
+  /** An atom bonded to `a` or `b` other than each other: it fixes the plane of a multiple bond. */
+  private neighbourOf(s: StructureDoc, a: number, b: number): number {
+    for (const bond of s.bonds) {
+      if (bond.a === a && bond.b !== b) return bond.b;
+      if (bond.b === a && bond.a !== b) return bond.a;
+      if (bond.a === b && bond.b !== a) return bond.b;
+      if (bond.b === b && bond.a !== a) return bond.a;
+    }
+    return -1;
   }
 
   /**
@@ -315,20 +380,17 @@ export class StructureLayer implements DisplayLayer {
       if (this.atomMesh.instanceColor) this.atomMesh.instanceColor.needsUpdate = true;
     }
     if (this.bondMesh) {
-      this.bondMeshBonds.forEach((bond, k) => {
-        for (const [half, atomIndex] of [
-          [2 * k, bond.a],
-          [2 * k + 1, bond.b],
-        ] as const) {
-          const el = elementBySymbol(s.atoms[atomIndex]!.element);
-          color.setRGB(el.color[0], el.color[1], el.color[2]);
-          // a stick or wireframe atom is only visible through its bonds, so tint them instead
-          const atomStyle = this.styleOf(atomIndex, ctx.selectedAtoms);
-          if (atomStyle === 'stick' || atomStyle === 'wireframe') {
-            if (ctx.selectedAtoms.has(atomIndex)) color.lerp(SELECTION_COLOR, 0.6);
-          }
-          this.bondMesh!.setColorAt(half, color);
+      this.bondHalves.forEach((half, k) => {
+        const bond = this.bondMeshBonds[half.bond]!;
+        const atomIndex = half.end === 'a' ? bond.a : bond.b;
+        const el = elementBySymbol(s.atoms[atomIndex]!.element);
+        color.setRGB(el.color[0], el.color[1], el.color[2]);
+        // a stick or wireframe atom is only visible through its bonds, so tint them instead
+        const atomStyle = this.styleOf(atomIndex, ctx.selectedAtoms);
+        if (atomStyle === 'stick' || atomStyle === 'wireframe') {
+          if (ctx.selectedAtoms.has(atomIndex)) color.lerp(SELECTION_COLOR, 0.6);
         }
+        this.bondMesh!.setColorAt(k, color);
       });
       if (this.bondMesh.instanceColor) this.bondMesh.instanceColor.needsUpdate = true;
     }

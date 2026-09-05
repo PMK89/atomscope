@@ -7,6 +7,7 @@ import pytest
 from atomscope.build.peptide import PRESETS, build_peptide
 from atomscope.chem import secondary
 from atomscope.io import read_structure
+from atomscope.io.rdkit_io import from_smiles
 
 FIXTURE = Path(__file__).resolve().parents[1] / "fixtures" / "bio" / "1crn.pdb"
 # from the entry's own records: HELIX 7-19 and 23-30, SHEET 1-4 paired with 32-35
@@ -72,7 +73,5 @@ def test_built_conformations_are_recognized(preset: str, expected: str) -> None:
 
 
 def test_a_molecule_without_residues_is_not_a_protein() -> None:
-    from atomscope.io.rdkit_io import from_smiles
-
     result = secondary.analyse(from_smiles("CCO"))
     assert result.residues == [] and result.chains == [] and result.hbonds == []

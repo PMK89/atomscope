@@ -1,6 +1,7 @@
 import { Matrix4, Quaternion, Vector3 } from 'three';
 
 const UP = new Vector3(0, 1, 0);
+const RIGHT = new Vector3(1, 0, 0);
 const tmpDir = new Vector3();
 const tmpQuat = new Quaternion();
 const tmpScale = new Vector3();
@@ -29,5 +30,28 @@ export function bondOffsetAxis(a: Vector3, b: Vector3, viewDir: Vector3, out: Ve
   out.crossVectors(tmpDir, viewDir);
   if (out.lengthSq() < 1e-8) out.crossVectors(tmpDir, UP);
   if (out.lengthSq() < 1e-8) out.set(1, 0, 0);
+  return out.normalize();
+}
+
+/**
+ * Unit vector perpendicular to the bond a-b, in the plane the bond makes with `reference`. That is
+ * where the extra sticks of a double or triple bond belong: in the plane of the molecule, not at
+ * some arbitrary angle to it. Falls back to any perpendicular when there is no reference atom (a
+ * lone diatomic) or when the three atoms are collinear.
+ */
+export function bondPlaneAxis(
+  a: Vector3,
+  b: Vector3,
+  reference: Vector3 | null,
+  out: Vector3,
+): Vector3 {
+  tmpDir.subVectors(b, a).normalize();
+  out.set(0, 0, 0);
+  if (reference) {
+    out.subVectors(reference, a);
+    out.addScaledVector(tmpDir, -out.dot(tmpDir));
+  }
+  if (out.lengthSq() < 1e-8) out.crossVectors(tmpDir, UP);
+  if (out.lengthSq() < 1e-8) out.crossVectors(tmpDir, RIGHT);
   return out.normalize();
 }
