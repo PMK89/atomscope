@@ -88,3 +88,21 @@ test('Build > Insert peptide uses the presets the backend actually offers', asyn
   // water (3) plus the dipeptide
   await expect(page.locator('.app-statusbar')).toContainText('23 atoms');
 });
+
+test('labels are drawn into the scene and follow the content option', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'View' }).click();
+  await page.getByRole('menuitemcheckbox', { name: 'Label atoms: Element symbol' }).click();
+
+  const labels = async (): Promise<string[]> =>
+    page.evaluate(() => {
+      const renderer = (window as unknown as { __atomscopeRenderer?: unknown })
+        .__atomscopeRenderer as { getLayer(id: string): { labels(): string[] } | undefined };
+      return renderer.getLayer('labels')?.labels() ?? [];
+    });
+  await expect.poll(labels).toEqual(['O', 'H', 'H']);
+
+  await page.getByRole('button', { name: 'View' }).click();
+  await page.getByRole('menuitemcheckbox', { name: 'Label bonds: Bond length' }).click();
+  await expect.poll(labels).toEqual(['O', 'H', 'H', '0.96', '0.96']);
+});

@@ -28,6 +28,7 @@ import {
 import { isEditableTarget } from '../editor/ToolHost';
 import { Menu, type MenuItem } from './Menu';
 import type { StructureStyle } from '../renderer/layers/StructureLayer';
+import { ATOM_LABEL_OPTIONS, BOND_LABEL_OPTIONS } from '../renderer/labels';
 
 export function MenuBar({ onError }: { onError: (msg: string) => void }): JSX.Element {
   const store = useStructureStore();
@@ -256,6 +257,17 @@ export function MenuBar({ onError }: { onError: (msg: string) => void }): JSX.El
           { label: 'Show force vectors', checked: view.showVectors, action: view.toggleVectors },
           { label: 'Show unit cell', checked: view.showUnitCell, action: view.toggleUnitCell },
           { label: 'Show axes', checked: view.showAxes, action: view.toggleAxes },
+          { label: 'Show labels', checked: view.showLabels, action: view.toggleLabels },
+          ...ATOM_LABEL_OPTIONS.map((o) => ({
+            label: `Label atoms: ${o.label}`,
+            checked: view.showLabels && view.atomLabels === o.id,
+            action: () => (o.id === 'none' ? view.setAtomLabels('none') : view.setAtomLabels(o.id)),
+          })),
+          ...BOND_LABEL_OPTIONS.filter((o) => o.id !== 'none').map((o) => ({
+            label: `Label bonds: ${o.label}`,
+            checked: view.showLabels && view.bondLabels === o.id,
+            action: () => view.setBondLabels(view.bondLabels === o.id ? 'none' : o.id),
+          })),
           {
             label: 'Background: white',
             checked: view.background === 'white',

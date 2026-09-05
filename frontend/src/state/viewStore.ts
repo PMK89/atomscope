@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import type { StructureStyle } from '../renderer/layers/StructureLayer';
 import type { Projection } from '../renderer/Renderer';
+import type { AtomLabelContent, BondLabelContent } from '../renderer/labels';
 
 export interface ViewState {
   style: StructureStyle;
@@ -21,6 +22,13 @@ export interface ViewState {
   showUnitCell: boolean;
   cellRepeat: [number, number, number];
   showAxes: boolean;
+  /** Label engine: what atoms and bonds are labelled with. */
+  showLabels: boolean;
+  atomLabels: AtomLabelContent;
+  bondLabels: BondLabelContent;
+  toggleLabels: () => void;
+  setAtomLabels: (content: AtomLabelContent) => void;
+  setBondLabels: (content: BondLabelContent) => void;
   toggleVectors: () => void;
   setVectorField: (field: string) => void;
   setVectorScale: (scale: number) => void;
@@ -40,6 +48,12 @@ export const useViewStore = create<ViewState>((set) => ({
   toggleHydrogens: () => set((s) => ({ showHydrogens: !s.showHydrogens })),
   setBackground: (background) => set({ background }),
   requestFit: () => set((s) => ({ fitRequest: s.fitRequest + 1 })),
+  showLabels: false,
+  atomLabels: 'symbol_index',
+  bondLabels: 'none',
+  toggleLabels: () => set((s) => ({ showLabels: !s.showLabels })),
+  setAtomLabels: (atomLabels) => set({ atomLabels, showLabels: true }),
+  setBondLabels: (bondLabels) => set({ bondLabels, showLabels: true }),
   showVectors: false,
   vectorField: 'forces',
   vectorScale: 1,
