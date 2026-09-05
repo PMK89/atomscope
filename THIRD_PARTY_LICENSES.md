@@ -8,4 +8,6 @@ file-level record.
 
 | Component | License | Used for | Location in tree |
 |---|---|---|---|
-| (none yet) | | | |
+| CP-PAW example deck si2 (P. E. Blöchl) | GPL-3.0 | CP-PAW health check | `backend/src/atomscope/backends/cppaw/data/si2.{cntl,strc}` |
+| CP-PAW manual (schema extraction) | GPL-3.0 | machine-readable input reference | `backend/src/atomscope/backends/cppaw/data/manual-schema.json` |
+| ASE data tables (Jmol colors, covalent/vdW radii, masses) | LGPL-2.1+ (ASE); scientific constants | element data for the renderer | `frontend/src/model/elements.ts` (generated) |

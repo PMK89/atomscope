@@ -20,3 +20,7 @@ Every file or idea taken from outside this repository is recorded here.
 |---|---|---|---|
 | `LICENSE` | `/home/pmk/cp-paw/LICENSE` (verbatim GPL-3.0 text) | GPL-3.0 | standard license text |
 | `frontend/src/model/elements.ts` | generated from ASE data tables (`ase.data`, `ase.data.colors.jmol_colors`) by `scripts/gen_element_data.py` | ASE is LGPL-2.1+; the numeric data (Jmol CPK colors, Cordero covalent radii, Bondi/Alvarez vdW radii, IUPAC masses) are published scientific constants | regenerate, do not edit |
+| `backend/src/atomscope/backends/cppaw/data/si2.cntl`, `si2.strc` | `/home/pmk/cp-paw/src/Docs/Examples/si2.*` (CP-PAW distribution example) | GPL-3.0 | health-check deck, verbatim |
+| `backend/src/atomscope/backends/cppaw/data/manual-schema.json` | extracted from `/home/pmk/cp-paw/src/Docs/manual.tex` by the Phase 0 investigation (`.scratch/cppaw/schema/build_schema.py`) | GPL-3.0 (derived from the CP-PAW manual) | machine-readable block/key reference with manual line numbers |
+| `backend/tests/fixtures/cppaw/**` | produced locally by running the installed CP-PAW on decks derived from the distribution example and the historical asecppaw water deck | outputs of a GPL program (not copyrighted program text); inputs derived from GPL-3.0 example | golden parser fixtures |
+| `frontend/.playwright-browsers` (not committed) | Playwright Chromium download | BSD-3 (Chromium) | dev/test only, ignored by git |
