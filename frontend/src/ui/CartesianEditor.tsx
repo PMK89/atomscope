@@ -1,5 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
-import { applyCartesian, formatCartesian, parseCartesian } from '../editor/cartesian';
+import {
+  applyCartesian,
+  formatCoordinates,
+  parseCoordinates,
+  UNIT_LABELS,
+  type CoordinateUnit,
+} from '../editor/cartesian';
 import { useToolStore } from '../editor/toolStore';
 import { dialogKeyHandler } from './dialogKeys';
 import { useStructureStore } from '../state/structureStore';
@@ -10,15 +16,19 @@ export function CartesianEditor(): JSX.Element | null {
   const setOpen = useToolStore((s) => s.setCartesianEditorOpen);
   const doc = useStructureStore((s) => s.doc);
   const [text, setText] = useState('');
+  const [unit, setUnit] = useState<CoordinateUnit>('angstrom');
   const [error, setError] = useState<string | null>(null);
+  const hasCell = !!doc.cell;
   const dialog = useRef<HTMLDivElement>(null);
   const textarea = useRef<HTMLTextAreaElement>(null);
   useEffect(() => {
-    if (open) {
-      setText(formatCartesian(doc));
-      setError(null);
-    }
-  }, [open, doc]);
+    if (!open) return;
+    // a structure without a cell has no fractional coordinates; do not leave the box on them
+    const shown = doc.cell || unit !== 'fractional' ? unit : 'angstrom';
+    if (shown !== unit) setUnit(shown);
+    setText(formatCoordinates(doc, shown));
+    setError(null);
+  }, [open, doc, unit]);
   // move focus into the dialog and give it back to whatever had it when the dialog closes
   useEffect(() => {
     if (!open) return;
@@ -29,7 +39,7 @@ export function CartesianEditor(): JSX.Element | null {
   if (!open) return null;
   const apply = (): void => {
     try {
-      const lines = parseCartesian(text);
+      const lines = parseCoordinates(text, unit, doc.cell);
       const st = useStructureStore.getState();
       st.commit('Edit coordinates', applyCartesian(st.doc, lines));
       setOpen(false);
@@ -48,9 +58,26 @@ export function CartesianEditor(): JSX.Element | null {
         aria-label="Cartesian editor"
       >
         <h3>Cartesian editor</h3>
+        <div className="form-row">
+          <label htmlFor="cartesian-unit">Units</label>
+          <select
+            id="cartesian-unit"
+            value={unit}
+            onChange={(e) => setUnit(e.target.value as CoordinateUnit)}
+          >
+            {(['angstrom', 'bohr', 'fractional'] as const).map((u) => (
+              <option key={u} value={u} disabled={u === 'fractional' && !hasCell}>
+                {UNIT_LABELS[u]}
+              </option>
+            ))}
+          </select>
+        </div>
         <p className="muted">
-          One atom per line: element symbol followed by x y z in Å. Changing the number of atoms
-          re-perceives bonds.
+          One atom per line: element symbol followed by x y z in {UNIT_LABELS[unit].toLowerCase()}
+          {unit === 'fractional' ? ' coordinates of the cell' : ''}. Changing the units rewrites the
+          text from the structure. Changing the number of atoms re-perceives bonds.
+          {!hasCell &&
+            ' This structure has no unit cell, so fractional coordinates are not offered.'}
         </p>
         <textarea
           ref={textarea}
@@ -65,7 +92,7 @@ export function CartesianEditor(): JSX.Element | null {
           <button className="primary" onClick={apply}>
             Apply
           </button>
-          <button onClick={() => setText(formatCartesian(doc))}>Revert</button>
+          <button onClick={() => setText(formatCoordinates(doc, unit))}>Revert</button>
           <button onClick={() => setOpen(false)}>Close</button>
         </div>
       </div>

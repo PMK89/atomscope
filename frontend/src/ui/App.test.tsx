@@ -88,12 +88,14 @@ test('the cartesian editor is a modal dialog that traps and restores focus', () 
   const textarea = screen.getByLabelText('Coordinates');
   expect(document.activeElement).toBe(textarea);
 
-  // Tab from the last control wraps back to the first, Shift+Tab the other way
+  // Tab from the last control wraps back to the first, Shift+Tab the other way. The first is
+  // the units box; the textarea is what the dialog opens focused on, which is not the same thing.
+  const units = screen.getByLabelText('Units');
   const close = screen.getByRole('button', { name: 'Close' });
   close.focus();
   fireEvent.keyDown(close, { key: 'Tab' });
-  expect(document.activeElement).toBe(textarea);
-  fireEvent.keyDown(textarea, { key: 'Tab', shiftKey: true });
+  expect(document.activeElement).toBe(units);
+  fireEvent.keyDown(units, { key: 'Tab', shiftKey: true });
   expect(document.activeElement).toBe(close);
 
   fireEvent.keyDown(close, { key: 'Escape' });

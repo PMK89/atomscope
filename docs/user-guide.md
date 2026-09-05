@@ -331,9 +331,14 @@ molecule with O–H = 0.969 Å and H–O–H = 104.0°.
 ### 4.3 The Cartesian editor
 
 `Edit ▸ Cartesian editor…` (also reachable from the Properties tab) opens a
-modal with one atom per line, `element x y z` in Å. `Apply` commits
-`Edit coordinates`; changing the number of atoms re-perceives the bonds.
-`Revert` restores the text from the document.
+modal with one atom per line, `element x y z`. The **Units** box says what the
+numbers are: `Ångström`, `Bohr`, or `Fractional` coordinates of the unit cell —
+the last offered only when the structure has a cell, because `0.5 0.5 0.5`
+means something quite different without one. Changing the units rewrites the
+text from the structure, so apply before switching if you have edits in
+progress. `Apply` commits `Edit coordinates` in whatever unit is shown;
+changing the number of atoms re-perceives the bonds. `Revert` restores the text
+from the document.
 
 ### 4.3a The Properties tab
 

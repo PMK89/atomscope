@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- The Cartesian editor reads and writes Ångström, Bohr or fractional
+  coordinates; fractional is offered only when the structure has a unit cell.
+
 - A bond can be selected on its own (Select ▸ Mode ▸ Atoms and bonds): it is
   tinted whole and counted in the status bar, rather than standing for the atoms it joins.
 
