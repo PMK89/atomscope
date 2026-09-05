@@ -113,13 +113,16 @@ export function installClipboardEvents(onError: (m: string) => void): () => void
     e.preventDefault();
     e.clipboardData?.setData('text/plain', text);
   };
+  // a user copying a number out of a panel must get that number, not the molecule
+  const takesOver = (e: ClipboardEvent): boolean =>
+    !isEditableTarget(e.target) && !window.getSelection()?.toString();
   const onCopy = (e: ClipboardEvent): void => {
-    if (isEditableTarget(e.target)) return;
+    if (!takesOver(e)) return;
     const text = copySelection();
     if (text) write(e, text);
   };
   const onCut = (e: ClipboardEvent): void => {
-    if (isEditableTarget(e.target)) return;
+    if (!takesOver(e)) return;
     const text = copySelection();
     if (!text) return;
     write(e, text);

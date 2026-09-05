@@ -7,6 +7,7 @@ import {
   clearSelection,
   copySelection,
   cutSelection,
+  installClipboardEvents,
   pasteText,
   targetAtoms,
 } from './clipboardActions';
@@ -117,4 +118,33 @@ test('clear deletes the selection without touching the clipboard', () => {
   expect(useStructureStore.getState().doc.atoms).toHaveLength(2);
   expect(useStructureStore.getState().undoLabel()).toBe('Clear');
   expect(useClipboardStore.getState().text).toBe(stored);
+});
+
+test('copying selected text in a panel is left alone', () => {
+  const cleanup = installClipboardEvents(onError);
+  useSelectionStore.getState().set([0]);
+  vi.spyOn(window, 'getSelection').mockReturnValue({
+    toString: () => '-76.4 eV',
+  } as unknown as Selection);
+
+  const event = new Event('copy') as ClipboardEvent;
+  const prevented = vi.spyOn(event, 'preventDefault');
+  window.dispatchEvent(event);
+
+  expect(prevented).not.toHaveBeenCalled();
+  expect(useClipboardStore.getState().text).toBe('');
+  vi.mocked(window.getSelection).mockRestore();
+  cleanup();
+});
+
+test('with nothing selected in the page the molecule is copied', () => {
+  const cleanup = installClipboardEvents(onError);
+  useSelectionStore.getState().set([0]);
+  const setData = vi.fn();
+  const event = new Event('copy') as ClipboardEvent;
+  Object.defineProperty(event, 'clipboardData', { value: { setData } });
+  window.dispatchEvent(event);
+
+  expect(setData).toHaveBeenCalledWith('text/plain', expect.stringContaining('C '));
+  cleanup();
 });

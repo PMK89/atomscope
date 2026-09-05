@@ -118,8 +118,7 @@ def test_read_pasted_molfile_keeps_bond_orders() -> None:
 
 
 def test_a_named_format_wins_over_the_sniffer() -> None:
-    # "6" alone sniffs as xyz; saying it is SMILES reads it as benzene's ring-closure digit... no,
-    # a bare digit is not valid SMILES, so the error must come from the reader, not the sniffer
+    # "6" on its own sniffs as XYZ; named as SMILES it reaches the SMILES reader, which rejects it
     with pytest.raises(ValueError, match="invalid SMILES"):
         structure_from_string("6", "smi")
 

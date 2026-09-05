@@ -21,6 +21,9 @@
   Measurements and remaining limits: docs/performance.md.
 - Renderer: the sphere and cylinder tessellation is chosen from the atom count, which is what makes
   a large structure orbit at all.
+- Protein secondary structure: a DSSP implementation (backbone perception from connectivity,
+  Kabsch-Sander hydrogen bonds, turns and bridges) behind `POST /api/chem/secondary-structure`,
+  verified against 1CRN's own HELIX/SHEET records. PDB import now fills residues and atom names.
 - Cut, copy, paste and clear (Edit menu, Ctrl+X/C/V, Ctrl+Backspace). A fragment copied inside
   Atomscope keeps its bond orders; XYZ goes to the system clipboard for other programs, and text
   pasted from elsewhere (XYZ, CIF, PDB, molfile, CML, SMILES) is read by `POST /api/io/import/text`.

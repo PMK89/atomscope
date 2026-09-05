@@ -148,6 +148,6 @@ def write_text(structure: Structure, fmt: str) -> str:
         mol.SetProp("_Name", structure.name)
         return str(Chem.MolToMolBlock(mol, kekulize=False))
     if fmt == "smi":
-        return str(Chem.MolToSmiles(mol)) + "\n"
+        return str(Chem.MolToSmiles(Chem.RemoveHs(mol))) + "\n"
     msg = f"rdkit_io cannot write {fmt} as text"
     raise ValueError(msg)

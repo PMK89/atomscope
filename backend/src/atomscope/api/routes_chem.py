@@ -7,7 +7,15 @@ from __future__ import annotations
 from fastapi import APIRouter, HTTPException, status
 from pydantic import Field
 
-from atomscope.chem import edits, forcefield, hydrogens, pointgroup, properties, smarts
+from atomscope.chem import (
+    edits,
+    forcefield,
+    hydrogens,
+    pointgroup,
+    properties,
+    secondary,
+    smarts,
+)
 from atomscope.chem.forcefield import (
     Algorithm,
     ConformerMethod,
@@ -19,6 +27,7 @@ from atomscope.chem.forcefield import (
 )
 from atomscope.chem.pointgroup import Tolerance
 from atomscope.chem.properties import AromaticityResult, ChargeModel, ChargesResult, Identifiers
+from atomscope.chem.secondary import SecondaryKind
 from atomscope.model import Quantity, Structure
 from atomscope.model.common import StrictModel
 
@@ -275,3 +284,63 @@ def symmetrize(body: SymmetryRequest) -> Structure:
         return pointgroup.symmetrize(body.structure, body.tolerance)
     except ValueError as exc:
         raise _bad(exc) from exc
+
+
+class SecondaryStructureRequest(StrictModel):
+    structure: Structure
+
+
+class ResidueStructure(StrictModel):
+    """One residue's assignment. Backbone atoms are uids: an edit renumbers atoms, uids survive."""
+
+    residue: int = Field(description="index into structure.residues")
+    name: str
+    number: int
+    chain: str
+    kind: SecondaryKind
+    code: str = Field(description="DSSP-like letter: H G I E B T -")
+    n: str
+    ca: str
+    c: str
+    o: str
+
+
+class BackboneHydrogenBond(StrictModel):
+    donor: int = Field(description="residue index whose N-H donates")
+    acceptor: int = Field(description="residue index whose C=O accepts")
+    energy: float = Field(description="Kabsch-Sander energy in kcal/mol")
+
+
+class SecondaryStructureResult(StrictModel):
+    residues: list[ResidueStructure]
+    chains: list[list[int]] = Field(description="residue indices in backbone order, one per chain")
+    hbonds: list[BackboneHydrogenBond]
+
+
+@router.post("/secondary-structure", response_model=SecondaryStructureResult)
+def secondary_structure(body: SecondaryStructureRequest) -> SecondaryStructureResult:
+    """Helix/sheet assignment (DSSP) for a protein, with the backbone the renderer needs."""
+    found = secondary.analyse(body.structure)
+    atoms = body.structure.atoms
+    residues = body.structure.residues
+    return SecondaryStructureResult(
+        residues=[
+            ResidueStructure(
+                residue=a.residue,
+                name=residues[a.residue].name,
+                number=residues[a.residue].number,
+                chain=residues[a.residue].chain,
+                kind=a.kind,
+                code=a.code,
+                n=atoms[a.backbone.n].uid,
+                ca=atoms[a.backbone.ca].uid,
+                c=atoms[a.backbone.c].uid,
+                o=atoms[a.backbone.o].uid,
+            )
+            for a in found.residues
+        ],
+        chains=found.chains,
+        hbonds=[
+            BackboneHydrogenBond(donor=d, acceptor=acc, energy=e) for d, acc, e in found.hbonds
+        ],
+    )

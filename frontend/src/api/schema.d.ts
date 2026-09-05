@@ -4,7886 +4,8152 @@
  */
 
 export interface paths {
-  '/api/analysis/electronic': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /**
-     * Electronic
-     * @description UV-Vis absorption, or the signed CD spectrum, from calculated electronic transitions.
-     */
-    post: operations['electronic_api_analysis_electronic_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/analysis/nmr': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /**
-     * Nmr
-     * @description Chemical-shift spectrum of one nucleus from calculated shieldings.
-     */
-    post: operations['nmr_api_analysis_nmr_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/analysis/spectrum': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /**
-     * Spectrum
-     * @description Broaden an arbitrary set of peaks into a curve on the given axes.
-     */
-    post: operations['spectrum_api_analysis_spectrum_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/analysis/vibrations': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /**
-     * Vibrations
-     * @description Normal modes by finite differences, plus the broadened IR spectrum.
-     */
-    post: operations['vibrations_api_analysis_vibrations_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/analysis/vibrations/spectrum': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /**
-     * Vibrational Spectrum
-     * @description Re-broaden an existing set of modes as an IR or Raman spectrum.
-     */
-    post: operations['vibrational_spectrum_api_analysis_vibrations_spectrum_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/backends': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /** List Backends */
-    get: operations['list_backends_api_backends_get'];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/backends/{backend_id}/presets': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /** Backend Presets */
-    get: operations['backend_presets_api_backends__backend_id__presets_get'];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/backends/{backend_id}/schema': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /** Backend Schema */
-    get: operations['backend_schema_api_backends__backend_id__schema_get'];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/build/fragments': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /** List Fragments */
-    get: operations['list_fragments_api_build_fragments_get'];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/build/fragments/{fragment_id}': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /** Get Fragment */
-    get: operations['get_fragment_api_build_fragments__fragment_id__get'];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/build/graphene': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /** Build Graphene */
-    post: operations['build_graphene_api_build_graphene_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/build/insert': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /** Insert */
-    post: operations['insert_api_build_insert_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/build/nanotube': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /** Build Nanotube */
-    post: operations['build_nanotube_api_build_nanotube_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/build/nucleic': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /** Build Nucleic */
-    post: operations['build_nucleic_api_build_nucleic_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/build/peptide': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /** Build Peptide */
-    post: operations['build_peptide_api_build_peptide_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/build/peptide/presets': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /** Peptide Presets */
-    get: operations['peptide_presets_api_build_peptide_presets_get'];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/calculations': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /** List Calculations */
-    get: operations['list_calculations_api_calculations_get'];
-    put?: never;
-    /** Create Calculation */
-    post: operations['create_calculation_api_calculations_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/calculations/{calc_id}': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /** Get Calculation */
-    get: operations['get_calculation_api_calculations__calc_id__get'];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/calculations/{calc_id}/cancel': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /** Cancel Calculation */
-    post: operations['cancel_calculation_api_calculations__calc_id__cancel_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/calculations/{calc_id}/fork': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /** Fork Calculation */
-    post: operations['fork_calculation_api_calculations__calc_id__fork_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/calculations/{calc_id}/generate': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /** Generate Inputs */
-    post: operations['generate_inputs_api_calculations__calc_id__generate_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/calculations/{calc_id}/log': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /**
-     * Read Log
-     * @description Return the last ``tail`` lines of stdout/stderr or a watched file from the work directory.
-     */
-    get: operations['read_log_api_calculations__calc_id__log_get'];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/calculations/{calc_id}/results': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /** Results */
-    get: operations['results_api_calculations__calc_id__results_get'];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/calculations/{calc_id}/run': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /**
-     * Run Calculation
-     * @description Async so that JobManager.submit runs inside the server's event loop.
-     */
-    post: operations['run_calculation_api_calculations__calc_id__run_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/calculations/{calc_id}/trajectory': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /** Trajectory */
-    get: operations['trajectory_api_calculations__calc_id__trajectory_get'];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/calculations/{calc_id}/trajectory/positions': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /**
-     * Trajectory Positions
-     * @description Raw little-endian float32 positions, frames x atoms x 3 (Å), one frame per chunk.
-     */
-    get: operations['trajectory_positions_api_calculations__calc_id__trajectory_positions_get'];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/calculations/{calc_id}/trajectory/scalars': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /** Trajectory Scalars */
-    get: operations['trajectory_scalars_api_calculations__calc_id__trajectory_scalars_get'];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/calculations/{calc_id}/validate': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /** Validate Calculation */
-    get: operations['validate_calculation_api_calculations__calc_id__validate_get'];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/calculations/{calc_id}/values': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    /** Update Values */
-    put: operations['update_values_api_calculations__calc_id__values_put'];
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/chem/add-hydrogens': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /** Add Hydrogens */
-    post: operations['add_hydrogens_api_chem_add_hydrogens_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/chem/aromaticity': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /** Aromaticity */
-    post: operations['aromaticity_api_chem_aromaticity_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/chem/conformers': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /** Conformers */
-    post: operations['conformers_api_chem_conformers_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/chem/energy': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /** Energy */
-    post: operations['energy_api_chem_energy_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/chem/force-fields': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /** Force Fields */
-    get: operations['force_fields_api_chem_force_fields_get'];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/chem/h-to-methyl': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /** H To Methyl */
-    post: operations['h_to_methyl_api_chem_h_to_methyl_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/chem/identifiers': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /** Identifiers */
-    post: operations['identifiers_api_chem_identifiers_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/chem/invert-chirality': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /** Invert Chirality */
-    post: operations['invert_chirality_api_chem_invert_chirality_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/chem/optimize': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /** Optimize */
-    post: operations['optimize_api_chem_optimize_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/chem/optimize-step': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /** Optimize Step */
-    post: operations['optimize_step_api_chem_optimize_step_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/chem/partial-charges': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /** Partial Charges */
-    post: operations['partial_charges_api_chem_partial_charges_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/chem/perceive-bonds': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /** Perceive Bonds */
-    post: operations['perceive_bonds_api_chem_perceive_bonds_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/chem/point-group': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /** Point Group */
-    post: operations['point_group_api_chem_point_group_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/chem/remove-hydrogens': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /** Remove Hydrogens */
-    post: operations['remove_hydrogens_api_chem_remove_hydrogens_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/chem/smarts': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /** Select Smarts */
-    post: operations['select_smarts_api_chem_smarts_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/chem/symmetrize': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /** Symmetrize */
-    post: operations['symmetrize_api_chem_symmetrize_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/cppaw/calculations/{calc_id}/bands': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /** Get Bands */
-    get: operations['get_bands_api_cppaw_calculations__calc_id__bands_get'];
-    put?: never;
-    /** Request Bands */
-    post: operations['request_bands_api_cppaw_calculations__calc_id__bands_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/cppaw/calculations/{calc_id}/bands/path': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /** Default Band Path */
-    get: operations['default_band_path_api_cppaw_calculations__calc_id__bands_path_get'];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/cppaw/calculations/{calc_id}/dos': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /** Get Dos */
-    get: operations['get_dos_api_cppaw_calculations__calc_id__dos_get'];
-    put?: never;
-    /** Request Dos */
-    post: operations['request_dos_api_cppaw_calculations__calc_id__dos_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/cppaw/calculations/{calc_id}/orbitals': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /** Orbitals */
-    get: operations['orbitals_api_cppaw_calculations__calc_id__orbitals_get'];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/cppaw/calculations/{calc_id}/orbitals/export': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /**
-     * Export Orbitals
-     * @description Restart run (one step) writing the requested orbitals, then cubes -> grids of the results.
-     */
-    post: operations['export_orbitals_api_cppaw_calculations__calc_id__orbitals_export_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/crystal/asymmetric-unit': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /** Asymmetric Unit */
-    post: operations['asymmetric_unit_api_crystal_asymmetric_unit_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/crystal/bulk': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /** Bulk */
-    post: operations['bulk_api_crystal_bulk_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/crystal/cell/add': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /** Add Cell */
-    post: operations['add_cell_api_crystal_cell_add_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/crystal/cell/remove': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /** Remove Cell */
-    post: operations['remove_cell_api_crystal_cell_remove_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/crystal/cell/set': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /** Set Cell */
-    post: operations['set_cell_api_crystal_cell_set_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/crystal/fill': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /** Fill */
-    post: operations['fill_api_crystal_fill_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/crystal/fractional': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /** Fractional */
-    post: operations['fractional_api_crystal_fractional_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/crystal/fractional/set': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /** Set Fractional */
-    post: operations['set_fractional_api_crystal_fractional_set_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/crystal/library': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /** Library */
-    get: operations['library_api_crystal_library_get'];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/crystal/library/{category}/{name}': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /** Library Entry */
-    get: operations['library_entry_api_crystal_library__category___name__get'];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/crystal/niggli': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /** Niggli */
-    post: operations['niggli_api_crystal_niggli_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/crystal/primitive': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /** Primitive */
-    post: operations['primitive_api_crystal_primitive_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/crystal/primitive-standardized': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /** Primitive Standardized */
-    post: operations['primitive_standardized_api_crystal_primitive_standardized_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/crystal/scale-volume': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /** Scale Volume */
-    post: operations['scale_volume_api_crystal_scale_volume_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/crystal/slab': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /** Slab */
-    post: operations['slab_api_crystal_slab_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/crystal/spacegroup': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /** From Spacegroup */
-    post: operations['from_spacegroup_api_crystal_spacegroup_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/crystal/standard-orientation': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /** Standard Orientation */
-    post: operations['standard_orientation_api_crystal_standard_orientation_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/crystal/supercell': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /** Supercell */
-    post: operations['supercell_api_crystal_supercell_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/crystal/symmetrize': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /** Symmetrize */
-    post: operations['symmetrize_api_crystal_symmetrize_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/crystal/symmetry': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /** Symmetry */
-    post: operations['symmetry_api_crystal_symmetry_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/crystal/translate': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /** Translate */
-    post: operations['translate_api_crystal_translate_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/crystal/wrap': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /** Wrap */
-    post: operations['wrap_api_crystal_wrap_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/grids': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /** List All */
-    get: operations['list_all_api_grids_get'];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/grids/{grid_id}': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /** Get Grid */
-    get: operations['get_grid_api_grids__grid_id__get'];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/grids/{grid_id}/data': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /**
-     * Get Grid Data
-     * @description Raw little-endian float32 values in C order (shape in the X-Grid-Shape header).
-     */
-    get: operations['get_grid_data_api_grids__grid_id__data_get'];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/grids/{grid_id}/stats': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /** Get Grid Stats */
-    get: operations['get_grid_stats_api_grids__grid_id__stats_get'];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/health': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /** Health */
-    get: operations['health_api_health_get'];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/io/export': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /** Export Structure */
-    post: operations['export_structure_api_io_export_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/io/export/trajectory': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /**
-     * Export Trajectory
-     * @description Write a trajectory as extended XYZ (energy, forces, cell, time per frame).
-     */
-    post: operations['export_trajectory_api_io_export_trajectory_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/io/formats': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /** List Formats */
-    get: operations['list_formats_api_io_formats_get'];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/io/import/cube': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /**
-     * Import Cube File
-     * @description Import a Gaussian cube file (optionally gzipped) into the open project as a dataset.
-     */
-    post: operations['import_cube_file_api_io_import_cube_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/io/import/output': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /**
-     * Import Output
-     * @description Import a quantum-chemistry output file (Gaussian, ORCA, NWChem, QE): final structure with
-     *     energy/forces/dipole/charges and the optimization trajectory.
-     */
-    post: operations['import_output_api_io_import_output_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/io/import/path': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /**
-     * Import Path
-     * @description Read a structure from a file on this machine (the backend is local-only).
-     */
-    post: operations['import_path_api_io_import_path_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/io/import/spectrum': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /**
-     * Import Spectrum Path
-     * @description Import an experimental spectrum from a TSV/CSV or JCAMP-DX file on this machine.
-     */
-    post: operations['import_spectrum_path_api_io_import_spectrum_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/io/import/spectrum/upload': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /**
-     * Import Spectrum Upload
-     * @description Import an experimental spectrum from the browser file picker.
-     */
-    post: operations['import_spectrum_upload_api_io_import_spectrum_upload_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/io/import/text': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /**
-     * Import Text
-     * @description Read a structure from text: a clipboard paste, or an editor buffer. No file involved.
-     */
-    post: operations['import_text_api_io_import_text_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/io/import/trajectory': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /**
-     * Import Trajectory Path
-     * @description Read a multi-frame file on this machine (extxyz, ASE .traj, XDATCAR, ...).
-     */
-    post: operations['import_trajectory_path_api_io_import_trajectory_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/io/import/trajectory/upload': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /**
-     * Import Trajectory Upload
-     * @description Read a multi-frame file from the browser file picker (name kept for format detection).
-     */
-    post: operations['import_trajectory_upload_api_io_import_trajectory_upload_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/io/import/upload': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /**
-     * Import Upload
-     * @description Read a structure from an uploaded file (browser file picker).
-     */
-    post: operations['import_upload_api_io_import_upload_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/io/import/vibrations': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /**
-     * Import Vibrations Path
-     * @description Read vibrational/NMR data from a Gaussian, ORCA or Q-Chem output on this machine.
-     */
-    post: operations['import_vibrations_path_api_io_import_vibrations_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/io/import/vibrations/upload': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /**
-     * Import Vibrations Upload
-     * @description Read vibrational/NMR data from a file chosen in the browser.
-     */
-    post: operations['import_vibrations_upload_api_io_import_vibrations_upload_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/io/smiles': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /** Build From Smiles */
-    post: operations['build_from_smiles_api_io_smiles_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/project': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /** Current Project */
-    get: operations['current_project_api_project_get'];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/project/close': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /** Close Project */
-    post: operations['close_project_api_project_close_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/project/create': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /** Create Project */
-    post: operations['create_project_api_project_create_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/project/open': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /** Open Project */
-    post: operations['open_project_api_project_open_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/project/view-settings': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /** Get View Settings */
-    get: operations['get_view_settings_api_project_view_settings_get'];
-    /**
-     * Put View Settings
-     * @description Persist UI view settings (representation, background, layer toggles) with the project.
-     */
-    put: operations['put_view_settings_api_project_view_settings_put'];
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/structures': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /** List Structures */
-    get: operations['list_structures_api_structures_get'];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/structures/{structure_id}': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /** Get Structure */
-    get: operations['get_structure_api_structures__structure_id__get'];
-    /**
-     * Put Structure
-     * @description Create or replace a structure. The path id must match the body id.
-     */
-    put: operations['put_structure_api_structures__structure_id__put'];
-    post?: never;
-    /** Delete Structure */
-    delete: operations['delete_structure_api_structures__structure_id__delete'];
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/wavefunction/load': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /**
-     * Load
-     * @description Read a wavefunction file and register its geometry in the open project.
-     */
-    post: operations['load_api_wavefunction_load_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/wavefunction/surface': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /**
-     * Surface
-     * @description Evaluate a field on a grid and store it as a dataset of the open project.
-     */
-    post: operations['surface_api_wavefunction_surface_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
+    "/api/analysis/electronic": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Electronic
+         * @description UV-Vis absorption, or the signed CD spectrum, from calculated electronic transitions.
+         */
+        post: operations["electronic_api_analysis_electronic_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/analysis/nmr": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Nmr
+         * @description Chemical-shift spectrum of one nucleus from calculated shieldings.
+         */
+        post: operations["nmr_api_analysis_nmr_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/analysis/spectrum": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Spectrum
+         * @description Broaden an arbitrary set of peaks into a curve on the given axes.
+         */
+        post: operations["spectrum_api_analysis_spectrum_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/analysis/vibrations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Vibrations
+         * @description Normal modes by finite differences, plus the broadened IR spectrum.
+         */
+        post: operations["vibrations_api_analysis_vibrations_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/analysis/vibrations/spectrum": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Vibrational Spectrum
+         * @description Re-broaden an existing set of modes as an IR or Raman spectrum.
+         */
+        post: operations["vibrational_spectrum_api_analysis_vibrations_spectrum_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/backends": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Backends */
+        get: operations["list_backends_api_backends_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/backends/{backend_id}/presets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Backend Presets */
+        get: operations["backend_presets_api_backends__backend_id__presets_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/backends/{backend_id}/schema": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Backend Schema */
+        get: operations["backend_schema_api_backends__backend_id__schema_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/build/fragments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Fragments */
+        get: operations["list_fragments_api_build_fragments_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/build/fragments/{fragment_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Fragment */
+        get: operations["get_fragment_api_build_fragments__fragment_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/build/graphene": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Build Graphene */
+        post: operations["build_graphene_api_build_graphene_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/build/insert": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Insert */
+        post: operations["insert_api_build_insert_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/build/nanotube": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Build Nanotube */
+        post: operations["build_nanotube_api_build_nanotube_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/build/nucleic": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Build Nucleic */
+        post: operations["build_nucleic_api_build_nucleic_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/build/peptide": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Build Peptide */
+        post: operations["build_peptide_api_build_peptide_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/build/peptide/presets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Peptide Presets */
+        get: operations["peptide_presets_api_build_peptide_presets_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/calculations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Calculations */
+        get: operations["list_calculations_api_calculations_get"];
+        put?: never;
+        /** Create Calculation */
+        post: operations["create_calculation_api_calculations_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/calculations/{calc_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Calculation */
+        get: operations["get_calculation_api_calculations__calc_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/calculations/{calc_id}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Cancel Calculation */
+        post: operations["cancel_calculation_api_calculations__calc_id__cancel_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/calculations/{calc_id}/fork": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Fork Calculation */
+        post: operations["fork_calculation_api_calculations__calc_id__fork_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/calculations/{calc_id}/generate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Generate Inputs */
+        post: operations["generate_inputs_api_calculations__calc_id__generate_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/calculations/{calc_id}/log": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Read Log
+         * @description Return the last ``tail`` lines of stdout/stderr or a watched file from the work directory.
+         */
+        get: operations["read_log_api_calculations__calc_id__log_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/calculations/{calc_id}/results": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Results */
+        get: operations["results_api_calculations__calc_id__results_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/calculations/{calc_id}/run": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Run Calculation
+         * @description Async so that JobManager.submit runs inside the server's event loop.
+         */
+        post: operations["run_calculation_api_calculations__calc_id__run_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/calculations/{calc_id}/trajectory": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Trajectory */
+        get: operations["trajectory_api_calculations__calc_id__trajectory_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/calculations/{calc_id}/trajectory/positions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Trajectory Positions
+         * @description Raw little-endian float32 positions, frames x atoms x 3 (Å), one frame per chunk.
+         */
+        get: operations["trajectory_positions_api_calculations__calc_id__trajectory_positions_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/calculations/{calc_id}/trajectory/scalars": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Trajectory Scalars */
+        get: operations["trajectory_scalars_api_calculations__calc_id__trajectory_scalars_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/calculations/{calc_id}/validate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Validate Calculation */
+        get: operations["validate_calculation_api_calculations__calc_id__validate_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/calculations/{calc_id}/values": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Update Values */
+        put: operations["update_values_api_calculations__calc_id__values_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/chem/add-hydrogens": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Add Hydrogens */
+        post: operations["add_hydrogens_api_chem_add_hydrogens_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/chem/aromaticity": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Aromaticity */
+        post: operations["aromaticity_api_chem_aromaticity_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/chem/conformers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Conformers */
+        post: operations["conformers_api_chem_conformers_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/chem/energy": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Energy */
+        post: operations["energy_api_chem_energy_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/chem/force-fields": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Force Fields */
+        get: operations["force_fields_api_chem_force_fields_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/chem/h-to-methyl": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** H To Methyl */
+        post: operations["h_to_methyl_api_chem_h_to_methyl_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/chem/identifiers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Identifiers */
+        post: operations["identifiers_api_chem_identifiers_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/chem/invert-chirality": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Invert Chirality */
+        post: operations["invert_chirality_api_chem_invert_chirality_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/chem/optimize": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Optimize */
+        post: operations["optimize_api_chem_optimize_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/chem/optimize-step": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Optimize Step */
+        post: operations["optimize_step_api_chem_optimize_step_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/chem/partial-charges": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Partial Charges */
+        post: operations["partial_charges_api_chem_partial_charges_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/chem/perceive-bonds": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Perceive Bonds */
+        post: operations["perceive_bonds_api_chem_perceive_bonds_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/chem/point-group": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Point Group */
+        post: operations["point_group_api_chem_point_group_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/chem/remove-hydrogens": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Remove Hydrogens */
+        post: operations["remove_hydrogens_api_chem_remove_hydrogens_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/chem/secondary-structure": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Secondary Structure
+         * @description Helix/sheet assignment (DSSP) for a protein, with the backbone the renderer needs.
+         */
+        post: operations["secondary_structure_api_chem_secondary_structure_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/chem/smarts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Select Smarts */
+        post: operations["select_smarts_api_chem_smarts_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/chem/symmetrize": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Symmetrize */
+        post: operations["symmetrize_api_chem_symmetrize_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/cppaw/calculations/{calc_id}/bands": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Bands */
+        get: operations["get_bands_api_cppaw_calculations__calc_id__bands_get"];
+        put?: never;
+        /** Request Bands */
+        post: operations["request_bands_api_cppaw_calculations__calc_id__bands_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/cppaw/calculations/{calc_id}/bands/path": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Default Band Path */
+        get: operations["default_band_path_api_cppaw_calculations__calc_id__bands_path_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/cppaw/calculations/{calc_id}/dos": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Dos */
+        get: operations["get_dos_api_cppaw_calculations__calc_id__dos_get"];
+        put?: never;
+        /** Request Dos */
+        post: operations["request_dos_api_cppaw_calculations__calc_id__dos_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/cppaw/calculations/{calc_id}/orbitals": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Orbitals */
+        get: operations["orbitals_api_cppaw_calculations__calc_id__orbitals_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/cppaw/calculations/{calc_id}/orbitals/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Export Orbitals
+         * @description Restart run (one step) writing the requested orbitals, then cubes -> grids of the results.
+         */
+        post: operations["export_orbitals_api_cppaw_calculations__calc_id__orbitals_export_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/crystal/asymmetric-unit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Asymmetric Unit */
+        post: operations["asymmetric_unit_api_crystal_asymmetric_unit_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/crystal/bulk": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Bulk */
+        post: operations["bulk_api_crystal_bulk_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/crystal/cell/add": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Add Cell */
+        post: operations["add_cell_api_crystal_cell_add_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/crystal/cell/remove": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Remove Cell */
+        post: operations["remove_cell_api_crystal_cell_remove_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/crystal/cell/set": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Set Cell */
+        post: operations["set_cell_api_crystal_cell_set_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/crystal/fill": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Fill */
+        post: operations["fill_api_crystal_fill_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/crystal/fractional": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Fractional */
+        post: operations["fractional_api_crystal_fractional_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/crystal/fractional/set": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Set Fractional */
+        post: operations["set_fractional_api_crystal_fractional_set_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/crystal/library": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Library */
+        get: operations["library_api_crystal_library_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/crystal/library/{category}/{name}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Library Entry */
+        get: operations["library_entry_api_crystal_library__category___name__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/crystal/niggli": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Niggli */
+        post: operations["niggli_api_crystal_niggli_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/crystal/primitive": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Primitive */
+        post: operations["primitive_api_crystal_primitive_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/crystal/primitive-standardized": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Primitive Standardized */
+        post: operations["primitive_standardized_api_crystal_primitive_standardized_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/crystal/scale-volume": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Scale Volume */
+        post: operations["scale_volume_api_crystal_scale_volume_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/crystal/slab": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Slab */
+        post: operations["slab_api_crystal_slab_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/crystal/spacegroup": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** From Spacegroup */
+        post: operations["from_spacegroup_api_crystal_spacegroup_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/crystal/standard-orientation": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Standard Orientation */
+        post: operations["standard_orientation_api_crystal_standard_orientation_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/crystal/supercell": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Supercell */
+        post: operations["supercell_api_crystal_supercell_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/crystal/symmetrize": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Symmetrize */
+        post: operations["symmetrize_api_crystal_symmetrize_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/crystal/symmetry": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Symmetry */
+        post: operations["symmetry_api_crystal_symmetry_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/crystal/translate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Translate */
+        post: operations["translate_api_crystal_translate_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/crystal/wrap": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Wrap */
+        post: operations["wrap_api_crystal_wrap_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/grids": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List All */
+        get: operations["list_all_api_grids_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/grids/{grid_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Grid */
+        get: operations["get_grid_api_grids__grid_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/grids/{grid_id}/data": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Grid Data
+         * @description Raw little-endian float32 values in C order (shape in the X-Grid-Shape header).
+         */
+        get: operations["get_grid_data_api_grids__grid_id__data_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/grids/{grid_id}/stats": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Grid Stats */
+        get: operations["get_grid_stats_api_grids__grid_id__stats_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/health": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Health */
+        get: operations["health_api_health_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/io/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Export Structure */
+        post: operations["export_structure_api_io_export_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/io/export/trajectory": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Export Trajectory
+         * @description Write a trajectory as extended XYZ (energy, forces, cell, time per frame).
+         */
+        post: operations["export_trajectory_api_io_export_trajectory_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/io/formats": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Formats */
+        get: operations["list_formats_api_io_formats_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/io/import/cube": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Import Cube File
+         * @description Import a Gaussian cube file (optionally gzipped) into the open project as a dataset.
+         */
+        post: operations["import_cube_file_api_io_import_cube_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/io/import/output": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Import Output
+         * @description Import a quantum-chemistry output file (Gaussian, ORCA, NWChem, QE): final structure with
+         *     energy/forces/dipole/charges and the optimization trajectory.
+         */
+        post: operations["import_output_api_io_import_output_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/io/import/path": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Import Path
+         * @description Read a structure from a file on this machine (the backend is local-only).
+         */
+        post: operations["import_path_api_io_import_path_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/io/import/spectrum": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Import Spectrum Path
+         * @description Import an experimental spectrum from a TSV/CSV or JCAMP-DX file on this machine.
+         */
+        post: operations["import_spectrum_path_api_io_import_spectrum_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/io/import/spectrum/upload": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Import Spectrum Upload
+         * @description Import an experimental spectrum from the browser file picker.
+         */
+        post: operations["import_spectrum_upload_api_io_import_spectrum_upload_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/io/import/text": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Import Text
+         * @description Read a structure from text: a clipboard paste, or an editor buffer. No file involved.
+         */
+        post: operations["import_text_api_io_import_text_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/io/import/trajectory": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Import Trajectory Path
+         * @description Read a multi-frame file on this machine (extxyz, ASE .traj, XDATCAR, ...).
+         */
+        post: operations["import_trajectory_path_api_io_import_trajectory_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/io/import/trajectory/upload": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Import Trajectory Upload
+         * @description Read a multi-frame file from the browser file picker (name kept for format detection).
+         */
+        post: operations["import_trajectory_upload_api_io_import_trajectory_upload_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/io/import/upload": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Import Upload
+         * @description Read a structure from an uploaded file (browser file picker).
+         */
+        post: operations["import_upload_api_io_import_upload_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/io/import/vibrations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Import Vibrations Path
+         * @description Read vibrational/NMR data from a Gaussian, ORCA or Q-Chem output on this machine.
+         */
+        post: operations["import_vibrations_path_api_io_import_vibrations_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/io/import/vibrations/upload": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Import Vibrations Upload
+         * @description Read vibrational/NMR data from a file chosen in the browser.
+         */
+        post: operations["import_vibrations_upload_api_io_import_vibrations_upload_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/io/smiles": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Build From Smiles */
+        post: operations["build_from_smiles_api_io_smiles_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/project": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Current Project */
+        get: operations["current_project_api_project_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/project/close": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Close Project */
+        post: operations["close_project_api_project_close_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/project/create": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create Project */
+        post: operations["create_project_api_project_create_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/project/open": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Open Project */
+        post: operations["open_project_api_project_open_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/project/view-settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get View Settings */
+        get: operations["get_view_settings_api_project_view_settings_get"];
+        /**
+         * Put View Settings
+         * @description Persist UI view settings (representation, background, layer toggles) with the project.
+         */
+        put: operations["put_view_settings_api_project_view_settings_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/structures": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Structures */
+        get: operations["list_structures_api_structures_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/structures/{structure_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Structure */
+        get: operations["get_structure_api_structures__structure_id__get"];
+        /**
+         * Put Structure
+         * @description Create or replace a structure. The path id must match the body id.
+         */
+        put: operations["put_structure_api_structures__structure_id__put"];
+        post?: never;
+        /** Delete Structure */
+        delete: operations["delete_structure_api_structures__structure_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/wavefunction/load": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Load
+         * @description Read a wavefunction file and register its geometry in the open project.
+         */
+        post: operations["load_api_wavefunction_load_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/wavefunction/surface": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Surface
+         * @description Evaluate a field on a grid and store it as a dataset of the open project.
+         */
+        post: operations["surface_api_wavefunction_surface_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
-  schemas: {
-    /** AddCellRequest */
-    AddCellRequest: {
-      /**
-       * Padding
-       * @default 5
-       */
-      padding: number;
-      structure: components['schemas']['Structure'];
-    };
-    /** AddHydrogensRequest */
-    AddHydrogensRequest: {
-      /**
-       * Indices
-       * @description None = whole structure
-       */
-      indices?: number[] | null;
-      /** Ph */
-      ph?: number | null;
-      structure: components['schemas']['Structure'];
-    };
-    /**
-     * AnalysisJob
-     * @description A post-processing job (DOS, band structure, orbital export) run in the work directory of
-     *     a completed calculation; outputs are read back through the backend plugin.
-     */
-    AnalysisJob: {
-      job: components['schemas']['JobRecord'];
-      /** Kind */
-      kind: string;
-      /** Options */
-      options?: {
-        [key: string]: unknown;
-      };
-    };
-    /** AromaticityResult */
-    AromaticityResult: {
-      /** Aromatic Atoms */
-      aromatic_atoms: number[];
-      /** Aromatic Ring Count */
-      aromatic_ring_count: number;
-      /** Ring Count */
-      ring_count: number;
-      /** @description input with aromatic flags on bonds */
-      structure: components['schemas']['Structure'];
-    };
-    /**
-     * Atom
-     * @description One atom. Positions are Cartesian in Å.
-     */
-    Atom: {
-      /**
-       * Element
-       * @description chemical symbol, e.g. 'C'
-       */
-      element: string;
-      /**
-       * Formal Charge
-       * @default 0
-       */
-      formal_charge: number;
-      /** Label */
-      label?: string | null;
-      /**
-       * Position
-       * @description 3-vector
-       */
-      position: [number, number, number];
-      /**
-       * Uid
-       * @description stable id surviving re-indexing
-       */
-      uid?: string;
-    };
-    /**
-     * AtomicScalarProperty
-     * @description One float per atom (partial charges, magnetic moments, ...).
-     */
-    AtomicScalarProperty: {
-      /**
-       * Description
-       * @default
-       */
-      description: string;
-      unit: components['schemas']['Unit'];
-      /** Values */
-      values: number[];
-    };
-    /**
-     * AtomicVectorProperty
-     * @description One 3-vector per atom (forces, velocities, magnetic moment vectors, ...).
-     */
-    AtomicVectorProperty: {
-      /**
-       * Description
-       * @default
-       */
-      description: string;
-      unit: components['schemas']['Unit'];
-      /** Values */
-      values: [number, number, number][];
-    };
-    /** AtomsRequest */
-    AtomsRequest: {
-      /**
-       * Indices
-       * @description None = whole structure
-       */
-      indices?: number[] | null;
-      structure: components['schemas']['Structure'];
-    };
-    /** BackendCapabilities */
-    BackendCapabilities: {
-      /**
-       * Bands
-       * @default false
-       */
-      bands: boolean;
-      /**
-       * Density
-       * @default false
-       */
-      density: boolean;
-      /**
-       * Dos
-       * @default false
-       */
-      dos: boolean;
-      /**
-       * Energy
-       * @default false
-       */
-      energy: boolean;
-      /**
-       * Executes
-       * @description False for input-generation-only plugins
-       * @default true
-       */
-      executes: boolean;
-      /**
-       * Forces
-       * @default false
-       */
-      forces: boolean;
-      /**
-       * Molecular
-       * @default true
-       */
-      molecular: boolean;
-      /**
-       * Molecular Dynamics
-       * @default false
-       */
-      molecular_dynamics: boolean;
-      /**
-       * Orbitals
-       * @default false
-       */
-      orbitals: boolean;
-      /**
-       * Periodic
-       * @default true
-       */
-      periodic: boolean;
-      /**
-       * Relaxation
-       * @default false
-       */
-      relaxation: boolean;
-      /**
-       * Stress
-       * @default false
-       */
-      stress: boolean;
-      /**
-       * Vibrations
-       * @default false
-       */
-      vibrations: boolean;
-    };
-    /** BackendInfo */
-    BackendInfo: {
-      capabilities: components['schemas']['BackendCapabilities'];
-      executables: components['schemas']['ExecutableReport'];
-      /** Id */
-      id: string;
-      /** Name */
-      name: string;
-    };
-    /** BandOptions */
-    BandOptions: {
-      /**
-       * Mode
-       * @default interpolate
-       * @enum {string}
-       */
-      mode: 'interpolate' | 'diagonalize';
-      /**
-       * Nk
-       * @description k-points per path segment
-       * @default 20
-       */
-      nk: number;
-      /**
-       * Path
-       * @description high-symmetry path; consecutive points form segments; None = default path
-       */
-      path?: components['schemas']['KPathPoint'][] | null;
-    };
-    /** BandStructure */
-    BandStructure: {
-      /**
-       * Energies
-       * @description eV; energies[spin][k][band] (one spin entry for non-polarized runs)
-       */
-      energies: number[][][];
-      /**
-       * Fermi Level
-       * @description eV
-       */
-      fermi_level?: number | null;
-      /**
-       * Homo Energy
-       * @description eV
-       */
-      homo_energy?: number | null;
-      /**
-       * K Distance
-       * @description cumulative distance along the path
-       */
-      k_distance: number[];
-      /** Labels */
-      labels: components['schemas']['KPathLabel'][];
-    };
-    /** Body_import_spectrum_upload_api_io_import_spectrum_upload_post */
-    Body_import_spectrum_upload_api_io_import_spectrum_upload_post: {
-      /** File */
-      file: string;
-    };
-    /** Body_import_trajectory_upload_api_io_import_trajectory_upload_post */
-    Body_import_trajectory_upload_api_io_import_trajectory_upload_post: {
-      /** File */
-      file: string;
-    };
-    /** Body_import_upload_api_io_import_upload_post */
-    Body_import_upload_api_io_import_upload_post: {
-      /** File */
-      file: string;
-    };
-    /** Body_import_vibrations_upload_api_io_import_vibrations_upload_post */
-    Body_import_vibrations_upload_api_io_import_vibrations_upload_post: {
-      /** File */
-      file: string;
-    };
-    /**
-     * Bond
-     * @description A bond between two atom indices of the owning structure.
-     */
-    Bond: {
-      /** A */
-      a: number;
-      /**
-       * Aromatic
-       * @default false
-       */
-      aromatic: boolean;
-      /** B */
-      b: number;
-      /**
-       * Order
-       * @default 1
-       * @enum {integer}
-       */
-      order: 1 | 2 | 3;
-    };
-    /** BulkRequest */
-    BulkRequest: {
-      /** A */
-      a?: number | null;
-      /** C */
-      c?: number | null;
-      /**
-       * Crystalstructure
-       * @description sc, fcc, bcc, hcp, diamond, zincblende, rocksalt...
-       */
-      crystalstructure: string;
-      /**
-       * Cubic
-       * @default false
-       */
-      cubic: boolean;
-      /**
-       * Orthorhombic
-       * @default false
-       */
-      orthorhombic: boolean;
-      /** Symbol */
-      symbol: string;
-    };
-    /**
-     * Calculation
-     * @description Persisted as ``calculations/<id>/calculation.json`` inside the project.
-     */
-    Calculation: {
-      /** Analysis Jobs */
-      analysis_jobs?: components['schemas']['AnalysisJob'][];
-      /** Backend Id */
-      backend_id: string;
-      /**
-       * Created At
-       * Format: date-time
-       */
-      created_at?: string;
-      generated?: components['schemas']['GeneratedInputs'] | null;
-      /** Id */
-      id?: string;
-      job?: components['schemas']['JobRecord'] | null;
-      /** Name */
-      name: string;
-      /**
-       * Notes
-       * @default
-       */
-      notes: string;
-      /**
-       * Parent Calculation Id
-       * @description for reruns/restarts
-       */
-      parent_calculation_id?: string | null;
-      provenance?: components['schemas']['Provenance'] | null;
-      resources?: components['schemas']['Resources'];
-      /** Result Structure Id */
-      result_structure_id?: string | null;
-      results?: components['schemas']['ResultBundle'] | null;
-      /**
-       * Schema Version
-       * @default 1
-       */
-      schema_version: number;
-      /**
-       * Status
-       * @default draft
-       * @enum {string}
-       */
-      status: 'draft' | 'ready' | 'queued' | 'running' | 'completed' | 'failed' | 'cancelled';
-      /**
-       * Structure Id
-       * @description input structure (a copy is stored with the calculation)
-       */
-      structure_id: string;
-      /**
-       * Values
-       * @description full merged parameter values
-       */
-      values?: {
-        [key: string]: unknown;
-      };
-    };
-    /**
-     * Cell
-     * @description Periodic cell: three lattice vectors (Å) and periodicity flags.
-     */
-    Cell: {
-      /**
-       * Pbc
-       * @default [
-       *       true,
-       *       true,
-       *       true
-       *     ]
-       */
-      pbc: [boolean, boolean, boolean];
-      /**
-       * Vectors
-       * @description 3x3 matrix as three row vectors
-       */
-      vectors: [[number, number, number], [number, number, number], [number, number, number]];
-    };
-    /** ChargesRequest */
-    ChargesRequest: {
-      /**
-       * Model
-       * @default gasteiger
-       * @enum {string}
-       */
-      model: 'gasteiger' | 'mmff94' | 'qeq' | 'eem' | 'qtpie';
-      structure: components['schemas']['Structure'];
-    };
-    /** ChargesResult */
-    ChargesResult: {
-      dipole: components['schemas']['Dipole'];
-      /** Model */
-      model: string;
-      /** @description input with atomic_scalars['partial_charges'] */
-      structure: components['schemas']['Structure'];
-      /** Total Charge */
-      total_charge: number;
-    };
-    /** Choice */
-    Choice: {
-      /**
-       * Help
-       * @default
-       */
-      help: string;
-      /** Label */
-      label: string;
-      /** Value */
-      value: string | number | boolean;
-    };
-    /** ConformerRequest */
-    ConformerRequest: {
-      /** Constraints */
-      constraints?: components['schemas']['FFConstraint'][];
-      /**
-       * Force Field
-       * @default MMFF94
-       */
-      force_field: string;
-      /**
-       * Method
-       * @default weighted
-       * @enum {string}
-       */
-      method: 'systematic' | 'random' | 'weighted';
-      /**
-       * N Conformers
-       * @default 10
-       */
-      n_conformers: number;
-      /**
-       * Steps
-       * @default 100
-       */
-      steps: number;
-      structure: components['schemas']['Structure'];
-    };
-    /** ConformerResult */
-    ConformerResult: {
-      /** @description lowest-energy conformer */
-      structure: components['schemas']['Structure'];
-      /** @description all conformers with energies (eV) */
-      trajectory: components['schemas']['Trajectory'];
-    };
-    /** CreateCalculationRequest */
-    CreateCalculationRequest: {
-      /** Backend Id */
-      backend_id: string;
-      /** Name */
-      name: string;
-      resources?: components['schemas']['Resources'];
-      /** Structure Id */
-      structure_id: string;
-      /** Values */
-      values?: {
-        [key: string]: unknown;
-      };
-    };
-    /** CreateProjectRequest */
-    CreateProjectRequest: {
-      /** Name */
-      name: string;
-      /**
-       * Path
-       * Format: path
-       * @description absolute path of a new (empty or missing) directory
-       */
-      path: string;
-    };
-    /** Dipole */
-    Dipole: {
-      magnitude: components['schemas']['Quantity'];
-      /**
-       * Vector
-       * @description Debye
-       */
-      vector: [number, number, number];
-    };
-    /** DosOptions */
-    DosOptions: {
-      /**
-       * Broadening Ev
-       * @description thermal broadening k_B T
-       * @default 0.1
-       */
-      broadening_ev: number;
-      /**
-       * De Ev
-       * @description energy grid spacing
-       * @default 0.01
-       */
-      de_ev: number;
-      /**
-       * L Channels
-       * @description also project on s/p/d/f per element/atom
-       * @default true
-       */
-      l_channels: boolean;
-      /**
-       * Projection
-       * @default element
-       * @enum {string}
-       */
-      projection: 'none' | 'element' | 'atom';
-    };
-    /**
-     * DosSeries
-     * @description One weight (total, per atom, per angular momentum ...) in one spin channel.
-     *
-     *     ``dos`` counts all states, ``occupied_dos`` weights them with the occupations; both in
-     *     states/eV. Spin-down series are stored as written by the code (negative sign) so that
-     *     mirrored plots need no extra convention.
-     */
-    DosSeries: {
-      /** Dos */
-      dos: number[];
-      /**
-       * Id
-       * @description weight id, e.g. 'total', 'SI1_p'
-       */
-      id: string;
-      /** Label */
-      label: string;
-      /** Occupied Dos */
-      occupied_dos: number[];
-      /**
-       * Spin
-       * @default none
-       * @enum {string}
-       */
-      spin: 'up' | 'down' | 'none';
-    };
-    /** DosSpectrum */
-    DosSpectrum: {
-      /**
-       * Broadening
-       * @description eV
-       */
-      broadening?: number | null;
-      /**
-       * Energies
-       * @description eV, shared by all series
-       */
-      energies: number[];
-      /**
-       * Fermi Level
-       * @description eV, as reported by the tool
-       */
-      fermi_level?: number | null;
-      /**
-       * Homo Energy
-       * @description eV, from the eigenvalues
-       */
-      homo_energy?: number | null;
-      /** Series */
-      series: components['schemas']['DosSeries'][];
-    };
-    /** ElectronicSpectrumRequest */
-    ElectronicSpectrumRequest: {
-      /**
-       * Circular Dichroism
-       * @description plot signed rotatory strengths instead of absorption
-       * @default false
-       */
-      circular_dichroism: boolean;
-      /**
-       * Points
-       * @default 1000
-       */
-      points: number;
-      /**
-       * Shape
-       * @default gaussian
-       * @enum {string}
-       */
-      shape: 'gaussian' | 'lorentzian';
-      /** Transitions */
-      transitions: components['schemas']['ElectronicTransition'][];
-      /**
-       * Width
-       * @description FWHM in nm
-       * @default 20
-       */
-      width: number;
-    };
-    /**
-     * ElectronicTransition
-     * @description One electronic excitation, for UV-Vis and CD spectra.
-     */
-    ElectronicTransition: {
-      /**
-       * Energy
-       * @description eV
-       */
-      energy?: number | null;
-      /** Label */
-      label?: string | null;
-      /**
-       * Oscillator Strength
-       * @description dimensionless
-       */
-      oscillator_strength?: number | null;
-      /**
-       * Rotatory Strength
-       * @description 10^-40 erg cm^3
-       */
-      rotatory_strength?: number | null;
-      /**
-       * Wavelength
-       * @description nm
-       */
-      wavelength: number;
-    };
-    /** EnergyRequest */
-    EnergyRequest: {
-      /** Constraints */
-      constraints?: components['schemas']['FFConstraint'][];
-      /**
-       * Force Field
-       * @default MMFF94
-       */
-      force_field: string;
-      structure: components['schemas']['Structure'];
-    };
-    /** EnergyResult */
-    EnergyResult: {
-      /** @description total energy in eV */
-      energy: components['schemas']['Quantity'];
-      /** @description the same energy in the force field's unit */
-      energy_native: components['schemas']['Quantity'];
-      /** Force Field */
-      force_field: string;
-      /**
-       * Forces
-       * @description eV/Å
-       */
-      forces: [number, number, number][];
-      /**
-       * Terms
-       * @description energy breakdown in eV
-       */
-      terms?: {
-        [key: string]: number;
-      };
-    };
-    /** ExecutableReport */
-    ExecutableReport: {
-      /** Available */
-      available: boolean;
-      /**
-       * Executables
-       * @description role -> absolute path
-       */
-      executables?: {
-        [key: string]: string;
-      };
-      /** Messages */
-      messages?: string[];
-    };
-    /** ExportRequest */
-    ExportRequest: {
-      /** Format */
-      format: string;
-      /**
-       * Path
-       * @description write here if given, else return text
-       */
-      path?: string | null;
-      structure: components['schemas']['Structure'];
-    };
-    /** ExportResponse */
-    ExportResponse: {
-      /** Path */
-      path?: string | null;
-      /** Text */
-      text?: string | null;
-    };
-    /** ExportTrajectoryRequest */
-    ExportTrajectoryRequest: {
-      /**
-       * Path
-       * @description write here if given, else return text
-       */
-      path?: string | null;
-      trajectory: components['schemas']['Trajectory'];
-    };
-    /** ExportTrajectoryResponse */
-    ExportTrajectoryResponse: {
-      /** Path */
-      path?: string | null;
-      /** Text */
-      text?: string | null;
-    };
-    /**
-     * FFConstraint
-     * @description One Open Babel force-field constraint on 0-based atom indices.
-     */
-    FFConstraint: {
-      /** Atoms */
-      atoms: number[];
-      /**
-       * Kind
-       * @enum {string}
-       */
-      kind: 'ignore' | 'fix' | 'fix_x' | 'fix_y' | 'fix_z' | 'distance' | 'angle' | 'torsion';
-      /**
-       * Value
-       * @description Å for distance, degrees for angles
-       */
-      value?: number | null;
-    };
-    /** FillRequest */
-    FillRequest: {
-      /** Spacegroup */
-      spacegroup?: number | null;
-      structure: components['schemas']['Structure'];
-      /**
-       * Symprec
-       * @description spglib tolerance in Å
-       * @default 0.001
-       */
-      symprec: number;
-    };
-    /** FixAtoms */
-    FixAtoms: {
-      /** Indices */
-      indices: number[];
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      kind: 'fix_atoms';
-    };
-    /** FixBondLength */
-    FixBondLength: {
-      /** A */
-      a: number;
-      /** B */
-      b: number;
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      kind: 'fix_bond_length';
-    };
-    /**
-     * FixCartesian
-     * @description Fix selected Cartesian components (mask True = fixed) of one atom.
-     */
-    FixCartesian: {
-      /** Index */
-      index: number;
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      kind: 'fix_cartesian';
-      /**
-       * Mask
-       * @default [
-       *       true,
-       *       true,
-       *       true
-       *     ]
-       */
-      mask: [boolean, boolean, boolean];
-    };
-    /** ForceFieldInfo */
-    ForceFieldInfo: {
-      /**
-       * Algorithms
-       * @default [
-       *       "steepest_descent",
-       *       "conjugate_gradients"
-       *     ]
-       */
-      algorithms: string[];
-      /** Charge Models */
-      charge_models: string[];
-      /**
-       * Conformer Methods
-       * @default [
-       *       "systematic",
-       *       "random",
-       *       "weighted"
-       *     ]
-       */
-      conformer_methods: string[];
-      /** Force Fields */
-      force_fields: string[];
-    };
-    /** ForkRequest */
-    ForkRequest: {
-      /** Name */
-      name?: string | null;
-      /**
-       * Restart From Parent
-       * @default false
-       */
-      restart_from_parent: boolean;
-      /**
-       * Structure Id
-       * @description use another structure instead of the parent's
-       */
-      structure_id?: string | null;
-      /** Values */
-      values?: {
-        [key: string]: unknown;
-      };
-    };
-    /** FormatDescription */
-    FormatDescription: {
-      /** Can Read */
-      can_read: boolean;
-      /** Can Write */
-      can_write: boolean;
-      /** Description */
-      description: string;
-      /** Extensions */
-      extensions: string[];
-      /** Library */
-      library: string;
-      /** Name */
-      name: string;
-    };
-    /** FractionalRequest */
-    FractionalRequest: {
-      /** Fractional */
-      fractional: [number, number, number][];
-      structure: components['schemas']['Structure'];
-    };
-    /** FractionalResponse */
-    FractionalResponse: {
-      /** Fractional */
-      fractional: [number, number, number][];
-    };
-    /** FragmentInfo */
-    FragmentInfo: {
-      /** Category */
-      category: string;
-      /** Formula */
-      formula: string;
-      /**
-       * Id
-       * @description 'category/name' relative CML path without extension
-       */
-      id: string;
-      /** N Atoms */
-      n_atoms: number;
-      /** Name */
-      name: string;
-    };
-    /**
-     * Frame
-     * @description One frame: positions (Å) and optional cell, plus per-frame scalars/vectors.
-     */
-    Frame: {
-      /** Cell */
-      cell?: [[number, number, number], [number, number, number], [number, number, number]] | null;
-      /**
-       * Energy
-       * @description eV
-       */
-      energy?: number | null;
-      /** Extra */
-      extra?: {
-        [key: string]: number;
-      };
-      /**
-       * Forces
-       * @description eV/Å
-       */
-      forces?: [number, number, number][] | null;
-      /** Positions */
-      positions: [number, number, number][];
-      /** Step */
-      step?: number | null;
-      /**
-       * Temperature
-       * @description K
-       */
-      temperature?: number | null;
-      /**
-       * Time
-       * @description fs
-       */
-      time?: number | null;
-    };
-    /** GeneratedFile */
-    GeneratedFile: {
-      /**
-       * Name
-       * @description file name inside the input directory
-       */
-      name: string;
-      /**
-       * Role
-       * @description input | structure | control | script
-       * @default input
-       */
-      role: string;
-      /** Text */
-      text: string;
-    };
-    /** GeneratedInputs */
-    GeneratedInputs: {
-      /** Files */
-      files: components['schemas']['GeneratedFile'][];
-      /**
-       * Root Name
-       * @description base name of the calculation, e.g. 'case'
-       */
-      root_name: string;
-      /**
-       * Summary
-       * @default
-       */
-      summary: string;
-    };
-    /** GrapheneRequest */
-    GrapheneRequest: {
-      /**
-       * Bond
-       * @default 1.42
-       */
-      bond: number;
-      /**
-       * Kind
-       * @default armchair
-       * @enum {string}
-       */
-      kind: 'armchair' | 'zigzag';
-      /** M */
-      m: number;
-      /** N */
-      n: number;
-      /**
-       * Periodic
-       * @default true
-       */
-      periodic: boolean;
-      /**
-       * Saturated
-       * @default true
-       */
-      saturated: boolean;
-    };
-    /**
-     * GridRef
-     * @description A grid and where it lives: a calculation's results or a standalone dataset.
-     */
-    GridRef: {
-      /** Calculation Id */
-      calculation_id?: string | null;
-      grid: components['schemas']['VolumetricGrid'];
-    };
-    /** GridStats */
-    GridStats: {
-      /** Abs Max */
-      abs_max: number;
-      /** Has Negative */
-      has_negative: boolean;
-      /** Max */
-      max: number;
-      /** Mean */
-      mean: number;
-      /** Min */
-      min: number;
-      /**
-       * Rule
-       * @description how suggested_isovalue was chosen
-       */
-      rule: string;
-      /** Suggested Isovalue */
-      suggested_isovalue: number;
-    };
-    /** HTTPValidationError */
-    HTTPValidationError: {
-      /** Detail */
-      detail?: components['schemas']['ValidationError'][];
-    };
-    /** HealthResponse */
-    HealthResponse: {
-      /** Ase Version */
-      ase_version: string;
-      /**
-       * Status
-       * @default ok
-       */
-      status: string;
-      /** Version */
-      version: string;
-    };
-    /** Identifiers */
-    Identifiers: {
-      /** Inchi */
-      inchi: string;
-      /** Inchikey */
-      inchikey: string;
-      /** Smiles */
-      smiles: string;
-    };
-    /** ImportCubeRequest */
-    ImportCubeRequest: {
-      /**
-       * Kind
-       * @default other
-       * @enum {string}
-       */
-      kind:
-        | 'electron_density'
-        | 'spin_density'
-        | 'orbital'
-        | 'orbital_density'
-        | 'electrostatic_potential'
-        | 'density_difference'
-        | 'other';
-      /**
-       * Path
-       * Format: path
-       */
-      path: string;
-    };
-    /** ImportCubeResponse */
-    ImportCubeResponse: {
-      grid: components['schemas']['VolumetricGrid'];
-      structure: components['schemas']['Structure'];
-    };
-    /** ImportPathRequest */
-    ImportPathRequest: {
-      /** Format */
-      format?: string | null;
-      /**
-       * Path
-       * Format: path
-       */
-      path: string;
-    };
-    /** ImportSpectrumRequest */
-    ImportSpectrumRequest: {
-      /**
-       * Kind
-       * @default experimental
-       * @enum {string}
-       */
-      kind: 'ir' | 'raman' | 'nmr' | 'uvvis' | 'cd' | 'dos' | 'experimental' | 'other';
-      /**
-       * Path
-       * Format: path
-       */
-      path: string;
-    };
-    /** ImportTextRequest */
-    ImportTextRequest: {
-      /**
-       * Format
-       * @description format name; sniffed when omitted
-       */
-      format?: string | null;
-      /**
-       * Text
-       * @description file content, e.g. a clipboard paste
-       */
-      text: string;
-    };
-    /** ImportTrajectoryRequest */
-    ImportTrajectoryRequest: {
-      /**
-       * Format
-       * @description ASE format name; auto-detected if None
-       */
-      format?: string | null;
-      /**
-       * Path
-       * Format: path
-       */
-      path: string;
-    };
-    /** InsertRequest */
-    InsertRequest: {
-      /**
-       * Attach Atom
-       * @description bond the fragment to this atom
-       */
-      attach_atom?: number | null;
-      /** @description explicit fragment instead */
-      fragment?: components['schemas']['Structure'] | null;
-      /**
-       * Fragment Id
-       * @description library id 'category/name'
-       */
-      fragment_id?: string | null;
-      /** Position */
-      position?: [number, number, number] | null;
-      structure: components['schemas']['Structure'];
-    };
-    /** IrSpectrumRequest */
-    IrSpectrumRequest: {
-      /**
-       * Raman
-       * @description plot Raman activities instead of IR
-       * @default false
-       */
-      raman: boolean;
-      /**
-       * Scale Factor
-       * @default 1
-       */
-      scale_factor: number;
-      /**
-       * Shape
-       * @default gaussian
-       * @enum {string}
-       */
-      shape: 'gaussian' | 'lorentzian';
-      /**
-       * Transmittance
-       * @default false
-       */
-      transmittance: boolean;
-      vibrations: components['schemas']['VibrationalSpectrum'];
-      /**
-       * Width
-       * @default 30
-       */
-      width: number;
-    };
-    /** JobRecord */
-    JobRecord: {
-      /** Calculation Id */
-      calculation_id?: string | null;
-      /**
-       * Created At
-       * Format: date-time
-       */
-      created_at?: string;
-      /** Error */
-      error?: string | null;
-      /** Exit Code */
-      exit_code?: number | null;
-      /** Finished At */
-      finished_at?: string | null;
-      /** Id */
-      id?: string;
-      /** Pid */
-      pid?: number | null;
-      spec: components['schemas']['RunSpec'];
-      /** Started At */
-      started_at?: string | null;
-      /**
-       * Status
-       * @default queued
-       * @enum {string}
-       */
-      status: 'queued' | 'running' | 'completed' | 'failed' | 'cancelled';
-    };
-    /** KPath */
-    KPath: {
-      /**
-       * Points
-       * @description a point labelled ',' marks a path break
-       */
-      points: components['schemas']['KPathPoint'][];
-    };
-    /** KPathLabel */
-    KPathLabel: {
-      /**
-       * Distance
-       * @description position along the path (same axis as k_distance)
-       */
-      distance: number;
-      /** Label */
-      label: string;
-    };
-    /** KPathPoint */
-    KPathPoint: {
-      /** Label */
-      label: string;
-      /**
-       * Xk
-       * @description reciprocal (fractional) coordinates
-       */
-      xk: [number, number, number];
-    };
-    /** LibraryEntry */
-    LibraryEntry: {
-      /** Category */
-      category: string;
-      /** Formula */
-      formula: string;
-      /** Name */
-      name: string;
-      /** Readable */
-      readable: boolean;
-    };
-    /** LoadRequest */
-    LoadRequest: {
-      /**
-       * Path
-       * Format: path
-       */
-      path: string;
-    };
-    /** LogResponse */
-    LogResponse: {
-      /** Lines */
-      lines: string[];
-      /** Stream */
-      stream: string;
-    };
-    /** NanotubeRequest */
-    NanotubeRequest: {
-      /**
-       * Bond
-       * @default 1.42
-       */
-      bond: number;
-      /**
-       * Length
-       * @default 1
-       */
-      length: number;
-      /** M */
-      m: number;
-      /** N */
-      n: number;
-      /**
-       * Periodic
-       * @default true
-       */
-      periodic: boolean;
-      /**
-       * Symbol
-       * @default C
-       */
-      symbol: string;
-    };
-    /**
-     * NmrShielding
-     * @description One nucleus' magnetic shielding tensor summary, as printed by NMR codes (ppm).
-     */
-    NmrShielding: {
-      /**
-       * Anisotropic
-       * @description ppm
-       */
-      anisotropic?: number | null;
-      /** Element */
-      element: string;
-      /**
-       * Index
-       * @description 0-based atom index in the structure
-       */
-      index: number;
-      /**
-       * Isotropic
-       * @description ppm, 1/3 tr(sigma)
-       */
-      isotropic: number;
-    };
-    /** NmrSpectrumRequest */
-    NmrSpectrumRequest: {
-      /**
-       * Element
-       * @description nucleus to plot, e.g. 'H' or 'C'
-       */
-      element: string;
-      /**
-       * Points
-       * @default 1000
-       */
-      points: number;
-      /**
-       * Reference
-       * @description shielding of the standard (TMS) from the same calculation; with 0 the plot shows negated absolute shieldings, as Avogadro 1 does until a reference is given
-       * @default 0
-       */
-      reference: number;
-      /**
-       * Shape
-       * @default lorentzian
-       * @enum {string}
-       */
-      shape: 'gaussian' | 'lorentzian';
-      /** Shieldings */
-      shieldings: components['schemas']['NmrShielding'][];
-      /**
-       * Width
-       * @description FWHM in ppm
-       * @default 0.05
-       */
-      width: number;
-    };
-    /** NucleicRequest */
-    NucleicRequest: {
-      /** Bases Per Turn */
-      bases_per_turn?: number | null;
-      /**
-       * Double Strand
-       * @default true
-       */
-      double_strand: boolean;
-      /**
-       * Form
-       * @default B
-       * @enum {string}
-       */
-      form: 'A' | 'B' | 'Z';
-      /**
-       * Kind
-       * @default dna
-       * @enum {string}
-       */
-      kind: 'dna' | 'rna';
-      /** Sequence */
-      sequence: string;
-    };
-    /** OpenProjectRequest */
-    OpenProjectRequest: {
-      /**
-       * Path
-       * Format: path
-       * @description absolute path of an existing project directory
-       */
-      path: string;
-    };
-    /** OptimizeRequest */
-    OptimizeRequest: {
-      /**
-       * Algorithm
-       * @default steepest_descent
-       * @enum {string}
-       */
-      algorithm: 'steepest_descent' | 'conjugate_gradients';
-      /** Constraints */
-      constraints?: components['schemas']['FFConstraint'][];
-      /**
-       * Convergence
-       * @default 0.000001
-       */
-      convergence: number;
-      /**
-       * Force Field
-       * @default MMFF94
-       */
-      force_field: string;
-      /**
-       * Max Steps
-       * @default 500
-       */
-      max_steps: number;
-      /**
-       * Record Every
-       * @description 0 = no trajectory
-       * @default 0
-       */
-      record_every: number;
-      structure: components['schemas']['Structure'];
-    };
-    /** OptimizeResult */
-    OptimizeResult: {
-      /** Converged */
-      converged: boolean;
-      energy: components['schemas']['Quantity'];
-      /** Steps */
-      steps: number;
-      structure: components['schemas']['Structure'];
-      trajectory?: components['schemas']['Trajectory'] | null;
-    };
-    /**
-     * OptimizeStepRequest
-     * @description A few steps for interactive auto-optimization; ``fixed_atoms`` are pinned this round.
-     */
-    OptimizeStepRequest: {
-      /**
-       * Algorithm
-       * @default steepest_descent
-       * @enum {string}
-       */
-      algorithm: 'steepest_descent' | 'conjugate_gradients';
-      /** Constraints */
-      constraints?: components['schemas']['FFConstraint'][];
-      /** Fixed Atoms */
-      fixed_atoms?: number[];
-      /**
-       * Force Field
-       * @default MMFF94
-       */
-      force_field: string;
-      /**
-       * Steps
-       * @default 4
-       */
-      steps: number;
-      structure: components['schemas']['Structure'];
-    };
-    /** OptimizeStepResponse */
-    OptimizeStepResponse: {
-      /** Converged */
-      converged: boolean;
-      energy: components['schemas']['Quantity'];
-      structure: components['schemas']['Structure'];
-    };
-    /**
-     * OrbitalEntry
-     * @description One Kohn-Sham state as CP-PAW numbers it (1-based band, k-point and spin).
-     */
-    OrbitalEntry: {
-      /** Band */
-      band: number;
-      /**
-       * Energy
-       * @description eV
-       */
-      energy: number;
-      /**
-       * Grid Id
-       * @description exported cube, if any
-       */
-      grid_id?: string | null;
-      /** Kpoint */
-      kpoint: number;
-      /**
-       * Label
-       * @description HOMO-n / HOMO / LUMO / LUMO+n
-       */
-      label: string;
-      /** Occupation */
-      occupation: number;
-      /**
-       * Spin
-       * @description 1 or 2; 1 for non-spin-polarized runs
-       */
-      spin: number;
-    };
-    /** OrbitalExportOptions */
-    OrbitalExportOptions: {
-      /** Orbitals */
-      orbitals: components['schemas']['OrbitalRequest'][];
-    };
-    /**
-     * OrbitalInfo
-     * @description Metadata describing one orbital (band) for orbital selection UIs.
-     */
-    OrbitalInfo: {
-      /**
-       * Energy
-       * @description eV
-       */
-      energy?: number | null;
-      /**
-       * Index
-       * @description 0-based orbital/band index within its spin channel
-       */
-      index: number;
-      /** Kpoint */
-      kpoint?: number | null;
-      /**
-       * Label
-       * @description e.g. 'HOMO', 'LUMO+1', symmetry label
-       */
-      label?: string | null;
-      /** Occupation */
-      occupation?: number | null;
-      /**
-       * Spin
-       * @default none
-       * @enum {string}
-       */
-      spin: 'up' | 'down' | 'none';
-      /** Symmetry */
-      symmetry?: string | null;
-    };
-    /** OrbitalList */
-    OrbitalList: {
-      /** N Kpoints */
-      n_kpoints: number;
-      /** N Spins */
-      n_spins: number;
-      /** Orbitals */
-      orbitals: components['schemas']['OrbitalEntry'][];
-    };
-    /** OrbitalRequest */
-    OrbitalRequest: {
-      /**
-       * Band
-       * @description 1-based band index
-       */
-      band: number;
-      /**
-       * Kpoint
-       * @default 1
-       */
-      kpoint: number;
-      /**
-       * Spin
-       * @default 1
-       */
-      spin: number;
-    };
-    /** OutputImport */
-    OutputImport: {
-      /** N Frames */
-      n_frames: number;
-      /** Program Format */
-      program_format: string;
-      structure: components['schemas']['Structure'];
-      trajectory?: components['schemas']['Trajectory'] | null;
-    };
-    /** ParameterSchema */
-    ParameterSchema: {
-      /** Backend */
-      backend: string;
-      /**
-       * Id
-       * @description e.g. 'cppaw'
-       */
-      id: string;
-      /** Sections */
-      sections: components['schemas']['Section'][];
-      /** Title */
-      title: string;
-      /**
-       * Version
-       * @default 1
-       */
-      version: number;
-    };
-    /** ParameterSpec */
-    ParameterSpec: {
-      /**
-       * Advanced
-       * @default false
-       */
-      advanced: boolean;
-      /**
-       * Backend Path
-       * @description where the value lands in the backend input, e.g. 'CONTROL/GENERIC/NSTEP'
-       */
-      backend_path?: string | null;
-      /**
-       * Choices
-       * @description for type 'enum'
-       */
-      choices?: components['schemas']['Choice'][] | null;
-      /** Default */
-      default?: unknown;
-      /**
-       * Exclusive Minimum
-       * @default false
-       */
-      exclusive_minimum: boolean;
-      /**
-       * Group
-       * @description UI sub-grouping inside a section
-       */
-      group?: string | null;
-      /**
-       * Help
-       * @default
-       */
-      help: string;
-      /**
-       * Integer Vector
-       * @description vector of ints instead of floats
-       * @default false
-       */
-      integer_vector: boolean;
-      /**
-       * Key
-       * @description unique within the schema, e.g. 'nstep'
-       */
-      key: string;
-      /** Label */
-      label: string;
-      /**
-       * Length
-       * @description for type 'vector'
-       */
-      length?: number | null;
-      /** Maximum */
-      maximum?: number | null;
-      /** Minimum */
-      minimum?: number | null;
-      /**
-       * Reference
-       * @description manual section / paper
-       */
-      reference?: string | null;
-      /**
-       * Required
-       * @default false
-       */
-      required: boolean;
-      /**
-       * Type
-       * @enum {string}
-       */
-      type: 'integer' | 'number' | 'boolean' | 'string' | 'enum' | 'vector' | 'text';
-      unit?: components['schemas']['Unit'] | null;
-      /** Visible When */
-      visible_when?: components['schemas']['VisibleWhen'][];
-    };
-    /** PeptidePresets */
-    PeptidePresets: {
-      /** Presets */
-      presets: {
-        [key: string]: [number, number];
-      };
-    };
-    /** PeptideRequest */
-    PeptideRequest: {
-      /**
-       * Omega
-       * @default 180
-       */
-      omega: number;
-      /** Phi */
-      phi?: number | null;
-      /**
-       * Preset
-       * @default alpha_helix
-       * @enum {string}
-       */
-      preset: 'straight' | 'alpha_helix' | 'beta_sheet' | 'helix_3_10' | 'pi_helix' | 'custom';
-      /** Psi */
-      psi?: number | null;
-      /** Sequence */
-      sequence: string;
-    };
-    /** PerceiveRequest */
-    PerceiveRequest: {
-      /**
-       * Bond Orders
-       * @default true
-       */
-      bond_orders: boolean;
-      structure: components['schemas']['Structure'];
-    };
-    /**
-     * PointGroupResult
-     * @description Molecular point group; ``order`` is 0 for the infinite groups of a linear molecule.
-     */
-    PointGroupResult: {
-      /** Operations */
-      operations: string[];
-      /** Order */
-      order: number;
-      /** Principal Axis */
-      principal_axis?: [number, number, number] | null;
-      /** Symbol */
-      symbol: string;
-      /** Tolerance */
-      tolerance: number;
-    };
-    /** Preset */
-    Preset: {
-      /**
-       * Description
-       * @default
-       */
-      description: string;
-      /** Id */
-      id: string;
-      /** Name */
-      name: string;
-      /** Schema Id */
-      schema_id: string;
-      /**
-       * Values
-       * @description partial: only keys that differ
-       */
-      values?: {
-        [key: string]: unknown;
-      };
-    };
-    /** ProjectInfo */
-    ProjectInfo: {
-      manifest: components['schemas']['ProjectManifest'];
-      /**
-       * Path
-       * Format: path
-       */
-      path: string;
-    };
-    /** ProjectManifest */
-    ProjectManifest: {
-      /** Calculation Ids */
-      calculation_ids?: string[];
-      /**
-       * Created At
-       * Format: date-time
-       */
-      created_at?: string;
-      /** Dataset Ids */
-      dataset_ids?: string[];
-      /**
-       * Format Version
-       * @default 1
-       */
-      format_version: number;
-      /** Id */
-      id?: string;
-      /**
-       * Modified At
-       * Format: date-time
-       */
-      modified_at?: string;
-      /**
-       * Name
-       * @default untitled project
-       */
-      name: string;
-      /**
-       * Notes
-       * @default
-       */
-      notes: string;
-      /** Structure Ids */
-      structure_ids?: string[];
-      /** View Settings */
-      view_settings?: {
-        [key: string]: unknown;
-      };
-    };
-    /**
-     * Provenance
-     * @description Where a piece of data came from.
-     */
-    Provenance: {
-      /**
-       * Created At
-       * Format: date-time
-       */
-      created_at?: string;
-      /**
-       * Notes
-       * @default
-       */
-      notes: string;
-      /**
-       * Parents
-       * @description ids of parent objects
-       */
-      parents?: string[];
-      /**
-       * Software
-       * @description e.g. 'CP-PAW aa467ef', 'ASE 3.26'
-       */
-      software?: string | null;
-      /**
-       * Source
-       * @description file path, backend id, tool name or 'user'
-       */
-      source: string;
-    };
-    /**
-     * Quantity
-     * @description A scalar with an explicit unit.
-     */
-    Quantity: {
-      unit: components['schemas']['Unit'];
-      /** Value */
-      value: number;
-    };
-    /**
-     * Residue
-     * @description Residue/chain information for biomolecules.
-     */
-    Residue: {
-      /** Atom Indices */
-      atom_indices: number[];
-      /**
-       * Chain
-       * @default
-       */
-      chain: string;
-      /** Name */
-      name: string;
-      /** Number */
-      number: number;
-    };
-    /** Resources */
-    Resources: {
-      /**
-       * Cores
-       * @default 1
-       */
-      cores: number;
-      /**
-       * Mpi
-       * @default false
-       */
-      mpi: boolean;
-    };
-    /**
-     * ResultBundle
-     * @description Parsed results in Atomscope model types. Backend-specific data stays in ``extra``.
-     */
-    ResultBundle: {
-      /**
-       * Complete
-       * @description the program's own normal-termination marker was found
-       */
-      complete?: boolean | null;
-      /** Converged */
-      converged?: boolean | null;
-      /** Extra */
-      extra?: {
-        [key: string]: unknown;
-      };
-      final_structure?: components['schemas']['Structure'] | null;
-      /** Grids */
-      grids?: components['schemas']['VolumetricGrid'][];
-      /** Properties */
-      properties?: {
-        [key: string]: components['schemas']['Quantity'];
-      };
-      /** Series */
-      series?: components['schemas']['ScalarSeries'][];
-      trajectory?: components['schemas']['Trajectory'] | null;
-      /** Warnings */
-      warnings?: string[];
-    };
-    /**
-     * RunSpec
-     * @description Everything needed to start a process. Built by backend plugins, executed by JobManager.
-     */
-    RunSpec: {
-      /**
-       * Argv
-       * @description argv[0] is an absolute executable path
-       */
-      argv: string[];
-      /**
-       * Cwd
-       * Format: path
-       */
-      cwd: string;
-      /**
-       * Description
-       * @default
-       */
-      description: string;
-      /**
-       * Env
-       * @description added to a minimal base env
-       */
-      env?: {
-        [key: string]: string;
-      };
-      /**
-       * Soft Stop Seconds
-       * @description seconds given to the process itself (SIGTERM to its PID) before the whole process group is signalled
-       * @default 5
-       */
-      soft_stop_seconds: number;
-      /**
-       * Stderr Name
-       * @default stderr.log
-       */
-      stderr_name: string;
-      /**
-       * Stdout Name
-       * @default stdout.log
-       */
-      stdout_name: string;
-      /**
-       * Watch Files
-       * @description files (relative to cwd) whose growth is streamed
-       */
-      watch_files?: string[];
-    };
-    /**
-     * ScalarSeries
-     * @description A named 1-D series (e.g. energy per iteration) with units.
-     */
-    ScalarSeries: {
-      /** Name */
-      name: string;
-      /** X */
-      x: number[];
-      /** X Label */
-      x_label: string;
-      /**
-       * X Unit
-       * @default
-       */
-      x_unit: string;
-      /** Y */
-      y: number[];
-      /** Y Label */
-      y_label: string;
-      /**
-       * Y Unit
-       * @default
-       */
-      y_unit: string;
-    };
-    /** Section */
-    Section: {
-      /**
-       * Advanced
-       * @default false
-       */
-      advanced: boolean;
-      /**
-       * Help
-       * @default
-       */
-      help: string;
-      /** Id */
-      id: string;
-      /** Label */
-      label: string;
-      /** Parameters */
-      parameters?: components['schemas']['ParameterSpec'][];
-    };
-    /** SetCellRequest */
-    SetCellRequest: {
-      /**
-       * Mode
-       * @default cartesian
-       * @enum {string}
-       */
-      mode: 'cartesian' | 'fractional';
-      /**
-       * Parameters
-       * @description a b c (Å) alpha beta gamma (deg)
-       */
-      parameters?: [number, number, number, number, number, number] | null;
-      structure: components['schemas']['Structure'];
-      /** Vectors */
-      vectors?:
-        [[number, number, number], [number, number, number], [number, number, number]] | null;
-    };
-    /** SlabRequest */
-    SlabRequest: {
-      /** Layers */
-      layers: number;
-      /** Miller */
-      miller: [number, number, number];
-      structure: components['schemas']['Structure'];
-      /**
-       * Vacuum
-       * @default 10
-       */
-      vacuum: number;
-    };
-    /** SmartsRequest */
-    SmartsRequest: {
-      /**
-       * Pattern
-       * @description SMARTS pattern, Open Babel dialect
-       */
-      pattern: string;
-      structure: components['schemas']['Structure'];
-      /**
-       * Unique
-       * @description symmetry-unique matches only
-       * @default true
-       */
-      unique: boolean;
-    };
-    /**
-     * SmartsResult
-     * @description Matches of a SMARTS query: one tuple of atom indices per match, plus their union.
-     */
-    SmartsResult: {
-      /** Atoms */
-      atoms: number[];
-      /** Matches */
-      matches: number[][];
-    };
-    /** SmilesRequest */
-    SmilesRequest: {
-      /**
-       * Add Hydrogens
-       * @default true
-       */
-      add_hydrogens: boolean;
-      /** Smiles */
-      smiles: string;
-    };
-    /** SpacegroupBuildRequest */
-    SpacegroupBuildRequest: {
-      /** Basis */
-      basis: [number, number, number][];
-      /** Cellpar */
-      cellpar: [number, number, number, number, number, number];
-      /** Name */
-      name?: string | null;
-      /** Spacegroup */
-      spacegroup: number;
-      /** Symbols */
-      symbols: string[];
-    };
-    /**
-     * Spectrum
-     * @description A plottable spectrum: stick peaks and/or a sampled curve on a shared pair of axes.
-     */
-    Spectrum: {
-      /** Id */
-      id: string;
-      /**
-       * Kind
-       * @enum {string}
-       */
-      kind: 'ir' | 'raman' | 'nmr' | 'uvvis' | 'cd' | 'dos' | 'experimental' | 'other';
-      /**
-       * Line Shape
-       * @description shape used for the curve
-       */
-      line_shape?: ('gaussian' | 'lorentzian') | null;
-      /** Name */
-      name: string;
-      /** Peaks */
-      peaks?: components['schemas']['SpectrumPeak'][];
-      provenance?: components['schemas']['Provenance'] | null;
-      /**
-       * Width
-       * @description FWHM of the line shape, x units
-       */
-      width?: number | null;
-      x: components['schemas']['SpectrumAxis'];
-      /**
-       * X Values
-       * @description broadened curve grid
-       */
-      x_values?: number[];
-      y: components['schemas']['SpectrumAxis'];
-      /**
-       * Y Values
-       * @description broadened curve values
-       */
-      y_values?: number[];
-    };
-    /**
-     * SpectrumAxis
-     * @description One axis of a spectrum: what is plotted, in which unit, and in which direction.
-     */
-    SpectrumAxis: {
-      /**
-       * Descending
-       * @description draw the axis from high to low (IR wavenumbers, NMR chemical shifts)
-       * @default false
-       */
-      descending: boolean;
-      /**
-       * Label
-       * @description axis label, e.g. 'wavenumber'
-       */
-      label: string;
-      /**
-       * Unit
-       * @description free-form unit string, e.g. 'cm^-1', 'km/mol', 'ppm'
-       */
-      unit: string;
-    };
-    /**
-     * SpectrumPeak
-     * @description One stick: a transition at ``x`` with ``intensity`` in the spectrum's y unit.
-     */
-    SpectrumPeak: {
-      /**
-       * Assignment
-       * @description symmetry, nucleus, orbital pair ...
-       */
-      assignment?: string | null;
-      /** Intensity */
-      intensity: number;
-      /**
-       * Label
-       * @description short label drawn next to the stick
-       */
-      label?: string | null;
-      /**
-       * Source Index
-       * @description index into the originating list (vibrational mode, transition)
-       */
-      source_index?: number | null;
-      /** X */
-      x: number;
-    };
-    /** SpectrumRequest */
-    SpectrumRequest: {
-      /**
-       * Kind
-       * @default other
-       * @enum {string}
-       */
-      kind: 'ir' | 'raman' | 'nmr' | 'uvvis' | 'cd' | 'dos' | 'experimental' | 'other';
-      /**
-       * Name
-       * @default spectrum
-       */
-      name: string;
-      /** Peaks */
-      peaks: components['schemas']['SpectrumPeak'][];
-      /**
-       * Points
-       * @default 1000
-       */
-      points: number;
-      /**
-       * Shape
-       * @default gaussian
-       * @enum {string}
-       */
-      shape: 'gaussian' | 'lorentzian';
-      /**
-       * Transmittance
-       * @description convert absorbance to transmittance
-       * @default false
-       */
-      transmittance: boolean;
-      /**
-       * Transmittance Scale
-       * @default 0.01
-       */
-      transmittance_scale: number;
-      /**
-       * Width
-       * @description FWHM in x units
-       * @default 30
-       */
-      width: number;
-      x: components['schemas']['SpectrumAxis'];
-      y: components['schemas']['SpectrumAxis'];
-    };
-    /**
-     * Structure
-     * @description The central editable object: atoms, bonds, cell and attached properties.
-     */
-    Structure: {
-      /** Atomic Scalars */
-      atomic_scalars?: {
-        [key: string]: components['schemas']['AtomicScalarProperty'];
-      };
-      /** Atomic Vectors */
-      atomic_vectors?: {
-        [key: string]: components['schemas']['AtomicVectorProperty'];
-      };
-      /** Atoms */
-      atoms?: components['schemas']['Atom'][];
-      /** Bonds */
-      bonds?: components['schemas']['Bond'][];
-      cell?: components['schemas']['Cell'] | null;
-      /**
-       * Charge
-       * @description total charge in e
-       * @default 0
-       */
-      charge: number;
-      /** Constraints */
-      constraints?: (
-        | components['schemas']['FixAtoms']
-        | components['schemas']['FixCartesian']
-        | components['schemas']['FixBondLength']
-      )[];
-      /** Id */
-      id?: string;
-      /**
-       * Multiplicity
-       * @description 2S+1; None = unspecified
-       */
-      multiplicity?: number | null;
-      /**
-       * Name
-       * @default untitled
-       */
-      name: string;
-      /** Properties */
-      properties?: {
-        [key: string]: components['schemas']['Quantity'];
-      };
-      provenance?: components['schemas']['Provenance'] | null;
-      /** Residues */
-      residues?: components['schemas']['Residue'][];
-    };
-    /** StructureBody */
-    StructureBody: {
-      structure: components['schemas']['Structure'];
-    };
-    /** StructureRequest */
-    StructureRequest: {
-      structure: components['schemas']['Structure'];
-    };
-    /** StructureSummary */
-    StructureSummary: {
-      /** Formula */
-      formula: string;
-      /** Id */
-      id: string;
-      /** N Atoms */
-      n_atoms: number;
-      /** Name */
-      name: string;
-      /** Periodic */
-      periodic: boolean;
-    };
-    /** SupercellRequest */
-    SupercellRequest: {
-      /** Matrix */
-      matrix?:
-        [[number, number, number], [number, number, number], [number, number, number]] | null;
-      /** Repeat */
-      repeat?: [number, number, number] | null;
-      structure: components['schemas']['Structure'];
-    };
-    /** SurfaceRequest */
-    SurfaceRequest: {
-      /**
-       * Kind
-       * @default orbital
-       * @enum {string}
-       */
-      kind: 'orbital' | 'density' | 'spin_density' | 'electrostatic_potential' | 'vdw';
-      /**
-       * Orbital Index
-       * @description 0-based; default is the HOMO
-       */
-      orbital_index?: number | null;
-      /**
-       * Padding
-       * @description box padding in Angstrom
-       * @default 3.5
-       */
-      padding: number;
-      /**
-       * Path
-       * Format: path
-       * @description the wavefunction file to evaluate
-       */
-      path: string;
-      /**
-       * Spacing
-       * @description grid spacing in Angstrom
-       * @default 0.2
-       */
-      spacing: number;
-      /**
-       * Vdw Scale
-       * @default 1
-       */
-      vdw_scale: number;
-    };
-    /**
-     * SymmetryInfo
-     * @description Result of space-group perception.
-     */
-    SymmetryInfo: {
-      /**
-       * Equivalent Atoms
-       * @description per atom: index of its orbit representative
-       */
-      equivalent_atoms: number[];
-      /** Hall */
-      hall: string;
-      /** Hall Number */
-      hall_number: number;
-      /**
-       * International
-       * @description short Hermann-Mauguin symbol, e.g. 'Fd-3m'
-       */
-      international: string;
-      /** International Full */
-      international_full: string;
-      /**
-       * Lattice Type
-       * @enum {string}
-       */
-      lattice_type:
-        | 'triclinic'
-        | 'monoclinic'
-        | 'orthorhombic'
-        | 'tetragonal'
-        | 'rhombohedral'
-        | 'hexagonal'
-        | 'cubic';
-      /** N Asymmetric */
-      n_asymmetric: number;
-      /** N Operations */
-      n_operations: number;
-      /** Number */
-      number: number;
-      /** Point Group */
-      point_group: string;
-      /** Schoenflies */
-      schoenflies: string;
-      /** Symprec */
-      symprec: number;
-      /** Wyckoffs */
-      wyckoffs: string[];
-    };
-    /**
-     * Trajectory
-     * @description A sequence of frames sharing the topology of ``structure_id``.
-     */
-    Trajectory: {
-      /** Frames */
-      frames?: components['schemas']['Frame'][];
-      /** Id */
-      id: string;
-      /**
-       * Kind
-       * @description optimization | md | neb | vibration | generic
-       * @default generic
-       */
-      kind: string;
-      /** Name */
-      name: string;
-      provenance?: components['schemas']['Provenance'] | null;
-      /** Structure Id */
-      structure_id?: string | null;
-      /** Symbols */
-      symbols: string[];
-    };
-    /** TrajectoryImport */
-    TrajectoryImport: {
-      /** @description first frame, with perceived bonds */
-      structure: components['schemas']['Structure'];
-      trajectory: components['schemas']['Trajectory'];
-    };
-    /**
-     * TrajectoryScalars
-     * @description Per-frame scalars and cells; the companion of the binary positions stream.
-     */
-    TrajectoryScalars: {
-      /** Cells */
-      cells: (
-        [[number, number, number], [number, number, number], [number, number, number]] | null
-      )[];
-      /** Energy */
-      energy: (number | null)[];
-      /** Id */
-      id: string;
-      /** Kind */
-      kind: string;
-      /** N Atoms */
-      n_atoms: number;
-      /** N Frames */
-      n_frames: number;
-      /** Name */
-      name: string;
-      /** Step */
-      step: (number | null)[];
-      /** Symbols */
-      symbols: string[];
-      /** Temperature */
-      temperature: (number | null)[];
-      /** Time */
-      time: (number | null)[];
-    };
-    /** TranslateRequest */
-    TranslateRequest: {
-      /** Indices */
-      indices?: number[] | null;
-      /**
-       * Mode
-       * @default cartesian
-       * @enum {string}
-       */
-      mode: 'cartesian' | 'fractional';
-      structure: components['schemas']['Structure'];
-      /**
-       * Vector
-       * @description 3-vector
-       */
-      vector: [number, number, number];
-      /**
-       * Wrap
-       * @default false
-       */
-      wrap: boolean;
-    };
-    /**
-     * Unit
-     * @description Units that can appear on quantities in the data model.
-     * @enum {string}
-     */
-    Unit:
-      | 'angstrom'
-      | 'bohr'
-      | 'nm'
-      | 'eV'
-      | 'hartree'
-      | 'kJ/mol'
-      | 'kcal/mol'
-      | 'rydberg'
-      | 'eV/angstrom'
-      | 'hartree/bohr'
-      | 'fs'
-      | 'atomic_time'
-      | 'ps'
-      | 'e'
-      | 'muB'
-      | 'K'
-      | 'cm^-1'
-      | 'debye'
-      | 'e*angstrom'
-      | ''
-      | 'e/angstrom^3'
-      | 'e/bohr^3'
-      | 'V'
-      | 'hartree/e';
-    /** UpdateValuesRequest */
-    UpdateValuesRequest: {
-      /** Values */
-      values: {
-        [key: string]: unknown;
-      };
-    };
-    /** ValidationError */
-    ValidationError: {
-      /** Context */
-      ctx?: Record<string, never>;
-      /** Input */
-      input?: unknown;
-      /** Location */
-      loc: (string | number)[];
-      /** Message */
-      msg: string;
-      /** Error Type */
-      type: string;
-    };
-    /** ValidationIssue */
-    ValidationIssue: {
-      /** Key */
-      key: string | null;
-      /** Message */
-      message: string;
-      /**
-       * Severity
-       * @default error
-       * @enum {string}
-       */
-      severity: 'error' | 'warning';
-    };
-    /** ValidationReport */
-    ValidationReport: {
-      /** Issues */
-      issues?: components['schemas']['ValidationIssue'][];
-    };
-    /**
-     * VibrationImport
-     * @description What a quantum-chemistry output yielded: modes, NMR shieldings, transitions.
-     */
-    VibrationImport: {
-      /** Program */
-      program: string;
-      /** Shieldings */
-      shieldings?: components['schemas']['NmrShielding'][];
-      structure?: components['schemas']['Structure'] | null;
-      /** Transitions */
-      transitions?: components['schemas']['ElectronicTransition'][];
-      vibrations?: components['schemas']['VibrationalSpectrum'] | null;
-    };
-    /**
-     * VibrationalMode
-     * @description One normal mode.
-     *
-     *     ``displacements`` are *Cartesian* displacement vectors, one per atom, normalised so that
-     *     ``sum_i |d_i|^2 == 1``. This is the convention Gaussian and ORCA print (ORCA states that the
-     *     1/sqrt(m) weighting has already been applied to its printed vectors), and it is what an
-     *     animation needs: atom ``i`` moves along ``amplitude * d_i``. Mass-weighted eigenvectors are
-     *     converted by dividing by sqrt(m_i) and renormalising.
-     */
-    VibrationalMode: {
-      /**
-       * Displacements
-       * @description Cartesian, unit-normalised over all atoms
-       */
-      displacements: [number, number, number][];
-      /**
-       * Force Constant
-       * @description mDyne/Å
-       */
-      force_constant?: number | null;
-      /**
-       * Frequency
-       * @description cm^-1; negative = imaginary
-       */
-      frequency: number;
-      /**
-       * Ir Intensity
-       * @description km/mol
-       */
-      ir_intensity?: number | null;
-      /**
-       * Kind
-       * @description vibration | translation | rotation (trivial modes are reported separately)
-       * @default vibration
-       */
-      kind: string;
-      /**
-       * Raman Activity
-       * @description Å^4/amu
-       */
-      raman_activity?: number | null;
-      /**
-       * Reduced Mass
-       * @description amu
-       */
-      reduced_mass?: number | null;
-      /** Symmetry */
-      symmetry?: string | null;
-    };
-    /**
-     * VibrationalSpectrum
-     * @description The modes of one structure plus the summary numbers a Vibrations dock shows.
-     */
-    VibrationalSpectrum: {
-      /** Id */
-      id: string;
-      /**
-       * Linear
-       * @description True when the molecule is linear
-       */
-      linear?: boolean | null;
-      /**
-       * Method
-       * @description how the modes were obtained
-       */
-      method?: string | null;
-      /**
-       * Modes
-       * @description the 3N-6 (3N-5) vibrational modes
-       */
-      modes: components['schemas']['VibrationalMode'][];
-      /**
-       * Positions
-       * @description Å, the equilibrium geometry the modes belong to
-       */
-      positions?: [number, number, number][];
-      provenance?: components['schemas']['Provenance'] | null;
-      /** Structure Id */
-      structure_id?: string | null;
-      /** Symbols */
-      symbols?: string[];
-      /**
-       * Trivial Modes
-       * @description the 6 (5 for linear molecules) translations/rotations, for diagnostics
-       */
-      trivial_modes?: components['schemas']['VibrationalMode'][];
-      /**
-       * Zero Point Energy
-       * @description eV, 1/2 sum h*nu over the real vibrational modes
-       */
-      zero_point_energy?: number | null;
-    };
-    /** VibrationsRequest */
-    VibrationsRequest: {
-      /**
-       * Calculator
-       * @description openbabel | emt | lj | morse (ASE built-ins)
-       * @default openbabel
-       */
-      calculator: string;
-      /**
-       * Charge Model
-       * @description Open Babel charge model for the approximate dipole
-       * @default gasteiger
-       */
-      charge_model: string;
-      /**
-       * Delta
-       * @description displacement in Å
-       * @default 0.01
-       */
-      delta: number;
-      /**
-       * Force Field
-       * @description Open Babel force field
-       * @default MMFF94
-       */
-      force_field: string;
-      /**
-       * Optimize First
-       * @description minimise with the same force field first; a Hessian at a non-stationary geometry mixes real modes into the translations and rotations
-       * @default true
-       */
-      optimize_first: boolean;
-      structure: components['schemas']['Structure'];
-    };
-    /** VibrationsResponse */
-    VibrationsResponse: {
-      ir: components['schemas']['Spectrum'];
-      /** @description the geometry the modes belong to */
-      structure: components['schemas']['Structure'];
-      vibrations: components['schemas']['VibrationalSpectrum'];
-    };
-    /** ViewSettingsBody */
-    ViewSettingsBody: {
-      /** Settings */
-      settings: {
-        [key: string]: unknown;
-      };
-    };
-    /**
-     * VisibleWhen
-     * @description Show a parameter only when another parameter satisfies a condition.
-     */
-    VisibleWhen: {
-      /** Key */
-      key: string;
-      /**
-       * Op
-       * @default eq
-       * @enum {string}
-       */
-      op: 'eq' | 'ne' | 'in' | 'not_in' | 'truthy' | 'falsy';
-      /** Value */
-      value?: unknown;
-    };
-    /** VolumeRequest */
-    VolumeRequest: {
-      structure: components['schemas']['Structure'];
-      /**
-       * Volume
-       * @description target volume in Å^3
-       */
-      volume: number;
-    };
-    /**
-     * VolumetricGrid
-     * @description A regular 3D grid. Voxel (i,j,k) sits at origin + i*axes[0] + j*axes[1] + k*axes[2].
-     *
-     *     Values are stored in a binary sidecar (``data_ref``: path relative to the owning
-     *     project/calculation, little-endian float32 or float64, C order matching ``shape``) or
-     *     inline for small grids. Exactly one of ``data_ref`` / ``inline_values`` is set.
-     */
-    VolumetricGrid: {
-      /**
-       * Axes
-       * @description step vectors in Å
-       */
-      axes: [[number, number, number], [number, number, number], [number, number, number]];
-      /** Data Ref */
-      data_ref?: string | null;
-      /**
-       * Dtype
-       * @default float32
-       * @enum {string}
-       */
-      dtype: 'float32' | 'float64';
-      /** Id */
-      id: string;
-      /** Inline Values */
-      inline_values?: number[] | null;
-      /**
-       * Kind
-       * @default other
-       * @enum {string}
-       */
-      kind:
-        | 'electron_density'
-        | 'spin_density'
-        | 'orbital'
-        | 'orbital_density'
-        | 'electrostatic_potential'
-        | 'density_difference'
-        | 'other';
-      /** Name */
-      name: string;
-      orbital?: components['schemas']['OrbitalInfo'] | null;
-      /**
-       * Origin
-       * @description Å
-       */
-      origin: [number, number, number];
-      provenance?: components['schemas']['Provenance'] | null;
-      /** Shape */
-      shape: [number, number, number];
-      /**
-       * Structure Id
-       * @description structure the grid belongs to
-       */
-      structure_id?: string | null;
-      unit: components['schemas']['Unit'];
-    };
-    /**
-     * WavefunctionInfo
-     * @description What a loaded wavefunction offers; the structure is saved into the project.
-     */
-    WavefunctionInfo: {
-      /** Format */
-      format: string;
-      /** Homo Index */
-      homo_index: number | null;
-      /** N Basis */
-      n_basis: number;
-      /** N Electrons */
-      n_electrons: number;
-      /** Orbitals */
-      orbitals: components['schemas']['WavefunctionOrbital'][];
-      /** Source */
-      source: string;
-      structure: components['schemas']['Structure'];
-    };
-    /** WavefunctionOrbital */
-    WavefunctionOrbital: {
-      /**
-       * Energy
-       * @description Hartree, as written by the program
-       */
-      energy?: number | null;
-      /** Index */
-      index: number;
-      /** Label */
-      label: string;
-      /** Occupation */
-      occupation: number;
-      /** Spin */
-      spin: string;
-    };
-    /** SymmetryRequest */
-    atomscope__api__routes_chem__SymmetryRequest: {
-      structure: components['schemas']['Structure'];
-      /**
-       * Tolerance
-       * @default normal
-       * @enum {string}
-       */
-      tolerance: 'loose' | 'normal' | 'tight';
-    };
-    /** SymmetryRequest */
-    atomscope__api__routes_crystal__SymmetryRequest: {
-      structure: components['schemas']['Structure'];
-      /**
-       * Symprec
-       * @description spglib tolerance in Å
-       * @default 0.001
-       */
-      symprec: number;
-    };
-  };
-  responses: never;
-  parameters: never;
-  requestBodies: never;
-  headers: never;
-  pathItems: never;
+    schemas: {
+        /** AddCellRequest */
+        AddCellRequest: {
+            /**
+             * Padding
+             * @default 5
+             */
+            padding: number;
+            structure: components["schemas"]["Structure"];
+        };
+        /** AddHydrogensRequest */
+        AddHydrogensRequest: {
+            /**
+             * Indices
+             * @description None = whole structure
+             */
+            indices?: number[] | null;
+            /** Ph */
+            ph?: number | null;
+            structure: components["schemas"]["Structure"];
+        };
+        /**
+         * AnalysisJob
+         * @description A post-processing job (DOS, band structure, orbital export) run in the work directory of
+         *     a completed calculation; outputs are read back through the backend plugin.
+         */
+        AnalysisJob: {
+            job: components["schemas"]["JobRecord"];
+            /** Kind */
+            kind: string;
+            /** Options */
+            options?: {
+                [key: string]: unknown;
+            };
+        };
+        /** AromaticityResult */
+        AromaticityResult: {
+            /** Aromatic Atoms */
+            aromatic_atoms: number[];
+            /** Aromatic Ring Count */
+            aromatic_ring_count: number;
+            /** Ring Count */
+            ring_count: number;
+            /** @description input with aromatic flags on bonds */
+            structure: components["schemas"]["Structure"];
+        };
+        /**
+         * Atom
+         * @description One atom. Positions are Cartesian in Å.
+         */
+        Atom: {
+            /**
+             * Element
+             * @description chemical symbol, e.g. 'C'
+             */
+            element: string;
+            /**
+             * Formal Charge
+             * @default 0
+             */
+            formal_charge: number;
+            /** Label */
+            label?: string | null;
+            /**
+             * Position
+             * @description 3-vector
+             */
+            position: [
+                number,
+                number,
+                number
+            ];
+            /**
+             * Uid
+             * @description stable id surviving re-indexing
+             */
+            uid?: string;
+        };
+        /**
+         * AtomicScalarProperty
+         * @description One float per atom (partial charges, magnetic moments, ...).
+         */
+        AtomicScalarProperty: {
+            /**
+             * Description
+             * @default
+             */
+            description: string;
+            unit: components["schemas"]["Unit"];
+            /** Values */
+            values: number[];
+        };
+        /**
+         * AtomicVectorProperty
+         * @description One 3-vector per atom (forces, velocities, magnetic moment vectors, ...).
+         */
+        AtomicVectorProperty: {
+            /**
+             * Description
+             * @default
+             */
+            description: string;
+            unit: components["schemas"]["Unit"];
+            /** Values */
+            values: [
+                number,
+                number,
+                number
+            ][];
+        };
+        /** AtomsRequest */
+        AtomsRequest: {
+            /**
+             * Indices
+             * @description None = whole structure
+             */
+            indices?: number[] | null;
+            structure: components["schemas"]["Structure"];
+        };
+        /** BackboneHydrogenBond */
+        BackboneHydrogenBond: {
+            /**
+             * Acceptor
+             * @description residue index whose C=O accepts
+             */
+            acceptor: number;
+            /**
+             * Donor
+             * @description residue index whose N-H donates
+             */
+            donor: number;
+            /**
+             * Energy
+             * @description Kabsch-Sander energy in kcal/mol
+             */
+            energy: number;
+        };
+        /** BackendCapabilities */
+        BackendCapabilities: {
+            /**
+             * Bands
+             * @default false
+             */
+            bands: boolean;
+            /**
+             * Density
+             * @default false
+             */
+            density: boolean;
+            /**
+             * Dos
+             * @default false
+             */
+            dos: boolean;
+            /**
+             * Energy
+             * @default false
+             */
+            energy: boolean;
+            /**
+             * Executes
+             * @description False for input-generation-only plugins
+             * @default true
+             */
+            executes: boolean;
+            /**
+             * Forces
+             * @default false
+             */
+            forces: boolean;
+            /**
+             * Molecular
+             * @default true
+             */
+            molecular: boolean;
+            /**
+             * Molecular Dynamics
+             * @default false
+             */
+            molecular_dynamics: boolean;
+            /**
+             * Orbitals
+             * @default false
+             */
+            orbitals: boolean;
+            /**
+             * Periodic
+             * @default true
+             */
+            periodic: boolean;
+            /**
+             * Relaxation
+             * @default false
+             */
+            relaxation: boolean;
+            /**
+             * Stress
+             * @default false
+             */
+            stress: boolean;
+            /**
+             * Vibrations
+             * @default false
+             */
+            vibrations: boolean;
+        };
+        /** BackendInfo */
+        BackendInfo: {
+            capabilities: components["schemas"]["BackendCapabilities"];
+            executables: components["schemas"]["ExecutableReport"];
+            /** Id */
+            id: string;
+            /** Name */
+            name: string;
+        };
+        /** BandOptions */
+        BandOptions: {
+            /**
+             * Mode
+             * @default interpolate
+             * @enum {string}
+             */
+            mode: "interpolate" | "diagonalize";
+            /**
+             * Nk
+             * @description k-points per path segment
+             * @default 20
+             */
+            nk: number;
+            /**
+             * Path
+             * @description high-symmetry path; consecutive points form segments; None = default path
+             */
+            path?: components["schemas"]["KPathPoint"][] | null;
+        };
+        /** BandStructure */
+        BandStructure: {
+            /**
+             * Energies
+             * @description eV; energies[spin][k][band] (one spin entry for non-polarized runs)
+             */
+            energies: number[][][];
+            /**
+             * Fermi Level
+             * @description eV
+             */
+            fermi_level?: number | null;
+            /**
+             * Homo Energy
+             * @description eV
+             */
+            homo_energy?: number | null;
+            /**
+             * K Distance
+             * @description cumulative distance along the path
+             */
+            k_distance: number[];
+            /** Labels */
+            labels: components["schemas"]["KPathLabel"][];
+        };
+        /** Body_import_spectrum_upload_api_io_import_spectrum_upload_post */
+        Body_import_spectrum_upload_api_io_import_spectrum_upload_post: {
+            /** File */
+            file: string;
+        };
+        /** Body_import_trajectory_upload_api_io_import_trajectory_upload_post */
+        Body_import_trajectory_upload_api_io_import_trajectory_upload_post: {
+            /** File */
+            file: string;
+        };
+        /** Body_import_upload_api_io_import_upload_post */
+        Body_import_upload_api_io_import_upload_post: {
+            /** File */
+            file: string;
+        };
+        /** Body_import_vibrations_upload_api_io_import_vibrations_upload_post */
+        Body_import_vibrations_upload_api_io_import_vibrations_upload_post: {
+            /** File */
+            file: string;
+        };
+        /**
+         * Bond
+         * @description A bond between two atom indices of the owning structure.
+         */
+        Bond: {
+            /** A */
+            a: number;
+            /**
+             * Aromatic
+             * @default false
+             */
+            aromatic: boolean;
+            /** B */
+            b: number;
+            /**
+             * Order
+             * @default 1
+             * @enum {integer}
+             */
+            order: 1 | 2 | 3;
+        };
+        /** BulkRequest */
+        BulkRequest: {
+            /** A */
+            a?: number | null;
+            /** C */
+            c?: number | null;
+            /**
+             * Crystalstructure
+             * @description sc, fcc, bcc, hcp, diamond, zincblende, rocksalt...
+             */
+            crystalstructure: string;
+            /**
+             * Cubic
+             * @default false
+             */
+            cubic: boolean;
+            /**
+             * Orthorhombic
+             * @default false
+             */
+            orthorhombic: boolean;
+            /** Symbol */
+            symbol: string;
+        };
+        /**
+         * Calculation
+         * @description Persisted as ``calculations/<id>/calculation.json`` inside the project.
+         */
+        Calculation: {
+            /** Analysis Jobs */
+            analysis_jobs?: components["schemas"]["AnalysisJob"][];
+            /** Backend Id */
+            backend_id: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at?: string;
+            generated?: components["schemas"]["GeneratedInputs"] | null;
+            /** Id */
+            id?: string;
+            job?: components["schemas"]["JobRecord"] | null;
+            /** Name */
+            name: string;
+            /**
+             * Notes
+             * @default
+             */
+            notes: string;
+            /**
+             * Parent Calculation Id
+             * @description for reruns/restarts
+             */
+            parent_calculation_id?: string | null;
+            provenance?: components["schemas"]["Provenance"] | null;
+            resources?: components["schemas"]["Resources"];
+            /** Result Structure Id */
+            result_structure_id?: string | null;
+            results?: components["schemas"]["ResultBundle"] | null;
+            /**
+             * Schema Version
+             * @default 1
+             */
+            schema_version: number;
+            /**
+             * Status
+             * @default draft
+             * @enum {string}
+             */
+            status: "draft" | "ready" | "queued" | "running" | "completed" | "failed" | "cancelled";
+            /**
+             * Structure Id
+             * @description input structure (a copy is stored with the calculation)
+             */
+            structure_id: string;
+            /**
+             * Values
+             * @description full merged parameter values
+             */
+            values?: {
+                [key: string]: unknown;
+            };
+        };
+        /**
+         * Cell
+         * @description Periodic cell: three lattice vectors (Å) and periodicity flags.
+         */
+        Cell: {
+            /**
+             * Pbc
+             * @default [
+             *       true,
+             *       true,
+             *       true
+             *     ]
+             */
+            pbc: [
+                boolean,
+                boolean,
+                boolean
+            ];
+            /**
+             * Vectors
+             * @description 3x3 matrix as three row vectors
+             */
+            vectors: [
+                [
+                    number,
+                    number,
+                    number
+                ],
+                [
+                    number,
+                    number,
+                    number
+                ],
+                [
+                    number,
+                    number,
+                    number
+                ]
+            ];
+        };
+        /** ChargesRequest */
+        ChargesRequest: {
+            /**
+             * Model
+             * @default gasteiger
+             * @enum {string}
+             */
+            model: "gasteiger" | "mmff94" | "qeq" | "eem" | "qtpie";
+            structure: components["schemas"]["Structure"];
+        };
+        /** ChargesResult */
+        ChargesResult: {
+            dipole: components["schemas"]["Dipole"];
+            /** Model */
+            model: string;
+            /** @description input with atomic_scalars['partial_charges'] */
+            structure: components["schemas"]["Structure"];
+            /** Total Charge */
+            total_charge: number;
+        };
+        /** Choice */
+        Choice: {
+            /**
+             * Help
+             * @default
+             */
+            help: string;
+            /** Label */
+            label: string;
+            /** Value */
+            value: string | number | boolean;
+        };
+        /** ConformerRequest */
+        ConformerRequest: {
+            /** Constraints */
+            constraints?: components["schemas"]["FFConstraint"][];
+            /**
+             * Force Field
+             * @default MMFF94
+             */
+            force_field: string;
+            /**
+             * Method
+             * @default weighted
+             * @enum {string}
+             */
+            method: "systematic" | "random" | "weighted";
+            /**
+             * N Conformers
+             * @default 10
+             */
+            n_conformers: number;
+            /**
+             * Steps
+             * @default 100
+             */
+            steps: number;
+            structure: components["schemas"]["Structure"];
+        };
+        /** ConformerResult */
+        ConformerResult: {
+            /** @description lowest-energy conformer */
+            structure: components["schemas"]["Structure"];
+            /** @description all conformers with energies (eV) */
+            trajectory: components["schemas"]["Trajectory"];
+        };
+        /** CreateCalculationRequest */
+        CreateCalculationRequest: {
+            /** Backend Id */
+            backend_id: string;
+            /** Name */
+            name: string;
+            resources?: components["schemas"]["Resources"];
+            /** Structure Id */
+            structure_id: string;
+            /** Values */
+            values?: {
+                [key: string]: unknown;
+            };
+        };
+        /** CreateProjectRequest */
+        CreateProjectRequest: {
+            /** Name */
+            name: string;
+            /**
+             * Path
+             * Format: path
+             * @description absolute path of a new (empty or missing) directory
+             */
+            path: string;
+        };
+        /** Dipole */
+        Dipole: {
+            magnitude: components["schemas"]["Quantity"];
+            /**
+             * Vector
+             * @description Debye
+             */
+            vector: [
+                number,
+                number,
+                number
+            ];
+        };
+        /** DosOptions */
+        DosOptions: {
+            /**
+             * Broadening Ev
+             * @description thermal broadening k_B T
+             * @default 0.1
+             */
+            broadening_ev: number;
+            /**
+             * De Ev
+             * @description energy grid spacing
+             * @default 0.01
+             */
+            de_ev: number;
+            /**
+             * L Channels
+             * @description also project on s/p/d/f per element/atom
+             * @default true
+             */
+            l_channels: boolean;
+            /**
+             * Projection
+             * @default element
+             * @enum {string}
+             */
+            projection: "none" | "element" | "atom";
+        };
+        /**
+         * DosSeries
+         * @description One weight (total, per atom, per angular momentum ...) in one spin channel.
+         *
+         *     ``dos`` counts all states, ``occupied_dos`` weights them with the occupations; both in
+         *     states/eV. Spin-down series are stored as written by the code (negative sign) so that
+         *     mirrored plots need no extra convention.
+         */
+        DosSeries: {
+            /** Dos */
+            dos: number[];
+            /**
+             * Id
+             * @description weight id, e.g. 'total', 'SI1_p'
+             */
+            id: string;
+            /** Label */
+            label: string;
+            /** Occupied Dos */
+            occupied_dos: number[];
+            /**
+             * Spin
+             * @default none
+             * @enum {string}
+             */
+            spin: "up" | "down" | "none";
+        };
+        /** DosSpectrum */
+        DosSpectrum: {
+            /**
+             * Broadening
+             * @description eV
+             */
+            broadening?: number | null;
+            /**
+             * Energies
+             * @description eV, shared by all series
+             */
+            energies: number[];
+            /**
+             * Fermi Level
+             * @description eV, as reported by the tool
+             */
+            fermi_level?: number | null;
+            /**
+             * Homo Energy
+             * @description eV, from the eigenvalues
+             */
+            homo_energy?: number | null;
+            /** Series */
+            series: components["schemas"]["DosSeries"][];
+        };
+        /** ElectronicSpectrumRequest */
+        ElectronicSpectrumRequest: {
+            /**
+             * Circular Dichroism
+             * @description plot signed rotatory strengths instead of absorption
+             * @default false
+             */
+            circular_dichroism: boolean;
+            /**
+             * Points
+             * @default 1000
+             */
+            points: number;
+            /**
+             * Shape
+             * @default gaussian
+             * @enum {string}
+             */
+            shape: "gaussian" | "lorentzian";
+            /** Transitions */
+            transitions: components["schemas"]["ElectronicTransition"][];
+            /**
+             * Width
+             * @description FWHM in nm
+             * @default 20
+             */
+            width: number;
+        };
+        /**
+         * ElectronicTransition
+         * @description One electronic excitation, for UV-Vis and CD spectra.
+         */
+        ElectronicTransition: {
+            /**
+             * Energy
+             * @description eV
+             */
+            energy?: number | null;
+            /** Label */
+            label?: string | null;
+            /**
+             * Oscillator Strength
+             * @description dimensionless
+             */
+            oscillator_strength?: number | null;
+            /**
+             * Rotatory Strength
+             * @description 10^-40 erg cm^3
+             */
+            rotatory_strength?: number | null;
+            /**
+             * Wavelength
+             * @description nm
+             */
+            wavelength: number;
+        };
+        /** EnergyRequest */
+        EnergyRequest: {
+            /** Constraints */
+            constraints?: components["schemas"]["FFConstraint"][];
+            /**
+             * Force Field
+             * @default MMFF94
+             */
+            force_field: string;
+            structure: components["schemas"]["Structure"];
+        };
+        /** EnergyResult */
+        EnergyResult: {
+            /** @description total energy in eV */
+            energy: components["schemas"]["Quantity"];
+            /** @description the same energy in the force field's unit */
+            energy_native: components["schemas"]["Quantity"];
+            /** Force Field */
+            force_field: string;
+            /**
+             * Forces
+             * @description eV/Å
+             */
+            forces: [
+                number,
+                number,
+                number
+            ][];
+            /**
+             * Terms
+             * @description energy breakdown in eV
+             */
+            terms?: {
+                [key: string]: number;
+            };
+        };
+        /** ExecutableReport */
+        ExecutableReport: {
+            /** Available */
+            available: boolean;
+            /**
+             * Executables
+             * @description role -> absolute path
+             */
+            executables?: {
+                [key: string]: string;
+            };
+            /** Messages */
+            messages?: string[];
+        };
+        /** ExportRequest */
+        ExportRequest: {
+            /** Format */
+            format: string;
+            /**
+             * Path
+             * @description write here if given, else return text
+             */
+            path?: string | null;
+            structure: components["schemas"]["Structure"];
+        };
+        /** ExportResponse */
+        ExportResponse: {
+            /** Path */
+            path?: string | null;
+            /** Text */
+            text?: string | null;
+        };
+        /** ExportTrajectoryRequest */
+        ExportTrajectoryRequest: {
+            /**
+             * Path
+             * @description write here if given, else return text
+             */
+            path?: string | null;
+            trajectory: components["schemas"]["Trajectory"];
+        };
+        /** ExportTrajectoryResponse */
+        ExportTrajectoryResponse: {
+            /** Path */
+            path?: string | null;
+            /** Text */
+            text?: string | null;
+        };
+        /**
+         * FFConstraint
+         * @description One Open Babel force-field constraint on 0-based atom indices.
+         */
+        FFConstraint: {
+            /** Atoms */
+            atoms: number[];
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "ignore" | "fix" | "fix_x" | "fix_y" | "fix_z" | "distance" | "angle" | "torsion";
+            /**
+             * Value
+             * @description Å for distance, degrees for angles
+             */
+            value?: number | null;
+        };
+        /** FillRequest */
+        FillRequest: {
+            /** Spacegroup */
+            spacegroup?: number | null;
+            structure: components["schemas"]["Structure"];
+            /**
+             * Symprec
+             * @description spglib tolerance in Å
+             * @default 0.001
+             */
+            symprec: number;
+        };
+        /** FixAtoms */
+        FixAtoms: {
+            /** Indices */
+            indices: number[];
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "fix_atoms";
+        };
+        /** FixBondLength */
+        FixBondLength: {
+            /** A */
+            a: number;
+            /** B */
+            b: number;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "fix_bond_length";
+        };
+        /**
+         * FixCartesian
+         * @description Fix selected Cartesian components (mask True = fixed) of one atom.
+         */
+        FixCartesian: {
+            /** Index */
+            index: number;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "fix_cartesian";
+            /**
+             * Mask
+             * @default [
+             *       true,
+             *       true,
+             *       true
+             *     ]
+             */
+            mask: [
+                boolean,
+                boolean,
+                boolean
+            ];
+        };
+        /** ForceFieldInfo */
+        ForceFieldInfo: {
+            /**
+             * Algorithms
+             * @default [
+             *       "steepest_descent",
+             *       "conjugate_gradients"
+             *     ]
+             */
+            algorithms: string[];
+            /** Charge Models */
+            charge_models: string[];
+            /**
+             * Conformer Methods
+             * @default [
+             *       "systematic",
+             *       "random",
+             *       "weighted"
+             *     ]
+             */
+            conformer_methods: string[];
+            /** Force Fields */
+            force_fields: string[];
+        };
+        /** ForkRequest */
+        ForkRequest: {
+            /** Name */
+            name?: string | null;
+            /**
+             * Restart From Parent
+             * @default false
+             */
+            restart_from_parent: boolean;
+            /**
+             * Structure Id
+             * @description use another structure instead of the parent's
+             */
+            structure_id?: string | null;
+            /** Values */
+            values?: {
+                [key: string]: unknown;
+            };
+        };
+        /** FormatDescription */
+        FormatDescription: {
+            /** Can Read */
+            can_read: boolean;
+            /** Can Write */
+            can_write: boolean;
+            /** Description */
+            description: string;
+            /** Extensions */
+            extensions: string[];
+            /** Library */
+            library: string;
+            /** Name */
+            name: string;
+        };
+        /** FractionalRequest */
+        FractionalRequest: {
+            /** Fractional */
+            fractional: [
+                number,
+                number,
+                number
+            ][];
+            structure: components["schemas"]["Structure"];
+        };
+        /** FractionalResponse */
+        FractionalResponse: {
+            /** Fractional */
+            fractional: [
+                number,
+                number,
+                number
+            ][];
+        };
+        /** FragmentInfo */
+        FragmentInfo: {
+            /** Category */
+            category: string;
+            /** Formula */
+            formula: string;
+            /**
+             * Id
+             * @description 'category/name' relative CML path without extension
+             */
+            id: string;
+            /** N Atoms */
+            n_atoms: number;
+            /** Name */
+            name: string;
+        };
+        /**
+         * Frame
+         * @description One frame: positions (Å) and optional cell, plus per-frame scalars/vectors.
+         */
+        Frame: {
+            /** Cell */
+            cell?: [
+                [
+                    number,
+                    number,
+                    number
+                ],
+                [
+                    number,
+                    number,
+                    number
+                ],
+                [
+                    number,
+                    number,
+                    number
+                ]
+            ] | null;
+            /**
+             * Energy
+             * @description eV
+             */
+            energy?: number | null;
+            /** Extra */
+            extra?: {
+                [key: string]: number;
+            };
+            /**
+             * Forces
+             * @description eV/Å
+             */
+            forces?: [
+                number,
+                number,
+                number
+            ][] | null;
+            /** Positions */
+            positions: [
+                number,
+                number,
+                number
+            ][];
+            /** Step */
+            step?: number | null;
+            /**
+             * Temperature
+             * @description K
+             */
+            temperature?: number | null;
+            /**
+             * Time
+             * @description fs
+             */
+            time?: number | null;
+        };
+        /** GeneratedFile */
+        GeneratedFile: {
+            /**
+             * Name
+             * @description file name inside the input directory
+             */
+            name: string;
+            /**
+             * Role
+             * @description input | structure | control | script
+             * @default input
+             */
+            role: string;
+            /** Text */
+            text: string;
+        };
+        /** GeneratedInputs */
+        GeneratedInputs: {
+            /** Files */
+            files: components["schemas"]["GeneratedFile"][];
+            /**
+             * Root Name
+             * @description base name of the calculation, e.g. 'case'
+             */
+            root_name: string;
+            /**
+             * Summary
+             * @default
+             */
+            summary: string;
+        };
+        /** GrapheneRequest */
+        GrapheneRequest: {
+            /**
+             * Bond
+             * @default 1.42
+             */
+            bond: number;
+            /**
+             * Kind
+             * @default armchair
+             * @enum {string}
+             */
+            kind: "armchair" | "zigzag";
+            /** M */
+            m: number;
+            /** N */
+            n: number;
+            /**
+             * Periodic
+             * @default true
+             */
+            periodic: boolean;
+            /**
+             * Saturated
+             * @default true
+             */
+            saturated: boolean;
+        };
+        /**
+         * GridRef
+         * @description A grid and where it lives: a calculation's results or a standalone dataset.
+         */
+        GridRef: {
+            /** Calculation Id */
+            calculation_id?: string | null;
+            grid: components["schemas"]["VolumetricGrid"];
+        };
+        /** GridStats */
+        GridStats: {
+            /** Abs Max */
+            abs_max: number;
+            /** Has Negative */
+            has_negative: boolean;
+            /** Max */
+            max: number;
+            /** Mean */
+            mean: number;
+            /** Min */
+            min: number;
+            /**
+             * Rule
+             * @description how suggested_isovalue was chosen
+             */
+            rule: string;
+            /** Suggested Isovalue */
+            suggested_isovalue: number;
+        };
+        /** HTTPValidationError */
+        HTTPValidationError: {
+            /** Detail */
+            detail?: components["schemas"]["ValidationError"][];
+        };
+        /** HealthResponse */
+        HealthResponse: {
+            /** Ase Version */
+            ase_version: string;
+            /**
+             * Status
+             * @default ok
+             */
+            status: string;
+            /** Version */
+            version: string;
+        };
+        /** Identifiers */
+        Identifiers: {
+            /** Inchi */
+            inchi: string;
+            /** Inchikey */
+            inchikey: string;
+            /** Smiles */
+            smiles: string;
+        };
+        /** ImportCubeRequest */
+        ImportCubeRequest: {
+            /**
+             * Kind
+             * @default other
+             * @enum {string}
+             */
+            kind: "electron_density" | "spin_density" | "orbital" | "orbital_density" | "electrostatic_potential" | "density_difference" | "other";
+            /**
+             * Path
+             * Format: path
+             */
+            path: string;
+        };
+        /** ImportCubeResponse */
+        ImportCubeResponse: {
+            grid: components["schemas"]["VolumetricGrid"];
+            structure: components["schemas"]["Structure"];
+        };
+        /** ImportPathRequest */
+        ImportPathRequest: {
+            /** Format */
+            format?: string | null;
+            /**
+             * Path
+             * Format: path
+             */
+            path: string;
+        };
+        /** ImportSpectrumRequest */
+        ImportSpectrumRequest: {
+            /**
+             * Kind
+             * @default experimental
+             * @enum {string}
+             */
+            kind: "ir" | "raman" | "nmr" | "uvvis" | "cd" | "dos" | "experimental" | "other";
+            /**
+             * Path
+             * Format: path
+             */
+            path: string;
+        };
+        /** ImportTextRequest */
+        ImportTextRequest: {
+            /**
+             * Format
+             * @description format name; sniffed when omitted
+             */
+            format?: string | null;
+            /**
+             * Text
+             * @description file content, e.g. a clipboard paste
+             */
+            text: string;
+        };
+        /** ImportTrajectoryRequest */
+        ImportTrajectoryRequest: {
+            /**
+             * Format
+             * @description ASE format name; auto-detected if None
+             */
+            format?: string | null;
+            /**
+             * Path
+             * Format: path
+             */
+            path: string;
+        };
+        /** InsertRequest */
+        InsertRequest: {
+            /**
+             * Attach Atom
+             * @description bond the fragment to this atom
+             */
+            attach_atom?: number | null;
+            /** @description explicit fragment instead */
+            fragment?: components["schemas"]["Structure"] | null;
+            /**
+             * Fragment Id
+             * @description library id 'category/name'
+             */
+            fragment_id?: string | null;
+            /** Position */
+            position?: [
+                number,
+                number,
+                number
+            ] | null;
+            structure: components["schemas"]["Structure"];
+        };
+        /** IrSpectrumRequest */
+        IrSpectrumRequest: {
+            /**
+             * Raman
+             * @description plot Raman activities instead of IR
+             * @default false
+             */
+            raman: boolean;
+            /**
+             * Scale Factor
+             * @default 1
+             */
+            scale_factor: number;
+            /**
+             * Shape
+             * @default gaussian
+             * @enum {string}
+             */
+            shape: "gaussian" | "lorentzian";
+            /**
+             * Transmittance
+             * @default false
+             */
+            transmittance: boolean;
+            vibrations: components["schemas"]["VibrationalSpectrum"];
+            /**
+             * Width
+             * @default 30
+             */
+            width: number;
+        };
+        /** JobRecord */
+        JobRecord: {
+            /** Calculation Id */
+            calculation_id?: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at?: string;
+            /** Error */
+            error?: string | null;
+            /** Exit Code */
+            exit_code?: number | null;
+            /** Finished At */
+            finished_at?: string | null;
+            /** Id */
+            id?: string;
+            /** Pid */
+            pid?: number | null;
+            spec: components["schemas"]["RunSpec"];
+            /** Started At */
+            started_at?: string | null;
+            /**
+             * Status
+             * @default queued
+             * @enum {string}
+             */
+            status: "queued" | "running" | "completed" | "failed" | "cancelled";
+        };
+        /** KPath */
+        KPath: {
+            /**
+             * Points
+             * @description a point labelled ',' marks a path break
+             */
+            points: components["schemas"]["KPathPoint"][];
+        };
+        /** KPathLabel */
+        KPathLabel: {
+            /**
+             * Distance
+             * @description position along the path (same axis as k_distance)
+             */
+            distance: number;
+            /** Label */
+            label: string;
+        };
+        /** KPathPoint */
+        KPathPoint: {
+            /** Label */
+            label: string;
+            /**
+             * Xk
+             * @description reciprocal (fractional) coordinates
+             */
+            xk: [
+                number,
+                number,
+                number
+            ];
+        };
+        /** LibraryEntry */
+        LibraryEntry: {
+            /** Category */
+            category: string;
+            /** Formula */
+            formula: string;
+            /** Name */
+            name: string;
+            /** Readable */
+            readable: boolean;
+        };
+        /** LoadRequest */
+        LoadRequest: {
+            /**
+             * Path
+             * Format: path
+             */
+            path: string;
+        };
+        /** LogResponse */
+        LogResponse: {
+            /** Lines */
+            lines: string[];
+            /** Stream */
+            stream: string;
+        };
+        /** NanotubeRequest */
+        NanotubeRequest: {
+            /**
+             * Bond
+             * @default 1.42
+             */
+            bond: number;
+            /**
+             * Length
+             * @default 1
+             */
+            length: number;
+            /** M */
+            m: number;
+            /** N */
+            n: number;
+            /**
+             * Periodic
+             * @default true
+             */
+            periodic: boolean;
+            /**
+             * Symbol
+             * @default C
+             */
+            symbol: string;
+        };
+        /**
+         * NmrShielding
+         * @description One nucleus' magnetic shielding tensor summary, as printed by NMR codes (ppm).
+         */
+        NmrShielding: {
+            /**
+             * Anisotropic
+             * @description ppm
+             */
+            anisotropic?: number | null;
+            /** Element */
+            element: string;
+            /**
+             * Index
+             * @description 0-based atom index in the structure
+             */
+            index: number;
+            /**
+             * Isotropic
+             * @description ppm, 1/3 tr(sigma)
+             */
+            isotropic: number;
+        };
+        /** NmrSpectrumRequest */
+        NmrSpectrumRequest: {
+            /**
+             * Element
+             * @description nucleus to plot, e.g. 'H' or 'C'
+             */
+            element: string;
+            /**
+             * Points
+             * @default 1000
+             */
+            points: number;
+            /**
+             * Reference
+             * @description shielding of the standard (TMS) from the same calculation; with 0 the plot shows negated absolute shieldings, as Avogadro 1 does until a reference is given
+             * @default 0
+             */
+            reference: number;
+            /**
+             * Shape
+             * @default lorentzian
+             * @enum {string}
+             */
+            shape: "gaussian" | "lorentzian";
+            /** Shieldings */
+            shieldings: components["schemas"]["NmrShielding"][];
+            /**
+             * Width
+             * @description FWHM in ppm
+             * @default 0.05
+             */
+            width: number;
+        };
+        /** NucleicRequest */
+        NucleicRequest: {
+            /** Bases Per Turn */
+            bases_per_turn?: number | null;
+            /**
+             * Double Strand
+             * @default true
+             */
+            double_strand: boolean;
+            /**
+             * Form
+             * @default B
+             * @enum {string}
+             */
+            form: "A" | "B" | "Z";
+            /**
+             * Kind
+             * @default dna
+             * @enum {string}
+             */
+            kind: "dna" | "rna";
+            /** Sequence */
+            sequence: string;
+        };
+        /** OpenProjectRequest */
+        OpenProjectRequest: {
+            /**
+             * Path
+             * Format: path
+             * @description absolute path of an existing project directory
+             */
+            path: string;
+        };
+        /** OptimizeRequest */
+        OptimizeRequest: {
+            /**
+             * Algorithm
+             * @default steepest_descent
+             * @enum {string}
+             */
+            algorithm: "steepest_descent" | "conjugate_gradients";
+            /** Constraints */
+            constraints?: components["schemas"]["FFConstraint"][];
+            /**
+             * Convergence
+             * @default 0.000001
+             */
+            convergence: number;
+            /**
+             * Force Field
+             * @default MMFF94
+             */
+            force_field: string;
+            /**
+             * Max Steps
+             * @default 500
+             */
+            max_steps: number;
+            /**
+             * Record Every
+             * @description 0 = no trajectory
+             * @default 0
+             */
+            record_every: number;
+            structure: components["schemas"]["Structure"];
+        };
+        /** OptimizeResult */
+        OptimizeResult: {
+            /** Converged */
+            converged: boolean;
+            energy: components["schemas"]["Quantity"];
+            /** Steps */
+            steps: number;
+            structure: components["schemas"]["Structure"];
+            trajectory?: components["schemas"]["Trajectory"] | null;
+        };
+        /**
+         * OptimizeStepRequest
+         * @description A few steps for interactive auto-optimization; ``fixed_atoms`` are pinned this round.
+         */
+        OptimizeStepRequest: {
+            /**
+             * Algorithm
+             * @default steepest_descent
+             * @enum {string}
+             */
+            algorithm: "steepest_descent" | "conjugate_gradients";
+            /** Constraints */
+            constraints?: components["schemas"]["FFConstraint"][];
+            /** Fixed Atoms */
+            fixed_atoms?: number[];
+            /**
+             * Force Field
+             * @default MMFF94
+             */
+            force_field: string;
+            /**
+             * Steps
+             * @default 4
+             */
+            steps: number;
+            structure: components["schemas"]["Structure"];
+        };
+        /** OptimizeStepResponse */
+        OptimizeStepResponse: {
+            /** Converged */
+            converged: boolean;
+            energy: components["schemas"]["Quantity"];
+            structure: components["schemas"]["Structure"];
+        };
+        /**
+         * OrbitalEntry
+         * @description One Kohn-Sham state as CP-PAW numbers it (1-based band, k-point and spin).
+         */
+        OrbitalEntry: {
+            /** Band */
+            band: number;
+            /**
+             * Energy
+             * @description eV
+             */
+            energy: number;
+            /**
+             * Grid Id
+             * @description exported cube, if any
+             */
+            grid_id?: string | null;
+            /** Kpoint */
+            kpoint: number;
+            /**
+             * Label
+             * @description HOMO-n / HOMO / LUMO / LUMO+n
+             */
+            label: string;
+            /** Occupation */
+            occupation: number;
+            /**
+             * Spin
+             * @description 1 or 2; 1 for non-spin-polarized runs
+             */
+            spin: number;
+        };
+        /** OrbitalExportOptions */
+        OrbitalExportOptions: {
+            /** Orbitals */
+            orbitals: components["schemas"]["OrbitalRequest"][];
+        };
+        /**
+         * OrbitalInfo
+         * @description Metadata describing one orbital (band) for orbital selection UIs.
+         */
+        OrbitalInfo: {
+            /**
+             * Energy
+             * @description eV
+             */
+            energy?: number | null;
+            /**
+             * Index
+             * @description 0-based orbital/band index within its spin channel
+             */
+            index: number;
+            /** Kpoint */
+            kpoint?: number | null;
+            /**
+             * Label
+             * @description e.g. 'HOMO', 'LUMO+1', symmetry label
+             */
+            label?: string | null;
+            /** Occupation */
+            occupation?: number | null;
+            /**
+             * Spin
+             * @default none
+             * @enum {string}
+             */
+            spin: "up" | "down" | "none";
+            /** Symmetry */
+            symmetry?: string | null;
+        };
+        /** OrbitalList */
+        OrbitalList: {
+            /** N Kpoints */
+            n_kpoints: number;
+            /** N Spins */
+            n_spins: number;
+            /** Orbitals */
+            orbitals: components["schemas"]["OrbitalEntry"][];
+        };
+        /** OrbitalRequest */
+        OrbitalRequest: {
+            /**
+             * Band
+             * @description 1-based band index
+             */
+            band: number;
+            /**
+             * Kpoint
+             * @default 1
+             */
+            kpoint: number;
+            /**
+             * Spin
+             * @default 1
+             */
+            spin: number;
+        };
+        /** OutputImport */
+        OutputImport: {
+            /** N Frames */
+            n_frames: number;
+            /** Program Format */
+            program_format: string;
+            structure: components["schemas"]["Structure"];
+            trajectory?: components["schemas"]["Trajectory"] | null;
+        };
+        /** ParameterSchema */
+        ParameterSchema: {
+            /** Backend */
+            backend: string;
+            /**
+             * Id
+             * @description e.g. 'cppaw'
+             */
+            id: string;
+            /** Sections */
+            sections: components["schemas"]["Section"][];
+            /** Title */
+            title: string;
+            /**
+             * Version
+             * @default 1
+             */
+            version: number;
+        };
+        /** ParameterSpec */
+        ParameterSpec: {
+            /**
+             * Advanced
+             * @default false
+             */
+            advanced: boolean;
+            /**
+             * Backend Path
+             * @description where the value lands in the backend input, e.g. 'CONTROL/GENERIC/NSTEP'
+             */
+            backend_path?: string | null;
+            /**
+             * Choices
+             * @description for type 'enum'
+             */
+            choices?: components["schemas"]["Choice"][] | null;
+            /** Default */
+            default?: unknown;
+            /**
+             * Exclusive Minimum
+             * @default false
+             */
+            exclusive_minimum: boolean;
+            /**
+             * Group
+             * @description UI sub-grouping inside a section
+             */
+            group?: string | null;
+            /**
+             * Help
+             * @default
+             */
+            help: string;
+            /**
+             * Integer Vector
+             * @description vector of ints instead of floats
+             * @default false
+             */
+            integer_vector: boolean;
+            /**
+             * Key
+             * @description unique within the schema, e.g. 'nstep'
+             */
+            key: string;
+            /** Label */
+            label: string;
+            /**
+             * Length
+             * @description for type 'vector'
+             */
+            length?: number | null;
+            /** Maximum */
+            maximum?: number | null;
+            /** Minimum */
+            minimum?: number | null;
+            /**
+             * Reference
+             * @description manual section / paper
+             */
+            reference?: string | null;
+            /**
+             * Required
+             * @default false
+             */
+            required: boolean;
+            /**
+             * Type
+             * @enum {string}
+             */
+            type: "integer" | "number" | "boolean" | "string" | "enum" | "vector" | "text";
+            unit?: components["schemas"]["Unit"] | null;
+            /** Visible When */
+            visible_when?: components["schemas"]["VisibleWhen"][];
+        };
+        /** PeptidePresets */
+        PeptidePresets: {
+            /** Presets */
+            presets: {
+                [key: string]: [
+                    number,
+                    number
+                ];
+            };
+        };
+        /** PeptideRequest */
+        PeptideRequest: {
+            /**
+             * Omega
+             * @default 180
+             */
+            omega: number;
+            /** Phi */
+            phi?: number | null;
+            /**
+             * Preset
+             * @default alpha_helix
+             * @enum {string}
+             */
+            preset: "straight" | "alpha_helix" | "beta_sheet" | "helix_3_10" | "pi_helix" | "custom";
+            /** Psi */
+            psi?: number | null;
+            /** Sequence */
+            sequence: string;
+        };
+        /** PerceiveRequest */
+        PerceiveRequest: {
+            /**
+             * Bond Orders
+             * @default true
+             */
+            bond_orders: boolean;
+            structure: components["schemas"]["Structure"];
+        };
+        /**
+         * PointGroupResult
+         * @description Molecular point group; ``order`` is 0 for the infinite groups of a linear molecule.
+         */
+        PointGroupResult: {
+            /** Operations */
+            operations: string[];
+            /** Order */
+            order: number;
+            /** Principal Axis */
+            principal_axis?: [
+                number,
+                number,
+                number
+            ] | null;
+            /** Symbol */
+            symbol: string;
+            /** Tolerance */
+            tolerance: number;
+        };
+        /** Preset */
+        Preset: {
+            /**
+             * Description
+             * @default
+             */
+            description: string;
+            /** Id */
+            id: string;
+            /** Name */
+            name: string;
+            /** Schema Id */
+            schema_id: string;
+            /**
+             * Values
+             * @description partial: only keys that differ
+             */
+            values?: {
+                [key: string]: unknown;
+            };
+        };
+        /** ProjectInfo */
+        ProjectInfo: {
+            manifest: components["schemas"]["ProjectManifest"];
+            /**
+             * Path
+             * Format: path
+             */
+            path: string;
+        };
+        /** ProjectManifest */
+        ProjectManifest: {
+            /** Calculation Ids */
+            calculation_ids?: string[];
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at?: string;
+            /** Dataset Ids */
+            dataset_ids?: string[];
+            /**
+             * Format Version
+             * @default 1
+             */
+            format_version: number;
+            /** Id */
+            id?: string;
+            /**
+             * Modified At
+             * Format: date-time
+             */
+            modified_at?: string;
+            /**
+             * Name
+             * @default untitled project
+             */
+            name: string;
+            /**
+             * Notes
+             * @default
+             */
+            notes: string;
+            /** Structure Ids */
+            structure_ids?: string[];
+            /** View Settings */
+            view_settings?: {
+                [key: string]: unknown;
+            };
+        };
+        /**
+         * Provenance
+         * @description Where a piece of data came from.
+         */
+        Provenance: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at?: string;
+            /**
+             * Notes
+             * @default
+             */
+            notes: string;
+            /**
+             * Parents
+             * @description ids of parent objects
+             */
+            parents?: string[];
+            /**
+             * Software
+             * @description e.g. 'CP-PAW aa467ef', 'ASE 3.26'
+             */
+            software?: string | null;
+            /**
+             * Source
+             * @description file path, backend id, tool name or 'user'
+             */
+            source: string;
+        };
+        /**
+         * Quantity
+         * @description A scalar with an explicit unit.
+         */
+        Quantity: {
+            unit: components["schemas"]["Unit"];
+            /** Value */
+            value: number;
+        };
+        /**
+         * Residue
+         * @description Residue/chain information for biomolecules.
+         */
+        Residue: {
+            /** Atom Indices */
+            atom_indices: number[];
+            /**
+             * Chain
+             * @default
+             */
+            chain: string;
+            /** Name */
+            name: string;
+            /** Number */
+            number: number;
+        };
+        /**
+         * ResidueStructure
+         * @description One residue's assignment. Backbone atoms are uids: an edit renumbers atoms, uids survive.
+         */
+        ResidueStructure: {
+            /** C */
+            c: string;
+            /** Ca */
+            ca: string;
+            /** Chain */
+            chain: string;
+            /**
+             * Code
+             * @description DSSP-like letter: H G I E B T -
+             */
+            code: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "helix" | "sheet" | "turn" | "coil";
+            /** N */
+            n: string;
+            /** Name */
+            name: string;
+            /** Number */
+            number: number;
+            /** O */
+            o: string;
+            /**
+             * Residue
+             * @description index into structure.residues
+             */
+            residue: number;
+        };
+        /** Resources */
+        Resources: {
+            /**
+             * Cores
+             * @default 1
+             */
+            cores: number;
+            /**
+             * Mpi
+             * @default false
+             */
+            mpi: boolean;
+        };
+        /**
+         * ResultBundle
+         * @description Parsed results in Atomscope model types. Backend-specific data stays in ``extra``.
+         */
+        ResultBundle: {
+            /**
+             * Complete
+             * @description the program's own normal-termination marker was found
+             */
+            complete?: boolean | null;
+            /** Converged */
+            converged?: boolean | null;
+            /** Extra */
+            extra?: {
+                [key: string]: unknown;
+            };
+            final_structure?: components["schemas"]["Structure"] | null;
+            /** Grids */
+            grids?: components["schemas"]["VolumetricGrid"][];
+            /** Properties */
+            properties?: {
+                [key: string]: components["schemas"]["Quantity"];
+            };
+            /** Series */
+            series?: components["schemas"]["ScalarSeries"][];
+            trajectory?: components["schemas"]["Trajectory"] | null;
+            /** Warnings */
+            warnings?: string[];
+        };
+        /**
+         * RunSpec
+         * @description Everything needed to start a process. Built by backend plugins, executed by JobManager.
+         */
+        RunSpec: {
+            /**
+             * Argv
+             * @description argv[0] is an absolute executable path
+             */
+            argv: string[];
+            /**
+             * Cwd
+             * Format: path
+             */
+            cwd: string;
+            /**
+             * Description
+             * @default
+             */
+            description: string;
+            /**
+             * Env
+             * @description added to a minimal base env
+             */
+            env?: {
+                [key: string]: string;
+            };
+            /**
+             * Soft Stop Seconds
+             * @description seconds given to the process itself (SIGTERM to its PID) before the whole process group is signalled
+             * @default 5
+             */
+            soft_stop_seconds: number;
+            /**
+             * Stderr Name
+             * @default stderr.log
+             */
+            stderr_name: string;
+            /**
+             * Stdout Name
+             * @default stdout.log
+             */
+            stdout_name: string;
+            /**
+             * Watch Files
+             * @description files (relative to cwd) whose growth is streamed
+             */
+            watch_files?: string[];
+        };
+        /**
+         * ScalarSeries
+         * @description A named 1-D series (e.g. energy per iteration) with units.
+         */
+        ScalarSeries: {
+            /** Name */
+            name: string;
+            /** X */
+            x: number[];
+            /** X Label */
+            x_label: string;
+            /**
+             * X Unit
+             * @default
+             */
+            x_unit: string;
+            /** Y */
+            y: number[];
+            /** Y Label */
+            y_label: string;
+            /**
+             * Y Unit
+             * @default
+             */
+            y_unit: string;
+        };
+        /** SecondaryStructureRequest */
+        SecondaryStructureRequest: {
+            structure: components["schemas"]["Structure"];
+        };
+        /** SecondaryStructureResult */
+        SecondaryStructureResult: {
+            /**
+             * Chains
+             * @description residue indices in backbone order, one per chain
+             */
+            chains: number[][];
+            /** Hbonds */
+            hbonds: components["schemas"]["BackboneHydrogenBond"][];
+            /** Residues */
+            residues: components["schemas"]["ResidueStructure"][];
+        };
+        /** Section */
+        Section: {
+            /**
+             * Advanced
+             * @default false
+             */
+            advanced: boolean;
+            /**
+             * Help
+             * @default
+             */
+            help: string;
+            /** Id */
+            id: string;
+            /** Label */
+            label: string;
+            /** Parameters */
+            parameters?: components["schemas"]["ParameterSpec"][];
+        };
+        /** SetCellRequest */
+        SetCellRequest: {
+            /**
+             * Mode
+             * @default cartesian
+             * @enum {string}
+             */
+            mode: "cartesian" | "fractional";
+            /**
+             * Parameters
+             * @description a b c (Å) alpha beta gamma (deg)
+             */
+            parameters?: [
+                number,
+                number,
+                number,
+                number,
+                number,
+                number
+            ] | null;
+            structure: components["schemas"]["Structure"];
+            /** Vectors */
+            vectors?: [
+                [
+                    number,
+                    number,
+                    number
+                ],
+                [
+                    number,
+                    number,
+                    number
+                ],
+                [
+                    number,
+                    number,
+                    number
+                ]
+            ] | null;
+        };
+        /** SlabRequest */
+        SlabRequest: {
+            /** Layers */
+            layers: number;
+            /** Miller */
+            miller: [
+                number,
+                number,
+                number
+            ];
+            structure: components["schemas"]["Structure"];
+            /**
+             * Vacuum
+             * @default 10
+             */
+            vacuum: number;
+        };
+        /** SmartsRequest */
+        SmartsRequest: {
+            /**
+             * Pattern
+             * @description SMARTS pattern, Open Babel dialect
+             */
+            pattern: string;
+            structure: components["schemas"]["Structure"];
+            /**
+             * Unique
+             * @description symmetry-unique matches only
+             * @default true
+             */
+            unique: boolean;
+        };
+        /**
+         * SmartsResult
+         * @description Matches of a SMARTS query: one tuple of atom indices per match, plus their union.
+         */
+        SmartsResult: {
+            /** Atoms */
+            atoms: number[];
+            /** Matches */
+            matches: number[][];
+        };
+        /** SmilesRequest */
+        SmilesRequest: {
+            /**
+             * Add Hydrogens
+             * @default true
+             */
+            add_hydrogens: boolean;
+            /** Smiles */
+            smiles: string;
+        };
+        /** SpacegroupBuildRequest */
+        SpacegroupBuildRequest: {
+            /** Basis */
+            basis: [
+                number,
+                number,
+                number
+            ][];
+            /** Cellpar */
+            cellpar: [
+                number,
+                number,
+                number,
+                number,
+                number,
+                number
+            ];
+            /** Name */
+            name?: string | null;
+            /** Spacegroup */
+            spacegroup: number;
+            /** Symbols */
+            symbols: string[];
+        };
+        /**
+         * Spectrum
+         * @description A plottable spectrum: stick peaks and/or a sampled curve on a shared pair of axes.
+         */
+        Spectrum: {
+            /** Id */
+            id: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "ir" | "raman" | "nmr" | "uvvis" | "cd" | "dos" | "experimental" | "other";
+            /**
+             * Line Shape
+             * @description shape used for the curve
+             */
+            line_shape?: ("gaussian" | "lorentzian") | null;
+            /** Name */
+            name: string;
+            /** Peaks */
+            peaks?: components["schemas"]["SpectrumPeak"][];
+            provenance?: components["schemas"]["Provenance"] | null;
+            /**
+             * Width
+             * @description FWHM of the line shape, x units
+             */
+            width?: number | null;
+            x: components["schemas"]["SpectrumAxis"];
+            /**
+             * X Values
+             * @description broadened curve grid
+             */
+            x_values?: number[];
+            y: components["schemas"]["SpectrumAxis"];
+            /**
+             * Y Values
+             * @description broadened curve values
+             */
+            y_values?: number[];
+        };
+        /**
+         * SpectrumAxis
+         * @description One axis of a spectrum: what is plotted, in which unit, and in which direction.
+         */
+        SpectrumAxis: {
+            /**
+             * Descending
+             * @description draw the axis from high to low (IR wavenumbers, NMR chemical shifts)
+             * @default false
+             */
+            descending: boolean;
+            /**
+             * Label
+             * @description axis label, e.g. 'wavenumber'
+             */
+            label: string;
+            /**
+             * Unit
+             * @description free-form unit string, e.g. 'cm^-1', 'km/mol', 'ppm'
+             */
+            unit: string;
+        };
+        /**
+         * SpectrumPeak
+         * @description One stick: a transition at ``x`` with ``intensity`` in the spectrum's y unit.
+         */
+        SpectrumPeak: {
+            /**
+             * Assignment
+             * @description symmetry, nucleus, orbital pair ...
+             */
+            assignment?: string | null;
+            /** Intensity */
+            intensity: number;
+            /**
+             * Label
+             * @description short label drawn next to the stick
+             */
+            label?: string | null;
+            /**
+             * Source Index
+             * @description index into the originating list (vibrational mode, transition)
+             */
+            source_index?: number | null;
+            /** X */
+            x: number;
+        };
+        /** SpectrumRequest */
+        SpectrumRequest: {
+            /**
+             * Kind
+             * @default other
+             * @enum {string}
+             */
+            kind: "ir" | "raman" | "nmr" | "uvvis" | "cd" | "dos" | "experimental" | "other";
+            /**
+             * Name
+             * @default spectrum
+             */
+            name: string;
+            /** Peaks */
+            peaks: components["schemas"]["SpectrumPeak"][];
+            /**
+             * Points
+             * @default 1000
+             */
+            points: number;
+            /**
+             * Shape
+             * @default gaussian
+             * @enum {string}
+             */
+            shape: "gaussian" | "lorentzian";
+            /**
+             * Transmittance
+             * @description convert absorbance to transmittance
+             * @default false
+             */
+            transmittance: boolean;
+            /**
+             * Transmittance Scale
+             * @default 0.01
+             */
+            transmittance_scale: number;
+            /**
+             * Width
+             * @description FWHM in x units
+             * @default 30
+             */
+            width: number;
+            x: components["schemas"]["SpectrumAxis"];
+            y: components["schemas"]["SpectrumAxis"];
+        };
+        /**
+         * Structure
+         * @description The central editable object: atoms, bonds, cell and attached properties.
+         */
+        Structure: {
+            /** Atomic Scalars */
+            atomic_scalars?: {
+                [key: string]: components["schemas"]["AtomicScalarProperty"];
+            };
+            /** Atomic Vectors */
+            atomic_vectors?: {
+                [key: string]: components["schemas"]["AtomicVectorProperty"];
+            };
+            /** Atoms */
+            atoms?: components["schemas"]["Atom"][];
+            /** Bonds */
+            bonds?: components["schemas"]["Bond"][];
+            cell?: components["schemas"]["Cell"] | null;
+            /**
+             * Charge
+             * @description total charge in e
+             * @default 0
+             */
+            charge: number;
+            /** Constraints */
+            constraints?: (components["schemas"]["FixAtoms"] | components["schemas"]["FixCartesian"] | components["schemas"]["FixBondLength"])[];
+            /** Id */
+            id?: string;
+            /**
+             * Multiplicity
+             * @description 2S+1; None = unspecified
+             */
+            multiplicity?: number | null;
+            /**
+             * Name
+             * @default untitled
+             */
+            name: string;
+            /** Properties */
+            properties?: {
+                [key: string]: components["schemas"]["Quantity"];
+            };
+            provenance?: components["schemas"]["Provenance"] | null;
+            /** Residues */
+            residues?: components["schemas"]["Residue"][];
+        };
+        /** StructureBody */
+        StructureBody: {
+            structure: components["schemas"]["Structure"];
+        };
+        /** StructureRequest */
+        StructureRequest: {
+            structure: components["schemas"]["Structure"];
+        };
+        /** StructureSummary */
+        StructureSummary: {
+            /** Formula */
+            formula: string;
+            /** Id */
+            id: string;
+            /** N Atoms */
+            n_atoms: number;
+            /** Name */
+            name: string;
+            /** Periodic */
+            periodic: boolean;
+        };
+        /** SupercellRequest */
+        SupercellRequest: {
+            /** Matrix */
+            matrix?: [
+                [
+                    number,
+                    number,
+                    number
+                ],
+                [
+                    number,
+                    number,
+                    number
+                ],
+                [
+                    number,
+                    number,
+                    number
+                ]
+            ] | null;
+            /** Repeat */
+            repeat?: [
+                number,
+                number,
+                number
+            ] | null;
+            structure: components["schemas"]["Structure"];
+        };
+        /** SurfaceRequest */
+        SurfaceRequest: {
+            /**
+             * Kind
+             * @default orbital
+             * @enum {string}
+             */
+            kind: "orbital" | "density" | "spin_density" | "electrostatic_potential" | "vdw";
+            /**
+             * Orbital Index
+             * @description 0-based; default is the HOMO
+             */
+            orbital_index?: number | null;
+            /**
+             * Padding
+             * @description box padding in Angstrom
+             * @default 3.5
+             */
+            padding: number;
+            /**
+             * Path
+             * Format: path
+             * @description the wavefunction file to evaluate
+             */
+            path: string;
+            /**
+             * Spacing
+             * @description grid spacing in Angstrom
+             * @default 0.2
+             */
+            spacing: number;
+            /**
+             * Vdw Scale
+             * @default 1
+             */
+            vdw_scale: number;
+        };
+        /**
+         * SymmetryInfo
+         * @description Result of space-group perception.
+         */
+        SymmetryInfo: {
+            /**
+             * Equivalent Atoms
+             * @description per atom: index of its orbit representative
+             */
+            equivalent_atoms: number[];
+            /** Hall */
+            hall: string;
+            /** Hall Number */
+            hall_number: number;
+            /**
+             * International
+             * @description short Hermann-Mauguin symbol, e.g. 'Fd-3m'
+             */
+            international: string;
+            /** International Full */
+            international_full: string;
+            /**
+             * Lattice Type
+             * @enum {string}
+             */
+            lattice_type: "triclinic" | "monoclinic" | "orthorhombic" | "tetragonal" | "rhombohedral" | "hexagonal" | "cubic";
+            /** N Asymmetric */
+            n_asymmetric: number;
+            /** N Operations */
+            n_operations: number;
+            /** Number */
+            number: number;
+            /** Point Group */
+            point_group: string;
+            /** Schoenflies */
+            schoenflies: string;
+            /** Symprec */
+            symprec: number;
+            /** Wyckoffs */
+            wyckoffs: string[];
+        };
+        /**
+         * Trajectory
+         * @description A sequence of frames sharing the topology of ``structure_id``.
+         */
+        Trajectory: {
+            /** Frames */
+            frames?: components["schemas"]["Frame"][];
+            /** Id */
+            id: string;
+            /**
+             * Kind
+             * @description optimization | md | neb | vibration | generic
+             * @default generic
+             */
+            kind: string;
+            /** Name */
+            name: string;
+            provenance?: components["schemas"]["Provenance"] | null;
+            /** Structure Id */
+            structure_id?: string | null;
+            /** Symbols */
+            symbols: string[];
+        };
+        /** TrajectoryImport */
+        TrajectoryImport: {
+            /** @description first frame, with perceived bonds */
+            structure: components["schemas"]["Structure"];
+            trajectory: components["schemas"]["Trajectory"];
+        };
+        /**
+         * TrajectoryScalars
+         * @description Per-frame scalars and cells; the companion of the binary positions stream.
+         */
+        TrajectoryScalars: {
+            /** Cells */
+            cells: ([
+                [
+                    number,
+                    number,
+                    number
+                ],
+                [
+                    number,
+                    number,
+                    number
+                ],
+                [
+                    number,
+                    number,
+                    number
+                ]
+            ] | null)[];
+            /** Energy */
+            energy: (number | null)[];
+            /** Id */
+            id: string;
+            /** Kind */
+            kind: string;
+            /** N Atoms */
+            n_atoms: number;
+            /** N Frames */
+            n_frames: number;
+            /** Name */
+            name: string;
+            /** Step */
+            step: (number | null)[];
+            /** Symbols */
+            symbols: string[];
+            /** Temperature */
+            temperature: (number | null)[];
+            /** Time */
+            time: (number | null)[];
+        };
+        /** TranslateRequest */
+        TranslateRequest: {
+            /** Indices */
+            indices?: number[] | null;
+            /**
+             * Mode
+             * @default cartesian
+             * @enum {string}
+             */
+            mode: "cartesian" | "fractional";
+            structure: components["schemas"]["Structure"];
+            /**
+             * Vector
+             * @description 3-vector
+             */
+            vector: [
+                number,
+                number,
+                number
+            ];
+            /**
+             * Wrap
+             * @default false
+             */
+            wrap: boolean;
+        };
+        /**
+         * Unit
+         * @description Units that can appear on quantities in the data model.
+         * @enum {string}
+         */
+        Unit: "angstrom" | "bohr" | "nm" | "eV" | "hartree" | "kJ/mol" | "kcal/mol" | "rydberg" | "eV/angstrom" | "hartree/bohr" | "fs" | "atomic_time" | "ps" | "e" | "muB" | "K" | "cm^-1" | "debye" | "e*angstrom" | "" | "e/angstrom^3" | "e/bohr^3" | "V" | "hartree/e";
+        /** UpdateValuesRequest */
+        UpdateValuesRequest: {
+            /** Values */
+            values: {
+                [key: string]: unknown;
+            };
+        };
+        /** ValidationError */
+        ValidationError: {
+            /** Context */
+            ctx?: Record<string, never>;
+            /** Input */
+            input?: unknown;
+            /** Location */
+            loc: (string | number)[];
+            /** Message */
+            msg: string;
+            /** Error Type */
+            type: string;
+        };
+        /** ValidationIssue */
+        ValidationIssue: {
+            /** Key */
+            key: string | null;
+            /** Message */
+            message: string;
+            /**
+             * Severity
+             * @default error
+             * @enum {string}
+             */
+            severity: "error" | "warning";
+        };
+        /** ValidationReport */
+        ValidationReport: {
+            /** Issues */
+            issues?: components["schemas"]["ValidationIssue"][];
+        };
+        /**
+         * VibrationImport
+         * @description What a quantum-chemistry output yielded: modes, NMR shieldings, transitions.
+         */
+        VibrationImport: {
+            /** Program */
+            program: string;
+            /** Shieldings */
+            shieldings?: components["schemas"]["NmrShielding"][];
+            structure?: components["schemas"]["Structure"] | null;
+            /** Transitions */
+            transitions?: components["schemas"]["ElectronicTransition"][];
+            vibrations?: components["schemas"]["VibrationalSpectrum"] | null;
+        };
+        /**
+         * VibrationalMode
+         * @description One normal mode.
+         *
+         *     ``displacements`` are *Cartesian* displacement vectors, one per atom, normalised so that
+         *     ``sum_i |d_i|^2 == 1``. This is the convention Gaussian and ORCA print (ORCA states that the
+         *     1/sqrt(m) weighting has already been applied to its printed vectors), and it is what an
+         *     animation needs: atom ``i`` moves along ``amplitude * d_i``. Mass-weighted eigenvectors are
+         *     converted by dividing by sqrt(m_i) and renormalising.
+         */
+        VibrationalMode: {
+            /**
+             * Displacements
+             * @description Cartesian, unit-normalised over all atoms
+             */
+            displacements: [
+                number,
+                number,
+                number
+            ][];
+            /**
+             * Force Constant
+             * @description mDyne/Å
+             */
+            force_constant?: number | null;
+            /**
+             * Frequency
+             * @description cm^-1; negative = imaginary
+             */
+            frequency: number;
+            /**
+             * Ir Intensity
+             * @description km/mol
+             */
+            ir_intensity?: number | null;
+            /**
+             * Kind
+             * @description vibration | translation | rotation (trivial modes are reported separately)
+             * @default vibration
+             */
+            kind: string;
+            /**
+             * Raman Activity
+             * @description Å^4/amu
+             */
+            raman_activity?: number | null;
+            /**
+             * Reduced Mass
+             * @description amu
+             */
+            reduced_mass?: number | null;
+            /** Symmetry */
+            symmetry?: string | null;
+        };
+        /**
+         * VibrationalSpectrum
+         * @description The modes of one structure plus the summary numbers a Vibrations dock shows.
+         */
+        VibrationalSpectrum: {
+            /** Id */
+            id: string;
+            /**
+             * Linear
+             * @description True when the molecule is linear
+             */
+            linear?: boolean | null;
+            /**
+             * Method
+             * @description how the modes were obtained
+             */
+            method?: string | null;
+            /**
+             * Modes
+             * @description the 3N-6 (3N-5) vibrational modes
+             */
+            modes: components["schemas"]["VibrationalMode"][];
+            /**
+             * Positions
+             * @description Å, the equilibrium geometry the modes belong to
+             */
+            positions?: [
+                number,
+                number,
+                number
+            ][];
+            provenance?: components["schemas"]["Provenance"] | null;
+            /** Structure Id */
+            structure_id?: string | null;
+            /** Symbols */
+            symbols?: string[];
+            /**
+             * Trivial Modes
+             * @description the 6 (5 for linear molecules) translations/rotations, for diagnostics
+             */
+            trivial_modes?: components["schemas"]["VibrationalMode"][];
+            /**
+             * Zero Point Energy
+             * @description eV, 1/2 sum h*nu over the real vibrational modes
+             */
+            zero_point_energy?: number | null;
+        };
+        /** VibrationsRequest */
+        VibrationsRequest: {
+            /**
+             * Calculator
+             * @description openbabel | emt | lj | morse (ASE built-ins)
+             * @default openbabel
+             */
+            calculator: string;
+            /**
+             * Charge Model
+             * @description Open Babel charge model for the approximate dipole
+             * @default gasteiger
+             */
+            charge_model: string;
+            /**
+             * Delta
+             * @description displacement in Å
+             * @default 0.01
+             */
+            delta: number;
+            /**
+             * Force Field
+             * @description Open Babel force field
+             * @default MMFF94
+             */
+            force_field: string;
+            /**
+             * Optimize First
+             * @description minimise with the same force field first; a Hessian at a non-stationary geometry mixes real modes into the translations and rotations
+             * @default true
+             */
+            optimize_first: boolean;
+            structure: components["schemas"]["Structure"];
+        };
+        /** VibrationsResponse */
+        VibrationsResponse: {
+            ir: components["schemas"]["Spectrum"];
+            /** @description the geometry the modes belong to */
+            structure: components["schemas"]["Structure"];
+            vibrations: components["schemas"]["VibrationalSpectrum"];
+        };
+        /** ViewSettingsBody */
+        ViewSettingsBody: {
+            /** Settings */
+            settings: {
+                [key: string]: unknown;
+            };
+        };
+        /**
+         * VisibleWhen
+         * @description Show a parameter only when another parameter satisfies a condition.
+         */
+        VisibleWhen: {
+            /** Key */
+            key: string;
+            /**
+             * Op
+             * @default eq
+             * @enum {string}
+             */
+            op: "eq" | "ne" | "in" | "not_in" | "truthy" | "falsy";
+            /** Value */
+            value?: unknown;
+        };
+        /** VolumeRequest */
+        VolumeRequest: {
+            structure: components["schemas"]["Structure"];
+            /**
+             * Volume
+             * @description target volume in Å^3
+             */
+            volume: number;
+        };
+        /**
+         * VolumetricGrid
+         * @description A regular 3D grid. Voxel (i,j,k) sits at origin + i*axes[0] + j*axes[1] + k*axes[2].
+         *
+         *     Values are stored in a binary sidecar (``data_ref``: path relative to the owning
+         *     project/calculation, little-endian float32 or float64, C order matching ``shape``) or
+         *     inline for small grids. Exactly one of ``data_ref`` / ``inline_values`` is set.
+         */
+        VolumetricGrid: {
+            /**
+             * Axes
+             * @description step vectors in Å
+             */
+            axes: [
+                [
+                    number,
+                    number,
+                    number
+                ],
+                [
+                    number,
+                    number,
+                    number
+                ],
+                [
+                    number,
+                    number,
+                    number
+                ]
+            ];
+            /** Data Ref */
+            data_ref?: string | null;
+            /**
+             * Dtype
+             * @default float32
+             * @enum {string}
+             */
+            dtype: "float32" | "float64";
+            /** Id */
+            id: string;
+            /** Inline Values */
+            inline_values?: number[] | null;
+            /**
+             * Kind
+             * @default other
+             * @enum {string}
+             */
+            kind: "electron_density" | "spin_density" | "orbital" | "orbital_density" | "electrostatic_potential" | "density_difference" | "other";
+            /** Name */
+            name: string;
+            orbital?: components["schemas"]["OrbitalInfo"] | null;
+            /**
+             * Origin
+             * @description Å
+             */
+            origin: [
+                number,
+                number,
+                number
+            ];
+            provenance?: components["schemas"]["Provenance"] | null;
+            /** Shape */
+            shape: [
+                number,
+                number,
+                number
+            ];
+            /**
+             * Structure Id
+             * @description structure the grid belongs to
+             */
+            structure_id?: string | null;
+            unit: components["schemas"]["Unit"];
+        };
+        /**
+         * WavefunctionInfo
+         * @description What a loaded wavefunction offers; the structure is saved into the project.
+         */
+        WavefunctionInfo: {
+            /** Format */
+            format: string;
+            /** Homo Index */
+            homo_index: number | null;
+            /** N Basis */
+            n_basis: number;
+            /** N Electrons */
+            n_electrons: number;
+            /** Orbitals */
+            orbitals: components["schemas"]["WavefunctionOrbital"][];
+            /** Source */
+            source: string;
+            structure: components["schemas"]["Structure"];
+        };
+        /** WavefunctionOrbital */
+        WavefunctionOrbital: {
+            /**
+             * Energy
+             * @description Hartree, as written by the program
+             */
+            energy?: number | null;
+            /** Index */
+            index: number;
+            /** Label */
+            label: string;
+            /** Occupation */
+            occupation: number;
+            /** Spin */
+            spin: string;
+        };
+        /** SymmetryRequest */
+        atomscope__api__routes_chem__SymmetryRequest: {
+            structure: components["schemas"]["Structure"];
+            /**
+             * Tolerance
+             * @default normal
+             * @enum {string}
+             */
+            tolerance: "loose" | "normal" | "tight";
+        };
+        /** SymmetryRequest */
+        atomscope__api__routes_crystal__SymmetryRequest: {
+            structure: components["schemas"]["Structure"];
+            /**
+             * Symprec
+             * @description spglib tolerance in Å
+             * @default 0.001
+             */
+            symprec: number;
+        };
+    };
+    responses: never;
+    parameters: never;
+    requestBodies: never;
+    headers: never;
+    pathItems: never;
 }
 export type $defs = Record<string, never>;
 export interface operations {
-  electronic_api_analysis_electronic_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['ElectronicSpectrumRequest'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['Spectrum'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  nmr_api_analysis_nmr_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['NmrSpectrumRequest'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['Spectrum'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  spectrum_api_analysis_spectrum_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['SpectrumRequest'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['Spectrum'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  vibrations_api_analysis_vibrations_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['VibrationsRequest'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['VibrationsResponse'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  vibrational_spectrum_api_analysis_vibrations_spectrum_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['IrSpectrumRequest'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['Spectrum'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  list_backends_api_backends_get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['BackendInfo'][];
-        };
-      };
-    };
-  };
-  backend_presets_api_backends__backend_id__presets_get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        backend_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['Preset'][];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  backend_schema_api_backends__backend_id__schema_get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        backend_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ParameterSchema'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  list_fragments_api_build_fragments_get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['FragmentInfo'][];
-        };
-      };
-    };
-  };
-  get_fragment_api_build_fragments__fragment_id__get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        fragment_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['Structure'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  build_graphene_api_build_graphene_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['GrapheneRequest'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['Structure'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  insert_api_build_insert_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['InsertRequest'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['Structure'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  build_nanotube_api_build_nanotube_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['NanotubeRequest'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['Structure'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  build_nucleic_api_build_nucleic_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['NucleicRequest'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['Structure'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  build_peptide_api_build_peptide_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['PeptideRequest'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['Structure'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  peptide_presets_api_build_peptide_presets_get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['PeptidePresets'];
-        };
-      };
-    };
-  };
-  list_calculations_api_calculations_get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['Calculation'][];
-        };
-      };
-    };
-  };
-  create_calculation_api_calculations_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['CreateCalculationRequest'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      201: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['Calculation'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  get_calculation_api_calculations__calc_id__get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        calc_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['Calculation'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  cancel_calculation_api_calculations__calc_id__cancel_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        calc_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['Calculation'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  fork_calculation_api_calculations__calc_id__fork_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        calc_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['ForkRequest'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      201: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['Calculation'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  generate_inputs_api_calculations__calc_id__generate_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        calc_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['GeneratedInputs'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  read_log_api_calculations__calc_id__log_get: {
-    parameters: {
-      query?: {
-        stream?: string;
-        tail?: number;
-      };
-      header?: never;
-      path: {
-        calc_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['LogResponse'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  results_api_calculations__calc_id__results_get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        calc_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ResultBundle'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  run_calculation_api_calculations__calc_id__run_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        calc_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['Calculation'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  trajectory_api_calculations__calc_id__trajectory_get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        calc_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['Trajectory'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  trajectory_positions_api_calculations__calc_id__trajectory_positions_get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        calc_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/octet-stream': unknown;
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  trajectory_scalars_api_calculations__calc_id__trajectory_scalars_get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        calc_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['TrajectoryScalars'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  validate_calculation_api_calculations__calc_id__validate_get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        calc_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ValidationReport'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  update_values_api_calculations__calc_id__values_put: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        calc_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['UpdateValuesRequest'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['Calculation'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  add_hydrogens_api_chem_add_hydrogens_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['AddHydrogensRequest'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['Structure'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  aromaticity_api_chem_aromaticity_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['StructureRequest'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['AromaticityResult'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  conformers_api_chem_conformers_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['ConformerRequest'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ConformerResult'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  energy_api_chem_energy_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['EnergyRequest'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['EnergyResult'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  force_fields_api_chem_force_fields_get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ForceFieldInfo'];
-        };
-      };
-    };
-  };
-  h_to_methyl_api_chem_h_to_methyl_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['AtomsRequest'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['Structure'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  identifiers_api_chem_identifiers_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['StructureRequest'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['Identifiers'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  invert_chirality_api_chem_invert_chirality_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['AtomsRequest'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['Structure'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  optimize_api_chem_optimize_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['OptimizeRequest'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['OptimizeResult'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  optimize_step_api_chem_optimize_step_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['OptimizeStepRequest'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['OptimizeStepResponse'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  partial_charges_api_chem_partial_charges_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['ChargesRequest'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ChargesResult'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  perceive_bonds_api_chem_perceive_bonds_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['PerceiveRequest'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['Structure'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  point_group_api_chem_point_group_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['atomscope__api__routes_chem__SymmetryRequest'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['PointGroupResult'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  remove_hydrogens_api_chem_remove_hydrogens_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['AtomsRequest'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['Structure'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  select_smarts_api_chem_smarts_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['SmartsRequest'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['SmartsResult'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  symmetrize_api_chem_symmetrize_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['atomscope__api__routes_chem__SymmetryRequest'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['Structure'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  get_bands_api_cppaw_calculations__calc_id__bands_get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        calc_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['BandStructure'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  request_bands_api_cppaw_calculations__calc_id__bands_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        calc_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['BandOptions'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['Calculation'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  default_band_path_api_cppaw_calculations__calc_id__bands_path_get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        calc_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['KPath'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  get_dos_api_cppaw_calculations__calc_id__dos_get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        calc_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['DosSpectrum'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  request_dos_api_cppaw_calculations__calc_id__dos_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        calc_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['DosOptions'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['Calculation'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  orbitals_api_cppaw_calculations__calc_id__orbitals_get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        calc_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['OrbitalList'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  export_orbitals_api_cppaw_calculations__calc_id__orbitals_export_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        calc_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['OrbitalExportOptions'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['Calculation'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  asymmetric_unit_api_crystal_asymmetric_unit_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['atomscope__api__routes_crystal__SymmetryRequest'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['Structure'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  bulk_api_crystal_bulk_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['BulkRequest'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['Structure'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  add_cell_api_crystal_cell_add_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['AddCellRequest'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['Structure'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  remove_cell_api_crystal_cell_remove_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['StructureBody'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['Structure'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  set_cell_api_crystal_cell_set_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['SetCellRequest'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['Structure'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  fill_api_crystal_fill_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['FillRequest'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['Structure'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  fractional_api_crystal_fractional_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['StructureBody'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['FractionalResponse'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  set_fractional_api_crystal_fractional_set_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['FractionalRequest'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['Structure'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  library_api_crystal_library_get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['LibraryEntry'][];
-        };
-      };
-    };
-  };
-  library_entry_api_crystal_library__category___name__get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        category: string;
-        name: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['Structure'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  niggli_api_crystal_niggli_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['StructureBody'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['Structure'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  primitive_api_crystal_primitive_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['atomscope__api__routes_crystal__SymmetryRequest'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['Structure'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  primitive_standardized_api_crystal_primitive_standardized_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['atomscope__api__routes_crystal__SymmetryRequest'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['Structure'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  scale_volume_api_crystal_scale_volume_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['VolumeRequest'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['Structure'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  slab_api_crystal_slab_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['SlabRequest'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['Structure'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  from_spacegroup_api_crystal_spacegroup_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['SpacegroupBuildRequest'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['Structure'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  standard_orientation_api_crystal_standard_orientation_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['StructureBody'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['Structure'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  supercell_api_crystal_supercell_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['SupercellRequest'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['Structure'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  symmetrize_api_crystal_symmetrize_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['atomscope__api__routes_crystal__SymmetryRequest'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['Structure'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  symmetry_api_crystal_symmetry_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['atomscope__api__routes_crystal__SymmetryRequest'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['SymmetryInfo'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  translate_api_crystal_translate_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['TranslateRequest'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['Structure'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  wrap_api_crystal_wrap_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['StructureBody'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['Structure'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  list_all_api_grids_get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['GridRef'][];
-        };
-      };
-    };
-  };
-  get_grid_api_grids__grid_id__get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        grid_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['VolumetricGrid'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  get_grid_data_api_grids__grid_id__data_get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        grid_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/octet-stream': unknown;
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  get_grid_stats_api_grids__grid_id__stats_get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        grid_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['GridStats'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  health_api_health_get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HealthResponse'];
-        };
-      };
-    };
-  };
-  export_structure_api_io_export_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['ExportRequest'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ExportResponse'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  export_trajectory_api_io_export_trajectory_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['ExportTrajectoryRequest'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ExportTrajectoryResponse'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  list_formats_api_io_formats_get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['FormatDescription'][];
-        };
-      };
-    };
-  };
-  import_cube_file_api_io_import_cube_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['ImportCubeRequest'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ImportCubeResponse'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  import_output_api_io_import_output_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['ImportPathRequest'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['OutputImport'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  import_path_api_io_import_path_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['ImportPathRequest'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['Structure'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  import_spectrum_path_api_io_import_spectrum_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['ImportSpectrumRequest'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['Spectrum'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  import_spectrum_upload_api_io_import_spectrum_upload_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'multipart/form-data': components['schemas']['Body_import_spectrum_upload_api_io_import_spectrum_upload_post'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['Spectrum'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  import_text_api_io_import_text_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['ImportTextRequest'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['Structure'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  import_trajectory_path_api_io_import_trajectory_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['ImportTrajectoryRequest'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['TrajectoryImport'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  import_trajectory_upload_api_io_import_trajectory_upload_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'multipart/form-data': components['schemas']['Body_import_trajectory_upload_api_io_import_trajectory_upload_post'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['TrajectoryImport'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  import_upload_api_io_import_upload_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'multipart/form-data': components['schemas']['Body_import_upload_api_io_import_upload_post'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['Structure'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  import_vibrations_path_api_io_import_vibrations_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['ImportSpectrumRequest'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['VibrationImport'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  import_vibrations_upload_api_io_import_vibrations_upload_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'multipart/form-data': components['schemas']['Body_import_vibrations_upload_api_io_import_vibrations_upload_post'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['VibrationImport'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  build_from_smiles_api_io_smiles_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['SmilesRequest'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['Structure'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  current_project_api_project_get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ProjectInfo'] | null;
-        };
-      };
-    };
-  };
-  close_project_api_project_close_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      204: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content?: never;
-      };
-    };
-  };
-  create_project_api_project_create_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['CreateProjectRequest'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      201: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ProjectInfo'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  open_project_api_project_open_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['OpenProjectRequest'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ProjectInfo'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  get_view_settings_api_project_view_settings_get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': {
-            [key: string]: unknown;
-          };
-        };
-      };
-    };
-  };
-  put_view_settings_api_project_view_settings_put: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['ViewSettingsBody'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': {
-            [key: string]: unknown;
-          };
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  list_structures_api_structures_get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['StructureSummary'][];
-        };
-      };
-    };
-  };
-  get_structure_api_structures__structure_id__get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        structure_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['Structure'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  put_structure_api_structures__structure_id__put: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        structure_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['Structure'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['StructureSummary'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  delete_structure_api_structures__structure_id__delete: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        structure_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      204: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content?: never;
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  load_api_wavefunction_load_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['LoadRequest'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['WavefunctionInfo'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  surface_api_wavefunction_surface_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['SurfaceRequest'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['VolumetricGrid'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
+    electronic_api_analysis_electronic_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ElectronicSpectrumRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Spectrum"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    nmr_api_analysis_nmr_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["NmrSpectrumRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Spectrum"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    spectrum_api_analysis_spectrum_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SpectrumRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Spectrum"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    vibrations_api_analysis_vibrations_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["VibrationsRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VibrationsResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    vibrational_spectrum_api_analysis_vibrations_spectrum_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["IrSpectrumRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Spectrum"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_backends_api_backends_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BackendInfo"][];
+                };
+            };
+        };
+    };
+    backend_presets_api_backends__backend_id__presets_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                backend_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Preset"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    backend_schema_api_backends__backend_id__schema_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                backend_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ParameterSchema"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_fragments_api_build_fragments_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FragmentInfo"][];
+                };
+            };
+        };
+    };
+    get_fragment_api_build_fragments__fragment_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                fragment_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Structure"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    build_graphene_api_build_graphene_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GrapheneRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Structure"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    insert_api_build_insert_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["InsertRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Structure"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    build_nanotube_api_build_nanotube_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["NanotubeRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Structure"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    build_nucleic_api_build_nucleic_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["NucleicRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Structure"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    build_peptide_api_build_peptide_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PeptideRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Structure"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    peptide_presets_api_build_peptide_presets_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PeptidePresets"];
+                };
+            };
+        };
+    };
+    list_calculations_api_calculations_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Calculation"][];
+                };
+            };
+        };
+    };
+    create_calculation_api_calculations_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateCalculationRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Calculation"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_calculation_api_calculations__calc_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                calc_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Calculation"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    cancel_calculation_api_calculations__calc_id__cancel_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                calc_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Calculation"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    fork_calculation_api_calculations__calc_id__fork_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                calc_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ForkRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Calculation"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    generate_inputs_api_calculations__calc_id__generate_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                calc_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GeneratedInputs"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    read_log_api_calculations__calc_id__log_get: {
+        parameters: {
+            query?: {
+                stream?: string;
+                tail?: number;
+            };
+            header?: never;
+            path: {
+                calc_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LogResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    results_api_calculations__calc_id__results_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                calc_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResultBundle"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    run_calculation_api_calculations__calc_id__run_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                calc_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Calculation"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    trajectory_api_calculations__calc_id__trajectory_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                calc_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Trajectory"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    trajectory_positions_api_calculations__calc_id__trajectory_positions_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                calc_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/octet-stream": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    trajectory_scalars_api_calculations__calc_id__trajectory_scalars_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                calc_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TrajectoryScalars"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    validate_calculation_api_calculations__calc_id__validate_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                calc_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationReport"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_values_api_calculations__calc_id__values_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                calc_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateValuesRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Calculation"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    add_hydrogens_api_chem_add_hydrogens_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AddHydrogensRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Structure"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    aromaticity_api_chem_aromaticity_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StructureRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AromaticityResult"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    conformers_api_chem_conformers_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ConformerRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConformerResult"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    energy_api_chem_energy_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EnergyRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EnergyResult"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    force_fields_api_chem_force_fields_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ForceFieldInfo"];
+                };
+            };
+        };
+    };
+    h_to_methyl_api_chem_h_to_methyl_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AtomsRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Structure"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    identifiers_api_chem_identifiers_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StructureRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Identifiers"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    invert_chirality_api_chem_invert_chirality_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AtomsRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Structure"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    optimize_api_chem_optimize_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OptimizeRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OptimizeResult"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    optimize_step_api_chem_optimize_step_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OptimizeStepRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OptimizeStepResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    partial_charges_api_chem_partial_charges_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChargesRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChargesResult"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    perceive_bonds_api_chem_perceive_bonds_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PerceiveRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Structure"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    point_group_api_chem_point_group_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["atomscope__api__routes_chem__SymmetryRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PointGroupResult"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    remove_hydrogens_api_chem_remove_hydrogens_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AtomsRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Structure"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    secondary_structure_api_chem_secondary_structure_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SecondaryStructureRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SecondaryStructureResult"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    select_smarts_api_chem_smarts_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SmartsRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SmartsResult"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    symmetrize_api_chem_symmetrize_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["atomscope__api__routes_chem__SymmetryRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Structure"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_bands_api_cppaw_calculations__calc_id__bands_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                calc_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BandStructure"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    request_bands_api_cppaw_calculations__calc_id__bands_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                calc_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BandOptions"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Calculation"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    default_band_path_api_cppaw_calculations__calc_id__bands_path_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                calc_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["KPath"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_dos_api_cppaw_calculations__calc_id__dos_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                calc_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DosSpectrum"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    request_dos_api_cppaw_calculations__calc_id__dos_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                calc_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DosOptions"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Calculation"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    orbitals_api_cppaw_calculations__calc_id__orbitals_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                calc_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OrbitalList"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    export_orbitals_api_cppaw_calculations__calc_id__orbitals_export_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                calc_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OrbitalExportOptions"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Calculation"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    asymmetric_unit_api_crystal_asymmetric_unit_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["atomscope__api__routes_crystal__SymmetryRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Structure"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    bulk_api_crystal_bulk_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BulkRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Structure"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    add_cell_api_crystal_cell_add_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AddCellRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Structure"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    remove_cell_api_crystal_cell_remove_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StructureBody"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Structure"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    set_cell_api_crystal_cell_set_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SetCellRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Structure"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    fill_api_crystal_fill_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FillRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Structure"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    fractional_api_crystal_fractional_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StructureBody"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FractionalResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    set_fractional_api_crystal_fractional_set_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FractionalRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Structure"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    library_api_crystal_library_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LibraryEntry"][];
+                };
+            };
+        };
+    };
+    library_entry_api_crystal_library__category___name__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                category: string;
+                name: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Structure"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    niggli_api_crystal_niggli_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StructureBody"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Structure"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    primitive_api_crystal_primitive_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["atomscope__api__routes_crystal__SymmetryRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Structure"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    primitive_standardized_api_crystal_primitive_standardized_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["atomscope__api__routes_crystal__SymmetryRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Structure"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    scale_volume_api_crystal_scale_volume_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["VolumeRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Structure"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    slab_api_crystal_slab_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SlabRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Structure"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    from_spacegroup_api_crystal_spacegroup_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SpacegroupBuildRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Structure"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    standard_orientation_api_crystal_standard_orientation_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StructureBody"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Structure"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    supercell_api_crystal_supercell_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SupercellRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Structure"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    symmetrize_api_crystal_symmetrize_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["atomscope__api__routes_crystal__SymmetryRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Structure"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    symmetry_api_crystal_symmetry_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["atomscope__api__routes_crystal__SymmetryRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SymmetryInfo"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    translate_api_crystal_translate_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TranslateRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Structure"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    wrap_api_crystal_wrap_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StructureBody"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Structure"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_all_api_grids_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GridRef"][];
+                };
+            };
+        };
+    };
+    get_grid_api_grids__grid_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                grid_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VolumetricGrid"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_grid_data_api_grids__grid_id__data_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                grid_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/octet-stream": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_grid_stats_api_grids__grid_id__stats_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                grid_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GridStats"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    health_api_health_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HealthResponse"];
+                };
+            };
+        };
+    };
+    export_structure_api_io_export_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ExportRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExportResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    export_trajectory_api_io_export_trajectory_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ExportTrajectoryRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExportTrajectoryResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_formats_api_io_formats_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FormatDescription"][];
+                };
+            };
+        };
+    };
+    import_cube_file_api_io_import_cube_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ImportCubeRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ImportCubeResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    import_output_api_io_import_output_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ImportPathRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OutputImport"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    import_path_api_io_import_path_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ImportPathRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Structure"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    import_spectrum_path_api_io_import_spectrum_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ImportSpectrumRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Spectrum"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    import_spectrum_upload_api_io_import_spectrum_upload_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_import_spectrum_upload_api_io_import_spectrum_upload_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Spectrum"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    import_text_api_io_import_text_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ImportTextRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Structure"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    import_trajectory_path_api_io_import_trajectory_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ImportTrajectoryRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TrajectoryImport"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    import_trajectory_upload_api_io_import_trajectory_upload_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_import_trajectory_upload_api_io_import_trajectory_upload_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TrajectoryImport"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    import_upload_api_io_import_upload_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_import_upload_api_io_import_upload_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Structure"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    import_vibrations_path_api_io_import_vibrations_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ImportSpectrumRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VibrationImport"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    import_vibrations_upload_api_io_import_vibrations_upload_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_import_vibrations_upload_api_io_import_vibrations_upload_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VibrationImport"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    build_from_smiles_api_io_smiles_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SmilesRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Structure"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    current_project_api_project_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProjectInfo"] | null;
+                };
+            };
+        };
+    };
+    close_project_api_project_close_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    create_project_api_project_create_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateProjectRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProjectInfo"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    open_project_api_project_open_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OpenProjectRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProjectInfo"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_view_settings_api_project_view_settings_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+        };
+    };
+    put_view_settings_api_project_view_settings_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ViewSettingsBody"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_structures_api_structures_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StructureSummary"][];
+                };
+            };
+        };
+    };
+    get_structure_api_structures__structure_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                structure_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Structure"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    put_structure_api_structures__structure_id__put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                structure_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Structure"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StructureSummary"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_structure_api_structures__structure_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                structure_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    load_api_wavefunction_load_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LoadRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WavefunctionInfo"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    surface_api_wavefunction_surface_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SurfaceRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VolumetricGrid"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
 }

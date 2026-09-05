@@ -238,3 +238,25 @@ def test_point_group_and_symmetrize_routes(client: TestClient) -> None:
         "/api/chem/point-group", json={"structure": idealized, "tolerance": "tight"}
     ).json()
     assert again["symbol"] == "C2v"
+
+
+def test_secondary_structure_route(client: TestClient) -> None:
+    peptide = client.post(
+        "/api/build/peptide", json={"sequence": "AAAAAAAAAA", "preset": "alpha_helix"}
+    ).json()
+    r = client.post("/api/chem/secondary-structure", json={"structure": peptide})
+    assert r.status_code == 200, r.text
+    result = r.json()
+    assert [res["kind"] for res in result["residues"]].count("helix") >= 6
+    assert result["chains"] == [list(range(10))]
+    assert result["hbonds"] and result["hbonds"][0]["energy"] < 0
+
+    # the backbone comes back as uids, which survive the renumbering an edit would cause
+    uids = {a["uid"] for a in peptide["atoms"]}
+    first = result["residues"][0]
+    assert {first["n"], first["ca"], first["c"], first["o"]} <= uids
+
+    # a molecule without residues is not a protein, and the route says so by returning nothing
+    water = client.post("/api/io/smiles", json={"smiles": "O"}).json()
+    empty = client.post("/api/chem/secondary-structure", json={"structure": water}).json()
+    assert empty["residues"] == [] and empty["chains"] == []

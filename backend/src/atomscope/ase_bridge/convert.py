@@ -84,12 +84,35 @@ def to_atoms(structure: Structure) -> Atoms:
     return atoms
 
 
+def _pdb_labels(atoms: Atoms, n: int) -> list[str | None]:
+    """PDB atom names (``CA``, ``OD1``) from ASE's reader, which keeps them in an array."""
+    if not atoms.has("atomtypes"):
+        return [None] * n
+    return [str(t).strip() or None for t in atoms.arrays["atomtypes"]]
+
+
+def _pdb_residues(atoms: Atoms) -> list[Residue]:
+    """Residues from ASE's PDB arrays. Consecutive atoms of one residue form one entry, so a
+    residue number reused by a second chain does not merge the two."""
+    if not (atoms.has("residuenames") and atoms.has("residuenumbers")):
+        return []
+    names = [str(x).strip() for x in atoms.arrays["residuenames"]]
+    numbers = [int(x) for x in atoms.arrays["residuenumbers"]]
+    residues: list[Residue] = []
+    for i, (name, number) in enumerate(zip(names, numbers, strict=True)):
+        if residues and residues[-1].name == name and residues[-1].number == number:
+            residues[-1].atom_indices.append(i)
+        else:
+            residues.append(Residue(name=name, number=number, atom_indices=[i]))
+    return residues
+
+
 def from_atoms(atoms: Atoms, *, name: str | None = None) -> Structure:
     """Build a Structure from ``atoms``, restoring Atomscope data from ``atoms.info`` if present."""
     extra: dict[str, Any] = dict(atoms.info.get(INFO_KEY) or {})
     n = len(atoms)
     uids = extra.get("uids") or [None] * n
-    labels = extra.get("labels") or [None] * n
+    labels = extra.get("labels") or _pdb_labels(atoms, n)
     formal = extra.get("formal_charges") or [0] * n
     symbols = atoms.get_chemical_symbols()
     positions = atoms.get_positions()
@@ -151,7 +174,8 @@ def from_atoms(atoms: Atoms, *, name: str | None = None) -> Structure:
             k: Quantity.model_validate(v) for k, v in extra.get("properties", {}).items()
         },
         "constraints": _constraints_from_ase(atoms),
-        "residues": [Residue.model_validate(r) for r in extra.get("residues", [])],
+        "residues": [Residue.model_validate(r) for r in extra.get("residues", [])]
+        or _pdb_residues(atoms),
     }
     if extra.get("id"):
         kwargs2["id"] = extra["id"]
