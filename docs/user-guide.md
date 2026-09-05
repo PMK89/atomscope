@@ -458,6 +458,13 @@ finishes once they are filled in. A POSCAR whose *comment* line happens to be
 the species (`Si`, or `Ga As`) is read without asking. Opening such a file from
 disk rather than pasting it gets the reader's own error instead of the dialog.
 
+The last ten files opened **by path** are listed in the `File` menu under
+`Open…`, most recent first, with `Clear recent` below them. The list is kept by
+the backend rather than the browser, so it survives a reload and a different
+project; a file that has moved since is still listed, marked `(missing)` and
+not openable. Files chosen with the browser's file picker are not recorded —
+there is no path on this machine to go back to.
+
 **Fetch from a database.** `File ▸ Fetch from PDB…` takes a four-character
 PDB id (`1CRN`) and downloads that entry from RCSB; `File ▸ Fetch by name…`
 takes a chemical name (`caffeine`) and asks PubChem for it, preferring the 3D

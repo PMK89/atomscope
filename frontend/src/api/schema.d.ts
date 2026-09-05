@@ -1667,6 +1667,30 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/io/recent': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Get Recent
+     * @description The files opened by path recently, most recent first (Avogadro's Open Recent).
+     */
+    get: operations['get_recent_api_io_recent_get'];
+    put?: never;
+    post?: never;
+    /**
+     * Delete Recent
+     * @description Clear Recent.
+     */
+    delete: operations['delete_recent_api_io_recent_delete'];
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/io/smiles': {
     parameters: {
       query?: never;
@@ -3730,6 +3754,24 @@ export interface components {
       unit: components['schemas']['Unit'];
       /** Value */
       value: number;
+    };
+    /** RecentFile */
+    RecentFile: {
+      /**
+       * Exists
+       * @description whether it is still there; a moved file is kept, not hidden
+       */
+      exists: boolean;
+      /**
+       * Name
+       * @description the file name alone, for the menu
+       */
+      name: string;
+      /**
+       * Path
+       * @description absolute path, as it was opened
+       */
+      path: string;
     };
     /**
      * Residue
@@ -7784,6 +7826,46 @@ export interface operations {
         };
         content: {
           'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  get_recent_api_io_recent_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['RecentFile'][];
+        };
+      };
+    };
+  };
+  delete_recent_api_io_recent_delete: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['RecentFile'][];
         };
       };
     };

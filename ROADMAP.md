@@ -52,9 +52,9 @@ builders), spectra (IR/UV/CD), vibrations, symmetry (point groups) and the file 
 **No CRITICAL or HIGH row is NOT STARTED**, but 18 HIGH rows are PARTIAL — each note says which
 part is missing (bond selection mode, arbitrary background colour, Set Spacegroup, the Gaussian and
 GAMESS option dialogs, the remaining wavefunction readers, frontend plugin registration, modal
-progress dialogs). Counts: 196 IMPLEMENTED, 36 PARTIAL, 79 NOT STARTED, 1 BLOCKED of 312 — re-derive
+progress dialogs). Counts: 197 IMPLEMENTED, 36 PARTIAL, 78 NOT STARTED, 1 BLOCKED of 312 — re-derive
 with the awk in `docs/STATE.md`, do not trust this number. The NOT STARTED work is MEDIUM and below:
-Python scripting and the plugin manager, multi-document/multi-view, recent files, QTAIM.
+Python scripting and the plugin manager, multi-document/multi-view, drag-and-drop open, QTAIM.
 
 ## Phase 9 — Additional backends — IN PROGRESS
 `qc_inputs` (ORCA, Gaussian, NWChem, GAMESS-US, MOPAC, Quantum ESPRESSO, ABINIT input generation) and the

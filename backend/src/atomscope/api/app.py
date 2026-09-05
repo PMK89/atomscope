@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from importlib.metadata import version as pkg_version
+from pathlib import Path
 
 import ase
 from fastapi import FastAPI
@@ -29,9 +30,10 @@ from atomscope.api.state import AppState
 DEV_ORIGINS = ["http://127.0.0.1:5173", "http://localhost:5173"]
 
 
-def create_app() -> FastAPI:
+def create_app(data_dir: Path | None = None) -> FastAPI:
+    """The API. `data_dir` overrides `ATOMSCOPE_DATA_DIR`, which is what a test wants."""
     app = FastAPI(title="Atomscope API", version=pkg_version("atomscope"))
-    app.state.atomscope = AppState()
+    app.state.atomscope = AppState(data_dir)
     app.add_middleware(
         CORSMiddleware,
         allow_origins=DEV_ORIGINS,

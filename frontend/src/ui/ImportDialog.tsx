@@ -9,6 +9,7 @@ import { useEffect, useRef, useState } from 'react';
 import { dialogKeyHandler } from './dialogKeys';
 import { api, type FormatDescription } from '../api/client';
 import { normalizeStructure } from '../model/structure';
+import { useRecentStore } from '../state/recentStore';
 import { useStructureStore } from '../state/structureStore';
 
 /** `accept` for the file picker: every extension a reader claims. */
@@ -60,6 +61,8 @@ export function ImportDialog({
     setBusy(true);
     try {
       finish(await api.io.importPath({ path: path.trim(), ...(format ? { format } : {}) }));
+      // the backend recorded it; the menu's copy of the list is now one behind
+      void useRecentStore.getState().refresh();
     } catch (e) {
       onError(`Open failed: ${(e as Error).message}`);
     } finally {

@@ -23,7 +23,15 @@ class AppState:
         self.registry = registry or default_registry()
         self.jobs = JobManager(max_parallel=1)
         env_dir = os.environ.get("ATOMSCOPE_DATA_DIR")
-        self.data_dir = data_dir or Path(env_dir) if env_dir else Path(tempfile.gettempdir())
+        # an explicit directory wins over the environment, and both over a temporary one. Written
+        # as one expression this read `(data_dir or Path(env_dir)) if env_dir else tempdir`, which
+        # threw away the argument whenever the variable was unset.
+        if data_dir is not None:
+            self.data_dir = data_dir
+        elif env_dir:
+            self.data_dir = Path(env_dir)
+        else:
+            self.data_dir = Path(tempfile.gettempdir())
 
     def scratch_dir(self) -> Path:
         """Directory for transient uploads; inside the data dir, never the project."""

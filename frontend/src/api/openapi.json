@@ -3838,6 +3838,29 @@
         "title": "Quantity",
         "type": "object"
       },
+      "RecentFile": {
+        "additionalProperties": false,
+        "properties": {
+          "exists": {
+            "description": "whether it is still there; a moved file is kept, not hidden",
+            "title": "Exists",
+            "type": "boolean"
+          },
+          "name": {
+            "description": "the file name alone, for the menu",
+            "title": "Name",
+            "type": "string"
+          },
+          "path": {
+            "description": "absolute path, as it was opened",
+            "title": "Path",
+            "type": "string"
+          }
+        },
+        "required": ["path", "name", "exists"],
+        "title": "RecentFile",
+        "type": "object"
+      },
       "Residue": {
         "additionalProperties": false,
         "description": "Residue/chain information for biomolecules.",
@@ -9997,6 +10020,52 @@
         },
         "summary": "Import Vibrations Upload",
         "tags": ["analysis"]
+      }
+    },
+    "/api/io/recent": {
+      "delete": {
+        "description": "Clear Recent.",
+        "operationId": "delete_recent_api_io_recent_delete",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/RecentFile"
+                  },
+                  "title": "Response Delete Recent Api Io Recent Delete",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Delete Recent",
+        "tags": ["io"]
+      },
+      "get": {
+        "description": "The files opened by path recently, most recent first (Avogadro's Open Recent).",
+        "operationId": "get_recent_api_io_recent_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/RecentFile"
+                  },
+                  "title": "Response Get Recent Api Io Recent Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Get Recent",
+        "tags": ["io"]
       }
     },
     "/api/io/smiles": {

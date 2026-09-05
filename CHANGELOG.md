@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Recent files in the File menu, with Clear recent. The list is kept by the
+  backend, so it survives opening another project and reloading the page.
+
 - Fetch a structure by identifier: `File ▸ Fetch from PDB…` (RCSB) and
   `Fetch by name…` (PubChem). Two fixed hosts, an identifier rather than a URL, allowlisted
   redirects and a size and time bound — see docs/architecture/security-model.md.

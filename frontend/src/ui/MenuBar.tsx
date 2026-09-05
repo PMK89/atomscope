@@ -20,6 +20,7 @@ import { redoEdit, undoEdit } from './historyActions';
 import { ConstraintsDialog } from './ConstraintsDialog';
 import { SpeciesDialog } from './SpeciesDialog';
 import { NamedSelectionsDialog } from './NamedSelectionsDialog';
+import { useRecentStore } from '../state/recentStore';
 import { addNamed, resolveNamed } from '../editor/namedSelections';
 import { SettingsDialog } from './SettingsDialog';
 import { BuildDialogs } from './BuildDialogs';
@@ -57,6 +58,11 @@ import type { StructureStyle } from '../renderer/layers/StructureLayer';
 export function MenuBar({ onError }: { onError: (msg: string) => void }): JSX.Element {
   const [help, setHelp] = useState<HelpTopic | null>(null);
   const [namedOpen, setNamedOpen] = useState(false);
+  // subscribed one field at a time: the whole store would re-render the bar on every change
+  const recentFiles = useRecentStore((s) => s.files);
+  const refreshRecent = useRecentStore((s) => s.refresh);
+  const clearRecent = useRecentStore((s) => s.clear);
+  useEffect(() => void refreshRecent(), [refreshRecent]);
   const [exportImage, setExportImage] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
   const [exportOpen, setExportOpen] = useState(false);
@@ -109,6 +115,16 @@ export function MenuBar({ onError }: { onError: (msg: string) => void }): JSX.El
    * the backend validates and puts into one path segment of a fixed address -- there is no
    * fetch-from-URL, which would be this process making a request to wherever it was told.
    */
+  /** Avogadro's Open Recent: the backend keeps the list, so it outlives the browser session. */
+  const openRecent = async (path: string): Promise<void> => {
+    try {
+      store.load(normalizeStructure(await api.io.importPath({ path })));
+      void refreshRecent();
+    } catch (e) {
+      onError(`Open failed: ${(e as Error).message}`);
+    }
+  };
+
   const fetchStructure = async (source: 'pdb' | 'pubchem', query: string): Promise<void> => {
     try {
       store.load(normalizeStructure(await api.io.fetch({ source, query })));
@@ -188,6 +204,15 @@ export function MenuBar({ onError }: { onError: (msg: string) => void }): JSX.El
             action: () => store.load(normalizeStructure({ name: 'untitled', charge: 0 })),
           },
           { label: 'Open…', shortcut: 'Ctrl+O', action: () => setImportOpen(true) },
+          // Avogadro's Open Recent submenu, flat: the menu here has one level
+          ...recentFiles.map((f) => ({
+            label: f.exists ? f.name : `${f.name} (missing)`,
+            action: () => void openRecent(f.path),
+            disabled: !f.exists,
+          })),
+          ...(recentFiles.length > 0
+            ? [{ label: 'Clear recent', action: () => void clearRecent() }]
+            : []),
           {
             label: 'Save',
             shortcut: 'Ctrl+S',

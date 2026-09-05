@@ -8,8 +8,8 @@ from atomscope.io import fetch as fetch_module
 from atomscope.model import Atom, Structure
 
 
-def client() -> TestClient:
-    return TestClient(create_app())
+def client(data_dir: Path | None = None) -> TestClient:
+    return TestClient(create_app(data_dir))
 
 
 def test_health() -> None:
@@ -52,7 +52,8 @@ def test_openapi_has_structure_schema() -> None:
 
 
 def test_io_routes(tmp_path: Path) -> None:
-    c = client()
+    # its own data directory: opening a path records a recent file, and that is not this test's
+    c = client(tmp_path / "data")
     assert any(f["name"] == "xyz" for f in c.get("/api/io/formats").json())
     r = c.post("/api/io/smiles", json={"smiles": "O"})
     assert r.status_code == 200 and r.json()["atoms"].__len__() == 3
@@ -127,6 +128,42 @@ def test_fetch_validates_before_it_asks_and_reports_what_went_wrong(
     monkeypatch.setattr(fetch_module, "_get", offline)
     r = c.post("/api/io/fetch", json={"source": "pubchem", "query": "caffeine"})
     assert r.status_code == 502 and "could not reach" in r.json()["detail"]
+
+
+def test_recent_files_remember_what_was_opened_by_path(tmp_path: Path) -> None:
+    data_dir = tmp_path / "data"
+    c = client(data_dir)
+    assert c.get("/api/io/recent").json() == []
+
+    first = tmp_path / "water.xyz"
+    first.write_text("3\nwater\nO 0 0 0\nH 0 0.76 0.59\nH 0 -0.76 0.59\n")
+    second = tmp_path / "methane.xyz"
+    second.write_text("1\nc\nC 0 0 0\n")
+    for p in (first, second, first):
+        assert c.post("/api/io/import/path", json={"path": str(p)}).status_code == 200
+
+    # most recent first, and a file opened twice appears once
+    listed = c.get("/api/io/recent").json()
+    assert [r["name"] for r in listed] == ["water.xyz", "methane.xyz"]
+    assert all(r["exists"] for r in listed)
+
+    # a path that is not a structure is not worth going back to
+    bad = tmp_path / "notes.xyz"
+    bad.write_text("this is not a structure\n")
+    assert c.post("/api/io/import/path", json={"path": str(bad)}).status_code == 400
+    assert [r["name"] for r in c.get("/api/io/recent").json()] == ["water.xyz", "methane.xyz"]
+
+    # a file that has since moved is still listed, and says it is gone
+    second.unlink()
+    assert [r["exists"] for r in c.get("/api/io/recent").json()] == [True, False]
+
+    # the list outlives the process, which is the point of it
+    assert [r["name"] for r in client(data_dir).get("/api/io/recent").json()] == [
+        "water.xyz",
+        "methane.xyz",
+    ]
+    assert c.delete("/api/io/recent").json() == []
+    assert c.get("/api/io/recent").json() == []
 
 
 def test_view_settings_persist(tmp_path: Path) -> None:

@@ -2,6 +2,7 @@ import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, expect, test, vi } from 'vitest';
 import { api } from '../api/client';
 import { NO_NAMED_SELECTIONS } from '../editor/namedSelections';
+import { useRecentStore } from '../state/recentStore';
 import { useSelectionStore } from '../state/selectionStore';
 import { makeAtom, normalizeStructure } from '../model/structure';
 import { useStructureStore } from '../state/structureStore';
@@ -20,6 +21,7 @@ afterEach(() => {
 });
 
 beforeEach(() => {
+  useRecentStore.setState({ files: [] });
   useSelectionStore.getState().clear();
   useSelectionStore.getState().setNamed(NO_NAMED_SELECTIONS);
   const st = useStructureStore.getState();
@@ -159,4 +161,32 @@ test('an id the database does not have is reported, not swallowed', async () => 
   await waitFor(() =>
     expect(onError).toHaveBeenCalledWith('Fetch failed: 9ZZZ: not in the database'),
   );
+});
+
+test('the File menu lists recent files, opens one and clears the list', async () => {
+  const importPath = vi
+    .spyOn(api.io, 'importPath')
+    .mockResolvedValue({ name: 'water', atoms: [makeAtom('O', [0, 0, 0])] } as never);
+  const recent = vi.spyOn(api.io, 'recent').mockResolvedValue([
+    { path: '/tmp/water.xyz', name: 'water.xyz', exists: true },
+    { path: '/tmp/gone.xyz', name: 'gone.xyz', exists: false },
+  ]);
+  const clearRecent = vi.spyOn(api.io, 'clearRecent').mockResolvedValue([]);
+
+  render(<MenuBar onError={() => {}} />);
+  await waitFor(() => expect(recent).toHaveBeenCalled());
+  fireEvent.click(screen.getByRole('button', { name: 'File' }));
+
+  // a file that has moved is listed and says so, but cannot be opened
+  expect(screen.getByRole('menuitem', { name: 'gone.xyz (missing)' })).toBeDisabled();
+  fireEvent.click(screen.getByRole('menuitem', { name: 'water.xyz' }));
+  expect(importPath).toHaveBeenCalledWith({ path: '/tmp/water.xyz' });
+  await waitFor(() => expect(useStructureStore.getState().doc.name).toBe('water'));
+
+  fireEvent.click(screen.getByRole('button', { name: 'File' }));
+  fireEvent.click(screen.getByRole('menuitem', { name: 'Clear recent' }));
+  await waitFor(() => expect(clearRecent).toHaveBeenCalled());
+  fireEvent.click(screen.getByRole('button', { name: 'File' }));
+  expect(screen.queryByRole('menuitem', { name: 'water.xyz' })).toBeNull();
+  expect(screen.queryByRole('menuitem', { name: 'Clear recent' })).toBeNull();
 });

@@ -9,6 +9,7 @@ export type StructureSummary = components['schemas']['StructureSummary'];
 export type ProjectInfo = components['schemas']['ProjectInfo'];
 export type HealthResponse = components['schemas']['HealthResponse'];
 export type FormatDescription = components['schemas']['FormatDescription'];
+export type RecentFile = components['schemas']['RecentFile'];
 export type ExportResponse = components['schemas']['ExportResponse'];
 export type BackendInfo = components['schemas']['BackendInfo'];
 export type ParameterSchema = components['schemas']['ParameterSchema'];
@@ -155,6 +156,8 @@ export const api = {
     },
     importText: (body: Body<'/api/io/import/text', 'post'>) =>
       request<Structure>('/api/io/import/text', json(body)),
+    recent: () => request<RecentFile[]>('/api/io/recent'),
+    clearRecent: () => request<RecentFile[]>('/api/io/recent', { method: 'DELETE' }),
     fetch: (body: Body<'/api/io/fetch', 'post'>) => request<Structure>('/api/io/fetch', json(body)),
     smiles: (body: Body<'/api/io/smiles', 'post'>) =>
       request<Structure>('/api/io/smiles', json(body)),

@@ -15,6 +15,7 @@ from atomscope.io.fetch import FetchError, NotFoundError, UpstreamError, fetch_s
 from atomscope.io.poscar import MissingSpeciesError
 from atomscope.io.qc_outputs import OutputImport, read_output
 from atomscope.io.rdkit_io import from_smiles
+from atomscope.io.recent import RecentFile, clear_recent, recent_files, record_recent
 from atomscope.io.registry import FormatError, structure_to_string
 from atomscope.model import Structure, VolumetricGrid
 from atomscope.model.common import StrictModel
@@ -104,14 +105,17 @@ def list_formats() -> list[FormatDescription]:
 
 
 @router.post("/import/path", response_model=Structure)
-def import_path(body: ImportPathRequest) -> Structure:
+def import_path(body: ImportPathRequest, request: Request) -> Structure:
     """Read a structure from a file on this machine (the backend is local-only)."""
     if not body.path.is_file():
         raise HTTPException(status.HTTP_404_NOT_FOUND, f"{body.path} not found")
     try:
-        return read_structure(body.path, body.format)
+        structure = read_structure(body.path, body.format)
     except (FormatError, ValueError) as exc:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, str(exc)) from exc
+    # recorded only once it read: a path that is not a structure is not worth going back to
+    record_recent(_state(request).data_dir, body.path)
+    return structure
 
 
 @router.post("/import/upload", response_model=Structure)
@@ -152,6 +156,19 @@ def import_text(body: ImportTextRequest) -> Structure:
         ) from exc
     except (FormatError, ValueError) as exc:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, str(exc)) from exc
+
+
+@router.get("/recent", response_model=list[RecentFile])
+def get_recent(request: Request) -> list[RecentFile]:
+    """The files opened by path recently, most recent first (Avogadro's Open Recent)."""
+    return recent_files(_state(request).data_dir)
+
+
+@router.delete("/recent", response_model=list[RecentFile])
+def delete_recent(request: Request) -> list[RecentFile]:
+    """Clear Recent."""
+    clear_recent(_state(request).data_dir)
+    return []
 
 
 @router.post("/fetch", response_model=Structure)
