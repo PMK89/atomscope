@@ -22,6 +22,18 @@ Result data is expressed only in `atomscope.model` types, so the UI never sees b
 structures. Additional plugin groups: `atomscope.formats` (file format readers/writers) and
 `atomscope.analyses` (analysis providers).
 
+## Implemented backend plugins
+
+| id | executes | notes |
+|---|---|---|
+| `cppaw` | yes | flagship: schema, STRC/CNTL generation, driver, protocol/trajectory/cube parsing, MPI, restarts |
+| `ase_builtin` | yes | ASE calculators (EMT/LJ/Morse, Open Babel force fields, CP-PAW forces via `CppawCalculator`) with BFGS/L-BFGS/FIRE and Langevin MD |
+| `qc_inputs` | no | ORCA/Gaussian/NWChem/GAMESS-US/Quantum ESPRESSO/ABINIT input decks via ASE writers |
+| `openbabel_ff` | yes | Open Babel force fields (feature branch) |
+
+`BackendCapabilities.executes = False` marks input-generation-only plugins; the calculation service
+refuses to run them and the UI offers the generated files for download instead.
+
 ## Frontend plugins
 
 A TypeScript registry (`frontend/src/plugins/registry.ts`) accepts: editor tools, display layers,
