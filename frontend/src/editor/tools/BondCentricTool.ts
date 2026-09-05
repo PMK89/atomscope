@@ -109,6 +109,13 @@ export class BondCentricTool implements Tool {
     this.start = null;
   }
 
+  cancelGesture(): void {
+    this.base = null;
+    this.start = null;
+    this.moved = false;
+    this.clickedEmpty = false;
+  }
+
   overlay(ctx: ToolContext): OverlayShape[] {
     const doc = ctx.structure.getState().doc;
     const bond = ctx.tools.getState().bondCentric.bond;

@@ -4,11 +4,13 @@ import {
   frameCell,
   framePositions,
   frameToStructure,
+  isTrajectoryCompatible,
   trajectoryFromScalars,
   trajectoryToJson,
   type ApiTrajectory,
 } from '../model/trajectory';
 import { emptyStructure, makeAtom } from '../model/structure';
+import { useStructureStore } from './structureStore';
 import { useTrajectoryStore } from './trajectoryStore';
 
 /** Shape of `calc.results` as the CalculationPanel sees it. */
@@ -137,6 +139,41 @@ test('tick advances, loops and ping-pongs', () => {
 test('advanceFrame handles single-frame trajectories', () => {
   expect(advanceFrame(0, 1, 1, 'loop')).toEqual({ frame: 0, direction: 1, playing: false });
   expect(advanceFrame(0, 1, 0, 'pingpong').playing).toBe(false);
+});
+
+test('compatibility needs the atom count, the ordered symbols and the source structure', () => {
+  useTrajectoryStore.getState().loadFromResult(resultBundle);
+  const t = useTrajectoryStore.getState().trajectory!;
+  const h2 = {
+    ...emptyStructure('h2'),
+    atoms: [makeAtom('H', [0, 0, 0]), makeAtom('H', [1, 0, 0])],
+  };
+  expect(isTrajectoryCompatible(h2, t)).toBe(true);
+  // same atom count, different elements
+  const hd = { ...h2, atoms: [makeAtom('H', [0, 0, 0]), makeAtom('C', [1, 0, 0])] };
+  expect(isTrajectoryCompatible(hd, t)).toBe(false);
+  // same elements, wrong order
+  const ch = { ...h2, atoms: [makeAtom('C', [0, 0, 0]), makeAtom('H', [1, 0, 0])] };
+  expect(isTrajectoryCompatible(ch, t)).toBe(false);
+  expect(isTrajectoryCompatible(emptyStructure(), t)).toBe(false);
+  // a trajectory naming its source structure only fits that structure
+  expect(isTrajectoryCompatible(h2, { ...t, structureId: 'other' })).toBe(false);
+  expect(isTrajectoryCompatible(h2, { ...t, structureId: h2.id })).toBe(true);
+});
+
+test('loading an incompatible structure clears the trajectory', () => {
+  useTrajectoryStore.getState().loadFromResult(resultBundle);
+  const h2 = {
+    ...emptyStructure('h2'),
+    atoms: [makeAtom('H', [0, 0, 0]), makeAtom('H', [1, 0, 0])],
+  };
+  useStructureStore.getState().load(h2);
+  expect(useTrajectoryStore.getState().trajectory).not.toBeNull();
+  useStructureStore.getState().load({
+    ...emptyStructure('methane'),
+    atoms: [makeAtom('C', [0, 0, 0]), makeAtom('H', [1, 0, 0])],
+  });
+  expect(useTrajectoryStore.getState().trajectory).toBeNull();
 });
 
 test('a frame can be committed to a structure document', () => {

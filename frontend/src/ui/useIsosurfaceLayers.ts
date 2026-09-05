@@ -2,18 +2,17 @@
  * Bridge between the volumetric store and the renderer: one IsosurfaceLayer per grid that has
  * at least one surface definition. Meshing runs inside the layer (worker), not in React.
  */
-import { useEffect, useRef, type MutableRefObject } from 'react';
+import { useEffect, useRef } from 'react';
 import { IsosurfaceLayer } from '../renderer/layers/IsosurfaceLayer';
 import type { Renderer } from '../renderer/Renderer';
 import { gridGeometry, surfaceSpecs, useVolumetricStore } from '../state/volumetricStore';
 
-export function useIsosurfaceLayers(rendererRef: MutableRefObject<Renderer | null>): void {
+export function useIsosurfaceLayers(renderer: Renderer | null): void {
   const grids = useVolumetricStore((s) => s.grids);
   const surfaces = useVolumetricStore((s) => s.surfaces);
   const layers = useRef(new Map<string, IsosurfaceLayer>());
 
   useEffect(() => {
-    const renderer = rendererRef.current;
     if (!renderer) return;
     const wanted = new Set<string>();
     for (const def of surfaces) {
@@ -24,6 +23,8 @@ export function useIsosurfaceLayers(rendererRef: MutableRefObject<Renderer | nul
       if (!layer) {
         layer = new IsosurfaceLayer(def.gridId, grid.values, gridGeometry(grid.meta));
         layer.onChange = () => renderer.invalidate();
+        layer.onWarning = (specId, message) =>
+          useVolumetricStore.getState().setSurfaceWarning(specId, message);
         layers.current.set(def.gridId, layer);
         renderer.addLayer(layer);
       }
@@ -37,8 +38,8 @@ export function useIsosurfaceLayers(rendererRef: MutableRefObject<Renderer | nul
       }
     }
     renderer.invalidate();
-  }, [grids, surfaces, rendererRef]);
+  }, [grids, surfaces, renderer]);
 
-  // the renderer disposes its layers on unmount; forget our references too
-  useEffect(() => () => layers.current.clear(), []);
+  // a renderer disposes its own layers when it goes away; forget our references with it
+  useEffect(() => () => layers.current.clear(), [renderer]);
 }

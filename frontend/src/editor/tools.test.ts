@@ -1,5 +1,5 @@
 import { Vector3 } from 'three';
-import { makeAtom, makeBond, normalizeStructure } from '../model/structure';
+import { formula, makeAtom, makeBond, normalizeStructure } from '../model/structure';
 import { useSelectionStore } from '../state/selectionStore';
 import { useStructureStore } from '../state/structureStore';
 import type { PickResult } from '../renderer/Renderer';
@@ -45,7 +45,9 @@ class FakeCamera implements ToolCamera {
 class FakeRenderer implements ToolRenderer {
   controller = new FakeCamera();
   fitted = 0;
+  picks = 0;
   pick(cx: number, cy: number): PickResult | null {
+    this.picks++;
     const doc = useStructureStore.getState().doc;
     for (let i = 0; i < doc.atoms.length; i++) {
       const p = this.project(new Vector3(...doc.atoms[i]!.position));
@@ -133,14 +135,28 @@ function loadSkeleton(): void {
   });
 }
 
+/** Hover picking is throttled to animation frames; tests run them by hand. */
+let frames: (() => void)[] = [];
+const flushFrames = (): void => {
+  const due = frames;
+  frames = [];
+  for (const cb of due) cb();
+};
+
 let renderer: FakeRenderer;
 let host: ToolHost;
 beforeEach(() => {
+  frames = [];
+  vi.stubGlobal('requestAnimationFrame', (cb: () => void) => frames.push(cb));
+  vi.stubGlobal('cancelAnimationFrame', () => undefined);
   loadSkeleton();
   renderer = new FakeRenderer();
   host = new ToolHost(renderer, createTools());
 });
-afterEach(() => host.dispose());
+afterEach(() => {
+  host.dispose();
+  vi.unstubAllGlobals();
+});
 
 const S = () => useStructureStore.getState();
 const sel = () => [...useSelectionStore.getState().atoms].sort();
@@ -158,11 +174,39 @@ describe('host', () => {
       host.keyDown({ key: 'z', shiftKey: false, ctrlKey: true, altKey: false, metaKey: false }),
     ).toBe(false);
   });
-  test('hover updates the selection store for every tool', () => {
+  test('hover updates the selection store for every tool, once per frame', () => {
     host.pointerMove(ev(...at(1.5, 0)));
+    // the pick waits for the next animation frame
+    expect(useSelectionStore.getState().hoveredAtom).toBeNull();
+    flushFrames();
     expect(useSelectionStore.getState().hoveredAtom).toBe(1);
     host.pointerMove(ev(10, 10));
+    flushFrames();
     expect(useSelectionStore.getState().hoveredAtom).toBeNull();
+  });
+  test('hover picks at most once per frame and ignores sub-pixel movement', () => {
+    const picks = () => renderer.picks;
+    host.pointerMove(ev(...at(1.5, 0)));
+    host.pointerMove(ev(300, 300));
+    host.pointerMove(ev(...at(0, 0)));
+    expect(picks()).toBe(0);
+    flushFrames();
+    // only the newest position was picked
+    expect(picks()).toBe(1);
+    expect(useSelectionStore.getState().hoveredAtom).toBe(0);
+    // a move of one pixel is not worth another raycast
+    const [x, y] = at(0, 0);
+    host.pointerMove(ev(x + 1, y));
+    flushFrames();
+    expect(picks()).toBe(1);
+    host.pointerMove(ev(x + 40, y));
+    flushFrames();
+    expect(picks()).toBe(2);
+    // a document change invalidates the last pick, so even a small move looks again
+    S().commit('move', { ...S().doc, name: 'moved' });
+    host.pointerMove(ev(x + 41, y));
+    flushFrames();
+    expect(picks()).toBe(3);
   });
   test('switching tools mid-drag cancels the preview', () => {
     useToolStore.getState().setActive('manipulate');
@@ -173,6 +217,26 @@ describe('host', () => {
     expect(S().previewBase).toBeNull();
     expect(S().doc.atoms[1]!.position[1]).toBe(0);
     expect(S().canUndo()).toBe(false);
+  });
+  test('undo mid-drag aborts the gesture instead of committing a stale base', () => {
+    S().commit('move', { ...S().doc, name: 'moved' });
+    useToolStore.getState().setActive('manipulate');
+    host.pointerDown(ev(...at(1.5, 0), { buttons: 1 }));
+    host.pointerMove(ev(...at(1.5, 1), { buttons: 1 }));
+    expect(S().previewBase).not.toBeNull();
+    S().undo();
+    // further events of the aborted drag are ignored
+    host.pointerMove(ev(...at(1.5, 2), { buttons: 1 }));
+    host.pointerUp(ev(...at(1.5, 2)));
+    expect(S().doc.name).toBe('skel');
+    expect(S().doc.atoms[1]!.position[1]).toBe(0);
+    expect(S().previewBase).toBeNull();
+    expect(S().undoStack).toHaveLength(0);
+    expect(S().canRedo()).toBe(true);
+    // the next gesture starts from the undone document
+    drag(host, at(1.5, 0), at(1.5, 1));
+    expect(S().doc.atoms[1]!.position[1]).toBeCloseTo(1);
+    expect(S().undoLabel()).toBe('Move 1 atom');
   });
   test('loading another document clears measurement picks', () => {
     useToolStore.getState().update('measure', { atoms: [0, 1] });
@@ -240,6 +304,31 @@ describe('draw', () => {
     expect(S().doc.atoms[1]!.element).toBe('O');
     expect(S().doc.atoms.filter((a) => a.element === 'H')).toHaveLength(1);
     expect(S().undoLabel()).toBe('Change to O');
+  });
+  test('adding a carbon next to methane yields ethane, not an over-coordinated carbon', () => {
+    // methane with one C-H bond along -x, so a new carbon at +1.53 Å only reaches the carbon
+    useStructureStore.getState().load(
+      normalizeStructure({
+        name: 'methane',
+        charge: 0,
+        atoms: [
+          makeAtom('C', [0, 0, 0]),
+          makeAtom('H', [-1.09, 0, 0]),
+          makeAtom('H', [0.3633, 1.0277, 0]),
+          makeAtom('H', [0.3633, -0.5138, 0.89]),
+          makeAtom('H', [0.3633, -0.5138, -0.89]),
+        ],
+        bonds: [makeBond(0, 1), makeBond(0, 2), makeBond(0, 3), makeBond(0, 4)],
+      }),
+    );
+    useToolStore.getState().update('draw', { element: 'C', adjustHydrogens: true });
+    click(host, ...at(1.53, 0));
+    const doc = S().doc;
+    expect(formula(doc)).toBe('C2H6');
+    // the pre-existing carbon lost one hydrogen when it gained the C-C bond
+    expect(doc.bonds.filter((b) => b.a === 0 || b.b === 0)).toHaveLength(4);
+    S().undo();
+    expect(formula(S().doc)).toBe('CH4');
   });
   test('click on a bond cycles its order', () => {
     click(host, ...at(0.75, 0));

@@ -2,7 +2,7 @@
  * Isosurface controls (Avogadro "Surfaces" equivalent): grids of the selected calculation and
  * imported cube datasets, per-surface isovalue / colour / opacity / +- pair / resolution.
  */
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { api, type GridRef, type VolumetricGrid } from '../api/client';
 import { useCalculationStore } from '../state/calculationStore';
 import { useProjectStore } from '../state/projectStore';
@@ -30,6 +30,9 @@ const KINDS: VolumetricGrid['kind'][] = [
 
 const fmt = (v: number): string =>
   Math.abs(v) >= 1e-3 || v === 0 ? v.toPrecision(4) : v.toExponential(3);
+
+/** Dragging the isovalue slider commits only after this idle time, so meshing is not spammed. */
+export const ISOVALUE_DEBOUNCE_MS = 100;
 
 export function SurfacesPanel({ onError }: { onError: (m: string) => void }): JSX.Element {
   const project = useProjectStore((s) => s.info);
@@ -183,6 +186,7 @@ function GridCard({
 function SurfaceCard({ def, grid }: { def: SurfaceDef; grid: LoadedGrid }): JSX.Element {
   const update = useVolumetricStore((s) => s.updateSurface);
   const remove = useVolumetricStore((s) => s.removeSurface);
+  const warning = useVolumetricStore((s) => s.warnings[def.id] ?? s.warnings[`${def.id}-neg`]);
   const range = sliderRange(grid.stats, grid.meta.kind);
   const [text, setText] = useState(fmt(def.isovalue));
   useEffect(() => setText(fmt(def.isovalue)), [def.isovalue]);
@@ -190,6 +194,25 @@ function SurfaceCard({ def, grid }: { def: SurfaceDef; grid: LoadedGrid }): JSX.
     const v = Number(text);
     if (Number.isFinite(v) && v !== def.isovalue) update(def.id, { isovalue: v });
     else setText(fmt(def.isovalue));
+  };
+  // the slider is driven locally while dragging and committed to the store when it settles
+  const [slider, setSlider] = useState<number | null>(null);
+  const debounce = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(
+    () => () => {
+      if (debounce.current) clearTimeout(debounce.current);
+    },
+    [],
+  );
+  const dragIsovalue = (t: number): void => {
+    setSlider(t);
+    setText(fmt(sliderToIso(t, range)));
+    if (debounce.current) clearTimeout(debounce.current);
+    debounce.current = setTimeout(() => {
+      debounce.current = null;
+      setSlider(null);
+      update(def.id, { isovalue: sliderToIso(t, range) });
+    }, ISOVALUE_DEBOUNCE_MS);
   };
   const id = (suffix: string): string => `${def.id}-${suffix}`;
   return (
@@ -223,10 +246,8 @@ function SurfaceCard({ def, grid }: { def: SurfaceDef; grid: LoadedGrid }): JSX.
             min={0}
             max={1}
             step={0.001}
-            value={isoToSlider(def.isovalue, range)}
-            onChange={(e) =>
-              update(def.id, { isovalue: sliderToIso(Number(e.target.value), range) })
-            }
+            value={slider ?? isoToSlider(def.isovalue, range)}
+            onChange={(e) => dragIsovalue(Number(e.target.value))}
           />
           <input
             aria-label="isovalue"
@@ -281,6 +302,7 @@ function SurfaceCard({ def, grid }: { def: SurfaceDef; grid: LoadedGrid }): JSX.
           />
         </div>
       )}
+      {warning && <p className="form-error">{warning}</p>}
       <div className="form-row">
         <label htmlFor={id('step')}>Resolution</label>
         <select

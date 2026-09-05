@@ -21,6 +21,12 @@ export class SelectTool implements Tool {
     this.dragging = false;
   }
 
+  cancelGesture(ctx: ToolContext): void {
+    this.start = null;
+    this.dragging = false;
+    ctx.tools.getState().update('select', { rect: null });
+  }
+
   onPointerMove(e: PointerLike, ctx: ToolContext): void {
     if (!this.start || !(e.buttons & 1)) return;
     const p = ctx.renderer.toCanvasCoords(e.clientX, e.clientY);

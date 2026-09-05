@@ -33,13 +33,14 @@ export class CameraController {
   ) {
     element.addEventListener('pointerdown', this.onPointerDown);
     element.addEventListener('wheel', this.onWheel, { passive: false });
-    element.addEventListener('contextmenu', (e) => e.preventDefault());
+    element.addEventListener('contextmenu', this.onContextMenu);
     this.updateCamera();
   }
 
   dispose(): void {
     this.element.removeEventListener('pointerdown', this.onPointerDown);
     this.element.removeEventListener('wheel', this.onWheel);
+    this.element.removeEventListener('contextmenu', this.onContextMenu);
     window.removeEventListener('pointermove', this.onPointerMove);
     window.removeEventListener('pointerup', this.onPointerUp);
   }
@@ -207,6 +208,8 @@ export class CameraController {
     e.preventDefault();
     this.zoomBy(Math.pow(0.95, (-e.deltaY / 53) * this.zoomSpeed));
   };
+
+  private readonly onContextMenu = (e: Event): void => e.preventDefault();
 
   /** Current view direction (from camera towards pivot). */
   viewDirection(out: Vector3): Vector3 {

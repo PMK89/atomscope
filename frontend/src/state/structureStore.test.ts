@@ -47,6 +47,33 @@ test('preview does not record history; the following commit undoes to the pre-pr
   expect(useStructureStore.getState().doc.name).toBe('t');
 });
 
+test('undo during a preview discards it and redoes to the pre-preview doc', () => {
+  const s = useStructureStore.getState();
+  s.commit('a', { ...s.doc, name: 'a' });
+  const historyRevision = useStructureStore.getState().historyRevision;
+  useStructureStore.getState().preview({ ...useStructureStore.getState().doc, name: 'dragging' });
+  useStructureStore.getState().undo();
+  const after = useStructureStore.getState();
+  expect(after.doc.name).toBe('t');
+  expect(after.previewBase).toBeNull();
+  expect(after.historyRevision).toBe(historyRevision + 1);
+  // the redo entry is the committed document, not the half-finished drag
+  after.redo();
+  expect(useStructureStore.getState().doc.name).toBe('a');
+});
+
+test('redo during a preview discards it too', () => {
+  const s = useStructureStore.getState();
+  s.commit('a', { ...s.doc, name: 'a' });
+  useStructureStore.getState().undo();
+  useStructureStore.getState().preview({ ...useStructureStore.getState().doc, name: 'dragging' });
+  useStructureStore.getState().redo();
+  expect(useStructureStore.getState().doc.name).toBe('a');
+  expect(useStructureStore.getState().previewBase).toBeNull();
+  useStructureStore.getState().undo();
+  expect(useStructureStore.getState().doc.name).toBe('t');
+});
+
 test('cancelPreview restores the pre-preview doc', () => {
   const s = useStructureStore.getState();
   s.preview({ ...s.doc, name: 'p1' });

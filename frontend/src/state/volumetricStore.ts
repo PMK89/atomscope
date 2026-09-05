@@ -118,6 +118,9 @@ interface VolumetricState {
   grids: Record<string, LoadedGrid>;
   surfaces: SurfaceDef[];
   loading: Record<string, boolean>;
+  /** Renderer feedback per rendered surface spec id (e.g. a resolution the budget forced). */
+  warnings: Record<string, string>;
+  setSurfaceWarning: (specId: string, message: string | null) => void;
   loadGrid: (gridId: string, calculationId?: string | null) => Promise<LoadedGrid>;
   unloadGrid: (gridId: string) => void;
   addSurface: (gridId: string) => SurfaceDef | null;
@@ -130,6 +133,15 @@ export const useVolumetricStore = create<VolumetricState>((set, get) => ({
   grids: {},
   surfaces: [],
   loading: {},
+  warnings: {},
+  setSurfaceWarning: (specId, message) =>
+    set((s) =>
+      message === null
+        ? s.warnings[specId] === undefined
+          ? s
+          : { warnings: omit(s.warnings, specId) }
+        : { warnings: { ...s.warnings, [specId]: message } },
+    ),
   loadGrid: async (gridId, calculationId = null) => {
     const cached = get().grids[gridId];
     if (cached) return cached;
@@ -148,10 +160,16 @@ export const useVolumetricStore = create<VolumetricState>((set, get) => ({
     }
   },
   unloadGrid: (gridId) =>
-    set((s) => ({
-      grids: omit(s.grids, gridId),
-      surfaces: s.surfaces.filter((d) => d.gridId !== gridId),
-    })),
+    set((s) => {
+      const gone = s.surfaces.filter((d) => d.gridId === gridId).map((d) => d.id);
+      let warnings = s.warnings;
+      for (const id of gone) warnings = omit(omit(warnings, id), `${id}-neg`);
+      return {
+        grids: omit(s.grids, gridId),
+        surfaces: s.surfaces.filter((d) => d.gridId !== gridId),
+        warnings,
+      };
+    }),
   addSurface: (gridId) => {
     const grid = get().grids[gridId];
     if (!grid) return null;
@@ -161,6 +179,10 @@ export const useVolumetricStore = create<VolumetricState>((set, get) => ({
   },
   updateSurface: (id, patch) =>
     set((s) => ({ surfaces: s.surfaces.map((d) => (d.id === id ? { ...d, ...patch } : d)) })),
-  removeSurface: (id) => set((s) => ({ surfaces: s.surfaces.filter((d) => d.id !== id) })),
-  clear: () => set({ grids: {}, surfaces: [], loading: {} }),
+  removeSurface: (id) =>
+    set((s) => ({
+      surfaces: s.surfaces.filter((d) => d.id !== id),
+      warnings: omit(omit(s.warnings, id), `${id}-neg`),
+    })),
+  clear: () => set({ grids: {}, surfaces: [], loading: {}, warnings: {} }),
 }));

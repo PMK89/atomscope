@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import { api } from '../api/client';
 import { normalizeStructure } from '../model/structure';
 import { useStructureStore } from '../state/structureStore';
@@ -13,55 +13,8 @@ import { CrystalDialogs } from './CrystalDialogs';
 import { useCrystalStore } from '../state/crystalStore';
 import { toggleCell } from './crystalActions';
 import { isEditableTarget } from '../editor/ToolHost';
+import { Menu, type MenuItem } from './Menu';
 import type { StructureStyle } from '../renderer/layers/StructureLayer';
-
-interface MenuItem {
-  label: string;
-  shortcut?: string;
-  action: () => void;
-  disabled?: boolean;
-  checked?: boolean;
-}
-
-function Menu({ title, items }: { title: string; items: MenuItem[] }): JSX.Element {
-  const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    if (!open) return;
-    const close = (e: MouseEvent): void => {
-      if (!ref.current?.contains(e.target as Node)) setOpen(false);
-    };
-    window.addEventListener('mousedown', close);
-    return () => window.removeEventListener('mousedown', close);
-  }, [open]);
-  return (
-    <div className="menu" ref={ref}>
-      <button className={open ? 'menu-title open' : 'menu-title'} onClick={() => setOpen(!open)}>
-        {title}
-      </button>
-      {open && (
-        <ul className="menu-list" role="menu">
-          {items.map((it) => (
-            <li key={it.label}>
-              <button
-                role="menuitem"
-                disabled={it.disabled}
-                onClick={() => {
-                  setOpen(false);
-                  it.action();
-                }}
-              >
-                <span className="menu-check">{it.checked ? '•' : ''}</span>
-                <span>{it.label}</span>
-                {it.shortcut && <span className="menu-shortcut">{it.shortcut}</span>}
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
-  );
-}
 
 export function MenuBar({ onError }: { onError: (msg: string) => void }): JSX.Element {
   const store = useStructureStore();
@@ -119,16 +72,19 @@ export function MenuBar({ onError }: { onError: (msg: string) => void }): JSX.El
     const onKey = (e: KeyboardEvent): void => {
       const mod = e.ctrlKey || e.metaKey;
       if (!mod) return;
-      if (e.key === 'z' && !e.shiftKey) {
+      const key = e.key.toLowerCase();
+      // text fields keep their native undo/redo/select-all
+      if ((key === 'z' || key === 'y' || key === 'a') && isEditableTarget(e.target)) return;
+      if (key === 'z' && !e.shiftKey) {
         e.preventDefault();
         store.undo();
-      } else if ((e.key === 'z' && e.shiftKey) || e.key === 'y') {
+      } else if ((key === 'z' && e.shiftKey) || key === 'y') {
         e.preventDefault();
         store.redo();
-      } else if (e.key === 'o') {
+      } else if (key === 'o') {
         e.preventDefault();
         fileInput.current?.click();
-      } else if (e.key === 'a' && !isEditableTarget(e.target)) {
+      } else if (key === 'a') {
         e.preventDefault();
         if (e.shiftKey) useSelectionStore.getState().clear();
         else useSelectionStore.getState().set(store.doc.atoms.map((_, i) => i));

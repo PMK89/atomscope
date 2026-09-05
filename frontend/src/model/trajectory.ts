@@ -15,6 +15,8 @@ export interface TrajectoryData {
   id: string;
   name: string;
   kind: string;
+  /** Structure the frames were recorded for, when the source reported one. */
+  structureId: string | null;
   symbols: string[];
   nFrames: number;
   nAtoms: number;
@@ -61,6 +63,7 @@ export function trajectoryFromJson(traj: ApiTrajectory): TrajectoryData {
     id: traj.id,
     name: traj.name,
     kind: traj.kind,
+    structureId: traj.structure_id ?? null,
     symbols: [...traj.symbols],
     nFrames: frames.length,
     nAtoms,
@@ -87,6 +90,7 @@ export function trajectoryFromScalars(
     id: sc.id,
     name: sc.name,
     kind: sc.kind,
+    structureId: null, // the scalars endpoint does not report the source structure
     symbols: [...sc.symbols],
     nFrames: sc.n_frames,
     nAtoms: sc.n_atoms,
@@ -117,7 +121,25 @@ export function trajectoryToJson(t: TrajectoryData): ApiTrajectory {
       step: orNull(t.step[k]),
     });
   }
-  return { id: t.id, name: t.name, kind: t.kind, symbols: [...t.symbols], frames };
+  return {
+    id: t.id,
+    name: t.name,
+    kind: t.kind,
+    structure_id: t.structureId,
+    symbols: [...t.symbols],
+    frames,
+  };
+}
+
+/**
+ * Whether `t` describes `doc`: same structure (when the trajectory names one), same atom count
+ * and the same element symbols in the same order. Every consumer of frame positions - the
+ * renderer overrides as well as `frameToStructure` - must check this first.
+ */
+export function isTrajectoryCompatible(doc: StructureDoc, t: TrajectoryData): boolean {
+  if (t.structureId !== null && t.structureId !== doc.id) return false;
+  if (doc.atoms.length !== t.nAtoms) return false;
+  return doc.atoms.every((a, i) => a.element === t.symbols[i]);
 }
 
 /** The document with atom positions (and cell, if the frame has one) replaced by frame `k`. */
@@ -126,8 +148,7 @@ export function frameToStructure(
   t: TrajectoryData,
   k: number,
 ): StructureDoc | null {
-  if (doc.atoms.length !== t.nAtoms || k < 0 || k >= t.nFrames) return null;
-  if (doc.atoms.some((a, i) => a.element !== t.symbols[i])) return null;
+  if (k < 0 || k >= t.nFrames || !isTrajectoryCompatible(doc, t)) return null;
   const src = framePositions(t, k);
   const atoms = doc.atoms.map((a, i) => ({
     ...a,

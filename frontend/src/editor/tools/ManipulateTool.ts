@@ -45,6 +45,13 @@ export class ManipulateTool implements Tool {
     this.moved = false;
   }
 
+  cancelGesture(): void {
+    this.base = null;
+    this.start = null;
+    this.atoms = [];
+    this.moved = false;
+  }
+
   onPointerMove(e: PointerLike, ctx: ToolContext): void {
     if (!this.base || !this.start || e.buttons === 0) return;
     const dx = e.clientX - this.start.x;

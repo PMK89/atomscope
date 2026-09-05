@@ -11,6 +11,29 @@ import type {
 } from '../../api/client';
 import { isVisible } from '../../model/schema';
 
+/**
+ * A numeric field's raw text as a number, or the text itself when it is not a valid value for
+ * the field. Keeping the text lets the user finish typing; the inline error explains the state.
+ */
+function parseNumeric(text: string, integer: boolean): number | string {
+  const n = Number(text);
+  if (text.trim() === '' || !Number.isFinite(n)) return text;
+  if (integer && !Number.isInteger(n)) return text;
+  return n;
+}
+
+/** Inline error for a numeric field still holding unparsed text. */
+function numericError(spec: ParameterSpec, value: unknown): string | undefined {
+  const unparsed = (v: unknown): boolean => typeof v === 'string' && v.trim() !== '';
+  const bad =
+    spec.type === 'vector'
+      ? Array.isArray(value) && value.some(unparsed)
+      : (spec.type === 'integer' || spec.type === 'number') && unparsed(value);
+  if (!bad) return undefined;
+  const integer = spec.type === 'integer' || (spec.type === 'vector' && spec.integer_vector);
+  return integer ? 'enter a whole number' : 'enter a number';
+}
+
 interface Props {
   schema: ParameterSchema;
   values: ParameterValues;
@@ -80,8 +103,7 @@ function Field({
           onChange={(e) => {
             const t = e.target.value;
             if (t === '') return onChange(null);
-            const n = spec.type === 'integer' ? parseInt(t, 10) : parseFloat(t);
-            onChange(Number.isNaN(n) ? t : n);
+            onChange(parseNumeric(t, spec.type === 'integer'));
           }}
         />
       );
@@ -100,10 +122,7 @@ function Field({
               aria-label={`${spec.label} ${i + 1}`}
               onChange={(e) => {
                 const next = [...arr];
-                const n = spec.integer_vector
-                  ? parseInt(e.target.value, 10)
-                  : parseFloat(e.target.value);
-                next[i] = Number.isNaN(n) ? e.target.value : n;
+                next[i] = parseNumeric(e.target.value, Boolean(spec.integer_vector));
                 onChange(next);
               }}
             />
@@ -134,8 +153,9 @@ function Field({
         />
       );
   }
+  const shown = numericError(spec, value) ?? error;
   return (
-    <div className={error ? 'form-row has-error' : 'form-row'} title={spec.help}>
+    <div className={shown ? 'form-row has-error' : 'form-row'} title={spec.help}>
       <label htmlFor={id}>
         {spec.label}
         {spec.required && <span className="form-required">*</span>}
@@ -143,7 +163,7 @@ function Field({
       <div className="form-control">
         {input}
         {unit}
-        {error && <div className="form-error">{error}</div>}
+        {shown && <div className="form-error">{shown}</div>}
       </div>
     </div>
   );

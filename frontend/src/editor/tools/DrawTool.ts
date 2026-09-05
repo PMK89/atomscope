@@ -21,6 +21,16 @@ import type { KeyLike, PointerLike, Tool, ToolContext } from '../Tool';
 
 const radiusOf = (el: string): number => elementBySymbol(el).covalentRadius;
 
+/** uids of the atoms bonded to `atom`; their saturation changes when `atom` bonds to them. */
+function neighborUids(doc: StructureDoc, atom: number): (string | undefined)[] {
+  const out: (string | undefined)[] = [];
+  for (const b of doc.bonds) {
+    if (b.a === atom) out.push(doc.atoms[b.b]?.uid);
+    else if (b.b === atom) out.push(doc.atoms[b.a]?.uid);
+  }
+  return out;
+}
+
 /** Adjust hydrogens on several atoms, tracking them by uid since indices shift. */
 export function adjustMany(doc: StructureDoc, uids: Iterable<string | undefined>): StructureDoc {
   let out = doc;
@@ -125,13 +135,22 @@ export class DrawTool implements Tool {
     const start = this.startAtom;
     let next: StructureDoc;
     let label: string;
+    // an atom created on pointer-down took perceived bonds with it: those partners changed too
+    const perceived =
+      this.createdOnDown && start !== null ? neighborUids(this.base, start) : ([] as const);
     if (this.dragging && this.previewDoc && start !== null && this.previewTarget !== null) {
       next = this.previewDoc;
-      const touched = [next.atoms[start]?.uid, next.atoms[this.previewTarget]?.uid];
+      const touched = new Set([
+        next.atoms[start]?.uid,
+        next.atoms[this.previewTarget]?.uid,
+        ...perceived,
+      ]);
       if (adjust) next = adjustMany(next, touched);
       label = this.previewTarget < this.base.atoms.length ? 'Add bond' : `Add ${element}`;
     } else if (this.createdOnDown && start !== null) {
-      next = adjust ? adjustHydrogens(this.base, start) : this.base;
+      next = adjust
+        ? adjustMany(this.base, [this.base.atoms[start]?.uid, ...perceived])
+        : this.base;
       label = `Add ${element}`;
     } else if (this.startedOnBond !== null) {
       const bond = this.base.bonds[this.startedOnBond];
@@ -149,6 +168,10 @@ export class DrawTool implements Tool {
       return;
     }
     st.commit(label, next);
+    this.reset();
+  }
+
+  cancelGesture(): void {
     this.reset();
   }
 

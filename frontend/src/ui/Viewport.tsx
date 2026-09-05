@@ -5,7 +5,7 @@ import { Renderer } from '../renderer/Renderer';
 import { useSelectionStore } from '../state/selectionStore';
 import { useStructureStore } from '../state/structureStore';
 import { useTrajectoryStore } from '../state/trajectoryStore';
-import { frameCell, framePositions } from '../model/trajectory';
+import { frameCell, framePositions, isTrajectoryCompatible } from '../model/trajectory';
 import { installExtraLayers, syncExtraLayers } from './viewportLayers';
 import { BACKGROUND_HEX, useViewStore } from '../state/viewStore';
 import { useIsosurfaceLayers } from './useIsosurfaceLayers';
@@ -23,18 +23,18 @@ export function Viewport(): JSX.Element {
   const view = useViewStore();
   const trajectory = useTrajectoryStore((s) => s.trajectory);
   const frame = useTrajectoryStore((s) => s.frame);
+  // only a trajectory describing this very structure may override its geometry
+  const active = trajectory && isTrajectoryCompatible(doc, trajectory) ? trajectory : null;
   // stable per frame so layers skip matrix updates on hover/selection-only changes
   const positionsOverride = useMemo(
-    () => (trajectory ? framePositions(trajectory, frame) : null),
-    [trajectory, frame],
+    () => (active ? framePositions(active, frame) : null),
+    [active, frame],
   );
-  const cellOverride = useMemo(
-    () => (trajectory ? frameCell(trajectory, frame) : null),
-    [trajectory, frame],
-  );
+  const cellOverride = useMemo(() => (active ? frameCell(active, frame) : null), [active, frame]);
   const lastFitted = useRef<string | null>(null);
   const lastFitRequest = useRef(0);
-  useIsosurfaceLayers(rendererRef);
+  // renderer readiness as state, so surfaces already in the store mount into a new renderer
+  useIsosurfaceLayers(mounted?.renderer ?? null);
 
   useEffect(() => {
     if (!ref.current) return;

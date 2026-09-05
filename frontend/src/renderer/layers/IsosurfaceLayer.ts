@@ -15,7 +15,7 @@ import {
 } from 'three';
 import { wrap, type Remote } from 'comlink';
 import type { MarchingCubesWorkerApi } from '../../workers/marchingCubes.worker';
-import type { GridGeometry, IsosurfaceMesh } from '../marchingCubes';
+import type { GridGeometry, IsosurfaceMesh, MarchingCubesOptions } from '../marchingCubes';
 import type { DisplayLayer } from './Layer';
 
 /** One rendered surface. `inside: 'below'` is the negative lobe of a signed field. */
@@ -27,6 +27,13 @@ export interface SurfaceSpec {
   color: string;
   opacity: number;
   visible: boolean;
+}
+
+/** The meshing service the layer talks to; the worker in the app, a stub in tests. */
+export interface Mesher {
+  loadGrid(id: string, values: Float32Array, geometry: GridGeometry): void | Promise<void>;
+  unloadGrid(id: string): void | Promise<void>;
+  compute(gridId: string, opts: MarchingCubesOptions): IsosurfaceMesh | Promise<IsosurfaceMesh>;
 }
 
 let sharedWorker: Remote<MarchingCubesWorkerApi> | null = null;
@@ -41,10 +48,22 @@ function worker(): Remote<MarchingCubesWorkerApi> {
 
 const meshKey = (s: SurfaceSpec): string => `${s.isovalue}|${s.inside}|${s.step}`;
 
+/** Message for a surface the triangle budget forced to a coarser resolution, or null. */
+function coarsenedMessage(spec: SurfaceSpec, mesh: IsosurfaceMesh): string | null {
+  if (mesh.step <= spec.step) return null;
+  return `Reduced to 1/${mesh.step} resolution to stay within the triangle budget (${Math.round(
+    mesh.triangleCount / 1000,
+  )}k triangles).`;
+}
+
 interface Entry {
   mesh: Mesh<BufferGeometry, MeshStandardMaterial>;
   key: string;
-  request: number;
+  /** Newest spec waiting to be meshed; a running job picks it up when it finishes. */
+  pending: SurfaceSpec | null;
+  running: boolean;
+  /** False once the surface was removed, so a late result is dropped. */
+  alive: boolean;
 }
 
 export class IsosurfaceLayer implements DisplayLayer {
@@ -52,6 +71,8 @@ export class IsosurfaceLayer implements DisplayLayer {
   visible = true;
   /** called when an asynchronous mesh arrives so the owner can re-render */
   onChange: (() => void) | null = null;
+  /** called with a message when a surface had to be coarsened, or null when it no longer is */
+  onWarning: ((surfaceId: string, message: string | null) => void) | null = null;
   private readonly entries = new Map<string, Entry>();
   private readonly ready: Promise<void>;
   private disposed = false;
@@ -60,8 +81,9 @@ export class IsosurfaceLayer implements DisplayLayer {
     readonly id: string,
     values: Float32Array,
     geometry: GridGeometry,
+    private readonly mesher: Mesher = worker(),
   ) {
-    this.ready = worker().loadGrid(id, values, geometry);
+    this.ready = Promise.resolve(this.mesher.loadGrid(id, values, geometry));
   }
 
   /** Reconcile the rendered meshes with `specs` (added, changed or removed surfaces). */
@@ -74,19 +96,22 @@ export class IsosurfaceLayer implements DisplayLayer {
         const mesh = new Mesh(new BufferGeometry(), new MeshStandardMaterial({ roughness: 0.4 }));
         mesh.name = spec.id;
         this.object.add(mesh);
-        entry = { mesh, key: '', request: 0 };
+        entry = { mesh, key: '', pending: null, running: false, alive: true };
         this.entries.set(spec.id, entry);
       }
       this.applyMaterial(entry.mesh, spec);
       const key = meshKey(spec);
       if (key !== entry.key) {
         entry.key = key;
-        this.recompute(entry, spec).catch((e: unknown) => console.error('isosurface', e));
+        this.schedule(entry, spec);
       }
     }
     for (const [id, entry] of this.entries) {
       if (seen.has(id)) continue;
       this.entries.delete(id);
+      entry.alive = false;
+      entry.pending = null;
+      this.onWarning?.(id, null);
       this.object.remove(entry.mesh);
       entry.mesh.geometry.dispose();
       entry.mesh.material.dispose();
@@ -106,22 +131,42 @@ export class IsosurfaceLayer implements DisplayLayer {
     mesh.visible = spec.visible;
   }
 
-  private async recompute(entry: Entry, spec: SurfaceSpec): Promise<void> {
-    const request = ++entry.request;
-    await this.ready;
-    const mesh: IsosurfaceMesh = await worker().compute(this.id, {
-      isovalue: spec.isovalue,
-      inside: spec.inside,
-      step: spec.step,
-    });
-    if (this.disposed || entry.request !== request) return; // superseded or gone
-    const geometry = new BufferGeometry();
-    geometry.setAttribute('position', new BufferAttribute(mesh.positions, 3));
-    geometry.setAttribute('normal', new BufferAttribute(mesh.normals, 3));
-    geometry.setIndex(new BufferAttribute(mesh.indices, 1));
-    entry.mesh.geometry.dispose();
-    entry.mesh.geometry = geometry;
-    this.onChange?.();
+  /**
+   * Queue `spec` for meshing. At most one job per surface is in flight; while it runs, further
+   * requests only replace the pending spec, so a dragged isovalue slider never piles up work.
+   */
+  private schedule(entry: Entry, spec: SurfaceSpec): void {
+    entry.pending = spec;
+    if (entry.running) return;
+    this.drain(entry).catch((e: unknown) => console.error('isosurface', e));
+  }
+
+  private async drain(entry: Entry): Promise<void> {
+    entry.running = true;
+    try {
+      await this.ready;
+      while (entry.pending && entry.alive && !this.disposed) {
+        const spec = entry.pending;
+        entry.pending = null;
+        const mesh: IsosurfaceMesh = await this.mesher.compute(this.id, {
+          isovalue: spec.isovalue,
+          inside: spec.inside,
+          step: spec.step,
+        });
+        // a newer request arrived while this one ran: drop the stale mesh and compute again
+        if (this.disposed || !entry.alive || entry.pending) continue;
+        const geometry = new BufferGeometry();
+        geometry.setAttribute('position', new BufferAttribute(mesh.positions, 3));
+        geometry.setAttribute('normal', new BufferAttribute(mesh.normals, 3));
+        geometry.setIndex(new BufferAttribute(mesh.indices, 1));
+        entry.mesh.geometry.dispose();
+        entry.mesh.geometry = geometry;
+        this.onWarning?.(spec.id, coarsenedMessage(spec, mesh));
+        this.onChange?.();
+      }
+    } finally {
+      entry.running = false;
+    }
   }
 
   update(): void {
@@ -131,6 +176,6 @@ export class IsosurfaceLayer implements DisplayLayer {
   dispose(): void {
     this.disposed = true;
     this.setSurfaces([]);
-    void worker().unloadGrid(this.id);
+    void this.mesher.unloadGrid(this.id);
   }
 }
