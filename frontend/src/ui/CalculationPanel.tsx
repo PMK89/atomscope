@@ -59,7 +59,24 @@ export function CalculationPanel({ onError }: { onError: (m: string) => void }):
   }, [selected?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const busy = selected?.status === 'queued' || selected?.status === 'running';
+  // A calculation that has run is immutable; changes go into a fork (reproducibility).
+  const frozen =
+    selected?.status === 'completed' ||
+    selected?.status === 'failed' ||
+    selected?.status === 'cancelled';
   const fail = (e: Error): void => onError(e.message);
+
+  const fork = async (restart: boolean): Promise<void> => {
+    if (!selected) return;
+    const c = await api.calculations.fork(selected.id, {
+      values: restart ? { ...values, start: 'restart' } : values,
+      name: `${selected.name} (${restart ? 'continued' : 'fork'})`,
+      restart_from_parent: restart,
+    });
+    store.upsert(c);
+    store.select(c.id);
+    setTab('setup');
+  };
 
   const createOrUpdate = async (): Promise<Calculation> => {
     if (selected && selected.backend_id === backendId) {
@@ -148,27 +165,41 @@ export function CalculationPanel({ onError }: { onError: (m: string) => void }):
               ))}
             </select>
           </div>
+          {frozen && (
+            <p className="muted">
+              This calculation has run and is read-only. Fork it to change parameters or continue
+              from its restart file.
+            </p>
+          )}
           {schema ? (
             <SchemaForm
               schema={schema}
               values={values}
               onChange={setValues}
               report={report}
-              disabled={busy}
+              disabled={busy || frozen}
             />
           ) : (
             <p className="muted">Loading schema…</p>
           )}
           <div className="button-row">
-            <button onClick={() => void onValidate().catch(fail)} disabled={busy}>
+            <button onClick={() => void onValidate().catch(fail)} disabled={busy || frozen}>
               Validate
             </button>
-            <button onClick={() => void onGenerate().catch(fail)} disabled={busy}>
+            <button onClick={() => void onGenerate().catch(fail)} disabled={busy || frozen}>
               Generate input
             </button>
-            <button className="primary" onClick={() => void onRun().catch(fail)} disabled={busy}>
+            <button
+              className="primary"
+              onClick={() => void onRun().catch(fail)}
+              disabled={busy || frozen}
+            >
               Run
             </button>
+            {frozen && <button onClick={() => void fork(false).catch(fail)}>Fork</button>}
+            {frozen && selected?.backend_id === 'cppaw' && (
+              <button onClick={() => void fork(true).catch(fail)}>Continue from restart</button>
+            )}
             {busy && <button onClick={() => void onCancel().catch(fail)}>Cancel</button>}
             {selected && (
               <button

@@ -125,6 +125,8 @@ export const api = {
       request<Calculation>(`/api/calculations/${encodeURIComponent(id)}/cancel`, {
         method: 'POST',
       }),
+    fork: (id: string, body: Body<'/api/calculations/{calc_id}/fork', 'post'>) =>
+      request<Calculation>(`/api/calculations/${encodeURIComponent(id)}/fork`, json(body)),
     results: (id: string) =>
       request<ResultBundle>(`/api/calculations/${encodeURIComponent(id)}/results`),
     log: (id: string, stream = 'stdout', tail = 500) =>

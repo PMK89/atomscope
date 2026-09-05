@@ -13,14 +13,17 @@ test('app renders the demo molecule into the WebGL canvas', async ({ page }) => 
   await page.waitForTimeout(500);
   // Count pixels that differ from the white background: atoms must have been drawn.
   const colored = await canvas.evaluate((c: HTMLCanvasElement) => {
-    const gl = c.getContext('webgl2', { preserveDrawingBuffer: true }) as WebGL2RenderingContext | null;
+    const gl = c.getContext('webgl2', {
+      preserveDrawingBuffer: true,
+    }) as WebGL2RenderingContext | null;
     if (!gl) return -1;
     const w = gl.drawingBufferWidth;
     const h = gl.drawingBufferHeight;
     const px = new Uint8Array(w * h * 4);
     gl.readPixels(0, 0, w, h, gl.RGBA, gl.UNSIGNED_BYTE, px);
     let n = 0;
-    for (let i = 0; i < px.length; i += 4) if (px[i] < 240 || px[i + 1] < 240 || px[i + 2] < 240) n++;
+    for (let i = 0; i < px.length; i += 4)
+      if (px[i] < 240 || px[i + 1] < 240 || px[i + 2] < 240) n++;
     return n;
   });
   expect(colored).toBeGreaterThan(500);
