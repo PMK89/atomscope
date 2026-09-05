@@ -1,3 +1,4 @@
+import { readFile } from 'node:fs/promises';
 import { expect, test } from '@playwright/test';
 
 test('app renders the demo molecule into the WebGL canvas', async ({ page }) => {
@@ -275,4 +276,28 @@ test('repeating the unit cell repeats the atoms too', async ({ page }) => {
   await page.getByLabel('Cell repeat a').fill('2');
   await page.getByLabel('Cell repeat b').fill('2');
   await expect.poll(drawn).toBe(one * 4);
+});
+
+test('Export image saves a PNG of the viewport at the chosen resolution', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'File' }).click();
+  await page.getByRole('menuitem', { name: 'Export image…' }).click();
+  await page.getByLabel('Resolution').selectOption('2');
+
+  const download = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Save', exact: true }).click();
+  const file = await download;
+  expect(file.suggestedFilename()).toMatch(/\.png$/);
+
+  const path = await file.path();
+  const bytes = await readFile(path);
+  // a real PNG, and its header says twice the viewport's width
+  expect(bytes.subarray(1, 4).toString()).toBe('PNG');
+  const width = bytes.readUInt32BE(16);
+  const viewport = await page.evaluate(() => {
+    const renderer = (window as unknown as { __atomscopeRenderer?: unknown })
+      .__atomscopeRenderer as { viewportSize: { width: number } };
+    return renderer.viewportSize.width;
+  });
+  expect(width).toBe(viewport * 2);
 });

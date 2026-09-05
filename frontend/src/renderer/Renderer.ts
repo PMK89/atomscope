@@ -13,10 +13,12 @@ import {
   Vector2,
   Vector3,
   WebGLRenderer,
+  WebGLRenderTarget,
 } from 'three';
 import { CameraController, type AnyCamera } from './CameraController';
 import type { DisplayLayer, LayerContext } from './layers/Layer';
 import { StructureLayer } from './layers/StructureLayer';
+import { imageDataUrl } from './imageData';
 import { principalAxes } from './principalAxes';
 
 export type Projection = 'perspective' | 'orthographic';
@@ -218,6 +220,56 @@ export class Renderer {
   screenshotDataUrl(type = 'image/png'): string {
     this.renderNow();
     return this.gl.domElement.toDataURL(type);
+  }
+
+  /** Size of the drawing buffer in CSS pixels, which is what an export scales up from. */
+  get viewportSize(): { width: number; height: number } {
+    const size = new Vector2();
+    this.gl.getSize(size);
+    return { width: Math.max(1, Math.round(size.x)), height: Math.max(1, Math.round(size.y)) };
+  }
+
+  /**
+   * Render one frame at an arbitrary size and return it as a data URL.
+   *
+   * It goes through a render target rather than the canvas: the export size is then independent
+   * of the window, nothing flickers on screen, and a transparent background is possible even
+   * though the on-screen context has no alpha channel (`alpha: false` is what keeps the viewport
+   * cheap).
+   */
+  exportImage(options: {
+    width: number;
+    height: number;
+    transparent?: boolean;
+    type?: string;
+    quality?: number;
+  }): string {
+    const { width, height, transparent = false, type = 'image/png', quality = 0.92 } = options;
+    const target = new WebGLRenderTarget(width, height, { samples: 4 });
+    const background = this.scene.background;
+    const alpha = this.gl.getClearAlpha();
+    const aspect = this.perspective.aspect;
+    if (transparent) {
+      this.scene.background = null;
+      this.gl.setClearAlpha(0);
+    }
+    this.perspective.aspect = width / height;
+    this.perspective.updateProjectionMatrix();
+    const buffer = new Uint8Array(width * height * 4);
+    try {
+      this.gl.setRenderTarget(target);
+      this.gl.clear();
+      this.gl.render(this.scene, this.camera);
+      this.gl.readRenderTargetPixels(target, 0, 0, width, height, buffer);
+    } finally {
+      this.gl.setRenderTarget(null);
+      this.scene.background = background;
+      this.gl.setClearAlpha(alpha);
+      this.perspective.aspect = aspect;
+      this.perspective.updateProjectionMatrix();
+      target.dispose();
+    }
+    return imageDataUrl(buffer, width, height, type, quality);
   }
 
   invalidate(): void {

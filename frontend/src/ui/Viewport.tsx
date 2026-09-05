@@ -9,6 +9,7 @@ import { frameCell, framePositions, isTrajectoryCompatible } from '../model/traj
 import { installExtraLayers, syncExtraLayers } from './viewportLayers';
 import { BACKGROUND_HEX, useViewStore } from '../state/viewStore';
 import { useBioStore } from '../state/bioStore';
+import { useRendererStore } from '../state/rendererStore';
 import { useIsosurfaceLayers } from './useIsosurfaceLayers';
 import { ViewportOverlay } from './ViewportOverlay';
 
@@ -45,10 +46,12 @@ export function Viewport(): JSX.Element {
     rendererRef.current = renderer;
     const host = new ToolHost(renderer, createTools(), renderer.gl.domElement);
     setMounted({ renderer, host });
+    useRendererStore.getState().setRenderer(renderer);
     return () => {
       host.dispose();
       renderer.dispose();
       rendererRef.current = null;
+      useRendererStore.getState().setRenderer(null);
       setMounted(null);
     };
   }, []);

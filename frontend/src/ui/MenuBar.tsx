@@ -35,12 +35,14 @@ import {
 } from './clipboardActions';
 import { promptSaveAs, saveStructure } from './fileActions';
 import { isEditableTarget } from '../editor/ToolHost';
+import { ExportImageDialog } from './ExportImageDialog';
 import { HelpDialog, type HelpTopic } from './HelpDialog';
 import { Menu, type MenuItem } from './Menu';
 import type { StructureStyle } from '../renderer/layers/StructureLayer';
 
 export function MenuBar({ onError }: { onError: (msg: string) => void }): JSX.Element {
   const [help, setHelp] = useState<HelpTopic | null>(null);
+  const [exportImage, setExportImage] = useState(false);
   const store = useStructureStore();
   const view = useViewStore();
   const selection = useSelectionStore();
@@ -172,6 +174,7 @@ export function MenuBar({ onError }: { onError: (msg: string) => void }): JSX.El
           },
           { label: 'Build from SMILES…', action: () => void buildSmiles() },
           { label: 'Import trajectory…', action: () => trajectoryInput.current?.click() },
+          { label: 'Export image…', action: () => setExportImage(true) },
           { label: 'Export XYZ', action: () => void exportText('xyz') },
           { label: 'Export extended XYZ', action: () => void exportText('extxyz') },
           { label: 'Export CIF', disabled: !store.doc.cell, action: () => void exportText('cif') },
@@ -342,6 +345,11 @@ export function MenuBar({ onError }: { onError: (msg: string) => void }): JSX.El
           { label: 'Keyboard shortcuts', action: () => setHelp('shortcuts') },
           { label: 'About Atomscope', action: () => setHelp('about') },
         ]}
+      />
+      <ExportImageDialog
+        open={exportImage}
+        onClose={() => setExportImage(false)}
+        onError={onError}
       />
       <HelpDialog topic={help} onClose={() => setHelp(null)} />
       <CartesianEditor />

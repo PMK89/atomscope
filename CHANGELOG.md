@@ -24,6 +24,8 @@
 - Fixed: Ctrl+C with text selected in a panel copied the molecule instead of the text; removing
   atoms in the editor left residues and constraints pointing at the old numbering; a copied
   fragment carried no residues.
+- File > Export image…: the viewport at 1x, 2x or 4x its size, as PNG (optionally with a
+  transparent background) or JPEG.
 - Repeating the unit cell now repeats the atoms and bonds in it, not just the box, and fitting
   the camera frames the repeats.
 - A Select menu (the selection commands moved out of Edit) and a Help menu: the guides, the
