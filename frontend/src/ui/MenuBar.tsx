@@ -10,7 +10,9 @@ import { useToolStore } from '../editor/toolStore';
 import { atomsOfElement, invertSelection } from '../editor/selectionMath';
 import { normalizeSymbol } from '../editor/cartesian';
 import { CartesianEditor } from './CartesianEditor';
+import { BuildDialogs } from './BuildDialogs';
 import { CrystalDialogs } from './CrystalDialogs';
+import { useBuildStore } from '../state/buildStore';
 import { useCrystalStore } from '../state/crystalStore';
 import { toggleCell } from './crystalActions';
 import {
@@ -33,6 +35,7 @@ export function MenuBar({ onError }: { onError: (msg: string) => void }): JSX.El
   const selection = useSelectionStore();
   const openCartesian = useToolStore((s) => s.setCartesianEditorOpen);
   const openCrystalDialog = useCrystalStore((s) => s.openDialog);
+  const openBuildDialog = useBuildStore((s) => s.openDialog);
   const fileInput = useRef<HTMLInputElement>(null);
   const trajectoryInput = useRef<HTMLInputElement>(null);
 
@@ -188,6 +191,10 @@ export function MenuBar({ onError }: { onError: (msg: string) => void }): JSX.El
       <Menu
         title="Build"
         items={[
+          { label: 'Insert fragment…', action: () => openBuildDialog('fragment') },
+          { label: 'Insert peptide…', action: () => openBuildDialog('peptide') },
+          { label: 'Insert nucleic acid…', action: () => openBuildDialog('nucleic') },
+          { label: 'Insert nanotube or graphene…', action: () => openBuildDialog('nanotube') },
           {
             label: store.doc.cell ? 'Remove unit cell' : 'Add unit cell',
             action: () => void toggleCell(onError),
@@ -263,6 +270,7 @@ export function MenuBar({ onError }: { onError: (msg: string) => void }): JSX.El
       />
       <CartesianEditor />
       <CrystalDialogs onError={onError} />
+      <BuildDialogs onError={onError} />
       <input
         ref={fileInput}
         type="file"

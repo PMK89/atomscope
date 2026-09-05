@@ -58,3 +58,18 @@ test('Extensions menu runs a chemistry operation against the backend', async ({ 
   await expect(page.locator('.app-statusbar')).toContainText('3 atoms');
   await expect(page.locator('.app-statusbar')).toContainText('H2O');
 });
+
+test('Build > Insert fragment adds a real fragment from the library', async ({ page }) => {
+  await page.goto('/');
+  await expect(page.locator('.app-statusbar')).toContainText('3 atoms');
+
+  await page.getByRole('button', { name: 'Build' }).click();
+  await page.getByRole('menuitem', { name: 'Insert fragment…' }).click();
+  await page.getByLabel('Search').fill('benzene');
+  await page
+    .getByRole('button', { name: /benzene/i })
+    .first()
+    .click();
+
+  await expect(page.locator('.app-statusbar')).toContainText('15 atoms');
+});

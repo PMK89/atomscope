@@ -53,6 +53,8 @@ export type VibrationsResponse = components['schemas']['VibrationsResponse'];
 export type VibrationImport = components['schemas']['VibrationImport'];
 export type NmrShielding = components['schemas']['NmrShielding'];
 export type SmartsResult = components['schemas']['SmartsResult'];
+export type FragmentInfo = components['schemas']['FragmentInfo'];
+export type PeptidePresets = components['schemas']['PeptidePresets'];
 export type ChargesResult = components['schemas']['ChargesResult'];
 export type Identifiers = components['schemas']['Identifiers'];
 export type OptimizeResult = components['schemas']['OptimizeResult'];
@@ -227,6 +229,20 @@ export const api = {
       if (!res.ok) throw new ApiError(res.status, res.statusText);
       return new Float32Array(await res.arrayBuffer());
     },
+  },
+  build: {
+    fragments: () => request<FragmentInfo[]>('/api/build/fragments'),
+    insert: (body: Body<'/api/build/insert', 'post'>) =>
+      request<Structure>('/api/build/insert', json(body)),
+    peptidePresets: () => request<PeptidePresets>('/api/build/peptide/presets'),
+    peptide: (body: Body<'/api/build/peptide', 'post'>) =>
+      request<Structure>('/api/build/peptide', json(body)),
+    nucleic: (body: Body<'/api/build/nucleic', 'post'>) =>
+      request<Structure>('/api/build/nucleic', json(body)),
+    nanotube: (body: Body<'/api/build/nanotube', 'post'>) =>
+      request<Structure>('/api/build/nanotube', json(body)),
+    graphene: (body: Body<'/api/build/graphene', 'post'>) =>
+      request<Structure>('/api/build/graphene', json(body)),
   },
   chem: {
     forceFields: () => request<ForceFieldInfo>('/api/chem/force-fields'),
