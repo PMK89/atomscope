@@ -24,12 +24,7 @@ export function BondTable(): JSX.Element {
 
   if (doc.bonds.length === 0) return <p className="muted">No bonds.</p>;
   if (waiting) {
-    return (
-      <p className="muted">
-        {doc.bonds.length} bonds. Select atoms to see theirs; listing them all would mean walking
-        the structure {MAX_BOND_ROWS} times on every edit.
-      </p>
-    );
+    return <p className="muted">{doc.bonds.length} bonds. Select atoms to list their bonds.</p>;
   }
   return (
     <>

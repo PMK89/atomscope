@@ -1,5 +1,4 @@
-import { bondsOfAtom } from '../model/connectivity';
-import { distance } from '../model/geometry';
+import { bondsOfAtom, minimumImageDistance } from '../model/connectivity';
 import { formula, type StructureDoc, type Vec3 } from '../model/structure';
 import { useSelectionStore } from '../state/selectionStore';
 import { useStructureStore } from '../state/structureStore';
@@ -183,7 +182,8 @@ export function PropertiesPanel({ onError }: { onError?: (m: string) => void }):
               return (
                 <li key={bi} className="muted">
                   {o.element}
-                  {other + 1} · order {b.order} · {distance(atom.position, o.position).toFixed(3)} Å
+                  {other + 1} · order {b.order} ·{' '}
+                  {minimumImageDistance(atom.position, o.position, doc.cell).toFixed(3)} Å
                 </li>
               );
             })}

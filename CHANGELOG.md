@@ -29,7 +29,8 @@
   requests missing fields the generated types require, a vibration trajectory without its
   `structureId`, unchecked tuple indexing in the cell-extent maths, several test casts).
 - A bond properties table on the Properties tab: every bond (or every bond of the selection) with
-  its order, whether it can rotate, and an editable length.
+  its order, whether it can rotate, and an editable length. A bond across a periodic boundary
+  reports its minimum-image length (read-only), as does the per-atom bond list above it.
 - A Constraints dialog (Extensions > Constraints...): ignored and fixed atoms, fixed Cartesian
   axes, and distance, angle and torsion constraints with an optional target value, added from the
   selection, saved with the document and honoured by geometry optimization. The data model gained

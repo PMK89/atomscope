@@ -305,8 +305,12 @@ an order select, whether it can rotate, and its length in Å. Typing a length
 moves the smaller of the two sides, exactly as dragging with the bond-centric
 tool does. A bond is `rotatable` when it is a single, non-aromatic bond that
 closes no ring and neither of whose atoms is terminal; a ring bond says `ring`.
-With atoms selected the table shows only their bonds, and it never builds more
-than 200 rows at once.
+With atoms selected the table shows only their bonds; it never builds more than
+200 rows at once, and above 2000 bonds it waits for a selection rather than
+walking the structure on every edit. A bond perceived *through* the cell
+boundary shows the minimum-image length with a `*` and is not editable: its two
+atoms sit at opposite ends of the box, so moving one along that vector would
+fling it across the cell.
 
 ### 4.4 Crystal building
 
