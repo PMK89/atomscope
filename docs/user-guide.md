@@ -458,6 +458,17 @@ finishes once they are filled in. A POSCAR whose *comment* line happens to be
 the species (`Si`, or `Ga As`) is read without asking. Opening such a file from
 disk rather than pasting it gets the reader's own error instead of the dialog.
 
+**Fetch from a database.** `File ▸ Fetch from PDB…` takes a four-character
+PDB id (`1CRN`) and downloads that entry from RCSB; `File ▸ Fetch by name…`
+takes a chemical name (`caffeine`) and asks PubChem for it, preferring the 3D
+record and embedding the 2D one here when there is no 3D conformer — the
+structure's provenance says which happened. What is typed is an *identifier*,
+not an address: the backend validates it and builds the URL itself, talks only
+to those two hosts, and refuses a redirect that would leave them. Avogadro's
+third command, *Fetch from URL*, is deliberately not offered; download the file
+with a browser and open it. An unknown id is reported as such, and a database
+that cannot be reached says so rather than looking like a broken file.
+
 **Import of quantum-chemistry output logs** (`POST /api/io/import/output`,
 API only) reads Gaussian, ORCA, NWChem, Quantum ESPRESSO and GAMESS-US logs via
 ASE, attaching the total energy, forces, dipole magnitude, partial charges and

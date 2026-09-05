@@ -1,8 +1,10 @@
 from pathlib import Path
 
+import pytest
 from fastapi.testclient import TestClient
 
 from atomscope.api.app import create_app
+from atomscope.io import fetch as fetch_module
 from atomscope.model import Atom, Structure
 
 
@@ -94,6 +96,37 @@ def test_io_routes(tmp_path: Path) -> None:
     assert (
         c.post("/api/io/import/path", json={"path": str(tmp_path / "nope.xyz")}).status_code == 404
     )
+
+
+def test_fetch_validates_before_it_asks_and_reports_what_went_wrong(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    asked: list[str] = []
+
+    def get(url: str) -> str:
+        asked.append(url)
+        raise fetch_module.NotFoundError("not in the database")
+
+    monkeypatch.setattr(fetch_module, "_get", get)
+    c = client()
+
+    # a query that is not an identifier never becomes a request
+    r = c.post("/api/io/fetch", json={"source": "pdb", "query": "../etc/passwd"})
+    assert r.status_code == 400 and "not a PDB id" in r.json()["detail"]
+    assert asked == []
+    # nor does a source that is not one of the two databases
+    assert c.post("/api/io/fetch", json={"source": "url", "query": "x"}).status_code == 422
+
+    r = c.post("/api/io/fetch", json={"source": "pdb", "query": "9ZZZ"})
+    assert r.status_code == 404
+    assert asked == ["https://files.rcsb.org/download/9ZZZ.pdb"]
+
+    def offline(url: str) -> str:
+        raise fetch_module.UpstreamError("could not reach the database (offline)")
+
+    monkeypatch.setattr(fetch_module, "_get", offline)
+    r = c.post("/api/io/fetch", json={"source": "pubchem", "query": "caffeine"})
+    assert r.status_code == 502 and "could not reach" in r.json()["detail"]
 
 
 def test_view_settings_persist(tmp_path: Path) -> None:

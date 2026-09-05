@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Fetch a structure by identifier: `File ▸ Fetch from PDB…` (RCSB) and
+  `Fetch by name…` (PubChem). Two fixed hosts, an identifier rather than a URL, allowlisted
+  redirects and a size and time bound — see docs/architecture/security-model.md.
+
 - Named selections: name the current selection, recall it from the Select
   menu, rename or remove it. A set names its atoms by uid, so it survives an edit.
 

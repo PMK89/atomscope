@@ -1501,6 +1501,26 @@
         "title": "FFConstraint",
         "type": "object"
       },
+      "FetchRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "query": {
+            "description": "a PDB id (1CRN) or a chemical name (caffeine); never a URL",
+            "maxLength": 200,
+            "title": "Query",
+            "type": "string"
+          },
+          "source": {
+            "description": "which database to ask",
+            "enum": ["pdb", "pubchem"],
+            "title": "Source",
+            "type": "string"
+          }
+        },
+        "required": ["source", "query"],
+        "title": "FetchRequest",
+        "type": "object"
+      },
       "FillRequest": {
         "additionalProperties": false,
         "properties": {
@@ -9474,6 +9494,46 @@
         },
         "summary": "Export Trajectory",
         "tags": ["trajectory"]
+      }
+    },
+    "/api/io/fetch": {
+      "post": {
+        "description": "Download a structure from RCSB (by PDB id) or PubChem (by name).\n\nThe query is an identifier, not a URL: it is validated and then placed in one path segment of\na fixed address. Fetching an arbitrary URL is deliberately not offered.",
+        "operationId": "fetch_api_io_fetch_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FetchRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Structure"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Fetch",
+        "tags": ["io"]
       }
     },
     "/api/io/formats": {

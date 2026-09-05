@@ -105,6 +105,19 @@ export function MenuBar({ onError }: { onError: (msg: string) => void }): JSX.El
   };
 
   /**
+   * Avogadro's Fetch from PDB / Fetch by chemical name. What is typed is an *identifier*, which
+   * the backend validates and puts into one path segment of a fixed address -- there is no
+   * fetch-from-URL, which would be this process making a request to wherever it was told.
+   */
+  const fetchStructure = async (source: 'pdb' | 'pubchem', query: string): Promise<void> => {
+    try {
+      store.load(normalizeStructure(await api.io.fetch({ source, query })));
+    } catch (e) {
+      onError(`Fetch failed: ${(e as Error).message}`);
+    }
+  };
+
+  /**
    * Avogadro's POV-Ray export: the scene as a ray-tracer's source file, downloaded like an image.
    * It is written from the renderer's own scene, so it is what the viewport shows.
    */
@@ -186,6 +199,20 @@ export function MenuBar({ onError }: { onError: (msg: string) => void }): JSX.El
             action: () => void promptSaveAs(onError),
           },
           { label: 'Build from SMILES…', action: () => void buildSmiles() },
+          {
+            label: 'Fetch from PDB…',
+            action: () => {
+              const id = window.prompt('PDB id', '1CRN');
+              if (id) void fetchStructure('pdb', id);
+            },
+          },
+          {
+            label: 'Fetch by name…',
+            action: () => {
+              const name = window.prompt('Chemical name', 'caffeine');
+              if (name) void fetchStructure('pubchem', name);
+            },
+          },
           { label: 'Import trajectory…', action: () => trajectoryInput.current?.click() },
           { label: 'Export…', action: () => setExportOpen(true) },
           { label: 'Export image…', action: () => setExportImage(true) },

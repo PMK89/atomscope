@@ -24,8 +24,26 @@
   development the loopback binding is the only protection; do not expose the port.
 
 - The API binds to 127.0.0.1 only; CORS is restricted to the development frontend origin.
-- No outbound network calls in the backend except optional, explicit "fetch structure by
-  identifier" features which are off by default.
+- The backend makes no outbound request on its own. The only one it ever makes is
+  `POST /api/io/fetch`, and only because a person typed an identifier into
+  `File ▸ Fetch from PDB…` or `Fetch by name…` (`io/fetch.py`):
+
+  - **Two fixed hosts**, `files.rcsb.org` and `pubchem.ncbi.nlm.nih.gov`. The list is a constant
+    in the module and there is no setting that extends it.
+  - **An identifier, never a URL.** A PDB id must match `\A[1-9][A-Za-z0-9]{3}\Z` before any
+    address is built; a chemical name is length-capped, rejected if it holds a control character,
+    and percent-encoded with an empty safe set so a `/`, `?` or `#` in it stays inside the one
+    path segment it belongs to. Avogadro's third command, *Fetch from URL*, is deliberately not
+    implemented (AV-FILE-015): it would make this process issue a request to wherever it was
+    told, which is server-side request forgery with a UI.
+  - **Redirects are allowlisted.** The opener replaces urllib's redirect handler with one that
+    refuses any hop that is not https to one of the two hosts, so an upstream redirect cannot
+    turn a fetch into a request to this machine or this network. A test asserts the default
+    handler is gone, because the allowlist would otherwise be dead code.
+  - **Bounded.** 15 s timeout, and at most 32 MB read; a larger answer is refused rather than
+    buffered. Failures are reported as 404 (no such entry), 400 (the database rejected the
+    query) or 502 (unreachable or broken), never as a stack trace.
+  - Nothing is sent but the identifier: no document contents, no paths, no telemetry.
 
 ## Dependencies
 

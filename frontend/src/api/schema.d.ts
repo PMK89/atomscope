@@ -1403,6 +1403,29 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/io/fetch': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Fetch
+     * @description Download a structure from RCSB (by PDB id) or PubChem (by name).
+     *
+     *     The query is an identifier, not a URL: it is validated and then placed in one path segment of
+     *     a fixed address. Fetching an arbitrary URL is deliberately not offered.
+     */
+    post: operations['fetch_api_io_fetch_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/io/formats': {
     parameters: {
       query?: never;
@@ -2568,6 +2591,20 @@ export interface components {
        * @description Å for distance, degrees for angles
        */
       value?: number | null;
+    };
+    /** FetchRequest */
+    FetchRequest: {
+      /**
+       * Query
+       * @description a PDB id (1CRN) or a chemical name (caffeine); never a URL
+       */
+      query: string;
+      /**
+       * Source
+       * @description which database to ask
+       * @enum {string}
+       */
+      source: 'pdb' | 'pubchem';
     };
     /** FillRequest */
     FillRequest: {
@@ -7322,6 +7359,39 @@ export interface operations {
         };
         content: {
           'application/json': components['schemas']['ExportTrajectoryResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  fetch_api_io_fetch_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['FetchRequest'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['Structure'];
         };
       };
       /** @description Validation Error */

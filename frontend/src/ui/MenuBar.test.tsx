@@ -131,3 +131,32 @@ test('a selection can be named and recalled from the Select menu', () => {
   fireEvent.click(screen.getByRole('menuitem', { name: 'hydrogens' }));
   expect([...useSelectionStore.getState().atoms]).toEqual([1, 2]);
 });
+
+test('Fetch from PDB loads what the backend returns', async () => {
+  const fetchStructure = vi
+    .spyOn(api.io, 'fetch')
+    .mockResolvedValue({ name: '1CRN', atoms: [makeAtom('N', [0, 0, 0])] } as never);
+  vi.spyOn(window, 'prompt').mockReturnValue('1crn');
+
+  render(<MenuBar onError={() => {}} />);
+  fireEvent.click(screen.getByRole('button', { name: 'File' }));
+  fireEvent.click(screen.getByText('Fetch from PDB…'));
+
+  await waitFor(() => expect(useStructureStore.getState().doc.name).toBe('1CRN'));
+  // what was typed goes as the query, not as a URL
+  expect(fetchStructure).toHaveBeenCalledWith({ source: 'pdb', query: '1crn' });
+});
+
+test('an id the database does not have is reported, not swallowed', async () => {
+  vi.spyOn(api.io, 'fetch').mockRejectedValue(new Error('9ZZZ: not in the database'));
+  vi.spyOn(window, 'prompt').mockReturnValue('9ZZZ');
+  const onError = vi.fn();
+
+  render(<MenuBar onError={onError} />);
+  fireEvent.click(screen.getByRole('button', { name: 'File' }));
+  fireEvent.click(screen.getByText('Fetch from PDB…'));
+
+  await waitFor(() =>
+    expect(onError).toHaveBeenCalledWith('Fetch failed: 9ZZZ: not in the database'),
+  );
+});

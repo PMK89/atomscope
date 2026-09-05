@@ -155,6 +155,7 @@ export const api = {
     },
     importText: (body: Body<'/api/io/import/text', 'post'>) =>
       request<Structure>('/api/io/import/text', json(body)),
+    fetch: (body: Body<'/api/io/fetch', 'post'>) => request<Structure>('/api/io/fetch', json(body)),
     smiles: (body: Body<'/api/io/smiles', 'post'>) =>
       request<Structure>('/api/io/smiles', json(body)),
     export: (body: Body<'/api/io/export', 'post'>) =>

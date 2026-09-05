@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Annotated
+from typing import Annotated, Literal
 
 from fastapi import APIRouter, Form, HTTPException, Request, UploadFile, status
 from pydantic import Field
@@ -11,6 +11,7 @@ from pydantic import Field
 from atomscope.api.state import AppState
 from atomscope.calculations.grids import import_cube
 from atomscope.io import formats, read_structure, structure_from_string, write_structure
+from atomscope.io.fetch import FetchError, NotFoundError, UpstreamError, fetch_structure
 from atomscope.io.poscar import MissingSpeciesError
 from atomscope.io.qc_outputs import OutputImport, read_output
 from atomscope.io.rdkit_io import from_smiles
@@ -57,6 +58,13 @@ class ImportTextRequest(StrictModel):
     species: list[str] | None = Field(
         default=None,
         description="element of each species of a VASP 4 POSCAR, which does not name them",
+    )
+
+
+class FetchRequest(StrictModel):
+    source: Literal["pdb", "pubchem"] = Field(description="which database to ask")
+    query: str = Field(
+        max_length=200, description="a PDB id (1CRN) or a chemical name (caffeine); never a URL"
     )
 
 
@@ -143,6 +151,23 @@ def import_text(body: ImportTextRequest) -> Structure:
             {"message": str(exc), "counts": exc.counts},
         ) from exc
     except (FormatError, ValueError) as exc:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, str(exc)) from exc
+
+
+@router.post("/fetch", response_model=Structure)
+def fetch(body: FetchRequest) -> Structure:
+    """Download a structure from RCSB (by PDB id) or PubChem (by name).
+
+    The query is an identifier, not a URL: it is validated and then placed in one path segment of
+    a fixed address. Fetching an arbitrary URL is deliberately not offered.
+    """
+    try:
+        return fetch_structure(body.source, body.query)
+    except NotFoundError as exc:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, f"{body.query}: {exc}") from exc
+    except UpstreamError as exc:
+        raise HTTPException(status.HTTP_502_BAD_GATEWAY, str(exc)) from exc
+    except (FetchError, FormatError, ValueError) as exc:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, str(exc)) from exc
 
 
