@@ -99,6 +99,18 @@ export function hiddenAtoms(styles: (AtomStyle | null)[] | null): ReadonlySet<nu
   return out.size ? out : null;
 }
 
+/**
+ * Whether two hidden sets hold the same atoms. The set is rebuilt whenever the document is, so a
+ * layer that cached its geometry cannot compare it by identity: during a drag that would rebuild
+ * the ribbon spline on every frame. Both null and both empty are the common case, and cheap.
+ */
+export function sameHidden(a: ReadonlySet<number> | null, b: ReadonlySet<number> | null): boolean {
+  if (a === b) return true;
+  if (!a || !b || a.size !== b.size) return false;
+  for (const i of a) if (!b.has(i)) return false;
+  return true;
+}
+
 /** How many atoms of this document carry an assignment, and how many of those are hidden. */
 export function assignmentCounts(
   doc: StructureDoc,

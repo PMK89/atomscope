@@ -27,6 +27,7 @@ import {
   UNKNOWN_COLOR,
   type ResiduePalette,
 } from '../atomColors';
+import { sameHidden } from '../atomStyles';
 import type { DisplayLayer, LayerContext } from './Layer';
 
 /** One residue as the backend reports it: backbone atoms by uid. */
@@ -78,12 +79,27 @@ export class RibbonLayer implements DisplayLayer {
     roughness: 0.6,
   });
   private lastKey = '';
+  /** Atoms no engine draws; a residue whose backbone is hidden is not drawn either. */
+  private hidden: ReadonlySet<number> | null = null;
   /** What the last geometry was built from: a hover does not change any of it. */
-  private lastInput: { atoms: unknown; override: unknown; data: unknown; settings: string } | null =
-    null;
+  private lastInput: {
+    atoms: unknown;
+    override: unknown;
+    data: unknown;
+    settings: string;
+    hidden: ReadonlySet<number> | null;
+  } | null = null;
 
   setSettings(patch: Partial<RibbonLayerSettings>): void {
     this.settings = { ...this.settings, ...patch };
+  }
+
+  /**
+   * The atoms display scoping hides. Kept out of `settings` because a Set does not survive the
+   * `JSON.stringify` the cache key uses -- every set would compare equal to every other.
+   */
+  setHidden(hidden: ReadonlySet<number> | null): void {
+    this.hidden = hidden;
   }
 
   /** The assignment to draw, or null when the document is not a protein. */
@@ -104,6 +120,7 @@ export class RibbonLayer implements DisplayLayer {
       override,
       data: this.data,
       settings: JSON.stringify(this.settings),
+      hidden: this.hidden,
     };
     // the spline, the strip and the normals are none of them cheap, and a pointer move changes
     // neither the atoms nor the assignment
@@ -113,14 +130,19 @@ export class RibbonLayer implements DisplayLayer {
       this.lastInput.atoms === input.atoms &&
       this.lastInput.override === input.override &&
       this.lastInput.data === input.data &&
-      this.lastInput.settings === input.settings
+      this.lastInput.settings === input.settings &&
+      sameHidden(this.lastInput.hidden, input.hidden)
     ) {
       return;
     }
     const index = new Map(s.atoms.map((a, i) => [a.uid, i]));
+    const hidden = this.hidden;
     const at = (uid: string): Vec3 | null => {
       const i = index.get(uid);
       if (i === undefined) return null;
+      // a hidden backbone atom reads like a missing one: the chain breaks there rather than
+      // running straight through the part of the structure the user took out of the view
+      if (hidden?.has(i)) return null;
       if (override) return [override[3 * i]!, override[3 * i + 1]!, override[3 * i + 2]!];
       return s.atoms[i]!.position as Vec3;
     };
@@ -147,7 +169,8 @@ export class RibbonLayer implements DisplayLayer {
         if (!r) continue;
         const ca = at(r.ca);
         const o = at(r.o);
-        // an edit that deleted a backbone atom breaks the chain there rather than joining across
+        // an edit that deleted a backbone atom, or display scoping that hid it, breaks the chain
+        // there rather than joining across
         if (!ca || !o) {
           if (guide.length > 1) chains.push([...guide]);
           guide.length = 0;

@@ -17,6 +17,7 @@ import {
 } from 'three';
 import { DEFAULT_HBOND_SETTINGS, hydrogenBonds, type HBondSettings } from '../../model/hbonds';
 import type { Vec3 } from '../../model/structure';
+import { sameHidden } from '../atomStyles';
 import { cylinderMatrix } from '../math';
 import type { DisplayLayer, LayerContext } from './Layer';
 
@@ -44,11 +45,26 @@ export class HBondLayer implements DisplayLayer {
   private geometry: CylinderGeometry | null = null;
   private readonly material = new MeshStandardMaterial({ color: COLOR, roughness: 0.5 });
   private count = 0;
+  /** Atoms no engine draws; a dash with a hidden end is not drawn either. */
+  private hidden: ReadonlySet<number> | null = null;
   /** What the last search ran on: a hover changes none of it. */
-  private lastInput: { atoms: unknown; override: unknown; settings: string } | null = null;
+  private lastInput: {
+    atoms: unknown;
+    override: unknown;
+    settings: string;
+    hidden: ReadonlySet<number> | null;
+  } | null = null;
 
   setSettings(patch: Partial<HBondLayerSettings>): void {
     this.settings = { ...this.settings, ...patch };
+  }
+
+  /**
+   * The atoms display scoping hides. Kept out of `settings` because a Set does not survive the
+   * `JSON.stringify` the cache key uses -- every set would compare equal to every other.
+   */
+  setHidden(hidden: ReadonlySet<number> | null): void {
+    this.hidden = hidden;
   }
 
   update(ctx: LayerContext): void {
@@ -64,18 +80,29 @@ export class HBondLayer implements DisplayLayer {
         ? [override[3 * i]!, override[3 * i + 1]!, override[3 * i + 2]!]
         : (s.atoms[i]!.position as Vec3);
 
-    const input = { atoms: s.atoms, override, settings: JSON.stringify(this.settings) };
+    const input = {
+      atoms: s.atoms,
+      override,
+      settings: JSON.stringify(this.settings),
+      hidden: this.hidden,
+    };
     // the search builds a grid over every polar atom; a pointer move must not pay for it
     if (
       this.lastInput &&
       this.lastInput.atoms === input.atoms &&
       this.lastInput.override === input.override &&
-      this.lastInput.settings === input.settings
+      this.lastInput.settings === input.settings &&
+      sameHidden(this.lastInput.hidden, input.hidden)
     ) {
       return;
     }
 
-    const bonds = hydrogenBonds(s, at, this.settings);
+    const hidden = this.hidden;
+    const found = hydrogenBonds(s, at, this.settings);
+    // the dash runs from the hydrogen to the acceptor: hiding either end takes the dash with it
+    const bonds = hidden
+      ? found.filter((b) => !hidden.has(b.hydrogen) && !hidden.has(b.acceptor))
+      : found;
     if (bonds.length !== this.count) {
       this.clear();
       this.count = bonds.length;

@@ -27,11 +27,13 @@ export function syncExtraLayers(
   if (hbonds instanceof HBondLayer) {
     hbonds.visible = view.showHBonds;
     hbonds.setSettings({ maxDistance: view.hbondDistance, minAngle: view.hbondAngle });
+    hbonds.setHidden(hiddenAtoms);
   }
   const ribbon = renderer.getLayer('ribbon');
   if (ribbon instanceof RibbonLayer) {
     ribbon.visible = view.showRibbon;
     ribbon.setData(secondary);
+    ribbon.setHidden(hiddenAtoms);
     ribbon.setSettings({
       style: view.ribbonStyle,
       scale: view.ribbonScale,

@@ -177,3 +177,47 @@ test('the ribbon has a colour map of its own: secondary structure, chain or resi
   expect(colors()).toEqual([key(KIND_COLOR.helix)]);
   layer.dispose();
 });
+
+test('hiding a backbone atom breaks the chain there instead of running through it', () => {
+  const { doc, data } = protein();
+  const layer = new RibbonLayer();
+  layer.visible = true;
+  layer.setData(data);
+  layer.update(ctx(doc));
+  const whole = layer.triangles();
+  expect(whole).toBeGreaterThan(0);
+
+  // residue 1's CA is atom 2; with it hidden the four residues become two guides of one
+  // residue each, and a guide of one residue is not drawn at all
+  layer.setHidden(new Set([2]));
+  layer.update(ctx(doc));
+  expect(layer.triangles()).toBeLessThan(whole);
+
+  // every atom of this fixture is backbone, so hiding residue 0's carbonyl O drops it too
+  layer.setHidden(new Set([1]));
+  layer.update(ctx(doc));
+  const withoutO = layer.triangles();
+  layer.setHidden(null);
+  layer.update(ctx(doc));
+  expect(withoutO).toBeLessThan(layer.triangles());
+  expect(layer.triangles()).toBe(whole);
+  layer.dispose();
+});
+
+test('an equal hidden set does not rebuild the spline', () => {
+  const { doc, data } = protein();
+  const layer = new RibbonLayer();
+  layer.visible = true;
+  layer.setData(data);
+  layer.setHidden(new Set([2]));
+  layer.update(ctx(doc));
+  const geometry = (layer.object.children[0] as Mesh).geometry;
+  const positions = geometry.getAttribute('position');
+
+  // the set is rebuilt from the document on every frame of a drag: a fresh one with the same
+  // atoms in it must not cost a spline, a strip and a normal pass
+  layer.setHidden(new Set([2]));
+  layer.update(ctx(doc));
+  expect((layer.object.children[0] as Mesh).geometry.getAttribute('position')).toBe(positions);
+  layer.dispose();
+});

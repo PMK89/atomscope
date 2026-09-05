@@ -96,3 +96,27 @@ test('a hover-only update does not run the search again', () => {
   expect(layer.bonds()).toBe(0);
   layer.dispose();
 });
+
+test('a dash with a hidden end is not drawn', () => {
+  const layer = new HBondLayer();
+  layer.visible = true;
+  const doc = dimer();
+  layer.update(ctx(doc));
+  expect(layer.bonds()).toBe(1);
+
+  // atom 4 is the donated hydrogen of the second water
+  layer.setHidden(new Set([4]));
+  layer.update(ctx(doc));
+  expect(layer.bonds()).toBe(0);
+
+  // the acceptor is the first oxygen
+  layer.setHidden(new Set([0]));
+  layer.update(ctx(doc));
+  expect(layer.bonds()).toBe(0);
+
+  // an atom neither end of the dash leaves it alone
+  layer.setHidden(new Set([5]));
+  layer.update(ctx(doc));
+  expect(layer.bonds()).toBe(1);
+  layer.dispose();
+});
