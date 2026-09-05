@@ -4,6 +4,7 @@ import { normalizeStructure } from '../model/structure';
 import { useCalculationStore } from '../state/calculationStore';
 import { useProjectStore } from '../state/projectStore';
 import { useVolumetricStore } from '../state/volumetricStore';
+import { startViewSettingsSync } from '../state/viewSettingsSync';
 import { useStructureStore } from '../state/structureStore';
 
 export function ProjectPanel({ onError }: { onError: (m: string) => void }): JSX.Element {
@@ -21,6 +22,8 @@ export function ProjectPanel({ onError }: { onError: (m: string) => void }): JSX
     if (project.info) {
       calcs.refresh().catch((e: Error) => onError(e.message));
       calcs.connect();
+      const stop = startViewSettingsSync(onError);
+      return stop;
     } else {
       calcs.disconnect();
       calcs.clear();

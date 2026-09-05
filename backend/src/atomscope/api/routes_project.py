@@ -2,10 +2,13 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 from fastapi import APIRouter, HTTPException, Request, status
 
 from atomscope.api.schemas import CreateProjectRequest, OpenProjectRequest, ProjectInfo
 from atomscope.api.state import AppState
+from atomscope.model.common import StrictModel
 from atomscope.project import ProjectStore
 from atomscope.project.store import ProjectError
 
@@ -43,6 +46,24 @@ def create_project(body: CreateProjectRequest, request: Request) -> ProjectInfo:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, str(exc)) from exc
     _state(request).set_project(store)
     return ProjectInfo(path=store.root, manifest=store.manifest)
+
+
+class ViewSettingsBody(StrictModel):
+    settings: dict[str, Any]
+
+
+@router.get("/view-settings", response_model=dict[str, Any])
+def get_view_settings(request: Request) -> dict[str, Any]:
+    return dict(_state(request).require_project().manifest.view_settings)
+
+
+@router.put("/view-settings", response_model=dict[str, Any])
+def put_view_settings(body: ViewSettingsBody, request: Request) -> dict[str, Any]:
+    """Persist UI view settings (representation, background, layer toggles) with the project."""
+    store = _state(request).require_project()
+    store.manifest.view_settings = dict(body.settings)
+    store.save_manifest()
+    return dict(store.manifest.view_settings)
 
 
 @router.post("/close", status_code=status.HTTP_204_NO_CONTENT)

@@ -2622,6 +2622,19 @@
         "title": "ValidationReport",
         "type": "object"
       },
+      "ViewSettingsBody": {
+        "additionalProperties": false,
+        "properties": {
+          "settings": {
+            "additionalProperties": true,
+            "title": "Settings",
+            "type": "object"
+          }
+        },
+        "required": ["settings"],
+        "title": "ViewSettingsBody",
+        "type": "object"
+      },
       "VisibleWhen": {
         "additionalProperties": false,
         "description": "Show a parameter only when another parameter satisfies a condition.",
@@ -4144,6 +4157,67 @@
           }
         },
         "summary": "Open Project",
+        "tags": ["project"]
+      }
+    },
+    "/api/project/view-settings": {
+      "get": {
+        "operationId": "get_view_settings_api_project_view_settings_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Get View Settings Api Project View Settings Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Get View Settings",
+        "tags": ["project"]
+      },
+      "put": {
+        "description": "Persist UI view settings (representation, background, layer toggles) with the project.",
+        "operationId": "put_view_settings_api_project_view_settings_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ViewSettingsBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Put View Settings Api Project View Settings Put",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Put View Settings",
         "tags": ["project"]
       }
     },

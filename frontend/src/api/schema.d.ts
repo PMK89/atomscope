@@ -613,6 +613,27 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/project/view-settings': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Get View Settings */
+    get: operations['get_view_settings_api_project_view_settings_get'];
+    /**
+     * Put View Settings
+     * @description Persist UI view settings (representation, background, layer toggles) with the project.
+     */
+    put: operations['put_view_settings_api_project_view_settings_put'];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/structures': {
     parameters: {
       query?: never;
@@ -1858,6 +1879,13 @@ export interface components {
       /** Issues */
       issues?: components['schemas']['ValidationIssue'][];
     };
+    /** ViewSettingsBody */
+    ViewSettingsBody: {
+      /** Settings */
+      settings: {
+        [key: string]: unknown;
+      };
+    };
     /**
      * VisibleWhen
      * @description Show a parameter only when another parameter satisfies a condition.
@@ -2966,6 +2994,63 @@ export interface operations {
         };
         content: {
           'application/json': components['schemas']['ProjectInfo'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  get_view_settings_api_project_view_settings_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': {
+            [key: string]: unknown;
+          };
+        };
+      };
+    };
+  };
+  put_view_settings_api_project_view_settings_put: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['ViewSettingsBody'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': {
+            [key: string]: unknown;
+          };
         };
       };
       /** @description Validation Error */

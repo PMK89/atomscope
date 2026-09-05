@@ -79,6 +79,12 @@ export const api = {
     open: (body: Body<'/api/project/open', 'post'>) =>
       request<ProjectInfo>('/api/project/open', json(body)),
     close: () => request<undefined>('/api/project/close', { method: 'POST' }),
+    getViewSettings: () => request<Record<string, unknown>>('/api/project/view-settings'),
+    putViewSettings: (settings: Record<string, unknown>) =>
+      request<Record<string, unknown>>('/api/project/view-settings', {
+        method: 'PUT',
+        body: JSON.stringify({ settings }),
+      }),
   },
   structures: {
     list: () => request<StructureSummary[]>('/api/structures'),

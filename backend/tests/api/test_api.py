@@ -68,3 +68,16 @@ def test_io_routes(tmp_path: Path) -> None:
     assert (
         c.post("/api/io/import/path", json={"path": str(tmp_path / "nope.xyz")}).status_code == 404
     )
+
+
+def test_view_settings_persist(tmp_path: Path) -> None:
+    c = client()
+    c.post("/api/project/create", json={"path": str(tmp_path / "p"), "name": "v"})
+    assert c.get("/api/project/view-settings").json() == {}
+    r = c.put(
+        "/api/project/view-settings", json={"settings": {"style": "stick", "background": "black"}}
+    )
+    assert r.status_code == 200 and r.json()["style"] == "stick"
+    c.post("/api/project/close")
+    c.post("/api/project/open", json={"path": str(tmp_path / "p")})
+    assert c.get("/api/project/view-settings").json()["background"] == "black"
