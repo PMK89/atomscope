@@ -40,8 +40,11 @@ export interface ViewState {
   /** Structure engine settings that the Display panel exposes. */
   atomScale: number;
   bondRadius: number;
+  /** Style for the selected atoms, or null to draw them like the rest. */
+  selectionStyle: StructureStyle | null;
   setAtomScale: (scale: number) => void;
   setBondRadius: (radius: number) => void;
+  setSelectionStyle: (style: StructureStyle | null) => void;
   toggleVectors: () => void;
   setVectorField: (field: string) => void;
   setVectorScale: (scale: number) => void;
@@ -75,8 +78,10 @@ export const useViewStore = create<ViewState>((set) => ({
     })),
   atomScale: 0.35,
   bondRadius: 0.12,
+  selectionStyle: null,
   setAtomScale: (atomScale) => set({ atomScale }),
   setBondRadius: (bondRadius) => set({ bondRadius }),
+  setSelectionStyle: (selectionStyle) => set({ selectionStyle }),
   toggleLabels: () => set((s) => ({ showLabels: !s.showLabels })),
   setAtomLabels: (atomLabels) => set({ atomLabels, showLabels: true }),
   setBondLabels: (bondLabels) => set({ bondLabels, showLabels: true }),

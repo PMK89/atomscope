@@ -46,7 +46,9 @@ make dev-backend   # 127.0.0.1:8765 ; make dev-frontend -> 127.0.0.1:5173
 ## Next actions
 1. Remaining CRITICAL parity gaps, all in the renderer or the UI: cut/copy/paste, cartoon/ribbon
    rendering with secondary-structure detection, ring and polygon engines, hydrogen-bond display,
-   QTAIM. The label engine and the Display tab are done.
+   QTAIM. The label engine and the Display tab are done; the Display tab is where the label
+   content is chosen (the View menu only switches labels on) and it can give the selection its own
+   display type, which is what AV-VIS-001's "restricted to primitives" asks for.
 2. UI gaps recorded as PARTIAL: Extensions menu for the chem operations that only have API routes (add/remove hydrogens, pH, invert chirality, H->methyl, partial charges, Copy as SMILES/InChI), fragment/peptide/DNA/nanotube insert dialogs, Auto-Optimization tool, image export, constraints dialog.
 3. Remaining CRITICAL/HIGH parity gaps: label engine, Display Types dock, cut/copy/paste, cartoon/ribbon rendering with secondary-structure detection, SMARTS selection, molecular point groups, colour-by-second-cube (AV-SURF-013), QTAIM.
 4. More wavefunction readers (MOPAC aux, GAMESS, ORCA, Molpro, Slater bases) for AV-SURF-006; ORCA/Gaussian/NWChem input-only plugins; desktop shell ADR.

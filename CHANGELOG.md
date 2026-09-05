@@ -21,6 +21,11 @@
   Measurements and remaining limits: docs/performance.md.
 - Renderer: the sphere and cylinder tessellation is chosen from the atom count, which is what makes
   a large structure orbit at all.
+- Labels: atom and bond labels (index, symbol, name, formal and partial charge, residue, custom;
+  bond order, length) as billboarded sprites, with colour, size and offset.
+- A Display tab in the right dock collects every display layer -- structure style, atom and bond
+  radius, hydrogens, labels, vectors, unit cell repeat and axes -- in one place, and can give the
+  selected atoms a display type of their own (Avogadro's per-primitive engine restriction).
 - Chemistry and building reach the UI: an Extensions menu for hydrogens, pH, bond perception,
   MMFF94 optimization (honouring the document's constraints), partial charges, Copy as SMILES/InChI,
   chirality and H to methyl; Build > Insert dialogs for the fragment library, peptides, nucleic

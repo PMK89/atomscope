@@ -84,6 +84,23 @@ export function DisplayPanel(): JSX.Element {
           onChange={(e) => view.setBondRadius(Number(e.target.value))}
         />
       </div>
+      <div className="form-row">
+        <label htmlFor="display-selection-style">Selected atoms</label>
+        <select
+          id="display-selection-style"
+          value={view.selectionStyle ?? ''}
+          onChange={(e) =>
+            view.setSelectionStyle((e.target.value || null) as StructureStyle | null)
+          }
+        >
+          <option value="">Same as the rest</option>
+          {STYLES.map((s) => (
+            <option key={s.id} value={s.id}>
+              {s.label}
+            </option>
+          ))}
+        </select>
+      </div>
       <Toggle
         id="display-hydrogens"
         label="Show hydrogens"

@@ -28,6 +28,13 @@ export interface StructureLayerSettings {
   vdwScale: number;
   bondRadius: number;
   showHydrogens: boolean;
+  /**
+   * Style for the selected atoms, when they should be drawn differently from the rest (Avogadro
+   * restricts an engine to a set of primitives; this is the same effect with one engine). Null
+   * draws everything in `style`, which is also the fast path: the selection then never rebuilds
+   * the meshes.
+   */
+  selectionStyle: StructureStyle | null;
 }
 
 export const DEFAULT_STRUCTURE_SETTINGS: StructureLayerSettings = {
@@ -36,6 +43,7 @@ export const DEFAULT_STRUCTURE_SETTINGS: StructureLayerSettings = {
   vdwScale: 1.0,
   bondRadius: 0.12,
   showHydrogens: true,
+  selectionStyle: null,
 };
 
 /** [sphere segments, sphere rings, cylinder sides] from coarse to fine. */
@@ -71,6 +79,8 @@ export class StructureLayer implements DisplayLayer {
   private instanceOfAtom: Int32Array = new Int32Array(0);
   /** per instance sphere radius, cached so per-frame position updates skip element lookups */
   private instanceRadius: Float32Array = new Float32Array(0);
+  /** per bond half-cylinder radius, which differs when the selection has its own style */
+  private bondRadii: Float32Array = new Float32Array(0);
   private lastOverride: Float32Array | null = null;
   private lastSelected: ReadonlySet<number> | null = null;
   private lastHovered: number | null = null;
@@ -126,12 +136,16 @@ export class StructureLayer implements DisplayLayer {
   update(ctx: LayerContext): void {
     const s = ctx.structure;
     const settingsKey = JSON.stringify(this.settings);
-    const rebuilt = settingsKey !== this.lastSettings || this.topologyChanged(s);
+    // the selection only changes what is drawn when it has a style of its own
+    const selectionChanged =
+      this.settings.selectionStyle !== null && ctx.selectedAtoms !== this.lastSelected;
+    const rebuilt =
+      settingsKey !== this.lastSettings || this.topologyChanged(s) || selectionChanged;
     const moved = s.atoms !== this.lastAtoms;
     this.lastAtoms = s.atoms;
     this.lastBonds = s.bonds;
     if (rebuilt) {
-      this.rebuild(s);
+      this.rebuild(s, ctx.selectedAtoms);
       this.lastSettings = settingsKey;
     }
     // display-only positions (trajectory frame): update instance matrices, keep topology
@@ -179,11 +193,8 @@ export class StructureLayer implements DisplayLayer {
       this.atomMesh.instanceMatrix.needsUpdate = true;
     }
     if (this.bondMesh) {
-      const radius =
-        this.settings.style === 'wireframe'
-          ? this.settings.bondRadius * 0.35
-          : this.settings.bondRadius;
       this.bondMeshBonds.forEach((bond, k) => {
+        const radius = this.bondRadii[k]!;
         read(bond.a, a);
         read(bond.b, b);
         mid.addVectors(a, b).multiplyScalar(0.5);
@@ -194,9 +205,15 @@ export class StructureLayer implements DisplayLayer {
     }
   }
 
-  private rebuild(s: StructureDoc): void {
+  /** The style an atom is drawn with: its own when the selection has one, the layer's otherwise. */
+  private styleOf(atomIndex: number, selected: ReadonlySet<number>): StructureStyle {
+    const { style, selectionStyle } = this.settings;
+    return selectionStyle !== null && selected.has(atomIndex) ? selectionStyle : style;
+  }
+
+  private rebuild(s: StructureDoc, selected: ReadonlySet<number>): void {
     this.disposeMeshes();
-    const { style, showHydrogens } = this.settings;
+    const { showHydrogens } = this.settings;
     const visibleAtoms: number[] = [];
     this.instanceOfAtom = new Int32Array(s.atoms.length).fill(-1);
     s.atoms.forEach((a, i) => {
@@ -212,21 +229,33 @@ export class StructureLayer implements DisplayLayer {
     this.instanceRadius = new Float32Array(visibleAtoms.length);
     visibleAtoms.forEach((atomIndex, k) => {
       const el = elementBySymbol(s.atoms[atomIndex]!.element);
-      this.instanceRadius[k] = this.atomRadius(el.covalentRadius, el.vdwRadius, style);
+      const atomStyle = this.styleOf(atomIndex, selected);
+      this.instanceRadius[k] = this.atomRadius(el.covalentRadius, el.vdwRadius, atomStyle);
     });
     atomMesh.frustumCulled = false;
     this.atomMesh = atomMesh;
     this.object.add(atomMesh);
 
-    // bonds: split each bond into two half-cylinders colored by their atom
-    if (style !== 'vdw') {
-      const bondIndices: number[] = [];
-      const bonds = s.bonds.filter((b, i) => {
-        const visible = this.instanceOfAtom[b.a]! >= 0 && this.instanceOfAtom[b.b]! >= 0;
-        if (visible) bondIndices.push(i);
-        return visible;
-      });
-      this.bondMeshBondIndices = bondIndices;
+    // bonds: split each bond into two half-cylinders colored by their atom. A van der Waals atom
+    // draws no bonds, so a bond is drawn only where neither of its atoms is one.
+    const bondIndices: number[] = [];
+    const radii: number[] = [];
+    const bonds = s.bonds.filter((b, i) => {
+      if (this.instanceOfAtom[b.a]! < 0 || this.instanceOfAtom[b.b]! < 0) return false;
+      const styleA = this.styleOf(b.a, selected);
+      const styleB = this.styleOf(b.b, selected);
+      if (styleA === 'vdw' || styleB === 'vdw') return false;
+      bondIndices.push(i);
+      radii.push(
+        styleA === 'wireframe' || styleB === 'wireframe'
+          ? this.settings.bondRadius * 0.35
+          : this.settings.bondRadius,
+      );
+      return true;
+    });
+    this.bondMeshBondIndices = bondIndices;
+    this.bondRadii = new Float32Array(radii);
+    if (bonds.length) {
       const bondMesh = new InstancedMesh(cylinder, this.material, bonds.length * 2);
       bondMesh.frustumCulled = false;
       this.bondMesh = bondMesh;
@@ -293,7 +322,9 @@ export class StructureLayer implements DisplayLayer {
         ] as const) {
           const el = elementBySymbol(s.atoms[atomIndex]!.element);
           color.setRGB(el.color[0], el.color[1], el.color[2]);
-          if (this.settings.style === 'stick' || this.settings.style === 'wireframe') {
+          // a stick or wireframe atom is only visible through its bonds, so tint them instead
+          const atomStyle = this.styleOf(atomIndex, ctx.selectedAtoms);
+          if (atomStyle === 'stick' || atomStyle === 'wireframe') {
             if (ctx.selectedAtoms.has(atomIndex)) color.lerp(SELECTION_COLOR, 0.6);
           }
           this.bondMesh!.setColorAt(half, color);

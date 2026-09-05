@@ -8,6 +8,7 @@ import { DisplayPanel } from './DisplayPanel';
 beforeEach(() => {
   useViewStore.setState({
     style: 'ball-and-stick',
+    selectionStyle: null,
     showLabels: false,
     atomLabels: 'symbol_index',
     bondLabels: 'none',
@@ -32,6 +33,17 @@ test('the panel drives the display settings the renderer reads', () => {
 
   fireEvent.click(screen.getByLabelText('Show axes'));
   expect(useViewStore.getState().showAxes).toBe(true);
+});
+
+test('the selection can be given its own display type', () => {
+  render(<DisplayPanel />);
+  expect(useViewStore.getState().selectionStyle).toBeNull();
+
+  fireEvent.change(screen.getByLabelText('Selected atoms'), { target: { value: 'vdw' } });
+  expect(useViewStore.getState().selectionStyle).toBe('vdw');
+
+  fireEvent.change(screen.getByLabelText('Selected atoms'), { target: { value: '' } });
+  expect(useViewStore.getState().selectionStyle).toBeNull();
 });
 
 test('choosing a label content switches the label layer on', () => {

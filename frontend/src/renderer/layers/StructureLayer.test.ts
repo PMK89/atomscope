@@ -1,4 +1,4 @@
-import { Matrix4, type InstancedMesh } from 'three';
+import { Matrix4, Vector3, type InstancedMesh } from 'three';
 import { expect, test, vi } from 'vitest';
 import { addBond, setElement, setPositions } from '../../editor/edits';
 import { makeAtom, makeBond, normalizeStructure, type StructureDoc } from '../../model/structure';
@@ -106,4 +106,56 @@ test('large structures are drawn with coarser spheres', () => {
   expect(meshes(large)[0]!.geometry.attributes.position!.count).toBe(coarse);
   small.dispose();
   large.dispose();
+});
+
+test('the selection can be drawn in its own style', () => {
+  const layer = new StructureLayer();
+  const base = doc();
+  layer.update(ctx(base));
+  const m = new Matrix4();
+  meshes(layer)[0]!.getMatrixAt(0, m);
+  const ballRadius = m.elements[0]!;
+
+  layer.setSettings({ selectionStyle: 'vdw' });
+  layer.update({ ...ctx(base), selectedAtoms: new Set([0]) });
+
+  // the selected carbon grew to its van der Waals radius, the other one did not
+  const atomMesh = meshes(layer)[0]!;
+  atomMesh.getMatrixAt(0, m);
+  expect(m.elements[0]).toBeGreaterThan(ballRadius * 2);
+  atomMesh.getMatrixAt(1, m);
+  expect(m.elements[0]).toBeCloseTo(ballRadius);
+  // a van der Waals atom carries no bonds, so the only bond in the structure is gone
+  expect(meshes(layer)).toHaveLength(1);
+  layer.dispose();
+});
+
+test('a selection change only rebuilds when the selection has a style of its own', () => {
+  const layer = new StructureLayer();
+  const base = doc();
+  layer.update(ctx(base));
+  const atomMesh = meshes(layer)[0];
+
+  layer.update({ ...ctx(base), selectedAtoms: new Set([0]) });
+  expect(meshes(layer)[0]).toBe(atomMesh);
+
+  layer.setSettings({ selectionStyle: 'stick' });
+  layer.update({ ...ctx(base), selectedAtoms: new Set([1]) });
+  expect(meshes(layer)[0]).not.toBe(atomMesh);
+  layer.dispose();
+});
+
+test('a bond between two styles is drawn once, at the thinner radius', () => {
+  const layer = new StructureLayer();
+  const base = doc();
+  layer.setSettings({ selectionStyle: 'wireframe' });
+  layer.update({ ...ctx(base), selectedAtoms: new Set([0]) });
+
+  const bondMesh = meshes(layer)[1]!;
+  expect(bondMesh.count).toBe(2); // one bond, two half-cylinders
+  const m = new Matrix4();
+  bondMesh.getMatrixAt(0, m);
+  // the cylinder's cross-section scale is the thin wireframe radius, not the default 0.12
+  expect(new Vector3().setFromMatrixColumn(m, 0).length()).toBeCloseTo(0.12 * 0.35, 3);
+  layer.dispose();
 });

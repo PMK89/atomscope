@@ -89,10 +89,10 @@ test('Build > Insert peptide uses the presets the backend actually offers', asyn
   await expect(page.locator('.app-statusbar')).toContainText('23 atoms');
 });
 
-test('labels are drawn into the scene and follow the content option', async ({ page }) => {
+test('the Display tab drives the labels drawn into the scene', async ({ page }) => {
   await page.goto('/');
-  await page.getByRole('button', { name: 'View' }).click();
-  await page.getByRole('menuitemcheckbox', { name: 'Label atoms: Element symbol' }).click();
+  await page.getByRole('tab', { name: 'Display' }).click();
+  await page.getByLabel('Atoms', { exact: true }).selectOption('symbol');
 
   const labels = async (): Promise<string[]> =>
     page.evaluate(() => {
@@ -102,7 +102,18 @@ test('labels are drawn into the scene and follow the content option', async ({ p
     });
   await expect.poll(labels).toEqual(['O', 'H', 'H']);
 
-  await page.getByRole('button', { name: 'View' }).click();
-  await page.getByRole('menuitemcheckbox', { name: 'Label bonds: Bond length' }).click();
+  await page.getByLabel('Bonds', { exact: true }).selectOption('length');
   await expect.poll(labels).toEqual(['O', 'H', 'H', '0.96', '0.96']);
+
+  // the style controls reach the renderer too
+  await page.getByLabel('Colour').fill('#ff0000');
+  await page.getByRole('slider', { name: 'Size' }).fill('1.2');
+  const style = await page.evaluate(() => {
+    const renderer = (window as unknown as { __atomscopeRenderer?: unknown })
+      .__atomscopeRenderer as {
+      getLayer(id: string): { settings: { color: string; size: number } } | undefined;
+    };
+    return renderer.getLayer('labels')?.settings;
+  });
+  expect(style).toMatchObject({ color: '#ff0000', size: 1.2 });
 });

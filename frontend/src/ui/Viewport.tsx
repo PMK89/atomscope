@@ -59,6 +59,7 @@ export function Viewport(): JSX.Element {
       showHydrogens: view.showHydrogens,
       atomScale: view.atomScale,
       bondRadius: view.bondRadius,
+      selectionStyle: view.selectionStyle,
     });
     r.setBackground(BACKGROUND_HEX[view.background]);
     if (r.projection !== view.projection) r.setProjection(view.projection);
