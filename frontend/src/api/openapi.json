@@ -923,6 +923,39 @@
         "title": "Choice",
         "type": "object"
       },
+      "CompoundName": {
+        "additionalProperties": false,
+        "description": "What PubChem calls this compound, and the key it was asked about.",
+        "properties": {
+          "inchikey": {
+            "title": "Inchikey",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "source": {
+            "default": "pubchem",
+            "title": "Source",
+            "type": "string"
+          }
+        },
+        "required": ["name", "inchikey"],
+        "title": "CompoundName",
+        "type": "object"
+      },
+      "CompoundNameRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "structure": {
+            "$ref": "#/components/schemas/Structure"
+          }
+        },
+        "required": ["structure"],
+        "title": "CompoundNameRequest",
+        "type": "object"
+      },
       "ConformerRequest": {
         "additionalProperties": false,
         "properties": {
@@ -9516,6 +9549,46 @@
         },
         "summary": "Health",
         "tags": ["system"]
+      }
+    },
+    "/api/io/compound-name": {
+      "post": {
+        "description": "The IUPAC name PubChem has for the posted structure (Avogadro's Molecule Properties name).\n\nThe InChIKey is computed here, locally, and only that goes to the database -- the structure\nitself is never sent. Nothing calls this on its own: it is a button in the Properties tab,\nbecause looking a molecule up tells someone else what is being worked on.",
+        "operationId": "compound_name_lookup_api_io_compound_name_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CompoundNameRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CompoundName"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Compound Name Lookup",
+        "tags": ["io"]
       }
     },
     "/api/io/export": {

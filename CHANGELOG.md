@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- The Properties tab can look a compound's IUPAC name up at PubChem, by the
+  InChIKey computed here — the structure itself never leaves.
+
 - The Properties tab tells more of the story: molecular weight, residue count
   and any quantity the document carries (the dipole from a partial-charge run,
   an imported output's energy) in the structure section; Open Babel's atom

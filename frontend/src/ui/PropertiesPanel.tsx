@@ -1,4 +1,6 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { api } from '../api/client';
+import { toApiStructure } from '../api/structureBody';
 import { bondsOfAtom, minimumImageDistance } from '../model/connectivity';
 import { formula, molecularWeight, type StructureDoc, type Vec3 } from '../model/structure';
 import { partialCharges } from '../renderer/labels';
@@ -58,6 +60,20 @@ export function PropertiesPanel({ onError }: { onError?: (m: string) => void }):
   useEffect(() => {
     if (wantsTypes) void loadTypes(doc, revision);
   }, [wantsTypes, doc, revision, loadTypes]);
+
+  // The name comes from PubChem, so it is asked for only when the button is pressed: looking a
+  // molecule up tells someone else what is being worked on. It is dropped as soon as the
+  // document changes, since it would then be the name of something else.
+  const [named, setNamed] = useState<{ key: string; name: string } | null>(null);
+  const nameKey = `${doc.id}:${revision}`;
+  const lookUpName = async (): Promise<void> => {
+    try {
+      const found = await api.io.compoundName({ structure: toApiStructure(doc) });
+      setNamed({ key: nameKey, name: found.name });
+    } catch (e) {
+      onError?.(`Name lookup failed: ${(e as Error).message}`);
+    }
+  };
 
   const setAtom = (label: string, patch: Partial<StructureDoc['atoms'][number]>): void => {
     const i = idx[0]!;
@@ -137,6 +153,20 @@ export function PropertiesPanel({ onError }: { onError?: (m: string) => void }):
           <span>{quantity(q)}</span>
         </div>
       ))}
+      <div className="form-row">
+        <label>IUPAC name</label>
+        {named?.key === nameKey ? (
+          <span>{named.name}</span>
+        ) : (
+          <button
+            onClick={() => void lookUpName()}
+            disabled={doc.atoms.length === 0}
+            title="Ask PubChem what this compound is called"
+          >
+            Look up…
+          </button>
+        )}
+      </div>
       <div className="button-row">
         <button onClick={() => openEditor(true)}>Cartesian editor…</button>
       </div>

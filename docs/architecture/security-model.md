@@ -29,9 +29,10 @@
   development the loopback binding is the only protection; do not expose the port.
 
 - The API binds to 127.0.0.1 only; CORS is restricted to the development frontend origin.
-- The backend makes no outbound request on its own. The only one it ever makes is
-  `POST /api/io/fetch`, and only because a person typed an identifier into
-  `File ▸ Fetch from PDB…` or `Fetch by name…` (`io/fetch.py`):
+- The backend makes no outbound request on its own. The only ones it ever makes are
+  `POST /api/io/fetch` — because a person typed an identifier into `File ▸ Fetch from PDB…` or
+  `Fetch by name…` — and `POST /api/io/compound-name`, because a person pressed *Look up…* beside
+  the IUPAC name in the Properties tab. Both go through `io/fetch.py` and both obey the same rules:
 
   - **Two fixed hosts**, `files.rcsb.org` and `pubchem.ncbi.nlm.nih.gov`. The list is a constant
     in the module and there is no setting that extends it.
@@ -48,7 +49,11 @@
   - **Bounded.** 15 s timeout, and at most 32 MB read; a larger answer is refused rather than
     buffered. Failures are reported as 404 (no such entry), 400 (the database rejected the
     query) or 502 (unreachable or broken), never as a stack trace.
-  - Nothing is sent but the identifier: no document contents, no paths, no telemetry.
+  - Nothing is sent but the identifier: no document contents, no paths, no telemetry. The name
+    lookup computes the InChIKey locally (RDKit, `chem/properties.identifiers`) and sends only
+    that — a hash of the connectivity, checked against `\A[A-Z]{14}-[A-Z]{10}-[A-Z]\Z` before an
+    address is built. It is still a disclosure: asking a database about a compound tells that
+    database someone is working on it, which is why it is a button and never automatic.
 
 ## Dependencies
 

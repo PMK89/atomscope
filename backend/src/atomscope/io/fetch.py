@@ -32,6 +32,8 @@ ALLOWED_HOSTS = frozenset({"files.rcsb.org", "pubchem.ncbi.nlm.nih.gov"})
 # a PDB id is four characters: a digit 1-9 then three alphanumerics (1CRN, 4HHB, 2GTL)
 # `\Z`, not `$`: `$` also matches before a trailing newline, which would let one through
 PDB_ID = re.compile(r"\A[1-9][A-Za-z0-9]{3}\Z")
+# an InChIKey is 14 letters, a dash, 10 letters, a dash and one letter: LFQSCWFLJHTTHZ-UHFFFAOYSA-N
+INCHIKEY = re.compile(r"\A[A-Z]{14}-[A-Z]{10}-[A-Z]\Z")
 MAX_NAME = 200
 # a large entry is a few tens of MB; beyond that the caller wanted a file, not a paste
 MAX_BYTES = 32 * 1024 * 1024
@@ -125,6 +127,32 @@ def pubchem_url(name: str, *, record: str = "3d") -> str:
         f"https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/{escaped}"
         f"/SDF?record_type={record}"
     )
+
+
+def pubchem_name_url(inchikey: str) -> str:
+    """The PubChem address of a compound's IUPAC name. Raises when `inchikey` is not one."""
+    key = inchikey.strip().upper()
+    if not INCHIKEY.match(key):
+        msg = f"{inchikey!r} is not an InChIKey"
+        raise FetchError(msg)
+    return (
+        f"https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/inchikey/{key}/property/IUPACName/TXT"
+    )
+
+
+def compound_name(inchikey: str) -> str:
+    """The IUPAC name PubChem has for this compound.
+
+    Avogadro's Molecule Properties dialog fetched a name too, from a service that is gone
+    (molecularpropextension.cpp). This asks the database Atomscope already fetches structures
+    from, with an identifier the caller computed locally -- the structure itself never leaves.
+    """
+    answer = _get(pubchem_name_url(inchikey)).strip()
+    if not answer:
+        msg = "not in the database"
+        raise NotFoundError(msg)
+    # TXT gives one line per record; a key identifies one compound, so take the first
+    return answer.splitlines()[0].strip()
 
 
 def fetch_structure(source: Source, query: str) -> Structure:

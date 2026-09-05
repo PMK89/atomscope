@@ -10,8 +10,15 @@ from pydantic import Field
 
 from atomscope.api.state import AppState
 from atomscope.calculations.grids import import_cube
+from atomscope.chem.properties import identifiers
 from atomscope.io import formats, read_structure, structure_from_string, write_structure
-from atomscope.io.fetch import FetchError, NotFoundError, UpstreamError, fetch_structure
+from atomscope.io.fetch import (
+    FetchError,
+    NotFoundError,
+    UpstreamError,
+    compound_name,
+    fetch_structure,
+)
 from atomscope.io.poscar import MissingSpeciesError
 from atomscope.io.qc_outputs import OutputImport, read_output
 from atomscope.io.rdkit_io import from_smiles
@@ -67,6 +74,18 @@ class FetchRequest(StrictModel):
     query: str = Field(
         max_length=200, description="a PDB id (1CRN) or a chemical name (caffeine); never a URL"
     )
+
+
+class CompoundNameRequest(StrictModel):
+    structure: Structure
+
+
+class CompoundName(StrictModel):
+    """What PubChem calls this compound, and the key it was asked about."""
+
+    name: str
+    inchikey: str
+    source: str = "pubchem"
 
 
 class ExportRequest(StrictModel):
@@ -185,6 +204,30 @@ def fetch(body: FetchRequest) -> Structure:
     except UpstreamError as exc:
         raise HTTPException(status.HTTP_502_BAD_GATEWAY, str(exc)) from exc
     except (FetchError, FormatError, ValueError) as exc:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, str(exc)) from exc
+
+
+@router.post("/compound-name", response_model=CompoundName)
+def compound_name_lookup(body: CompoundNameRequest) -> CompoundName:
+    """The IUPAC name PubChem has for the posted structure (Avogadro's Molecule Properties name).
+
+    The InChIKey is computed here, locally, and only that goes to the database -- the structure
+    itself is never sent. Nothing calls this on its own: it is a button in the Properties tab,
+    because looking a molecule up tells someone else what is being worked on.
+    """
+    if not body.structure.atoms:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "structure has no atoms")
+    try:
+        key = identifiers(body.structure).inchikey
+    except ValueError as exc:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, str(exc)) from exc
+    try:
+        return CompoundName(name=compound_name(key), inchikey=key)
+    except NotFoundError as exc:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, f"{key}: {exc}") from exc
+    except UpstreamError as exc:
+        raise HTTPException(status.HTTP_502_BAD_GATEWAY, str(exc)) from exc
+    except FetchError as exc:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, str(exc)) from exc
 
 

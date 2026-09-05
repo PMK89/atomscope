@@ -349,6 +349,14 @@ document has picked up along the way — the dipole moment that
 `Extensions ▸ Partial charges` attaches, the energy an imported output brings
 with it.
 
+Beside **IUPAC name** is a *Look up…* button. Pressing it computes the
+structure's InChIKey here and asks PubChem what that compound is called; only
+the key is sent, never the structure. It is a button rather than something the
+panel does by itself because asking tells the database that someone is working
+on this molecule, and the answer is forgotten as soon as the document changes —
+it would be the name of something else. Avogadro fetched a name too, from a
+service that no longer exists.
+
 The **Selection** section describes the atom that is selected: its element,
 Open Babel's atom type for it (`Car`, `O3`, …), its valence, its formal charge,
 its partial charge when the document has any, its position in Å and in

@@ -1,3 +1,4 @@
+import json
 from pathlib import Path
 
 import pytest
@@ -6,6 +7,7 @@ from fastapi.testclient import TestClient
 from atomscope.api.app import create_app
 from atomscope.io import fetch as fetch_module
 from atomscope.io import recent as recent_module
+from atomscope.io.rdkit_io import from_smiles
 from atomscope.model import Atom, Structure
 
 
@@ -98,6 +100,32 @@ def test_io_routes(tmp_path: Path) -> None:
     assert (
         c.post("/api/io/import/path", json={"path": str(tmp_path / "nope.xyz")}).status_code == 404
     )
+
+
+def test_the_name_lookup_sends_a_key_and_not_the_structure(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    asked: list[str] = []
+
+    def get(url: str) -> str:
+        asked.append(url)
+        return "ethanol\n"
+
+    monkeypatch.setattr(fetch_module, "_get", get)
+    c = client()
+    ethanol = json.loads(from_smiles("CCO").model_dump_json())
+
+    r = c.post("/api/io/compound-name", json={"structure": ethanol})
+    assert r.status_code == 200, r.text
+    body = r.json()
+    assert body["name"] == "ethanol" and body["source"] == "pubchem"
+    # the address carries the key the backend computed, and nothing about the geometry
+    assert len(asked) == 1
+    assert body["inchikey"] in asked[0]
+    assert "CCO" not in asked[0]
+
+    empty = c.post("/api/io/compound-name", json={"structure": {"name": "empty"}})
+    assert empty.status_code == 400
 
 
 def test_fetch_validates_before_it_asks_and_reports_what_went_wrong(

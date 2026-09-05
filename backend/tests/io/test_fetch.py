@@ -13,8 +13,10 @@ from atomscope.io.fetch import (
     NotFoundError,
     UpstreamError,
     _AllowedHostsRedirect,
+    compound_name,
     fetch_structure,
     pdb_url,
+    pubchem_name_url,
     pubchem_url,
 )
 
@@ -161,3 +163,28 @@ def test_a_name_that_is_in_no_database_is_not_found(monkeypatch: pytest.MonkeyPa
     _answers(monkeypatch, {})
     with pytest.raises(NotFoundError):
         fetch_structure("pdb", "9ZZZ")
+
+
+def test_a_name_lookup_sends_a_key_and_nothing_else(monkeypatch: pytest.MonkeyPatch) -> None:
+    key = "LFQSCWFLJHTTHZ-UHFFFAOYSA-N"
+    url = pubchem_name_url(key.lower())  # the key is upper-cased before the address is built
+    assert url.endswith(f"/compound/inchikey/{key}/property/IUPACName/TXT")
+    asked = _answers(monkeypatch, {url: "ethanol\n"})
+    assert compound_name(key) == "ethanol"
+    assert asked == [url]
+
+    for bad in ("ethanol", "LFQSCWFLJHTTHZ/UHFFFAOYSA-N", "", "LFQSCWFLJHTTHZ-UHFFFAOYSA-N-X"):
+        with pytest.raises(FetchError):
+            pubchem_name_url(bad)
+
+
+def test_a_compound_the_database_does_not_know_is_not_found(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    _answers(monkeypatch, {})
+    with pytest.raises(NotFoundError):
+        compound_name("AAAAAAAAAAAAAA-BBBBBBBBBB-C")
+    # an empty body is not a name either
+    _answers(monkeypatch, {pubchem_name_url("AAAAAAAAAAAAAA-BBBBBBBBBB-C"): "  \n"})
+    with pytest.raises(NotFoundError):
+        compound_name("AAAAAAAAAAAAAA-BBBBBBBBBB-C")

@@ -60,6 +60,7 @@ export type FragmentInfo = components['schemas']['FragmentInfo'];
 export type PeptidePresets = components['schemas']['PeptidePresets'];
 export type ChargesResult = components['schemas']['ChargesResult'];
 export type AtomTyping = components['schemas']['AtomTyping'];
+export type CompoundName = components['schemas']['CompoundName'];
 export type Identifiers = components['schemas']['Identifiers'];
 export type OptimizeResult = components['schemas']['OptimizeResult'];
 export type OptimizeStepResponse = components['schemas']['OptimizeStepResponse'];
@@ -160,6 +161,8 @@ export const api = {
     recent: () => request<RecentFile[]>('/api/io/recent'),
     clearRecent: () => request<RecentFile[]>('/api/io/recent', { method: 'DELETE' }),
     fetch: (body: Body<'/api/io/fetch', 'post'>) => request<Structure>('/api/io/fetch', json(body)),
+    compoundName: (body: Body<'/api/io/compound-name', 'post'>) =>
+      request<CompoundName>('/api/io/compound-name', json(body)),
     smiles: (body: Body<'/api/io/smiles', 'post'>) =>
       request<Structure>('/api/io/smiles', json(body)),
     export: (body: Body<'/api/io/export', 'post'>) =>

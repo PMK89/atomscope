@@ -1388,6 +1388,30 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/io/compound-name': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Compound Name Lookup
+     * @description The IUPAC name PubChem has for the posted structure (Avogadro's Molecule Properties name).
+     *
+     *     The InChIKey is computed here, locally, and only that goes to the database -- the structure
+     *     itself is never sent. Nothing calls this on its own: it is a button in the Properties tab,
+     *     because looking a molecule up tells someone else what is being worked on.
+     */
+    post: operations['compound_name_lookup_api_io_compound_name_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/io/export': {
     parameters: {
       query?: never;
@@ -2362,6 +2386,25 @@ export interface components {
       label: string;
       /** Value */
       value: string | number | boolean;
+    };
+    /**
+     * CompoundName
+     * @description What PubChem calls this compound, and the key it was asked about.
+     */
+    CompoundName: {
+      /** Inchikey */
+      inchikey: string;
+      /** Name */
+      name: string;
+      /**
+       * Source
+       * @default pubchem
+       */
+      source: string;
+    };
+    /** CompoundNameRequest */
+    CompoundNameRequest: {
+      structure: components['schemas']['Structure'];
     };
     /** ConformerRequest */
     ConformerRequest: {
@@ -7431,6 +7474,39 @@ export interface operations {
         };
         content: {
           'application/json': components['schemas']['HealthResponse'];
+        };
+      };
+    };
+  };
+  compound_name_lookup_api_io_compound_name_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['CompoundNameRequest'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['CompoundName'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
         };
       };
     };
