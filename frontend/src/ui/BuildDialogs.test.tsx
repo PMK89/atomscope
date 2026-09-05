@@ -46,7 +46,7 @@ test('the fragment library inserts by id and attaches to a single selected atom'
 
 test('a peptide is built and then inserted, without an attachment point', async () => {
   vi.spyOn(api.build, 'peptidePresets').mockResolvedValue({
-    presets: { 'alpha-helix': [-57, -47], 'beta-sheet': [-139, 135] },
+    presets: { alpha_helix: [-60, -40], beta_sheet: [-135, 135] },
   } as never);
   const peptide = vi.spyOn(api.build, 'peptide').mockResolvedValue(MERGED as never);
   const insert = vi.spyOn(api.build, 'insert').mockResolvedValue(MERGED as never);
@@ -54,13 +54,15 @@ test('a peptide is built and then inserted, without an attachment point', async 
 
   render(<BuildDialogs onError={() => {}} />);
   fireEvent.change(screen.getByLabelText('Sequence'), { target: { value: 'agk' } });
-  await screen.findByText('beta-sheet');
-  fireEvent.change(screen.getByLabelText('Conformation'), { target: { value: 'beta-sheet' } });
+  await screen.findByText('beta_sheet');
+  // the select must only ever hold a name the backend knows
+  expect((screen.getByLabelText('Conformation') as HTMLSelectElement).value).toBe('alpha_helix');
+  fireEvent.change(screen.getByLabelText('Conformation'), { target: { value: 'beta_sheet' } });
   fireEvent.click(screen.getByText('Insert'));
 
   await waitFor(() => expect(insert).toHaveBeenCalled());
   expect(peptide).toHaveBeenCalledWith(
-    expect.objectContaining({ sequence: 'AGK', preset: 'beta-sheet' }),
+    expect.objectContaining({ sequence: 'AGK', preset: 'beta_sheet' }),
   );
   expect(insert.mock.calls[0]![0]).not.toHaveProperty('attach_atom');
 });
@@ -98,12 +100,15 @@ test('switching the nanotube dialog to a sheet drops the length and calls graphe
 });
 
 test('a failed insertion is reported and the dialog stays open', async () => {
-  vi.spyOn(api.build, 'peptidePresets').mockResolvedValue({ presets: {} } as never);
+  vi.spyOn(api.build, 'peptidePresets').mockResolvedValue({
+    presets: { alpha_helix: [-60, -40] },
+  } as never);
   vi.spyOn(api.build, 'peptide').mockRejectedValue(new Error('unknown residue X'));
   const onError = vi.fn();
   useBuildStore.getState().openDialog('peptide');
 
   render(<BuildDialogs onError={onError} />);
+  await screen.findByText('alpha_helix');
   fireEvent.change(screen.getByLabelText('Sequence'), { target: { value: 'X' } });
   fireEvent.click(screen.getByText('Insert'));
 

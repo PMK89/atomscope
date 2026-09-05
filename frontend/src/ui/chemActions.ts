@@ -6,7 +6,7 @@
  * still refers to the same atoms after an operation that only moves them (optimize, charges).
  * Operations that add or remove atoms necessarily renumber, and the store handles that.
  */
-import { api, type Structure } from '../api/client';
+import { api, type FFConstraint, type Structure } from '../api/client';
 import { toApiStructure } from '../api/structureBody';
 import { normalizeStructure, type StructureDoc } from '../model/structure';
 import { useSelectionStore } from '../state/selectionStore';
@@ -79,6 +79,26 @@ export const perceiveBonds = (onError: (m: string) => void): Promise<boolean> =>
     onError,
   );
 
+/**
+ * The document's constraints as force-field constraints. A `fix_cartesian` with a partial mask
+ * becomes the per-axis kinds Open Babel understands, so a plane-constrained atom is not silently
+ * optimized as if it were free.
+ */
+export function forceFieldConstraints(doc: StructureDoc): FFConstraint[] {
+  const out: FFConstraint[] = [];
+  for (const c of doc.constraints ?? []) {
+    if (c.kind === 'fix_atoms') out.push({ kind: 'fix', atoms: [...c.indices] });
+    else if (c.kind === 'fix_bond_length') out.push({ kind: 'distance', atoms: [c.a, c.b] });
+    else if (c.kind === 'fix_cartesian') {
+      const axes = ['fix_x', 'fix_y', 'fix_z'] as const;
+      const fixed = c.mask.flatMap((m, i) => (m ? [axes[i]!] : []));
+      if (fixed.length === 3) out.push({ kind: 'fix', atoms: [c.index] });
+      else for (const kind of fixed) out.push({ kind, atoms: [c.index] });
+    }
+  }
+  return out;
+}
+
 export const optimizeGeometry = (
   onError: (m: string) => void,
   forceField = 'MMFF94',
@@ -93,7 +113,7 @@ export const optimizeGeometry = (
         max_steps: 500,
         convergence: 1e-6,
         record_every: 0,
-        constraints: [],
+        constraints: forceFieldConstraints(useStructureStore.getState().doc),
       });
       return result.structure;
     },

@@ -53,6 +53,7 @@ export type VibrationsResponse = components['schemas']['VibrationsResponse'];
 export type VibrationImport = components['schemas']['VibrationImport'];
 export type NmrShielding = components['schemas']['NmrShielding'];
 export type SmartsResult = components['schemas']['SmartsResult'];
+export type FFConstraint = components['schemas']['FFConstraint'];
 export type FragmentInfo = components['schemas']['FragmentInfo'];
 export type PeptidePresets = components['schemas']['PeptidePresets'];
 export type ChargesResult = components['schemas']['ChargesResult'];

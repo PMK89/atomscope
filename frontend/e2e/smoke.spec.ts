@@ -73,3 +73,18 @@ test('Build > Insert fragment adds a real fragment from the library', async ({ p
 
   await expect(page.locator('.app-statusbar')).toContainText('15 atoms');
 });
+
+test('Build > Insert peptide uses the presets the backend actually offers', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Build' }).click();
+  await page.getByRole('menuitem', { name: 'Insert peptide…' }).click();
+
+  // the names come from the API; a hard-coded one would be rejected by the schema
+  const preset = page.getByLabel('Conformation');
+  await expect(preset).toHaveValue(/[a-z_]+/);
+  await page.getByLabel('Sequence').fill('AG');
+  await page.getByRole('button', { name: 'Insert', exact: true }).click();
+
+  // water (3) plus the dipeptide
+  await expect(page.locator('.app-statusbar')).toContainText('23 atoms');
+});

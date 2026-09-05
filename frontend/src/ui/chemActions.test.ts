@@ -5,6 +5,7 @@ import { useSelectionStore } from '../state/selectionStore';
 import { useStructureStore } from '../state/structureStore';
 import {
   addHydrogens,
+  forceFieldConstraints,
   copyIdentifier,
   optimizeGeometry,
   removeHydrogens,
@@ -100,4 +101,42 @@ test('copy as SMILES puts the identifier on the clipboard', async () => {
   await copyIdentifier('smiles', () => {}, notify);
   expect(writeText).toHaveBeenCalledWith('O');
   expect(notify).toHaveBeenCalledWith('Copied O');
+});
+
+test('document constraints reach the force field', () => {
+  const doc = {
+    ...water(),
+    constraints: [
+      { kind: 'fix_atoms', indices: [0] },
+      { kind: 'fix_cartesian', index: 1, mask: [true, false, true] },
+      { kind: 'fix_cartesian', index: 2, mask: [true, true, true] },
+      { kind: 'fix_bond_length', a: 0, b: 1 },
+    ],
+  } as never;
+  expect(forceFieldConstraints(doc)).toEqual([
+    { kind: 'fix', atoms: [0] },
+    { kind: 'fix_x', atoms: [1] },
+    { kind: 'fix_z', atoms: [1] },
+    { kind: 'fix', atoms: [2] },
+    { kind: 'distance', atoms: [0, 1] },
+  ]);
+  expect(forceFieldConstraints(water())).toEqual([]);
+});
+
+test('optimize passes the constraints instead of dropping them', async () => {
+  const optimize = vi.spyOn(api.chem, 'optimize').mockResolvedValue({
+    structure: water(),
+    energy: { value: -1, unit: 'kcal/mol' },
+    steps: 1,
+    converged: true,
+  } as never);
+  useStructureStore.getState().commit('fix', {
+    ...useStructureStore.getState().doc,
+    constraints: [{ kind: 'fix_atoms', indices: [0] }],
+  } as never);
+
+  await optimizeGeometry(() => {});
+  expect(optimize).toHaveBeenCalledWith(
+    expect.objectContaining({ constraints: [{ kind: 'fix', atoms: [0] }] }),
+  );
 });

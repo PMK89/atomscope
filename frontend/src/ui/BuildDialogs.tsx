@@ -162,15 +162,21 @@ function FragmentDialog({ onClose, onError }: DialogProps): JSX.Element {
 
 function PeptideDialog({ onClose, onError }: DialogProps): JSX.Element {
   const [sequence, setSequence] = useState('AGA');
-  const [preset, setPreset] = useState('alpha-helix');
-  const [presets, setPresets] = useState<string[]>(['alpha-helix']);
+  // the preset names are the backend's (alpha_helix, not alpha-helix): take them from the API and
+  // do not offer one that is not in the list, or Insert posts a name the schema rejects
+  const [presets, setPresets] = useState<string[]>([]);
+  const [preset, setPreset] = useState('');
   const [phi, setPhi] = useState(-57);
   const [psi, setPsi] = useState(-47);
 
   useEffect(() => {
     api.build
       .peptidePresets()
-      .then((p) => setPresets([...Object.keys(p.presets), 'custom']))
+      .then((p) => {
+        const names = [...Object.keys(p.presets), 'custom'];
+        setPresets(names);
+        setPreset((current) => (names.includes(current) ? current : (names[0] ?? '')));
+      })
       .catch((e: Error) => onError(`Peptide presets: ${e.message}`));
   }, [onError]);
 
@@ -230,7 +236,11 @@ function PeptideDialog({ onClose, onError }: DialogProps): JSX.Element {
         </div>
       )}
       <div className="button-row">
-        <button className="primary" onClick={() => void build()} disabled={!sequence.trim()}>
+        <button
+          className="primary"
+          onClick={() => void build()}
+          disabled={!sequence.trim() || !preset}
+        >
           Insert
         </button>
         <button onClick={onClose}>Cancel</button>
