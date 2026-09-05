@@ -148,7 +148,9 @@ export class DrawTool implements Tool {
       if (adjust) next = adjustMany(next, touched);
       label = this.previewTarget < this.base.atoms.length ? 'Add bond' : `Add ${element}`;
     } else if (this.createdOnDown && start !== null) {
-      next = adjust ? adjustMany(this.base, [this.base.atoms[start]?.uid, ...perceived]) : this.base;
+      next = adjust
+        ? adjustMany(this.base, [this.base.atoms[start]?.uid, ...perceived])
+        : this.base;
       label = `Add ${element}`;
     } else if (this.startedOnBond !== null) {
       const bond = this.base.bonds[this.startedOnBond];
@@ -166,6 +168,10 @@ export class DrawTool implements Tool {
       return;
     }
     st.commit(label, next);
+    this.reset();
+  }
+
+  cancelGesture(): void {
     this.reset();
   }
 

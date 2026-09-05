@@ -14,6 +14,8 @@ export interface StructureState {
   doc: StructureDoc;
   /** Monotonic counter bumped on every change; cheap dependency for renderers. */
   revision: number;
+  /** Bumped by undo/redo only, so an active gesture can notice that its base is gone. */
+  historyRevision: number;
   undoStack: HistoryEntry[];
   redoStack: HistoryEntry[];
   /** Document before the current preview sequence, or null when not previewing. */
@@ -42,6 +44,7 @@ const MAX_HISTORY = 200;
 export const useStructureStore = create<StructureState>((set, get) => ({
   doc: emptyStructure(),
   revision: 0,
+  historyRevision: 0,
   undoStack: [],
   redoStack: [],
   previewBase: null,
@@ -67,6 +70,8 @@ export const useStructureStore = create<StructureState>((set, get) => ({
       redoStack: [],
       previewBase: null,
     })),
+  // undo/redo discard a running preview: the counterpart entry records the document the preview
+  // started from, never the half-finished drag state.
   undo: () =>
     set((s) => {
       const entry = s.undoStack[s.undoStack.length - 1];
@@ -74,8 +79,10 @@ export const useStructureStore = create<StructureState>((set, get) => ({
       return {
         doc: entry.doc,
         revision: s.revision + 1,
+        historyRevision: s.historyRevision + 1,
+        previewBase: null,
         undoStack: s.undoStack.slice(0, -1),
-        redoStack: [...s.redoStack, { label: entry.label, doc: s.doc }],
+        redoStack: [...s.redoStack, { label: entry.label, doc: s.previewBase ?? s.doc }],
       };
     }),
   redo: () =>
@@ -85,8 +92,10 @@ export const useStructureStore = create<StructureState>((set, get) => ({
       return {
         doc: entry.doc,
         revision: s.revision + 1,
+        historyRevision: s.historyRevision + 1,
+        previewBase: null,
         redoStack: s.redoStack.slice(0, -1),
-        undoStack: [...s.undoStack, { label: entry.label, doc: s.doc }],
+        undoStack: [...s.undoStack, { label: entry.label, doc: s.previewBase ?? s.doc }],
       };
     }),
   canUndo: () => get().undoStack.length > 0,

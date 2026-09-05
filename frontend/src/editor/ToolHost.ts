@@ -23,6 +23,8 @@ export class ToolHost {
   private active: Tool;
   private readonly unsubscribe: (() => void)[] = [];
   private dragging = false;
+  /** True between an aborted gesture and its pointer-up: further events of that drag are dropped. */
+  private gestureAborted = false;
 
   constructor(
     renderer: ToolRenderer,
@@ -50,6 +52,8 @@ export class ToolHost {
           useToolStore.getState().update('measure', { atoms: [] });
           useToolStore.getState().update('bondCentric', { bond: null });
         }
+        // undo/redo replaced the document the running gesture was editing
+        if (s.historyRevision !== prev.historyRevision && this.dragging) this.abortGesture();
       }),
     );
     if (element) this.bind(element);
@@ -73,18 +77,31 @@ export class ToolHost {
     this.active.deactivate?.(this.ctx);
     // a tool change mid-gesture must not leave preview geometry behind
     useStructureStore.getState().cancelPreview();
+    this.active.cancelGesture?.(this.ctx);
     this.dragging = false;
     useToolStore.getState().update('select', { rect: null });
     this.active = this.toolById(id);
     this.enter(this.active);
   }
 
+  /**
+   * Drop the running gesture: the tool forgets its base document and the remaining pointer events
+   * of this drag are ignored, so nothing is committed against a document that no longer exists.
+   */
+  private abortGesture(): void {
+    this.active.cancelGesture?.(this.ctx);
+    this.dragging = false;
+    this.gestureAborted = true;
+  }
+
   pointerDown(e: PointerLike): void {
     this.dragging = true;
+    this.gestureAborted = false;
     this.active.onPointerDown?.(e, this.ctx);
   }
 
   pointerMove(e: PointerLike): void {
+    if (this.gestureAborted) return;
     if (!this.dragging && e.buttons === 0) {
       const hit = this.ctx.renderer.pick(e.clientX, e.clientY);
       const idx = hit?.kind === 'atom' ? hit.index : null;
@@ -97,6 +114,10 @@ export class ToolHost {
 
   pointerUp(e: PointerLike): void {
     this.dragging = false;
+    if (this.gestureAborted) {
+      this.gestureAborted = false;
+      return;
+    }
     this.active.onPointerUp?.(e, this.ctx);
   }
 

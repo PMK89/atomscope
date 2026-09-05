@@ -174,6 +174,26 @@ describe('host', () => {
     expect(S().doc.atoms[1]!.position[1]).toBe(0);
     expect(S().canUndo()).toBe(false);
   });
+  test('undo mid-drag aborts the gesture instead of committing a stale base', () => {
+    S().commit('move', { ...S().doc, name: 'moved' });
+    useToolStore.getState().setActive('manipulate');
+    host.pointerDown(ev(...at(1.5, 0), { buttons: 1 }));
+    host.pointerMove(ev(...at(1.5, 1), { buttons: 1 }));
+    expect(S().previewBase).not.toBeNull();
+    S().undo();
+    // further events of the aborted drag are ignored
+    host.pointerMove(ev(...at(1.5, 2), { buttons: 1 }));
+    host.pointerUp(ev(...at(1.5, 2)));
+    expect(S().doc.name).toBe('skel');
+    expect(S().doc.atoms[1]!.position[1]).toBe(0);
+    expect(S().previewBase).toBeNull();
+    expect(S().undoStack).toHaveLength(0);
+    expect(S().canRedo()).toBe(true);
+    // the next gesture starts from the undone document
+    drag(host, at(1.5, 0), at(1.5, 1));
+    expect(S().doc.atoms[1]!.position[1]).toBeCloseTo(1);
+    expect(S().undoLabel()).toBe('Move 1 atom');
+  });
   test('loading another document clears measurement picks', () => {
     useToolStore.getState().update('measure', { atoms: [0, 1] });
     useStructureStore.getState().load(normalizeStructure({ name: 'x', charge: 0 }));

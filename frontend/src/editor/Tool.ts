@@ -87,6 +87,8 @@ export interface Tool {
   readonly description: string;
   activate?(ctx: ToolContext): void;
   deactivate?(ctx: ToolContext): void;
+  /** Abandon an in-progress gesture without committing (tool switch, undo/redo). */
+  cancelGesture?(ctx: ToolContext): void;
   onPointerDown?(e: PointerLike, ctx: ToolContext): void;
   onPointerMove?(e: PointerLike, ctx: ToolContext): void;
   onPointerUp?(e: PointerLike, ctx: ToolContext): void;
