@@ -36,9 +36,9 @@ refuses to run them and the UI offers the generated files for download instead.
 
 ## Frontend plugins
 
-A TypeScript registry (`frontend/src/plugins/registry.ts`) accepts: editor tools, display layers,
-panels, and dataset renderers. Built-in features register through the same API so third-party
-extensions are not second-class.
+Editor tools register in `frontend/src/editor/tools/index.ts` and display layers are constructed
+by the renderer; the general registry for panels and dataset renderers described in ADR 0004 has
+not been built yet, so a frontend extension currently means editing those two lists.
 
 ## Rules
 

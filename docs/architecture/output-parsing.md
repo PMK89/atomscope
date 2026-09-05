@@ -19,6 +19,9 @@ Rules:
 - Large arrays (grids, trajectories) are returned as NumPy arrays and stored as binary sidecars
   by the service layer, not embedded in JSON.
 
-Parsers implemented: CP-PAW deck syntax, CP-PAW protocol (`.prot`), Gaussian cube.
-Planned: CP-PAW `.strc_out` (via the deck parser), `_r.tra` trajectory, `.pdos`/`.dos`, band
-files, `.dx`; Molden; ORCA/Gaussian output via ASE and cclib-style readers where licensing allows.
+Parsers implemented: CP-PAW deck syntax, CP-PAW protocol (`.prot`), `.strc_out` (through the
+deck parser), `_r.tra` trajectory, `.pdos`/`.dos`, band files; Gaussian cube (also gzipped);
+Gaussian formatted checkpoint and Molden wavefunctions; Gaussian, ORCA and Q-Chem output for
+vibrations, IR/Raman and NMR; TSV/CSV, JCAMP-DX (AFFN) and Turbomole spectra.
+Planned: `.dx`; MOPAC aux, GAMESS, ORCA and Molpro wavefunctions (and Slater bases) for the
+surface generator; PWscf raw spectral data.

@@ -31,6 +31,11 @@ explicit `!OCCUPATIONS!STATE` blocks (antiferromagnets, excited configurations),
 calculations (parent `.rstrt` copied, `START=F`), and the ASE calculator
 `atomscope.ase_bridge.cppaw_calculator.CppawCalculator` (used by the ASE workflow plugin).
 
-Not yet implemented: `.pdos`/DOS and band-structure tools and the orbital browser (feature branch
-`feat/cppaw-analysis`), inline `!AUGMENT` setups from `setups.rslv`, constraint scans, wall-clock
-limits, remote runners.
+Post-processing is implemented: `paw_dos.x` (total and projected DOS), `paw_bands.x` (band
+structure along a k-path, interpolated or by diagonalization) and on-demand orbital cube export
+through `paw_wave.x`, each run as a separate analysis job on a completed calculation.
+
+Not yet implemented: inline `!AUGMENT` setups from `setups.rslv`, constraint scans, wall-clock
+limits, remote runners. `MODE=DIAG` band runs need a paw_bands.x newer than the installed
+binaries (2025-05-07); the adapter now refuses to serve a band file left over from an earlier
+request rather than presenting it as the result of the failed one.
