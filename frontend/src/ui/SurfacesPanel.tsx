@@ -6,6 +6,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { api, type GridRef, type VolumetricGrid } from '../api/client';
 import { useCalculationStore } from '../state/calculationStore';
 import { useProjectStore } from '../state/projectStore';
+import { SurfaceGenerator } from './SurfaceGenerator';
 import {
   isDensityKind,
   isoToSlider,
@@ -121,6 +122,15 @@ export function SurfacesPanel({ onError }: { onError: (m: string) => void }): JS
           </div>
         </div>
       )}
+
+      <h3>Create surfaces</h3>
+      <SurfaceGenerator
+        onError={onError}
+        onCreated={async (grid) => {
+          await refreshDatasets();
+          await addSurface({ grid, calculation_id: null });
+        }}
+      />
 
       <h3>Surfaces</h3>
       {vol.surfaces.length === 0 && <p className="muted">No surfaces yet.</p>}

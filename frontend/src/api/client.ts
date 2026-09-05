@@ -41,6 +41,9 @@ export type BandStructure = components['schemas']['BandStructure'];
 export type BandOptions = components['schemas']['BandOptions'];
 export type KPathPoint = components['schemas']['KPathPoint'];
 export type KPath = components['schemas']['KPath'];
+export type WavefunctionInfo = components['schemas']['WavefunctionInfo'];
+export type WavefunctionOrbital = components['schemas']['WavefunctionOrbital'];
+export type SurfaceRequest = components['schemas']['SurfaceRequest'];
 export type ParameterValues = Record<string, unknown>;
 
 export class ApiError extends Error {
@@ -189,6 +192,12 @@ export const api = {
       if (!res.ok) throw new ApiError(res.status, res.statusText);
       return new Float32Array(await res.arrayBuffer());
     },
+  },
+  wavefunction: {
+    load: (body: Body<'/api/wavefunction/load', 'post'>) =>
+      request<WavefunctionInfo>('/api/wavefunction/load', json(body)),
+    surface: (body: Body<'/api/wavefunction/surface', 'post'>) =>
+      request<VolumetricGrid>('/api/wavefunction/surface', json(body)),
   },
   backends: {
     list: () => request<BackendInfo[]>('/api/backends'),

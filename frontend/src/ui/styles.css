@@ -714,3 +714,14 @@ button {
 .orbital-table tr.frontier td {
   font-weight: 600;
 }
+
+.surface-generator {
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 6px 8px;
+  margin-bottom: 8px;
+}
+.surface-generator .form-row input[type='text'],
+.surface-generator .form-row input:not([type]) {
+  width: 100%;
+}
