@@ -383,3 +383,29 @@ test('the Properties tab lists the bonds and a typed length moves an atom', asyn
   // the other bond did not move with it
   await expect(page.getByLabel('length of O1—H3')).toHaveValue('0.958');
 });
+
+test('the auto-optimize tool relaxes a stretched bond and is one undo step', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('tab', { name: 'Properties' }).click();
+  const length = page.getByLabel('length of O1—H2');
+  await length.fill('1.400');
+  await length.blur();
+
+  await page.getByRole('button', { name: /Auto-optimize/ }).click();
+  await page.getByRole('button', { name: 'Start' }).click();
+  await page.screenshot({ path: '../.scratch/dev/auto-optimize.png' });
+  // MMFF94 pulls the O-H bond back towards 0.97 A while the tool runs
+  await expect
+    .poll(async () => Number(await page.getByLabel('length of O1—H2').inputValue()), {
+      timeout: 15000,
+    })
+    .toBeLessThan(1.1);
+  await page.getByRole('button', { name: 'Stop' }).click();
+
+  // the whole run is one entry, and undoing it gives the stretched bond back
+  await page.getByRole('button', { name: 'Edit', exact: true }).click();
+  await page.getByRole('menuitem', { name: /Undo Auto-optimize/ }).click();
+  await expect
+    .poll(async () => Number(await page.getByLabel('length of O1—H2').inputValue()))
+    .toBeGreaterThan(1.3);
+});

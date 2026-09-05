@@ -10,7 +10,14 @@ import type { useStructureStore } from '../state/structureStore';
 import type { useToolStore } from './toolStore';
 
 export type ToolId =
-  'navigate' | 'select' | 'draw' | 'manipulate' | 'bond-centric' | 'measure' | 'auto-rotate';
+  | 'navigate'
+  | 'select'
+  | 'draw'
+  | 'manipulate'
+  | 'bond-centric'
+  | 'measure'
+  | 'auto-rotate'
+  | 'auto-optimize';
 
 export interface PointerLike {
   clientX: number;

@@ -60,6 +60,7 @@ export type PeptidePresets = components['schemas']['PeptidePresets'];
 export type ChargesResult = components['schemas']['ChargesResult'];
 export type Identifiers = components['schemas']['Identifiers'];
 export type OptimizeResult = components['schemas']['OptimizeResult'];
+export type OptimizeStepResponse = components['schemas']['OptimizeStepResponse'];
 export type ForceFieldInfo = components['schemas']['ForceFieldInfo'];
 export type PointGroupResult = components['schemas']['PointGroupResult'];
 export type SecondaryStructureResult = components['schemas']['SecondaryStructureResult'];
@@ -258,6 +259,8 @@ export const api = {
     forceFields: () => request<ForceFieldInfo>('/api/chem/force-fields'),
     optimize: (body: Body<'/api/chem/optimize', 'post'>) =>
       request<OptimizeResult>('/api/chem/optimize', json(body)),
+    optimizeStep: (body: Body<'/api/chem/optimize-step', 'post'>) =>
+      request<OptimizeStepResponse>('/api/chem/optimize-step', json(body)),
     addHydrogens: (body: Body<'/api/chem/add-hydrogens', 'post'>) =>
       request<Structure>('/api/chem/add-hydrogens', json(body)),
     removeHydrogens: (body: Body<'/api/chem/remove-hydrogens', 'post'>) =>

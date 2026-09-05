@@ -1,4 +1,5 @@
 import type { Tool } from '../Tool';
+import { AutoOptimizeTool } from './AutoOptimizeTool';
 import { AutoRotateTool } from './AutoRotateTool';
 import { BondCentricTool } from './BondCentricTool';
 import { DrawTool } from './DrawTool';
@@ -16,6 +17,7 @@ export function createTools(): Tool[] {
     new ManipulateTool(),
     new BondCentricTool(),
     new MeasureTool(),
+    new AutoOptimizeTool(),
     new AutoRotateTool(),
   ];
 }

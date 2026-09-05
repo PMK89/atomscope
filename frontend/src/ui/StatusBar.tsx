@@ -11,6 +11,7 @@ export function StatusBar({ message }: { message: string | null }): JSX.Element 
   const hovered = useSelectionStore((s) => s.hoveredAtom);
   const hoveredAtom = hovered !== null ? doc.atoms[hovered] : undefined;
   const tool = useToolStore((s) => s.active);
+  const autoOptimize = useToolStore((s) => s.autoOptimize.message);
   const picks = useToolStore((s) => s.measure.atoms);
   const measurement = tool === 'measure' ? formatMeasurement(measure(doc, picks)) : '';
   const modified = useStructureStore((s) => s.doc !== s.savedDoc);
@@ -38,7 +39,7 @@ export function StatusBar({ message }: { message: string | null }): JSX.Element 
           {hoveredAtom.position.map((x) => x.toFixed(3)).join(', ')}) Å
         </span>
       )}
-      {message && <span className="status-error">{message}</span>}
+      {(message ?? autoOptimize) && <span className="status-error">{message ?? autoOptimize}</span>}
     </footer>
   );
 }

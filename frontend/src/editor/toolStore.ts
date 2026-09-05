@@ -10,6 +10,14 @@ export interface ToolSettings {
   bondCentric: { bond: number | null };
   measure: { atoms: number[] };
   autoRotate: { running: boolean; x: number; y: number; z: number };
+  autoOptimize: {
+    running: boolean;
+    forceField: string;
+    algorithm: 'steepest_descent' | 'conjugate_gradients';
+    steps: number;
+    /** why the run stopped, for the status bar */
+    message: string | null;
+  };
 }
 
 export interface ToolState extends ToolSettings {
@@ -32,6 +40,13 @@ export const useToolStore = create<ToolState>((set) => ({
   bondCentric: { bond: null },
   measure: { atoms: [] },
   autoRotate: { running: false, x: 0, y: 20, z: 0 },
+  autoOptimize: {
+    running: false,
+    forceField: 'MMFF94',
+    algorithm: 'steepest_descent',
+    steps: 4,
+    message: null,
+  },
   overlayVersion: 0,
   cartesianEditorOpen: false,
   constraintsDialogOpen: false,

@@ -38,6 +38,23 @@ export function newUid(): string {
  */
 export type PartialStructure = Partial<ApiStructure>;
 
+/**
+ * Keep the previous atom identities when an operation returned the same atoms in order, so a
+ * selection, a measurement or an undo entry still refers to the same atoms after an optimization.
+ */
+export function withUids(next: StructureDoc, previous: StructureDoc): StructureDoc {
+  if (next.atoms.length !== previous.atoms.length) return next;
+  if (next.atoms.some((a, i) => a.element !== previous.atoms[i]?.element)) return next;
+  return {
+    ...next,
+    id: previous.id,
+    atoms: next.atoms.map((a, i) => {
+      const uid = previous.atoms[i]?.uid;
+      return uid ? { ...a, uid } : a;
+    }),
+  };
+}
+
 export function normalizeStructure(s: PartialStructure): StructureDoc {
   return {
     id: s.id ?? newUid(),

@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { api } from '../api/client';
 import { normalizeSymbol } from '../editor/cartesian';
 import { rotateAtoms, setBondLength, translateAtoms } from '../editor/edits';
 import { formatMeasurement, measure } from '../editor/measure';
@@ -24,6 +25,7 @@ export function ToolSettings(): JSX.Element {
       {active === 'manipulate' && <ManipulateSettings />}
       {active === 'bond-centric' && <BondCentricSettings />}
       {active === 'measure' && <MeasureReadout />}
+      {active === 'auto-optimize' && <AutoOptimizeSettings />}
       {active === 'auto-rotate' && <AutoRotateSettings />}
       {active === 'navigate' && <p className="muted">{info?.description}</p>}
     </div>
@@ -251,6 +253,77 @@ function AutoRotateSettings(): JSX.Element {
         </button>
         <button onClick={() => update('autoRotate', { x: 0, y: 0, z: 0 })}>Reset</button>
       </div>
+    </>
+  );
+}
+
+function AutoOptimizeSettings(): JSX.Element {
+  const opt = useToolStore((s) => s.autoOptimize);
+  const update = useToolStore((s) => s.update);
+  const [fields, setFields] = useState<string[]>([]);
+  useEffect(() => {
+    api.chem
+      .forceFields()
+      .then((f) => setFields(f.force_fields))
+      .catch(() => setFields([]));
+  }, []);
+  return (
+    <>
+      <div className="form-row">
+        <label htmlFor="autoopt-ff">Force field</label>
+        <select
+          id="autoopt-ff"
+          value={opt.forceField}
+          onChange={(e) => update('autoOptimize', { forceField: e.target.value })}
+        >
+          {(fields.length ? fields : [opt.forceField]).map((f) => (
+            <option key={f} value={f}>
+              {f}
+            </option>
+          ))}
+        </select>
+      </div>
+      <div className="form-row">
+        <label htmlFor="autoopt-algorithm">Algorithm</label>
+        <select
+          id="autoopt-algorithm"
+          value={opt.algorithm}
+          onChange={(e) =>
+            update('autoOptimize', {
+              algorithm: e.target.value as typeof opt.algorithm,
+            })
+          }
+        >
+          <option value="steepest_descent">Steepest descent</option>
+          <option value="conjugate_gradients">Conjugate gradients</option>
+        </select>
+      </div>
+      <div className="form-row">
+        <label htmlFor="autoopt-steps">Steps per round</label>
+        <input
+          id="autoopt-steps"
+          type="number"
+          min={1}
+          max={100}
+          value={opt.steps}
+          onChange={(e) =>
+            update('autoOptimize', {
+              steps: Math.min(100, Math.max(1, Number(e.target.value) || 1)),
+            })
+          }
+        />
+      </div>
+      <div className="button-row">
+        <button
+          className={opt.running ? '' : 'primary'}
+          onClick={() => update('autoOptimize', { running: !opt.running, message: null })}
+        >
+          {opt.running ? 'Stop' : 'Start'}
+        </button>
+      </div>
+      <p className="muted">
+        Drag an atom while it runs and the rest relaxes around it. The whole run is one undo step.
+      </p>
     </>
   );
 }

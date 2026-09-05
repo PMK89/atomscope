@@ -243,7 +243,7 @@ hydrogen visibility, background, layer toggles), which are saved back to
 
 ## 4. Building and editing structures
 
-The tool bar holds seven tools. Only `Navigate` and `Auto-rotate` let the mouse
+The tool bar holds eight tools. Only `Navigate` and `Auto-rotate` let the mouse
 drive the camera; in every other tool a drag belongs to the tool. The mouse
 wheel always zooms, and the browser context menu is suppressed over the canvas.
 
@@ -255,6 +255,7 @@ wheel always zooms, and the browser context menu is suppressed over the canvas.
 | **Manipulate** | `M` | left-drag moves the selection (or the atom under the cursor) in the view plane; `Shift`+left-drag moves along the view axis; right-drag rotates about the centroid |
 | **Bond-centric** | `B` | click a bond to select it; left-drag changes its length (the smaller fragment moves, minimum 0.3 Å); right-drag rotates that fragment about the bond axis |
 | **Measure** | `R` | click up to four atoms — two give a distance, three an angle, four a dihedral; click a marked atom to unmark it; right-click resets |
+| **Auto-optimize** | `O` | runs the force field continuously; left-drag an atom and it is pinned where you hold it while the rest of the molecule relaxes around it |
 | **Auto-rotate** | `A` | spins the view at the configured x/y/z speeds; any click in the viewport stops it |
 
 Every drag is a single undo step: the tool previews the change live and commits
@@ -278,6 +279,13 @@ undo history**.
 * **Bond-centric** — the selected bond's length as an editable number.
 * **Measure** — the readout, e.g.
   `d12 = 0.970 Å   d23 = 0.970 Å   angle = 103.80°`.
+* **Auto-optimize** — the force field (whichever Open Babel offers), the
+  algorithm (`Steepest descent` or `Conjugate gradients`), the steps per round
+  (default 4) and `Start`/`Stop`. Each round is one request to the backend and
+  only one is ever in flight, so the loop follows the machine rather than piling
+  up. The document's own constraints are honoured (see [§8.7](#87-constraints)),
+  the whole run is a single undo step named `Auto-optimize`, and a force field
+  that cannot type the molecule stops the run with the reason in the status bar.
 * **Auto-rotate** — three speed sliders (−180…180 °/s; defaults x 0, y 20,
   z 0) with `Start`/`Stop` and `Reset`.
 
@@ -787,6 +795,7 @@ ignored while you are typing in a text field.
 | `M` | Manipulate tool | |
 | `B` | Bond-centric tool | |
 | `R` | Measure tool | |
+| `O` | Auto-optimize tool | |
 | `A` | Auto-rotate tool | |
 | `1` / `2` / `3` | bond order Single / Double / Triple | Draw tool only |
 | `Ctrl`/`Cmd` + `Z` | Undo | also `Edit ▸ Undo <label>` |

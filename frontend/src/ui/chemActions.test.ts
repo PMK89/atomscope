@@ -1,6 +1,6 @@
 import { beforeEach, expect, test, vi } from 'vitest';
 import { api } from '../api/client';
-import { makeAtom, normalizeStructure } from '../model/structure';
+import { makeAtom, normalizeStructure, withUids } from '../model/structure';
 import { useSelectionStore } from '../state/selectionStore';
 import { useStructureStore } from '../state/structureStore';
 import {
@@ -9,7 +9,6 @@ import {
   optimizeGeometry,
   removeHydrogens,
   selectedIndices,
-  withUids,
 } from './chemActions';
 
 function water() {

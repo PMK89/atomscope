@@ -6,6 +6,8 @@ import type { PickResult } from '../renderer/Renderer';
 import type { PointerLike, ToolCamera, ToolRenderer } from './Tool';
 import { ToolHost } from './ToolHost';
 import { useToolStore } from './toolStore';
+import { api } from '../api/client';
+import { AutoOptimizeTool } from './tools/AutoOptimizeTool';
 import { AutoRotateTool } from './tools/AutoRotateTool';
 import { createTools } from './tools';
 
@@ -457,5 +459,99 @@ describe('auto-rotate', () => {
     host.pointerDown(ev(1, 1, { buttons: 1 }));
     expect(useToolStore.getState().autoRotate.running).toBe(false);
     expect(renderer.controller.enabled).toBe(true);
+  });
+});
+
+describe('auto-optimize', () => {
+  /** The backend answer: every atom pulled a tenth of the way towards the origin. */
+  const shrink = () => {
+    const doc = useStructureStore.getState().doc;
+    return {
+      structure: {
+        ...doc,
+        atoms: doc.atoms.map((a) => ({
+          ...a,
+          position: a.position.map((x) => x * 0.9) as [number, number, number],
+        })),
+      },
+      energy: { value: -1, unit: 'eV' },
+      converged: false,
+    };
+  };
+
+  /** Run the tool with a hand-driven timer, so a "round" is one call to the returned function. */
+  function armed(): { tool: AutoOptimizeTool; next: () => Promise<void> } {
+    useToolStore.getState().setActive('auto-optimize');
+    const tool = host.activeTool as AutoOptimizeTool;
+    let pending: (() => void) | null = null;
+    tool.useScheduler(
+      (fn) => {
+        pending = fn;
+        return 0 as unknown as ReturnType<typeof setTimeout>;
+      },
+      () => undefined,
+    );
+    return {
+      tool,
+      // wait for the round in flight to land (it schedules the next one), then run that one
+      next: async () => {
+        await vi.waitFor(() => expect(pending).not.toBe(null));
+        const fn = pending;
+        pending = null;
+        fn?.();
+      },
+    };
+  }
+
+  test('rounds preview and the run commits once, as a single undo step', async () => {
+    const step = vi
+      .spyOn(api.chem, 'optimizeStep')
+      .mockImplementation(() => Promise.resolve(shrink() as never));
+    const before = S().doc;
+    const { next } = armed();
+    useToolStore.getState().update('autoOptimize', { running: true });
+    await vi.waitFor(() => expect(S().doc).not.toBe(before));
+    expect(step).toHaveBeenCalledTimes(1);
+    // still a preview: nothing on the undo stack yet
+    expect(S().undoLabel()).toBe(null);
+
+    await next();
+    await vi.waitFor(() => expect(step).toHaveBeenCalledTimes(2));
+
+    useToolStore.getState().update('autoOptimize', { running: false });
+    expect(S().undoLabel()).toBe('Auto-optimize');
+    S().undo();
+    expect(S().doc.atoms[1]!.position).toEqual(before.atoms[1]!.position);
+  });
+
+  test('a dragged atom is pinned and follows the pointer through the rounds', async () => {
+    const step = vi
+      .spyOn(api.chem, 'optimizeStep')
+      .mockImplementation(() => Promise.resolve(shrink() as never));
+    const { next } = armed();
+    const before = S().doc;
+    useToolStore.getState().update('autoOptimize', { running: true });
+    await vi.waitFor(() => expect(S().doc).not.toBe(before));
+
+    host.pointerDown(ev(...at(0, 0), { buttons: 1 }));
+    host.pointerMove(ev(...at(2, 1), { buttons: 1 }));
+    expect(S().doc.atoms[0]!.position).toEqual([2, 1, 0]);
+
+    await next();
+    await vi.waitFor(() => expect(step).toHaveBeenCalledTimes(2));
+    expect(step.mock.calls[1]![0]).toMatchObject({ fixed_atoms: [0] });
+    // the round moved every atom, but the held one is written back where the pointer is
+    expect(S().doc.atoms[0]!.position).toEqual([2, 1, 0]);
+  });
+
+  test('a force field that cannot be set up stops the run and says so once', async () => {
+    const step = vi
+      .spyOn(api.chem, 'optimizeStep')
+      .mockRejectedValue(new Error('MMFF94 could not be set up'));
+    armed();
+    useToolStore.getState().update('autoOptimize', { running: true });
+    await vi.waitFor(() => expect(useToolStore.getState().autoOptimize.running).toBe(false));
+    expect(useToolStore.getState().autoOptimize.message).toMatch(/could not be set up/);
+    expect(step).toHaveBeenCalledTimes(1);
   });
 });

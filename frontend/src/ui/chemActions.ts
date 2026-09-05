@@ -11,7 +11,7 @@ import { api, type Body } from '../api/client';
 /** The charge models the backend offers, as the route declares them. */
 export type ChargeModel = Body<'/api/chem/partial-charges', 'post'>['model'];
 import { toApiStructure } from '../api/structureBody';
-import { normalizeStructure, type ApiStructure, type StructureDoc } from '../model/structure';
+import { normalizeStructure, withUids, type ApiStructure } from '../model/structure';
 import { useSelectionStore } from '../state/selectionStore';
 import { useStructureStore } from '../state/structureStore';
 
@@ -30,20 +30,6 @@ export async function commitChemOp(
     onError(`${label} failed: ${(e as Error).message}`);
     return false;
   }
-}
-
-/** Keep the previous atom identities when the operation returned the same atoms in order. */
-export function withUids(next: StructureDoc, previous: StructureDoc): StructureDoc {
-  if (next.atoms.length !== previous.atoms.length) return next;
-  if (next.atoms.some((a, i) => a.element !== previous.atoms[i]?.element)) return next;
-  return {
-    ...next,
-    id: previous.id,
-    atoms: next.atoms.map((a, i) => {
-      const uid = previous.atoms[i]?.uid;
-      return uid ? { ...a, uid } : a;
-    }),
-  };
 }
 
 /** Selected atom indices, or undefined when nothing is selected (the backend then takes all). */
