@@ -88,6 +88,9 @@ test('a typed partial charge is written back into the scalar property, as one un
   expect(partialChargeKey(doc)).toBe('partial_charges');
   expect(doc.atomic_scalars['partial_charges']!.values).toEqual([-0.4, 0.35, 0.2]);
   expect(useStructureStore.getState().undoLabel()).toBe('Set partial charge');
+  // the dipole was the sum over the charges: with one typed by hand it would contradict them
+  expect(doc.properties['dipole_moment']).toBeUndefined();
+  expect(screen.queryByText('dipole moment')).toBeNull();
   // the edit is a new revision, so the types are asked for again: let that settle inside the test
   await waitFor(() => expect(atomTypes).toHaveBeenCalledTimes(2));
 });

@@ -362,7 +362,10 @@ Open Babel's atom type for it (`Car`, `O3`, …), its valence, its formal charge
 its partial charge when the document has any, its position in Å and in
 fractional coordinates, its label, and the bonds it is in. Element, position,
 formal charge, partial charge and label can all be typed into, each as one undo
-step. *Valence* is given both ways — `3 bonds, order sum 4` — because the word
+step. Typing a partial charge removes the dipole moment from the structure
+section: it was the sum over the charges as they were, and would otherwise sit
+beside charges it no longer describes. Run `Extensions ▸ Partial charges` again
+for a dipole that matches. *Valence* is given both ways — `3 bonds, order sum 4` — because the word
 means either, and Avogadro's column showed the first. The atom type is computed
 by the backend for the structure as it is now and is asked for again after
 every edit: it is a reading of the current bonds, not something stored, so it

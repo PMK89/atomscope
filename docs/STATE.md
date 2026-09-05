@@ -39,6 +39,14 @@ run against current code -- Playwright above all -- use the private-server recip
   own style block on white -- the live chart draws with CSS variables, so a plain clone would
   export a colourless plot. PNG goes through an `Image` and a canvas; the raster path was
   checked in a real Chromium (a 2x PNG with ink in it), since jsdom decodes no images.
+- Properties tab (AV-ANAL-001/002): molecular weight and the document's attached quantities;
+  Open Babel atom types through `POST /api/chem/atom-types` and `state/atomTypeStore.ts`.
+  **The rule that shaped it:** a partial charge is a measurement and may sit on the document
+  going stale with the geometry, so it is stored in `atomic_scalars`; an atom type is a
+  function of the current graph, so a stored one would not be stale but wrong -- it is
+  derived per `${doc.id}:${revision}` and never stored. Typing a charge by hand drops
+  `properties.dipole_moment`, which was the sum over the charges (editor/edits.ts).
+  The IUPAC name is a PubChem lookup on a locally computed InChIKey, on a button.
 - Merged: vibrations and spectra (mass-weighted Hessian over any ASE calculator, IR intensities, Gaussian/Lorentzian broadening, Gaussian/ORCA/Q-Chem/JCAMP-DX/Turbomole parsers, Spectra dock panel with mode animation); 14 frontend review findings (periodic bond perception, marching-cubes budget, ARIA menus and dock tabs, undo during a preview gesture); molecular point groups and SMARTS selection with their UI; user guide, three tutorials, developer guide and README.
 - Merged: performance (117-case backend benchmark harness, a Playwright renderer harness and the
   fixes they justified -- KD-tree bond perception, single-pass project JSON, O(1) atom placement --
@@ -76,6 +84,21 @@ run against current code -- Playwright above all -- use the private-server recip
   export.
 
 ## Known problems / open questions
+
+- **The PubChem name lookup has never been exercised against the live service.** PUG REST was
+  answering `503 PUGREST.ServerBusy` to everything while it was written (the formula endpoint
+  too, so it was load and not the address). The URL follows the same PUG REST base as the
+  structure fetch that does work. To check it:
+
+  ```bash
+  cd backend && ../.venv/bin/python -c \
+    "from atomscope.io.fetch import compound_name; print(compound_name('LFQSCWFLJHTTHZ-UHFFFAOYSA-N'))"
+  # expect: ethanol
+  ```
+
+  If the answer has a different shape, `compound_name` in `io/fetch.py` takes the first line of
+  the TXT body; the tests supply the body themselves and would not notice.
+
 - Installed `/usr/bin/avogadro` is Avogadro 2; live Avogadro 1 comparison BLOCKED (source tree is the reference).
 - pnpm wrote to the global store `~/.local/share/pnpm/store` once before `.npmrc` was placed in `frontend/`; nothing else outside PROJECT_ROOT was modified. Not deleted (outside boundary).
 - Installed CP-PAW binaries need `LD_LIBRARY_PATH` to a libgfortran 13 (auto-detected in conda pkgs); a rebuild with the one-character `paw_trace.f90` fix is the permanent remedy (patched tree prepared in `.scratch/cppaw/build/cp-paw`, not built).

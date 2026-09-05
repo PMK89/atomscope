@@ -325,6 +325,12 @@ export function bondedPosition(
  * A partial charge typed into the Properties panel, written back into the scalar property that
  * carries the charges (Avogadro's atom table let the column be edited too, propmodel.cpp:630).
  * The document without charges is returned unchanged: there is nothing to write into.
+ *
+ * The dipole moment goes with it. Charges attached by a run are a snapshot, and they are allowed
+ * to age as the geometry changes -- the whole snapshot ages together. Typing one charge is
+ * different: it makes the snapshot disagree with itself, since the dipole shown beside the charges
+ * would no longer be the sum over the charges shown. It is dropped rather than recomputed here;
+ * `chem/properties.dipole_from_charges` is where that number is worked out.
  */
 export function setPartialCharge(doc: StructureDoc, atom: number, charge: number): StructureDoc {
   const key = partialChargeKey(doc);
@@ -332,5 +338,11 @@ export function setPartialCharge(doc: StructureDoc, atom: number, charge: number
   if (!key || !property || atom < 0 || atom >= doc.atoms.length) return doc;
   const values = [...property.values];
   values[atom] = charge;
-  return { ...doc, atomic_scalars: { ...doc.atomic_scalars, [key]: { ...property, values } } };
+  const properties = { ...doc.properties };
+  delete properties['dipole_moment'];
+  return {
+    ...doc,
+    properties,
+    atomic_scalars: { ...doc.atomic_scalars, [key]: { ...property, values } },
+  };
 }
