@@ -1,7 +1,10 @@
 import { useEffect, useState } from 'react';
 import { makeAtom, makeBond, normalizeStructure } from '../model/structure';
 import { useStructureStore } from '../state/structureStore';
+import { CalculationPanel } from './CalculationPanel';
+import { JobConsole } from './JobConsole';
 import { MenuBar } from './MenuBar';
+import { ProjectPanel } from './ProjectPanel';
 import { StatusBar } from './StatusBar';
 import { Viewport } from './Viewport';
 
@@ -27,7 +30,7 @@ export function App(): JSX.Element {
   }, []);
   useEffect(() => {
     if (!error) return;
-    const t = setTimeout(() => setError(null), 6000);
+    const t = setTimeout(() => setError(null), 8000);
     return () => clearTimeout(t);
   }, [error]);
 
@@ -35,11 +38,18 @@ export function App(): JSX.Element {
     <div className="app-shell">
       <MenuBar onError={setError} />
       <main className="app-main">
-        <aside className="app-dock app-dock-left">Project</aside>
-        <section className="app-viewport">
-          <Viewport />
+        <aside className="app-dock app-dock-left">
+          <ProjectPanel onError={setError} />
+        </aside>
+        <section className="app-center">
+          <div className="app-viewport">
+            <Viewport />
+          </div>
+          <JobConsole />
         </section>
-        <aside className="app-dock app-dock-right">Properties</aside>
+        <aside className="app-dock app-dock-right">
+          <CalculationPanel onError={setError} />
+        </aside>
       </main>
       <StatusBar message={error} />
     </div>

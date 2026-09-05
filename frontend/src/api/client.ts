@@ -4,12 +4,23 @@
  */
 import type { components, paths } from './schema';
 
-export type Structure = components['schemas']['Structure'];
+export type Structure = components['schemas']['Structure'] & { id: string };
 export type StructureSummary = components['schemas']['StructureSummary'];
 export type ProjectInfo = components['schemas']['ProjectInfo'];
 export type HealthResponse = components['schemas']['HealthResponse'];
 export type FormatDescription = components['schemas']['FormatDescription'];
 export type ExportResponse = components['schemas']['ExportResponse'];
+export type BackendInfo = components['schemas']['BackendInfo'];
+export type ParameterSchema = components['schemas']['ParameterSchema'];
+export type ParameterSpec = components['schemas']['ParameterSpec'];
+export type Preset = components['schemas']['Preset'];
+// pydantic default_factory ids appear optional in OpenAPI; the backend always sets them.
+export type Calculation = components['schemas']['Calculation'] & { id: string };
+export type GeneratedInputs = components['schemas']['GeneratedInputs'];
+export type ResultBundle = components['schemas']['ResultBundle'];
+export type ValidationReport = components['schemas']['ValidationReport'];
+export type LogResponse = components['schemas']['LogResponse'];
+export type ParameterValues = Record<string, unknown>;
 
 export class ApiError extends Error {
   constructor(
@@ -85,5 +96,43 @@ export const api = {
       request<Structure>('/api/io/smiles', json(body)),
     export: (body: Body<'/api/io/export', 'post'>) =>
       request<ExportResponse>('/api/io/export', json(body)),
+  },
+  backends: {
+    list: () => request<BackendInfo[]>('/api/backends'),
+    schema: (id: string) =>
+      request<ParameterSchema>(`/api/backends/${encodeURIComponent(id)}/schema`),
+    presets: (id: string) => request<Preset[]>(`/api/backends/${encodeURIComponent(id)}/presets`),
+  },
+  calculations: {
+    list: () => request<Calculation[]>('/api/calculations'),
+    create: (body: Body<'/api/calculations', 'post'>) =>
+      request<Calculation>('/api/calculations', json(body)),
+    get: (id: string) => request<Calculation>(`/api/calculations/${encodeURIComponent(id)}`),
+    updateValues: (id: string, values: ParameterValues) =>
+      request<Calculation>(`/api/calculations/${encodeURIComponent(id)}/values`, {
+        method: 'PUT',
+        body: JSON.stringify({ values }),
+      }),
+    validate: (id: string) =>
+      request<ValidationReport>(`/api/calculations/${encodeURIComponent(id)}/validate`),
+    generate: (id: string) =>
+      request<GeneratedInputs>(`/api/calculations/${encodeURIComponent(id)}/generate`, {
+        method: 'POST',
+      }),
+    run: (id: string) =>
+      request<Calculation>(`/api/calculations/${encodeURIComponent(id)}/run`, { method: 'POST' }),
+    cancel: (id: string) =>
+      request<Calculation>(`/api/calculations/${encodeURIComponent(id)}/cancel`, {
+        method: 'POST',
+      }),
+    results: (id: string) =>
+      request<ResultBundle>(`/api/calculations/${encodeURIComponent(id)}/results`),
+    log: (id: string, stream = 'stdout', tail = 500) =>
+      request<LogResponse>(
+        `/api/calculations/${encodeURIComponent(id)}/log?stream=${encodeURIComponent(stream)}&tail=${tail}`,
+      ),
+    /** WebSocket URL for job events (relative to the page origin; Vite proxies /api). */
+    eventsUrl: () =>
+      `${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host}/api/calculations/ws`,
   },
 };

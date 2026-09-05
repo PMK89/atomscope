@@ -145,3 +145,194 @@ button {
   color: var(--error);
   margin-left: auto;
 }
+.app-center {
+  display: grid;
+  grid-template-rows: 1fr 160px;
+  min-width: 0;
+  min-height: 0;
+}
+.app-dock-right {
+  width: 340px;
+}
+.app-main {
+  grid-template-columns: 260px 1fr auto;
+}
+.panel h3,
+.panel h4 {
+  margin: 6px 0 4px;
+  font-size: 13px;
+}
+.panel input[type='text'],
+.panel input:not([type]),
+.panel input[type='number'],
+.panel select,
+.panel textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 3px 5px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--bg);
+  color: var(--fg);
+  font: inherit;
+}
+.button-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 8px 0;
+}
+.button-row button,
+.tab {
+  padding: 4px 10px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--bg);
+}
+.button-row button.primary {
+  background: var(--accent);
+  color: white;
+  border-color: var(--accent);
+}
+.button-row button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.muted {
+  opacity: 0.65;
+  font-size: 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.tree {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.tree-item {
+  width: 100%;
+  text-align: left;
+  padding: 3px 6px;
+  border-radius: 4px;
+}
+.tree-item.active,
+.tree-item:hover {
+  background: color-mix(in srgb, var(--accent) 15%, transparent);
+}
+.badge {
+  display: inline-block;
+  padding: 0 6px;
+  border-radius: 8px;
+  font-size: 11px;
+  background: var(--border);
+}
+.badge-running,
+.badge-queued {
+  background: #f5c342;
+  color: #222;
+}
+.badge-completed {
+  background: #3cb371;
+  color: white;
+}
+.badge-failed,
+.badge-cancelled {
+  background: var(--error);
+  color: white;
+}
+.tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 6px;
+}
+.tab.active {
+  background: color-mix(in srgb, var(--accent) 20%, transparent);
+  border-color: var(--accent);
+}
+.form-row {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  gap: 6px;
+  align-items: center;
+  margin: 4px 0;
+}
+.form-row.has-error input,
+.form-row.has-error select {
+  border-color: var(--error);
+}
+.form-control {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+}
+.form-control > input:not([type='checkbox']),
+.form-control > select,
+.form-control > textarea {
+  flex: 1;
+  min-width: 60px;
+}
+.form-unit {
+  font-size: 11px;
+  opacity: 0.7;
+}
+.form-error {
+  flex-basis: 100%;
+  color: var(--error);
+  font-size: 11px;
+}
+.form-required {
+  color: var(--error);
+}
+.form-section {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  margin: 6px 0;
+  padding: 4px 8px 6px;
+}
+.form-section legend {
+  font-weight: 600;
+  padding: 0 4px;
+}
+.form-vector {
+  display: flex;
+  gap: 4px;
+  flex: 1;
+}
+.form-vector input {
+  width: 0;
+  flex: 1;
+}
+.form-advanced-toggle {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  font-size: 12px;
+  margin: 4px 0;
+}
+.generated pre {
+  font-size: 11px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 6px;
+  overflow: auto;
+  max-height: 50vh;
+}
+.console {
+  border-top: 1px solid var(--border);
+  background: var(--panel);
+  font-family: ui-monospace, monospace;
+  font-size: 11px;
+  overflow: auto;
+  padding: 4px 8px;
+}
+.console-line {
+  white-space: pre-wrap;
+}
+.console-stream {
+  opacity: 0.5;
+}
+.stream-stderr {
+  color: var(--error);
+}

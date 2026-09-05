@@ -4,7 +4,7 @@
  */
 import type { components } from '../api/schema';
 
-export type ApiStructure = components['schemas']['Structure'];
+export type ApiStructure = Omit<components['schemas']['Structure'], 'id'> & { id?: string };
 export type Atom = components['schemas']['Atom'];
 export type Bond = components['schemas']['Bond'];
 export type Cell = components['schemas']['Cell'];

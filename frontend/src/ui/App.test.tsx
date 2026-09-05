@@ -4,6 +4,8 @@ import { vi } from 'vitest';
 vi.mock('./Viewport', () => ({
   Viewport: () => <div data-testid="viewport" />,
 }));
+vi.mock('./ProjectPanel', () => ({ ProjectPanel: () => <div>Project</div> }));
+vi.mock('./CalculationPanel', () => ({ CalculationPanel: () => <div>Calculation</div> }));
 
 import { App } from './App';
 import { useStructureStore } from '../state/structureStore';
