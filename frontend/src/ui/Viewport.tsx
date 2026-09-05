@@ -33,7 +33,8 @@ export function Viewport(): JSX.Element {
   const cellOverride = useMemo(() => (active ? frameCell(active, frame) : null), [active, frame]);
   const lastFitted = useRef<string | null>(null);
   const lastFitRequest = useRef(0);
-  useIsosurfaceLayers(rendererRef);
+  // renderer readiness as state, so surfaces already in the store mount into a new renderer
+  useIsosurfaceLayers(mounted?.renderer ?? null);
 
   useEffect(() => {
     if (!ref.current) return;
