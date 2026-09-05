@@ -20,6 +20,10 @@ export type GeneratedInputs = components['schemas']['GeneratedInputs'];
 export type ResultBundle = components['schemas']['ResultBundle'];
 export type ValidationReport = components['schemas']['ValidationReport'];
 export type LogResponse = components['schemas']['LogResponse'];
+export type VolumetricGrid = components['schemas']['VolumetricGrid'];
+export type GridStats = components['schemas']['GridStats'];
+export type GridRef = components['schemas']['GridRef'];
+export type ImportCubeResponse = components['schemas']['ImportCubeResponse'];
 export type ParameterValues = Record<string, unknown>;
 
 export class ApiError extends Error {
@@ -96,6 +100,19 @@ export const api = {
       request<Structure>('/api/io/smiles', json(body)),
     export: (body: Body<'/api/io/export', 'post'>) =>
       request<ExportResponse>('/api/io/export', json(body)),
+    importCube: (body: Body<'/api/io/import/cube', 'post'>) =>
+      request<ImportCubeResponse>('/api/io/import/cube', json(body)),
+  },
+  grids: {
+    list: () => request<GridRef[]>('/api/grids'),
+    get: (id: string) => request<VolumetricGrid>(`/api/grids/${encodeURIComponent(id)}`),
+    stats: (id: string) => request<GridStats>(`/api/grids/${encodeURIComponent(id)}/stats`),
+    /** Raw little-endian float32 values in C order; browsers are little-endian, so no swap. */
+    data: async (id: string): Promise<Float32Array> => {
+      const res = await fetch(`/api/grids/${encodeURIComponent(id)}/data`);
+      if (!res.ok) throw new ApiError(res.status, res.statusText);
+      return new Float32Array(await res.arrayBuffer());
+    },
   },
   backends: {
     list: () => request<BackendInfo[]>('/api/backends'),
