@@ -11,6 +11,7 @@ import {
   atomLabel,
   atomLabelOffset,
   bondLabel,
+  distanceLabel,
   partialCharges,
   residueOfAtom,
   type AtomLabelContent,
@@ -26,6 +27,10 @@ export interface LabelLayerSettings {
   size: number;
   /** Offset in Angstrom, applied in world space after the per-atom radius offset. */
   shift: [number, number, number];
+  /** Match the structure layer: a hidden atom must not keep its label. */
+  hideHydrogens: boolean;
+  /** Lift labels clear of van der Waals spheres when that is the display style. */
+  lift: 'small' | 'vdw';
 }
 
 export const DEFAULT_LABEL_SETTINGS: LabelLayerSettings = {
@@ -34,9 +39,23 @@ export const DEFAULT_LABEL_SETTINGS: LabelLayerSettings = {
   color: '#222222',
   size: 0.55,
   shift: [0, 0, 0],
+  hideHydrogens: false,
+  lift: 'small',
 };
 
 export const MAX_LABELS = 2000;
+
+/** Unit separator, so joined label texts cannot alias one another in the rebuild key. */
+const SEP = '\u001f';
+
+/** One label: its text and what it is anchored to (`atom` or `bond`, the other being -1). */
+interface Wanted {
+  text: string;
+  atom: number;
+  bond: number;
+}
+
+type PositionOf = (index: number) => [number, number, number];
 
 export class LabelLayer implements DisplayLayer {
   readonly id = 'labels';
@@ -44,7 +63,7 @@ export class LabelLayer implements DisplayLayer {
   visible = false;
   settings: LabelLayerSettings = { ...DEFAULT_LABEL_SETTINGS };
 
-  /** Text of each sprite, so a move can skip rebuilding when nothing changed. */
+  /** Text of each label, so a move can skip rebuilding when nothing changed. */
   private texts: string[] = [];
   private sprites: Sprite[] = [];
   private lastKey = '';
@@ -61,49 +80,67 @@ export class LabelLayer implements DisplayLayer {
       return;
     }
     const s = ctx.structure;
-    const positions = ctx.positionsOverride ?? null;
-    const wanted = this.collect(s);
-    const key = `${JSON.stringify(this.settings)}|${wanted.map((w) => w.text).join('')}`;
+    const raw = ctx.positionsOverride ?? null;
+    const override = raw && raw.length === s.atoms.length * 3 ? raw : null;
+    const at: PositionOf = (i) =>
+      override
+        ? [override[3 * i]!, override[3 * i + 1]!, override[3 * i + 2]!]
+        : (s.atoms[i]!.position as [number, number, number]);
+
+    const wanted = this.collect(s, at);
+    // the unit separator matters: joining the texts bare makes ["ab","c"] and ["a","bc"] equal
+    const key = `${JSON.stringify(this.settings)}|${wanted.map((w) => w.text).join(SEP)}`;
     if (key !== this.lastKey) {
       this.rebuild(wanted);
       this.lastKey = key;
     }
-    this.place(s, wanted, positions);
+    this.place(s, wanted, at);
+  }
+
+  /** Hidden atoms keep no label: the structure layer does not draw them either. */
+  private hidden(s: StructureDoc, atom: number): boolean {
+    return this.settings.hideHydrogens && s.atoms[atom]?.element === 'H';
   }
 
   /** The label text and anchor of everything that should be drawn, in draw order. */
-  private collect(s: StructureDoc): { text: string; atom: number; bond: number }[] {
-    const out: { text: string; atom: number; bond: number }[] = [];
+  private collect(s: StructureDoc, at: PositionOf): Wanted[] {
+    const out: Wanted[] = [];
     const { atoms, bonds } = this.settings;
     this.truncated = false;
+    const full = (): boolean => {
+      if (out.length < MAX_LABELS) return false;
+      this.truncated = true;
+      return true;
+    };
+
     if (atoms !== 'none') {
       const charges = partialCharges(s);
       const residues = residueOfAtom(s);
       for (let i = 0; i < s.atoms.length; i++) {
+        if (this.hidden(s, i)) continue;
         const text = atomLabel(s, i, atoms, charges, residues);
         if (!text) continue;
-        if (out.length >= MAX_LABELS) {
-          this.truncated = true;
-          return out;
-        }
+        if (full()) return out;
         out.push({ text, atom: i, bond: -1 });
       }
     }
     if (bonds !== 'none') {
       for (let i = 0; i < s.bonds.length; i++) {
-        const text = bondLabel(s, i, bonds);
+        const bond = s.bonds[i]!;
+        if (this.hidden(s, bond.a) || this.hidden(s, bond.b)) continue;
+        // lengths are measured on the positions being displayed, so an animated normal mode shows
+        // the bond stretching instead of the equilibrium value
+        const text =
+          bonds === 'length' ? distanceLabel(at(bond.a), at(bond.b)) : bondLabel(s, i, bonds);
         if (!text) continue;
-        if (out.length >= MAX_LABELS) {
-          this.truncated = true;
-          return out;
-        }
+        if (full()) return out;
         out.push({ text, atom: -1, bond: i });
       }
     }
     return out;
   }
 
-  private rebuild(wanted: { text: string }[]): void {
+  private rebuild(wanted: Wanted[]): void {
     this.clear();
     // `texts` is what the layer would draw and is set even where no 2D canvas exists (headless),
     // so the decision of what to label stays separate from whether it can be rasterized.
@@ -116,23 +153,14 @@ export class LabelLayer implements DisplayLayer {
     }
   }
 
-  private place(
-    s: StructureDoc,
-    wanted: { atom: number; bond: number }[],
-    override: Float32Array | null,
-  ): void {
+  private place(s: StructureDoc, wanted: Wanted[], at: PositionOf): void {
     const [dx, dy, dz] = this.settings.shift;
-    const at = (i: number): [number, number, number] =>
-      override && override.length === s.atoms.length * 3
-        ? [override[3 * i]!, override[3 * i + 1]!, override[3 * i + 2]!]
-        : (s.atoms[i]!.position as [number, number, number]);
-
     this.sprites.forEach((sprite, k) => {
       const w = wanted[k];
       if (!w) return;
       if (w.atom >= 0) {
         const p = at(w.atom);
-        const lift = atomLabelOffset(s.atoms[w.atom]!.element, 'small');
+        const lift = atomLabelOffset(s.atoms[w.atom]!.element, this.settings.lift);
         sprite.position.set(p[0] + dx, p[1] + lift + dy, p[2] + dz);
       } else {
         const bond = s.bonds[w.bond]!;

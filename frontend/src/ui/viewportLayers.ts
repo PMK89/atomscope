@@ -29,6 +29,11 @@ export function syncExtraLayers(renderer: Renderer, view: ViewState): void {
   const labels = renderer.getLayer('labels');
   if (labels instanceof LabelLayer) {
     labels.visible = view.showLabels;
-    labels.setSettings({ atoms: view.atomLabels, bonds: view.bondLabels });
+    labels.setSettings({
+      atoms: view.atomLabels,
+      bonds: view.bondLabels,
+      hideHydrogens: !view.showHydrogens,
+      lift: view.style === 'vdw' ? 'vdw' : 'small',
+    });
   }
 }

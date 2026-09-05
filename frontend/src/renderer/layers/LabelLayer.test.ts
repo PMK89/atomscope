@@ -95,6 +95,29 @@ test('a huge structure is truncated rather than drawn with a hundred thousand sp
   layer.dispose();
 });
 
+test('hidden hydrogens keep no labels, and neither do the bonds to them', () => {
+  const layer = new LabelLayer();
+  layer.visible = true;
+  layer.setSettings({ atoms: 'symbol_index', bonds: 'length', hideHydrogens: true });
+  layer.update(ctx(water()));
+  // only the oxygen is drawn, and both O-H bonds touch a hidden atom
+  expect(layer.labels()).toEqual(['O1']);
+  layer.dispose();
+});
+
+test('a bond length label is measured on the frame being displayed', () => {
+  const layer = new LabelLayer();
+  layer.visible = true;
+  layer.setSettings({ atoms: 'none', bonds: 'length' });
+  layer.update(ctx(water()));
+  expect(layer.labels()).toEqual(['1.00', '1.00']);
+
+  // stretch the first O-H in a displayed frame: the label must follow, not stay at equilibrium
+  layer.update(ctx(water(), new Float32Array([0, 0, 0, 0, 1.6, 1.2, 0, -0.8, 0.6])));
+  expect(layer.labels()).toEqual(['2.00', '1.00']);
+  layer.dispose();
+});
+
 test('turning the layer off releases the sprites', () => {
   const layer = new LabelLayer();
   layer.visible = true;

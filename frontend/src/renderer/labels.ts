@@ -109,11 +109,15 @@ export function bondLabel(doc: StructureDoc, index: number, content: BondLabelCo
   const a = doc.atoms[bond.a];
   const b = doc.atoms[bond.b];
   if (!a || !b) return '';
-  return Math.hypot(
-    a.position[0] - b.position[0],
-    a.position[1] - b.position[1],
-    a.position[2] - b.position[2],
-  ).toFixed(2);
+  return distanceLabel(a.position, b.position);
+}
+
+/** The distance between two points, formatted as a bond-length label. */
+export function distanceLabel(
+  a: readonly [number, number, number],
+  b: readonly [number, number, number],
+): string {
+  return Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]).toFixed(2);
 }
 
 /** "+2" / "-" / "2-" the way chemists write a formal charge. */
