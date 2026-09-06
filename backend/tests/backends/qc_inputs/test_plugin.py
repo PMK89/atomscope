@@ -1040,13 +1040,13 @@ def test_gamessuk_direct_mode_and_the_dft_functional() -> None:
 
 
 def test_gamessuk_says_what_its_dialog_could_not() -> None:
-    """No open-shell SCF is on that form at all, and its Format box has two entries where the
-    shared one has three."""
+    """Its theory combo has no UHF or GVB entry, so the deck writes the same SCF whatever the
+    multiplicity; and its Format box has two entries where the shared one has three."""
     triplet = from_atoms(molecule("O2"), name="oxygen")
     triplet.multiplicity = 3
     open_shell = plugin.validate(triplet, {"program": "gamessuk"}).issues
     assert [i.key for i in open_shell] == ["gamessuk_theory"]
-    assert "open-shell" in open_shell[0].message and open_shell[0].severity == "warning"
+    assert "scftype rhf" in open_shell[0].message and open_shell[0].severity == "warning"
 
     water = from_atoms(molecule("H2O"), name="water")
     compact = plugin.validate(

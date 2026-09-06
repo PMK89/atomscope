@@ -1567,10 +1567,11 @@ def _psi4_issues(structure: Structure, merged: Values) -> list[ValidationIssue]:
 def _gamessuk_issues(structure: Structure, merged: Values) -> list[ValidationIssue]:
     """The two things the GAMESS-UK dialog cannot say, said here instead.
 
-    It has no open-shell SCF at all -- the theory combo is HF, DFT and MP2 -- so a multiplicity
-    above a singlet still gets a closed-shell `scftype`, which is not the calculation that was
-    asked for. And its Format box has two entries where ours has three, so the compact Z-matrix
-    belongs to no layout of its; the deck falls back to the one Z-matrix it does write.
+    Its theory combo is HF, DFT and MP2, with no UHF or GVB entry, so the deck names the same
+    SCF whatever the multiplicity -- worth saying at a multiplicity above a singlet, without
+    claiming to know what GAMESS-UK then does with it. And its Format box has two entries where
+    ours has three, so the compact Z-matrix belongs to no layout of its; the deck falls back to
+    the one Z-matrix it does write.
     """
     issues: list[ValidationIssue] = []
     if _multiplicity(structure, merged) > 1:
@@ -1578,9 +1579,9 @@ def _gamessuk_issues(structure: Structure, merged: Values) -> list[ValidationIss
             ValidationIssue(
                 key="gamessuk_theory",
                 message=(
-                    "Avogadro's GAMESS-UK dialog offers no open-shell SCF, so the deck names a"
-                    " closed-shell one at this multiplicity; the extra keywords are where an"
-                    " open-shell directive goes"
+                    "Avogadro's GAMESS-UK dialog has no UHF or GVB entry, so the deck writes"
+                    " `scftype rhf` at this multiplicity; the extra keywords are where another"
+                    " wavefunction goes"
                 ),
                 severity="warning",
             )

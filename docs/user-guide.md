@@ -963,9 +963,10 @@ and the same `Format` box (its compact Z-matrix is written as the one layout
 GAMESS-UK has, and the form says so). Two of its basis entries are named
 differently from Avogadro's: the combo there read `6-31G(d)` and `6-31G(d,p)`
 while the deck asked for `6-31G` and `6-31G*`, so each entry here is named
-after the basis it really requests. That dialog had no open-shell option at
-all, so an open-shell structure raises a warning rather than being given a
-closed-shell SCF in silence.
+after the basis it really requests. That dialog's theory box has no UHF or
+GVB entry, so the deck asks for `scftype rhf` whatever the multiplicity; above
+a singlet the form says so, and the extra keywords are where another
+wavefunction goes.
 Q-Chem has the two lists its dialog had — seven theories (MP2 and CCSD are
 written as a Hartree-Fock reference with a correlation keyword beside them) and
 ten basis sets, the last two of which are effective core potentials — and the
