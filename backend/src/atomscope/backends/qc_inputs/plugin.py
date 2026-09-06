@@ -1771,7 +1771,15 @@ PRESETS = [
         id="orca_opt_b3lyp",
         name="ORCA: B3LYP/def2-SVP optimization",
         schema_id="qc_inputs",
-        values={"program": "orca", "task": "optimize", "method": "B3LYP", "basis": "def2-SVP"},
+        # ORCA reads its own dialog's boxes now, so B3LYP is the Advanced tab's functional
+        values={
+            "program": "orca",
+            "task": "optimize",
+            "orca_mode": "advanced",
+            "orca_adv_method": "dft",
+            "orca_functional": "b3lyp",
+            "orca_basis": "svp",
+        },
     ),
     Preset(
         id="gaussian_freq",
@@ -1992,6 +2000,28 @@ def _psi4_issues(structure: Structure, merged: Values) -> list[ValidationIssue]:
             ),
             # our own bond perception said so, and Psi4 runs its own: a warning, not a refusal
             severity="warning",
+        )
+    ]
+
+
+def _nwchem_issues(structure: Structure, merged: Values) -> list[ValidationIssue]:
+    """NWChem's standalone coupled-cluster module takes one kind of reference.
+
+    Its manual says `ccsd` "is presently limited to closed-shell (RHF) references"; the open-shell
+    coupled cluster lives in the TCE module, which this dialog never offered. Avogadro wrote no
+    spin at all for CCSD, so the question never came up there.
+    """
+    if str(merged.get("nwchem_theory", "b3lyp")) != "ccsd":
+        return []
+    if _multiplicity(structure, merged) == 1:
+        return []
+    return [
+        ValidationIssue(
+            key="nwchem_theory",
+            message=(
+                "NWChem's `ccsd` module takes a closed-shell reference only; an open shell needs"
+                " its TCE module, which Avogadro's dialog did not offer"
+            ),
         )
     ]
 
@@ -2292,10 +2322,25 @@ class QcInputsPlugin:
             report.issues += _gamess_wave_function_issues(merged)
         if program == "psi4":
             report.issues += _psi4_issues(structure, merged)
+        if program == "nwchem":
+            report.issues += _nwchem_issues(structure, merged)
         if program == "gamessuk":
             report.issues += _gamessuk_issues(structure, merged)
         if program == "orca":
             report.issues += _orca_issues(merged)
+        stale = [key for key in ("method", "basis") if key in values]
+        if stale and program not in _FREE_METHOD and program in MOLECULAR:
+            report.issues.append(
+                ValidationIssue(
+                    key=stale[0],
+                    message=(
+                        f"the free-text method and basis boxes are Gaussian's; the {program}"
+                        f" deck reads its own dialog's lists ({program}_theory and the rest),"
+                        " so what is stored here reaches nothing"
+                    ),
+                    severity="warning",
+                )
+            )
         if program in ONE_INTERNAL_LAYOUT and str(merged.get("coordinates")) == "zmatrix_compact":
             report.issues.append(
                 ValidationIssue(

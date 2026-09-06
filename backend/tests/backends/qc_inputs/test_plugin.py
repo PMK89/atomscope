@@ -921,6 +921,41 @@ def test_the_qchem_geometry_can_be_either_z_matrix() -> None:
     assert "r3" not in compact
 
 
+def test_every_preset_writes_the_chemistry_its_name_promises() -> None:
+    """A preset is stored values, and moving a program from the free-text boxes to its dialog's
+    lists leaves them pointing at keys nothing reads. The ORCA one lost its B3LYP that way."""
+    water = from_atoms(molecule("H2O"), name="water")
+    promised = {
+        "orca_opt_b3lyp": ["B3LYP", "def2-SVP", "OPT"],
+        "gaussian_freq": ["B3LYP", "6-31G*", "Opt Freq"],
+        "mopac_pm7_opt": ["PM7"],
+        "espresso_scf": ["scf"],
+    }
+    ids = {preset.id for preset in plugin.presets()}
+    assert ids == set(promised), ids
+    for preset in plugin.presets():
+        text = plugin.generate_inputs(water, dict(preset.values), "c").files[0].text
+        for token in promised[preset.id]:
+            assert token in text, (preset.id, token, text)
+        # and none of them leans on the free-text boxes, which only Gaussian reads now.
+        # (Other issues are about the structure -- water in a plane-wave preset -- not the values.)
+        issues = plugin.validate(water, dict(preset.values)).issues
+        assert not [i for i in issues if i.key in ("method", "basis")], preset.id
+
+
+def test_a_free_text_method_stored_for_a_dialog_program_is_said() -> None:
+    """Those boxes are Gaussian's now. A project saved when they were ORCA's or NWChem's would
+    otherwise open, look right and write something else."""
+    water = from_atoms(molecule("H2O"), name="water")
+    for program in ("orca", "nwchem", "qchem"):
+        issues = plugin.validate(water, {"program": program, "method": "B3LYP"}).issues
+        assert [i.key for i in issues] == ["method"], program
+        assert issues[0].severity == "warning"
+    # Gaussian still reads them, and a program that never had them says nothing either
+    assert not plugin.validate(water, {"program": "gaussian", "method": "B3LYP"}).issues
+    assert not plugin.validate(water, {"program": "orca"}).issues
+
+
 def test_the_default_orca_deck_is_pinned_byte_for_byte() -> None:
     """Basic mode (`orcainputdialog.cpp:1050-1069`): a header, the comment, one `!` line and the
     coordinates. `%pal` and `%maxcore` are ours -- ORCA's dialog has no box for either."""
@@ -1110,6 +1145,11 @@ def test_an_nwchem_open_shell_reaches_a_keyword_under_every_theory() -> None:
             .text
         )
         assert block in text, (theory, text)
+    # and its coupled-cluster module takes a closed-shell reference only, which is said
+    ccsd = plugin.validate(methyl, {"program": "nwchem", "nwchem_theory": "ccsd"}).issues
+    assert [i.key for i in ccsd] == ["nwchem_theory"]
+    assert not plugin.validate(methyl, {"program": "nwchem", "nwchem_theory": "mp2"}).issues
+
     # a closed shell writes no scf block at all, as the dialog did not
     water = from_atoms(molecule("H2O"), name="water")
     closed = (

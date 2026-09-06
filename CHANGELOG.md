@@ -12,7 +12,9 @@
   and never closed the block), so both write ORCA's own; `ExtremSCF` gets its
   missing `e` and the PBE0 functional its zero; and the augmented-Hessian
   converger, whose keyword Avogadro left commented out, now says that it
-  reaches nothing rather than quietly doing so.
+  reaches nothing rather than quietly doing so. The free-text method and basis
+  boxes belong to Gaussian alone now: a value stored in them for another
+  program raises a warning saying which box that program reads instead.
 
 - **NWChem writes its own dialog's deck now**, not ASE's, with the four
   theories and nine basis sets Avogadro offered, all three coordinate layouts,

@@ -17,7 +17,10 @@ Three departures.
   and nowhere else (`:420-439`), so a doublet asked for under Hartree-Fock, MP2 or CCSD was
   written into a deck that says nothing about spin and runs closed-shell. Here an open shell
   writes an `scf` block with `nopen`, which is the number of singly occupied orbitals, above the
-  theory's own block.
+  theory's own block. That makes the deck say what was asked for; whether the module can answer
+  is another matter, and NWChem's own manual says its standalone `ccsd` "is presently limited to
+  closed-shell (RHF) references", so `plugin.py` says so too rather than letting the run find
+  out. A refused deck is a better failure than a quietly closed-shell one either way.
 * **A compact Z-matrix named `zmatrix` on the geometry line** rather than inside the block
   (`:352`, against `:286` for the verbose one), where NWChem reads a sub-directive. Written on
   its own line for both.
