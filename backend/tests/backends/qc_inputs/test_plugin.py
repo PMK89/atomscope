@@ -142,6 +142,8 @@ def test_a_semi_empirical_gaussian_route_has_no_basis_set() -> None:
     for method, route in (
         ("AM1", "#n AM1 SP"),
         ("PM6", "#n PM6 SP"),
+        ("PM7", "#n PM7 SP"),
+        ("pm3", "#n pm3 SP"),
         ("RHF", "#n RHF/STO-3G SP"),
     ):
         gen = plugin.generate_inputs(

@@ -16,9 +16,28 @@ from __future__ import annotations
 from atomscope.chem.zmatrix import zmatrix
 from atomscope.model import Structure
 
-"""Methods Gaussian runs without a basis set. Avogadro offered the first two."""
+"""Methods Gaussian runs without a basis set.
+
+Avogadro's dialog knew the first two and disabled the basis box for them. The rest are from the
+Gaussian manual's semi-empirical chapter, written down from memory -- there is no copy of it on
+this machine to check against -- so a method missing from this list is written with a basis set
+and Gaussian says so when it reads the deck.
+"""
 SEMI_EMPIRICAL = frozenset(
-    {"AM1", "PM3", "PM3MM", "PM6", "PM7R", "PDDG", "MNDO", "INDO", "CNDO", "DFTBA"}
+    {
+        "AM1",
+        "PM3",
+        "PM3MM",
+        "PM6",
+        "PM7",
+        "PM7R6",
+        "PDDG",
+        "MNDO",
+        "INDO",
+        "CNDO",
+        "DFTB",
+        "DFTBA",
+    }
 )
 
 """What the Output box adds to the route line (`gaussianinputdialog.cpp:513-525`)."""

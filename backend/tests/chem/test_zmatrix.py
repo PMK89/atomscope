@@ -4,9 +4,11 @@ from __future__ import annotations
 
 import numpy as np
 import pytest
+from openbabel import openbabel as ob
 from rdkit import Chem
 from rdkit.Chem import AllChem
 
+from atomscope.chem.obmol import OB_LOCK, to_obmol
 from atomscope.chem.zmatrix import ZMatrixRow, zmatrix
 from atomscope.io.rdkit_io import read_text
 from atomscope.model import Atom, Structure
@@ -94,3 +96,39 @@ def test_the_first_three_rows_of_a_z_matrix_are_short() -> None:
 def test_one_atom_has_a_z_matrix_of_one_row() -> None:
     single = Structure(name="he", atoms=[Atom(element="He", position=(1.0, 2.0, 3.0))])
     assert zmatrix(single) == [ZMatrixRow(element="He")]
+
+
+def openbabel_variables(structure: Structure) -> dict[str, float]:
+    """The values Open Babel's own Z-matrix writer prints, as `{"d4": 348.69, ...}`."""
+    with OB_LOCK:
+        conversion = ob.OBConversion()
+        assert conversion.SetOutFormat("gzmat")
+        text = str(conversion.WriteString(to_obmol(structure)))
+    out: dict[str, float] = {}
+    for line in text.splitlines():
+        name, _, value = line.partition("=")
+        if value.strip() and name.strip()[:1] in "rad":
+            out[name.strip()] = float(value)
+    return out
+
+
+def test_the_torsions_are_measured_in_the_sense_a_deck_is_read_back_in() -> None:
+    """The check the round trip cannot make: a mirror image has the same distances.
+
+    Flip the sign of a torsion and every interatomic distance stays exactly what it was, so the
+    reconstruction test above passes for the enantiomer of the molecule that was measured. What
+    pins the sense is Open Babel's own Z-matrix writer -- the one Gaussian decks have been read
+    from for twenty years -- so the values are compared against what it prints, on a molecule
+    with a stereocentre, where a flipped sign is a different compound.
+    """
+    alanine = molecule("C[C@H](N)C(=O)O", "L-alanine")
+    printed = openbabel_variables(alanine)
+    rows = zmatrix(alanine)
+    checked = 0
+    for i, row in enumerate(rows):
+        for prefix, value in (("r", row.distance), ("a", row.angle), ("d", row.torsion)):
+            name = f"{prefix}{i + 1}"
+            if name in printed and value is not None:
+                assert value == pytest.approx(printed[name], abs=0.01), name
+                checked += 1
+    assert checked == len(printed) > 3 * len(rows) - 9
