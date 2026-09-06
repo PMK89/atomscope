@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+- **A drag now turns about what you are looking at.** Rotation used to swing
+  the view around the centre of the structure wherever that had ended up,
+  which is what made it feel unpredictable after a pan or a zoom. It now turns
+  about a reference point chosen when the drag starts: the selection if there
+  is one, otherwise the atom the drag started on, otherwise the barycentre of
+  the atoms weighted towards the middle of the view. The last two are
+  Avogadro's own rule (`navigatetool.cpp:78-105`); putting the selection ahead
+  of them is ours.
+
 - **Export dialog: reopening it no longer wipes the path.** The dialog is hidden
   rather than unmounted, so a second Export starts with the last path still in
   the box -- and the defaults, applied a tick after the reopen, dropped it. The

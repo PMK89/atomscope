@@ -1,6 +1,12 @@
 /**
- * Trackball-style navigation: left drag rotates about the pivot, right/middle drag (or
- * shift+left) pans, wheel zooms. Works for both perspective and orthographic cameras.
+ * Trackball-style navigation: left drag rotates, right/middle drag (or shift+left) pans, wheel
+ * zooms. Works for both perspective and orthographic cameras.
+ *
+ * A rotation turns about a reference point chosen when the drag starts, not about the pivot --
+ * Avogadro does the same (`navigatetool.cpp:78-105`), and it is what makes a drag feel like it
+ * turns the thing being looked at rather than swinging it around some point off the screen. The
+ * point itself comes from `rotationReference`, which the host installs; with none, the pivot is
+ * used and this behaves exactly as it did before.
  */
 import {
   OrthographicCamera,
@@ -23,6 +29,13 @@ export class CameraController {
   private readonly quatInv = new Quaternion();
   rotateSpeed = 1.0;
   zoomSpeed = 1.0;
+  /**
+   * Where a left drag should turn about, asked once when the drag starts (Avogadro computes its
+   * reference point at mouse-down too). Null, or a null answer, rotates about the pivot.
+   */
+  rotationReference: ((clientX: number, clientY: number) => Vector3 | null) | null = null;
+  /** The answer for the drag in progress. */
+  private reference: Vector3 | null = null;
   /** When false, pointer drags are ignored (editor tools drive the camera explicitly). */
   enabled = true;
   onChange: (() => void) | null = null;
@@ -121,6 +134,23 @@ export class CameraController {
     );
   }
 
+  /**
+   * Orbit about `about` instead of the pivot: the pivot travels along the same arc, so the camera
+   * keeps its distance to that point and it stays where it is on screen while everything turns
+   * around it.
+   */
+  orbitAbout(about: Vector3, dx: number, dy: number): void {
+    const before = new Vector3().setFromSpherical(this.spherical).normalize();
+    this.orbit(dx, dy);
+    const after = new Vector3().setFromSpherical(this.spherical).normalize();
+    // the drag rotates the camera offset; the pivot has to take the same rotation about `about`
+    this.pivot
+      .sub(about)
+      .applyQuaternion(new Quaternion().setFromUnitVectors(before, after))
+      .add(about);
+    this.updateCamera();
+  }
+
   /** Orbit by angles (radians): azimuth about the vertical axis, then polar. */
   rotateBy(azimuth: number, polar: number): void {
     this.spherical.theta -= azimuth;
@@ -170,6 +200,8 @@ export class CameraController {
     if (!this.enabled) return;
     if (e.button === 0 && !e.shiftKey) this.mode = 'rotate';
     else this.mode = 'pan';
+    this.reference =
+      this.mode === 'rotate' ? (this.rotationReference?.(e.clientX, e.clientY) ?? null) : null;
     this.last.set(e.clientX, e.clientY);
     window.addEventListener('pointermove', this.onPointerMove);
     window.addEventListener('pointerup', this.onPointerUp);
@@ -181,7 +213,8 @@ export class CameraController {
     this.last.set(e.clientX, e.clientY);
     const h = this.element.clientHeight || 1;
     if (this.mode === 'rotate') {
-      this.orbit(dx, dy);
+      if (this.reference) this.orbitAbout(this.reference, dx, dy);
+      else this.orbit(dx, dy);
     } else if (this.mode === 'pan') {
       const scale = this.viewHeightAtPivot() / h;
       const right = new Vector3().setFromMatrixColumn(this.camera.matrixWorld, 0);
@@ -200,6 +233,7 @@ export class CameraController {
 
   private readonly onPointerUp = (): void => {
     this.mode = 'none';
+    this.reference = null;
     window.removeEventListener('pointermove', this.onPointerMove);
     window.removeEventListener('pointerup', this.onPointerUp);
   };

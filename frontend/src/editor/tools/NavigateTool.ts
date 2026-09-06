@@ -8,7 +8,7 @@ export class NavigateTool implements Tool {
   readonly icon = '✋';
   readonly shortcut = 'n';
   readonly description =
-    'Left-drag rotates, right/middle-drag pans, wheel zooms. Double-click an atom to center on it.';
+    'Left-drag rotates about the selection, or about the atom you grab, or about what you are looking at; right/middle-drag pans, wheel zooms. Double-click an atom to center on it.';
   readonly camera = true;
   readonly cursor = 'grab';
 

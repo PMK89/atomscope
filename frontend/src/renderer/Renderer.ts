@@ -22,6 +22,7 @@ import { StructureLayer } from './layers/StructureLayer';
 import { imageDataUrl } from './imageData';
 import { povScene } from './pov';
 import { principalAxes, type PrincipalAxes } from './principalAxes';
+import { rotationCentre } from './rotationCenter';
 
 export type Projection = 'perspective' | 'orthographic';
 
@@ -78,6 +79,7 @@ export class Renderer {
       this.keyLight.position.add(new Vector3(0, 0.3, 0).applyQuaternion(this.camera.quaternion));
       this.invalidate();
     };
+    this.controller.rotationReference = (x, y) => this.rotationCenter(x, y);
     this.observer = new ResizeObserver(() => this.resize());
     this.observer.observe(container);
     this.resize();
@@ -185,6 +187,23 @@ export class Renderer {
     center.add(new Vector3(...images.center));
     radius += images.radius;
     return { center, radius, axes: pa };
+  }
+
+  /**
+   * What a left drag should turn about: the selection, else the atom the drag started on, else
+   * the part of the structure being looked at. The rule itself is in `rotationCenter.ts`; this
+   * supplies it with what only the renderer knows -- what is drawn, what is selected, what is
+   * under the pointer and where the camera is.
+   */
+  rotationCenter(clientX: number, clientY: number): Vector3 | null {
+    const atoms = this.ctx?.structure.atoms;
+    if (!atoms?.length) return null;
+    return rotationCentre(
+      atoms,
+      this.ctx?.selectedAtoms,
+      this.pickAtom(clientX, clientY),
+      this.camera.matrixWorldInverse,
+    );
   }
 
   fitToStructure(): void {
