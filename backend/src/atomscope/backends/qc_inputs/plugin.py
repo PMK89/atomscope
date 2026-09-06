@@ -53,6 +53,10 @@ from atomscope.backends.qc_inputs.gamessuk import FUNCTIONALS as GAMESSUK_FUNCTI
 from atomscope.backends.qc_inputs.gamessuk import THEORY_LABELS as GAMESSUK_THEORY_LABELS
 from atomscope.backends.qc_inputs.gamessuk import gamessuk_deck
 from atomscope.backends.qc_inputs.gaussian import gaussian_deck
+from atomscope.backends.qc_inputs.molpro import BASIS_LABELS as MOLPRO_BASIS_LABELS
+from atomscope.backends.qc_inputs.molpro import THEORY_LABELS as MOLPRO_THEORY_LABELS
+from atomscope.backends.qc_inputs.molpro import VERSIONS as MOLPRO_VERSIONS
+from atomscope.backends.qc_inputs.molpro import molpro_deck
 from atomscope.backends.qc_inputs.psi4 import BASIS_LABELS as PSI4_BASIS_LABELS
 from atomscope.backends.qc_inputs.psi4 import SAPT_THEORIES as PSI4_SAPT
 from atomscope.backends.qc_inputs.psi4 import THEORY_LABELS as PSI4_THEORY_LABELS
@@ -77,7 +81,17 @@ from atomscope.schemas import (
 from atomscope.schemas.engine import Choice
 from atomscope.units import Unit
 
-MOLECULAR = ("orca", "gaussian", "nwchem", "gamess", "gamessuk", "qchem", "psi4", "mopac")
+MOLECULAR = (
+    "orca",
+    "gaussian",
+    "nwchem",
+    "gamess",
+    "gamessuk",
+    "molpro",
+    "qchem",
+    "psi4",
+    "mopac",
+)
 
 TS_PROGRAMS = ("gamess", "gamessuk")
 """The generators that write a transition-state deck: GAMESS-US punches RUNTYP=SADPOINT and
@@ -100,7 +114,7 @@ MOPAC_MULTIPLICITY = {
 GAMESS-US has lists of its own, from the dialog Avogadro ported from MacMolPlt."""
 _FREE_METHOD = ("orca", "gaussian", "nwchem")
 
-_COORDINATE_BOX = ("gaussian", "qchem", "gamessuk")
+_COORDINATE_BOX = ("gaussian", "qchem", "gamessuk", "molpro")
 """The dialogs with a Format box. GAMESS-UK's offers two of the three layouts (there is no
 compact Z-matrix there), and `validate` says so when the third is chosen."""
 PERIODIC = ("espresso", "abinit")
@@ -137,6 +151,7 @@ SCHEMA = ParameterSchema(
                         Choice(value="nwchem", label="NWChem"),
                         Choice(value="gamess", label="GAMESS-US"),
                         Choice(value="gamessuk", label="GAMESS-UK"),
+                        Choice(value="molpro", label="Molpro"),
                         Choice(value="qchem", label="Q-Chem"),
                         Choice(value="psi4", label="Psi4"),
                         Choice(value="mopac", label="MOPAC (semi-empirical)"),
@@ -299,7 +314,7 @@ SCHEMA = ParameterSchema(
                     type="string",
                     default="",
                     advanced=True,
-                    help="appended to the route or keyword line; a line of its own for GAMESS, lines inside $rem for Q-Chem, and directives of their own before Psi4's molecule and GAMESS-UK's `enter`",
+                    help="appended to the route or keyword line; a line of its own for GAMESS, lines inside $rem for Q-Chem, and directives of their own before Psi4's molecule, Molpro's basis and GAMESS-UK's `enter`",
                 ),
             ],
         ),
@@ -356,6 +371,48 @@ SCHEMA = ParameterSchema(
                         Choice(value=key, label=label) for key, label in PSI4_BASIS_LABELS.items()
                     ],
                     visible_when=[VisibleWhen(key="program", value="psi4")],
+                ),
+            ],
+        ),
+        Section(
+            id="molpro",
+            label="Molpro",
+            help="the theory, basis and version lists of Avogadro's Molpro dialog",
+            parameters=[
+                ParameterSpec(
+                    key="molpro_theory",
+                    label="Theory",
+                    type="enum",
+                    default="rhf",
+                    choices=[
+                        Choice(value=key, label=label)
+                        for key, label in MOLPRO_THEORY_LABELS.items()
+                    ],
+                    visible_when=[VisibleWhen(key="program", value="molpro")],
+                ),
+                ParameterSpec(
+                    key="molpro_basis",
+                    label="Basis set",
+                    type="enum",
+                    default="b631gd",
+                    choices=[
+                        Choice(value=key, label=label) for key, label in MOLPRO_BASIS_LABELS.items()
+                    ],
+                    visible_when=[VisibleWhen(key="program", value="molpro")],
+                ),
+                ParameterSpec(
+                    key="molpro_version",
+                    label="Molpro version",
+                    type="enum",
+                    default="pre2009",
+                    choices=[
+                        Choice(value=key, label=label) for key, label in MOLPRO_VERSIONS.items()
+                    ],
+                    help=(
+                        "2009.1 dropped the `geomtyp=xyz` header and the atom count, and moved"
+                        " the symmetry statement above the geometry block"
+                    ),
+                    visible_when=[VisibleWhen(key="program", value="molpro")],
                 ),
             ],
         ),
@@ -1817,6 +1874,17 @@ class QcInputsPlugin:
             report.issues += _psi4_issues(structure, merged)
         if program == "gamessuk":
             report.issues += _gamessuk_issues(structure, merged)
+        if program == "molpro" and merged.get("task") == "frequencies":
+            report.issues.append(
+                ValidationIssue(
+                    key="task",
+                    message=(
+                        "Avogadro's Molpro deck runs `{optg}` above `{frequencies}`, so the"
+                        " frequencies are those of the optimized geometry, not of this one"
+                    ),
+                    severity="warning",
+                )
+            )
         if merged.get("task") == "transition_state" and program not in TS_PROGRAMS:
             report.issues.append(
                 ValidationIssue(
@@ -1951,6 +2019,22 @@ class QcInputsPlugin:
                     task=task,
                     charge=charge,
                     multiplicity=mult,
+                    extra=extra,
+                )
+            )
+        elif program == "molpro":
+            name = f"{root_name}.inp"
+            buf.write(
+                molpro_deck(
+                    structure,
+                    title=structure.name or root_name,
+                    theory=str(merged.get("molpro_theory", "rhf")),
+                    basis=str(merged.get("molpro_basis", "b631gd")),
+                    task=task,
+                    charge=charge,
+                    multiplicity=mult,
+                    coordinates=str(merged.get("coordinates", "cartesian")),
+                    version=str(merged.get("molpro_version", "pre2009")),
                     extra=extra,
                 )
             )

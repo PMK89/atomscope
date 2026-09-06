@@ -105,7 +105,7 @@ the Calculation panel greys it out — nothing else changes.
 | Crystallography (spglib): symmetry, supercells, slabs, Niggli, primitive | Density of states / projected DOS |
 | Open Babel force fields (MMFF94, MMFF94s, UFF, GAFF, Ghemical): energy, optimization, conformer search | Band structures |
 | ASE built-in calculators (EMT, Lennard-Jones, Morse) with BFGS and Langevin MD | |
-| Quantum-chemistry **input generation** (ORCA, Gaussian, NWChem, GAMESS-US, GAMESS-UK, Q-Chem, Psi4, MOPAC, Quantum ESPRESSO, ABINIT) | |
+| Quantum-chemistry **input generation** (ORCA, Gaussian, NWChem, GAMESS-US, GAMESS-UK, Molpro, Q-Chem, Psi4, MOPAC, Quantum ESPRESSO, ABINIT) | |
 
 CP-PAW is located by looking, in order, at `$ATOMSCOPE_CPPAW_DIR/bin/fast`,
 `$PAWDIR/bin/fast`, `~/cp-paw/bin/fast` and then `PATH`. Set
@@ -871,7 +871,7 @@ appended and the entry disabled when its executables are missing.
 | `CP-PAW` | yes | plane-wave/PAW DFT: single point, forces, damped relaxation, Car-Parrinello MD, densities, orbitals, DOS, band structures |
 | `ASE workflows (built-in calculators or CP-PAW)` | yes | EMT, Lennard-Jones, Morse, an Open Babel force field, or CP-PAW forces; single point, BFGS relaxation, Langevin MD |
 | `Open Babel force fields` | yes | MMFF94, MMFF94s, UFF, GAFF, Ghemical: single point, optimization, conformer search |
-| `Quantum chemistry input generators` | **no** | writes ready-to-run decks for ORCA, Gaussian, NWChem, GAMESS-US, GAMESS-UK, Q-Chem, Psi4, MOPAC, Quantum ESPRESSO and ABINIT |
+| `Quantum chemistry input generators` | **no** | writes ready-to-run decks for ORCA, Gaussian, NWChem, GAMESS-US, GAMESS-UK, Molpro, Q-Chem, Psi4, MOPAC, Quantum ESPRESSO and ABINIT |
 
 ### 7.2 The parameter form
 
@@ -967,6 +967,13 @@ after the basis it really requests. That dialog's theory box has no UHF or
 GVB entry, so the deck asks for `scftype rhf` whatever the multiplicity; above
 a singlet the form says so, and the extra keywords are where another
 wavefunction goes.
+Molpro has its five theories, ten basis sets and all three coordinate layouts,
+and a `Molpro version` box: before 2009.1 a Cartesian geometry is written as an
+embedded xyz file and a Z-matrix names its symmetry inside the block, and from
+2009.1 neither is true. A correlated run gets a Hartree-Fock reference block
+above its own, as its dialog wrote it. Asking for frequencies runs an
+optimization first -- that is what the deck says, and a frequency at a geometry
+that is not stationary is not a frequency -- and the form tells you so.
 Q-Chem has the two lists its dialog had — seven theories (MP2 and CCSD are
 written as a Hartree-Fock reference with a correlation keyword beside them) and
 ten basis sets, the last two of which are effective core potentials — and the

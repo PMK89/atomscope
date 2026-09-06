@@ -920,6 +920,128 @@ def test_the_qchem_geometry_can_be_either_z_matrix() -> None:
     assert "r3" not in compact
 
 
+def test_the_default_molpro_deck_is_pinned_byte_for_byte() -> None:
+    """`molproinputdialog.cpp:generateInputDeck` in its order, in the dialect the dialog opens
+    on: before 2009.1 a Cartesian geometry is an embedded xyz file, count and comment line
+    included."""
+    water = from_atoms(molecule("H2O"), name="water")
+    file = plugin.generate_inputs(water, {"program": "molpro"}, "case").files[0]
+    assert file.name == "case.inp"
+    assert file.text == (
+        "*** water\n"
+        "\n"
+        "gprint,basis\n"
+        "gprint,orbital\n"
+        "\n"
+        "basis, 6-31G(d)\n"
+        "\n"
+        "geomtyp=xyz\n"
+        "geometry={\n"
+        "3\n"
+        "\n"
+        "O         0.00000        0.00000        0.11926\n"
+        "H         0.00000        0.76324       -0.47705\n"
+        "H         0.00000       -0.76324       -0.47705\n"
+        "}\n"
+        "\n"
+        # ten electrons, space symmetry 1, twice the spin
+        "{rhf\n"
+        "wf,10,1,0}\n"
+        "\n"
+        "---\n"
+    )
+
+
+def test_the_molpro_version_decides_the_geometry_dialect() -> None:
+    """2009.1 dropped `geomtyp=xyz` and the atom count from the Cartesian block."""
+    water = from_atoms(molecule("H2O"), name="water")
+    modern = (
+        plugin.generate_inputs(water, {"program": "molpro", "molpro_version": "v2009"}, "case")
+        .files[0]
+        .text
+    )
+    assert "geomtyp" not in modern
+    assert "\ngeometry={\nO " in modern
+
+
+def test_molpro_writes_a_reference_for_everything_but_b3lyp() -> None:
+    """`:404-413`: `{rhf` for every theory but B3LYP, and the theory's own block for every theory
+    but Hartree-Fock -- so a correlated run carries two and B3LYP carries one."""
+    water = from_atoms(molecule("H2O"), name="water")
+
+    def blocks(theory: str) -> list[str]:
+        text = (
+            plugin.generate_inputs(water, {"program": "molpro", "molpro_theory": theory}, "c")
+            .files[0]
+            .text
+        )
+        return [line for line in text.split("\n") if line.startswith("{")]
+
+    assert blocks("rhf") == ["{rhf"]
+    assert blocks("b3lyp") == ["{uks,b3lyp"]
+    assert blocks("mp2") == ["{rhf", "{mp2"]
+    assert blocks("ccsdt") == ["{rhf", "{ccsd(t)"]
+
+
+def test_a_molpro_z_matrix_names_its_values_above_the_block() -> None:
+    """The verbose layout is the only one here that does, each value with its own unit; the
+    compact one writes the numbers in place, unpadded."""
+    water = from_atoms(molecule("H2O"), name="water")
+
+    def deck(**values: object) -> str:
+        return plugin.generate_inputs(water, {"program": "molpro", **values}, "c").files[0].text
+
+    verbose = deck(coordinates="zmatrix")
+    assert verbose.index("   r2 = ") < verbose.index("geometry={")
+    assert "   a3 =       103.99988 degree\n" in verbose
+    assert "\nH, 1, r3, 2, a3\n" in verbose
+    compact = deck(coordinates="zmatrix_compact")
+    assert "\nH, 1, 0.96857, 2, 103.99988\n" in compact
+    assert "r3" not in compact
+
+
+def test_a_molpro_z_matrix_switches_symmetry_off_in_both_layouts() -> None:
+    """The compact branch wrote no symmetry statement at all for 2009.1 (`:355-359`) while the
+    verbose one wrote `symmetry,nosym` -- so the same geometry in the same version was reoriented
+    in one layout and not the other. Written for both."""
+    water = from_atoms(molecule("H2O"), name="water")
+
+    def deck(layout: str, version: str) -> str:
+        return (
+            plugin.generate_inputs(
+                water,
+                {"program": "molpro", "coordinates": layout, "molpro_version": version},
+                "c",
+            )
+            .files[0]
+            .text
+        )
+
+    for layout in ("zmatrix", "zmatrix_compact"):
+        assert "\nsymmetry,nosym\ngeometry={\n" in deck(layout, "v2009")
+        assert "\ngeometry={\nnosym\n" in deck(layout, "pre2009")
+    # a Cartesian block names no symmetry in either version, as the dialog left it
+    assert "nosym" not in deck("cartesian", "v2009")
+    assert "nosym" not in deck("cartesian", "pre2009")
+
+
+def test_molpro_frequencies_optimize_first_and_say_so() -> None:
+    """`getCalculationType(FREQ)` writes `{optg}` above `{frequencies}` (`:453-455`)."""
+    water = from_atoms(molecule("H2O"), name="water")
+    values = {"program": "molpro", "task": "frequencies"}
+    text = plugin.generate_inputs(water, values, "c").files[0].text
+    assert text.endswith("{optg}\n{frequencies}\n\n---\n")
+    issues = plugin.validate(water, values).issues
+    assert [i.key for i in issues] == ["task"]
+    assert issues[0].severity == "warning"
+    # a single point asks for nothing: the wavefunction blocks are the calculation
+    assert (
+        plugin.generate_inputs(water, {"program": "molpro"}, "c")
+        .files[0]
+        .text.endswith("wf,10,1,0}\n\n---\n")
+    )
+
+
 def test_a_radical_is_never_written_as_a_singlet() -> None:
     """A methyl radical has nine electrons, which cannot pair up. Every generator used to write
     multiplicity 1 for it unless the structure or the form said otherwise -- only the GAMESS-US

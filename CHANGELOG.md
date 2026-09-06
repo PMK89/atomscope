@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+- A **Molpro input generator**: the deck Avogadro's dialog wrote, with its five
+  theories, ten basis sets, three coordinate layouts and the version box that
+  chooses between the pre-2009.1 dialect and 2009.1. A reference block is
+  written for every theory but B3LYP and the theory's own for every theory but
+  Hartree-Fock, so a correlated run carries both. Its compact Z-matrix switched
+  symmetry off in neither way at 2009.1 while the verbose one did -- the same
+  geometry in the same version was reoriented in one layout and not the other,
+  and both switch it off now. Asking for frequencies optimizes first, as it did
+  there, and the form says so rather than leaving it to be discovered.
+
 - **A radical is no longer written as a singlet.** An odd number of electrons
   cannot pair up, and every input generator but the GAMESS-US one wrote
   multiplicity 1 for a structure that named none -- so a methyl radical came
