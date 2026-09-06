@@ -2,7 +2,7 @@
 
 Branch: main; this file is updated in the commit that checkpoints the work, so `git log -1 -- docs/STATE.md` is the last checkpoint. Phases 0-1 done; Phase 2 (editor tools), 3 (volumetric, trajectories, vectors), 4-5 (CP-PAW setup/execution/forces), 6 (CP-PAW analysis: DOS, bands, orbitals), crystallography, molecular mechanics and wavefunction surfaces are merged and working. Parity matrix: 217 IMPLEMENTED, 21 PARTIAL, 73 NOT STARTED, 1 BLOCKED of 312 rows.
 
-Tests: `pytest -q -m "not cppaw"` -> 461 passed, 1 skipped; `pytest -q -m cppaw` -> 7 passed (~90 s, needs the local CP-PAW install); `pnpm vitest run` -> 495 passed; `pnpm exec playwright test` -> 38 passed in 54 s at `119cdf1` (against private servers, see below; `make test-e2e` points at the user's 5173, which is stale). **`source env.sh` before Playwright**: without `PLAYWRIGHT_BROWSERS_PATH` it looks in `~/.cache/ms-playwright`, finds nothing, and every test fails at `browserType.launch`. `ruff check`, `mypy` and `pnpm typecheck` are clean. No known failing tests. **Type-check the frontend with `pnpm typecheck` (`tsc -b --noEmit`), never with `pnpm exec tsc --noEmit`:** the root `tsconfig.json` is a solution file with `files: []`, so a bare `tsc --noEmit` checks nothing and exits 0.
+Tests: `pytest -q -m "not cppaw"` -> 461 passed, 1 skipped; `pytest -q -m cppaw` -> 7 passed (~90 s, needs the local CP-PAW install); `pnpm vitest run` -> 496 passed; `pnpm exec playwright test` -> 38 passed in 50 s at `1eb26c7` (against private servers, see below; `make test-e2e` points at the user's 5173, which is stale). **`source env.sh` before Playwright**: without `PLAYWRIGHT_BROWSERS_PATH` it looks in `~/.cache/ms-playwright`, finds nothing, and every test fails at `browserType.launch`. `ruff check`, `mypy` and `pnpm typecheck` are clean. No known failing tests. **Type-check the frontend with `pnpm typecheck` (`tsc -b --noEmit`), never with `pnpm exec tsc --noEmit`:** the root `tsconfig.json` is a solution file with `files: []`, so a bare `tsc --noEmit` checks nothing and exits 0.
 
 ## Resume commands
 
@@ -167,7 +167,7 @@ run against current code -- Playwright above all -- use the private-server recip
   own normalization in (a single-primitive s shell comes out as 0.36 where the specification says
   1). Read as the specification says, the shells are the wrong shape and each is still normalized
   afterwards, so nothing looks wrong until the orbitals are integrated: they came back at 0.82.
-  `molden._with_normalized_primitives` tells the two apart by measuring, two ways that have to
+  `gto.with_normalized_primitives` tells the two apart by measuring, two ways that have to
   agree before anything is divided out: every conforming shell's self-overlap is 1.000 (the ORCA
   file's run from 0.11 to 7.35), and an uncontracted s or p shell is written as 1 under the
   specification and as N(alpha) by ORCA. The self-overlap test alone has a false positive -- a
@@ -182,9 +182,11 @@ run against current code -- Playwright above all -- use the private-server recip
   normalization on its own (dropping `contraction_norm` gives 6.3), and not a dropped or
   misparsed coefficient (all 246 per orbital are read, and match the file).
 
-- One flaky Playwright test, seen twice: `Export writes a file on this machine` failed in two
-  runs that each took 1.9 minutes, both started in the same shell command as the dev server and
-  a few seconds after it. The full suite takes ~50 s otherwise, and it passes there -- including
+- One flaky Playwright test, seen three times: `Export writes a file on this machine` failed in
+  three runs that each took 1.9 minutes, all started in the same shell command as the dev server
+  and a few seconds after it. Every time it has failed on the *second* Save click, the one that
+  should raise `exists already`, and every time the same test has passed on its own straight
+  afterwards and in the immediately following full run (50 s). The full suite takes ~50 s otherwise, and it passes there -- including
   a deliberate cold run with `node_modules/.vite` deleted, which finished in 53 s with all 37
   green, so it is machine load rather than a cold cache. Give the servers time to settle before
   running the suite; if it fails in a *fast* run, that is new and its timeouts are the place to
@@ -246,8 +248,12 @@ run against current code -- Playwright above all -- use the private-server recip
      Six of its twelve tabs are done (`backends/qc_inputs/gamess.py`): Basic Setup, Basis,
      Control, DFT, Stat Point and System. What is left is SCF, MP2, Hessian, Data, MO Guess and
      Misc -- a tab's worth of keywords each, landing one or two at a time, each one read out of
-     the group writer it feeds rather than out of the dialog. Read the row's
-     note first: it lists them and says where each one's keywords live in Avogadro's source.
+     the group writer it feeds rather than out of the dialog. Each tab is a `Section`
+     of its own in `qc_inputs/plugin.py` (`gamess_basis_detail`, `gamess_control`, `gamess_dft`,
+     `gamess_statpt`, `gamess_system`), which is what keeps the form readable and what keeps
+     GAMESS's boxes out of the other programs' forms: `SchemaForm.tsx` draws no heading for a
+     section whose parameters are all hidden, pinned by a vitest case. A new tab is a new
+     section. Read the row's note first: it lists them and says where each one's keywords live in Avogadro's source.
      AV-QM-002, the Gaussian one, is done. Both follow the same shape: the deck is written here
      rather than through ASE, because ASE's writers cannot say what the dialogs offer, and each
      program's own boxes are schema parameters made visible by `program == <name>`.
