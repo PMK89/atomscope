@@ -869,3 +869,60 @@ def test_a_gamess_deck_in_bohr_carries_bohr_coordinates() -> None:
     )
     z_bohr = float([line for line in bohr.split("\n") if line.startswith("O ")][0].split()[-1])
     assert z_bohr == pytest.approx(z_angstrom / 0.5291772, rel=1e-4)
+
+
+def test_the_qchem_deck_is_four_sections_in_avogadros_order() -> None:
+    """$rem, $comment, $molecule -- and the theory box can write two keywords rather than one."""
+    water = from_atoms(molecule("H2O"), name="water")
+    gen = plugin.generate_inputs(
+        water,
+        {"program": "qchem", "task": "optimize", "qchem_theory": "mp2", "qchem_basis": "lanl2dz"},
+        "case",
+    )
+    assert gen.files[0].name == "case.qcin"
+    text = gen.files[0].text
+    assert text.startswith(
+        "$rem\n"
+        "   JOBTYPE Opt\n"
+        # MP2 is a Hartree-Fock reference and a correlation keyword beside it
+        "   EXCHANGE HF\n"
+        "   CORRELATION MP2\n"
+        # an effective core potential is an ECP to Q-Chem rather than a BASIS
+        "   ECP LANL2DZ\n"
+        "   GUI=2\n"
+        "$end\n\n"
+        "$comment\nwater\n$end\n\n"
+        "$molecule\n   0 1\n"
+    )
+    assert "   O        0.00000        0.00000        0.11926" in text
+
+
+def test_the_qchem_geometry_can_be_either_z_matrix() -> None:
+    """The same two layouts the Gaussian dialog offers, named Q-Chem's way."""
+    water = from_atoms(molecule("H2O"), name="water")
+    variables = (
+        plugin.generate_inputs(water, {"program": "qchem", "coordinates": "zmatrix"}, "case")
+        .files[0]
+        .text
+    )
+    # an atom is its element and its number, and the values go under the references
+    assert "  H3 O1 r3 H2 a3" in variables
+    assert "   a3 =       103.99988" in variables
+    compact = (
+        plugin.generate_inputs(
+            water, {"program": "qchem", "coordinates": "zmatrix_compact"}, "case"
+        )
+        .files[0]
+        .text
+    )
+    assert "  H3    O1        0.96857    H2      103.99988" in compact
+    assert "r3" not in compact
+
+
+def test_a_qchem_run_takes_the_charge_and_the_multiplicity_of_the_structure() -> None:
+    """They are the $molecule line, which is the only place Q-Chem asks for them."""
+    ch3 = from_atoms(molecule("CH3"), name="methyl")
+    text = (
+        plugin.generate_inputs(ch3, {"program": "qchem", "multiplicity": 2}, "case").files[0].text
+    )
+    assert "$molecule\n   0 2\n" in text

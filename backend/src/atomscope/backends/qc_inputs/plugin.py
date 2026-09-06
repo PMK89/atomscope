@@ -49,6 +49,9 @@ from atomscope.backends.qc_inputs.gamess import GBASIS_CHOICES as GAMESS_GBASIS_
 from atomscope.backends.qc_inputs.gamess import POINT_GROUPS as GAMESS_POINT_GROUPS
 from atomscope.backends.qc_inputs.gamess import THEORY_CHOICES as GAMESS_THEORIES
 from atomscope.backends.qc_inputs.gaussian import gaussian_deck
+from atomscope.backends.qc_inputs.qchem import BASIS_LABELS as QCHEM_BASIS_LABELS
+from atomscope.backends.qc_inputs.qchem import THEORY_LABELS as QCHEM_THEORY_LABELS
+from atomscope.backends.qc_inputs.qchem import qchem_deck
 from atomscope.jobs.models import RunSpec
 from atomscope.model import Structure
 from atomscope.schemas import (
@@ -65,7 +68,7 @@ from atomscope.schemas import (
 from atomscope.schemas.engine import Choice
 from atomscope.units import Unit
 
-MOLECULAR = ("orca", "gaussian", "nwchem", "gamess", "mopac")
+MOLECULAR = ("orca", "gaussian", "nwchem", "gamess", "qchem", "mopac")
 """Semi-empirical Hamiltonians MOPAC understands; the method is the first keyword of the deck."""
 MOPAC_METHODS = ("AM1", "PM3", "PM6", "PM7", "RM1", "MNDO", "MNDOD")
 """MOPAC spells the multiplicity as a word (a closed shell is SINGLET and needs no UHF)."""
@@ -116,6 +119,7 @@ SCHEMA = ParameterSchema(
                         Choice(value="gaussian", label="Gaussian"),
                         Choice(value="nwchem", label="NWChem"),
                         Choice(value="gamess", label="GAMESS-US"),
+                        Choice(value="qchem", label="Q-Chem"),
                         Choice(value="mopac", label="MOPAC (semi-empirical)"),
                         Choice(value="espresso", label="Quantum ESPRESSO (pw.x)"),
                         Choice(value="abinit", label="ABINIT"),
@@ -225,7 +229,7 @@ SCHEMA = ParameterSchema(
                         Choice(value="zmatrix_compact", label="Z-matrix (compact)"),
                     ],
                     help="how the geometry is written into the deck",
-                    visible_when=[VisibleWhen(key="program", value="gaussian")],
+                    visible_when=[VisibleWhen(key="program", op="in", value=["gaussian", "qchem"])],
                 ),
                 ParameterSpec(
                     key="gaussian_output",
@@ -277,6 +281,33 @@ SCHEMA = ParameterSchema(
                     default="",
                     advanced=True,
                     help="appended to the route or keyword line; a line of its own for GAMESS",
+                ),
+            ],
+        ),
+        Section(
+            id="qchem",
+            label="Q-Chem",
+            help="the theory and basis lists of Avogadro's Q-Chem dialog",
+            parameters=[
+                ParameterSpec(
+                    key="qchem_theory",
+                    label="Theory",
+                    type="enum",
+                    default="b3lyp",
+                    choices=[
+                        Choice(value=key, label=label) for key, label in QCHEM_THEORY_LABELS.items()
+                    ],
+                    visible_when=[VisibleWhen(key="program", value="qchem")],
+                ),
+                ParameterSpec(
+                    key="qchem_basis",
+                    label="Basis set",
+                    type="enum",
+                    default="b631gd",
+                    choices=[
+                        Choice(value=key, label=label) for key, label in QCHEM_BASIS_LABELS.items()
+                    ],
+                    visible_when=[VisibleWhen(key="program", value="qchem")],
                 ),
             ],
         ),
@@ -1675,6 +1706,21 @@ class QcInputsPlugin:
                 kwargs["scf"] = {"nopen": mult - 1}
             _write(buf, atoms, "nwchem-in", **kwargs)
             name = f"{root_name}.nw"
+        elif program == "qchem":
+            name = f"{root_name}.qcin"
+            buf.write(
+                qchem_deck(
+                    structure,
+                    title=structure.name or root_name,
+                    theory=str(merged.get("qchem_theory", "b3lyp")),
+                    basis=str(merged.get("qchem_basis", "b631gd")),
+                    task=task,
+                    charge=charge,
+                    multiplicity=mult,
+                    coordinates=str(merged.get("coordinates", "cartesian")),
+                    extra=extra,
+                )
+            )
         elif program == "gamess":
             name = f"{root_name}.inp"
             buf.write(

@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- A **Q-Chem input generator**, with the theory and basis lists of Avogadro's
+  dialog and the same three coordinate layouts as the Gaussian one. MP2 and CCSD
+  are written as a Hartree-Fock reference with a correlation keyword beside it,
+  and the two effective core potentials reach `ECP` rather than `BASIS`, which is
+  what Q-Chem reads.
+
 - The **editor tools, the display layers, the dock panels and the menu items are
   plugins now**. Nothing enumerates them any more: the toolbar, the status bar,
   the settings box, the input host, the renderer, the dock's tab strip and the
