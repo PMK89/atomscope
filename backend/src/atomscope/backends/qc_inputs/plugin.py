@@ -280,7 +280,7 @@ SCHEMA = ParameterSchema(
                     type="string",
                     default="",
                     advanced=True,
-                    help="appended to the route or keyword line; a line of its own for GAMESS",
+                    help="appended to the route or keyword line; a line of its own for GAMESS, and lines inside $rem for Q-Chem",
                 ),
             ],
         ),

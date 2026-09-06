@@ -919,6 +919,33 @@ def test_the_qchem_geometry_can_be_either_z_matrix() -> None:
     assert "r3" not in compact
 
 
+def test_the_default_qchem_deck_is_pinned_byte_for_byte() -> None:
+    """What the form writes when nothing is touched: B3LYP/6-31G(d) from the dialog's constructor
+    (`qcheminputdialog.cpp:43-44`) and a single point from the shared Program box."""
+    water = from_atoms(molecule("H2O"), name="water")
+    text = plugin.generate_inputs(water, {"program": "qchem"}, "case").files[0].text
+    assert text == (
+        "$rem\n"
+        "   JOBTYPE SP\n"
+        "   EXCHANGE B3LYP\n"
+        "   BASIS 6-31G(d)\n"
+        "   GUI=2\n"
+        "$end\n"
+        "\n"
+        "$comment\n"
+        "water\n"
+        "$end\n"
+        "\n"
+        "$molecule\n"
+        "   0 1\n"
+        "   O        0.00000        0.00000        0.11926\n"
+        "   H        0.00000        0.76324       -0.47705\n"
+        "   H        0.00000       -0.76324       -0.47705\n"
+        "$end\n"
+        "\n"
+    )
+
+
 def test_a_qchem_run_takes_the_charge_and_the_multiplicity_of_the_structure() -> None:
     """They are the $molecule line, which is the only place Q-Chem asks for them."""
     ch3 = from_atoms(molecule("CH3"), name="methyl")

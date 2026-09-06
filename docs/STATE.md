@@ -352,9 +352,20 @@ run against current code -- Playwright above all -- use the private-server recip
    and colouring (AV-BIO-006), the Settings dialog (AV-UI-012), colour-by-second-cube
    (AV-SURF-013), engine primitive scoping (AV-VIS-029) and the colour maps (AV-COLOR-002/003/
    004/007/008) are done.
-4. More wavefunction readers (MOPAC aux, GAMESS, ORCA, Molpro, Slater bases) for AV-SURF-006;
+4. **The input generators are the thread being pulled through the MEDIUM stratum.** Q-Chem
+   (AV-QM-010) is done; the ones still open, smallest dialog first, are PSI4 (AV-QM-012, 339 lines
+   of cpp / 436 of ui), GAMESS-UK (AV-QM-006, 525/563), Molpro (AV-QM-008, 535/559) and Dalton
+   (AV-QM-011, 1644/1667); NWChem (AV-QM-009) and ORCA (AV-QM-016) are PARTIAL. Each follows the
+   same shape: read the dialog's `generateInputDeck` and its `get*Type` tables out of Avogadro's
+   source, write a `<program>.py` beside `qchem.py` with the keyword table and a label table, add
+   a `Section` to `qc_inputs/plugin.py` whose choices are derived from those label tables (never
+   retyped), pin a golden deck for the defaults **and** for the interesting branches, then flip
+   the row and re-derive the counts with the awk above. Read the row's Acceptance column before
+   flipping it. After that cluster the next coherent piece is the display quartet
+   (AV-VIS-006/007/011/038), which is renderer work rather than registry work.
+5. More wavefunction readers (MOPAC aux, GAMESS, ORCA, Molpro, Slater bases) for AV-SURF-006;
    ORCA/Gaussian/NWChem input-only plugins; desktop shell ADR.
-5. Known limits and hand-overs:
+6. Known limits and hand-overs:
    - `applyColors` rewrites every instance colour on every hover change (~300k operations per
      pointer move at 1e5 atoms) and both meshes have `frustumCulled = false`; ASE's CIF reader is
      O(N^2) in `equivalent_sites`; `list_structures` loads every structure; `editor/cartesian.ts`

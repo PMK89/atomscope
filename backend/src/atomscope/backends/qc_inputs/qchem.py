@@ -5,6 +5,15 @@ exchange functional and the basis set; `$comment` with the title; `$molecule` wi
 the multiplicity and the geometry; and nothing else. The lists are its own three combos
 (`getCalculationType`, `getTheoryType`, `getBasisType`), and the coordinate layouts are the same
 three the Gaussian dialog offers, which is what `chem/zmatrix.py` is for.
+
+Two departures. The Cartesian branch there walks `OBMol::ContigFragList` (`:270-273`), so a
+structure of several fragments comes out fragment by fragment rather than in the order it was
+read; we keep the structure's own order, which Q-Chem reads the same way and which every other
+generator here already uses. And the defaults: the constructor and the `.ui` agree on Opt /
+B3LYP / 6-31G(d) (`:43-44`, combo `currentIndex` 1/2/2), but `resetClicked` (`:150-152`) puts the
+theory combo back to index 3, which is B3LYP5 -- so Reset does not restore what the dialog opened
+with. We take B3LYP and 6-31G(d) from the constructor, and the calculation type from the shared
+Program box, whose default is a single point for every program.
 """
 
 from __future__ import annotations
