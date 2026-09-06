@@ -317,3 +317,31 @@ def test_a_log_that_is_not_a_wavefunction_says_so(tmp_path: Path) -> None:
     empty.write_text("GAMESS VERSION = 1 MAY 2013\nnothing else here\n")
     with pytest.raises(ValueError, match="no atom coordinates"):
         read_gamess(empty)
+
+
+def test_an_orca_molden_file_is_read_in_its_own_coefficient_convention() -> None:
+    """`orca_2mkl` writes the contraction coefficients for *unnormalized* primitives.
+
+    Molden's specification says normalized, and every other file here follows it. Read as the
+    specification says, ORCA's shells come out the wrong shape -- each is still normalized
+    afterwards, so nothing looks wrong until the orbitals are integrated and come back at about
+    0.82 instead of 1. The reader measures which convention a file uses (every spec-conforming
+    shell has a self-overlap of exactly 1.000; this file's run from 0.11 to 7.35) and divides the
+    primitive normalization back out, which is what this test is checking.
+    """
+    wf = read_wavefunction(FIX / "caffeine_orca.molden.gz")
+    assert wf.structure.formula() == "C8H10N4O2"
+    assert wf.n_basis == 246 and wf.n_electrons == 102 and wf.homo_index() == 50
+    box = bounding_box(wf.structure, padding=4.0, spacing=0.2)
+    for index in (30, 45, 50):
+        values = orbital_values(wf, index, box)
+        assert integrate(values**2, box) == pytest.approx(1.0, abs=0.02), index
+
+
+def test_a_molden_file_that_follows_the_specification_is_left_alone() -> None:
+    """The convention is measured per file, so the fix must not touch a conforming one."""
+    from atomscope.wavefunction.gto import contraction_norm  # noqa: PLC0415
+
+    wf = read_wavefunction(FIX / "benzene.molden.gz")
+    factors = [contraction_norm(shell) for shell in wf.shells]
+    assert max(abs(f - 1.0) for f in factors) < 1e-9

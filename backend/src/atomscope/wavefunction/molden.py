@@ -25,6 +25,7 @@ from ase.data import chemical_symbols
 from ase.units import Bohr
 
 from atomscope.model import Atom, Provenance, Structure
+from atomscope.wavefunction.gto import contraction_norm, primitive_norm
 from atomscope.wavefunction.model import SHELL_LETTERS, MolecularOrbital, Shell, Wavefunction
 
 _SECTION = re.compile(r"^\s*\[([^\]]+)\]\s*(.*)$")
@@ -54,6 +55,42 @@ def _split_sections(text: str) -> list[tuple[str, str, list[str]]]:
     return sections
 
 
+def _with_normalized_primitives(shells: list[Shell]) -> list[Shell]:
+    """Put the contraction coefficients into the convention the evaluator expects.
+
+    Molden's specification says the coefficients are for *normalized* primitives, and files from
+    Molden, Gaussian and GAMESS follow it: every contracted shell then has a self-overlap of one,
+    to the last digit, and a single-primitive shell is written with a coefficient of exactly 1.
+
+    ORCA's `orca_2mkl` does not: it writes the coefficients for unnormalized primitives, so the
+    primitive's own normalization is folded into them (a single-primitive s shell comes out as
+    0.36, a d shell as 1.93). Read as the specification says, the *shapes* of the contracted
+    functions are wrong -- each is still normalized afterwards, so nothing looks amiss until the
+    orbitals are integrated and come back with norms around 0.82 instead of 1.
+
+    The two conventions are told apart by measuring, not by guessing which program wrote the file:
+    under the spec's convention every shell's self-overlap is 1.000, and for the ORCA file they
+    run from 0.11 to 7.35. When they are not one, the primitive normalization is divided back out.
+    """
+    factors = np.array([contraction_norm(shell) for shell in shells])
+    if float(np.abs(factors - 1.0).max()) < 0.01:
+        return shells
+    fixed: list[Shell] = []
+    for shell in shells:
+        powers = (shell.angular_momentum, 0, 0)
+        norms = np.array([primitive_norm(float(e), powers) for e in shell.exponents])
+        fixed.append(
+            Shell(
+                shell.atom_index,
+                shell.angular_momentum,
+                shell.pure,
+                shell.exponents,
+                shell.coefficients / norms,
+            )
+        )
+    return fixed
+
+
 def read_molden(path: Path) -> Wavefunction:
     sections = _split_sections(_read_text(path))
     names = {name for name, _, _ in sections}
@@ -80,6 +117,7 @@ def read_molden(path: Path) -> Wavefunction:
         )
         for s in shells
     ]
+    shells = _with_normalized_primitives(shells)
     n_basis = sum(s.size for s in shells)
     orbitals = _read_orbitals(sections, n_basis)
 

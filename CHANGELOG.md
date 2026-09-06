@@ -4,7 +4,9 @@
 
 - Surfaces can be generated from a **GAMESS-US log**, beside Gaussian
   checkpoints and Molden files: the geometry, the basis and the orbitals are
-  read from the log itself.
+  read from the log itself. Molden files written by ORCA (`orca_2mkl`) now read
+  correctly too — ORCA uses a different coefficient convention from the one the
+  format describes, which had been leaving its orbitals subtly mis-shaped.
 
 - The dipole moment is drawn: one red arrow through the molecule, summed from
   the partial charges every time the picture is rebuilt, so it follows an atom

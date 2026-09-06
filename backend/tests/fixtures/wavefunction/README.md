@@ -15,6 +15,10 @@ README named only the GPL.)
 - `d-only.gamess.gz` — methane in an all-d basis, a GAMESS-US log: the Cartesian d ordering
 - `f-only.gamess.gz` — the same molecule in an all-f basis: the Cartesian f ordering, which is
   where GAMESS and Gaussian disagree
+- `caffeine_orca.molden.gz` — `testfiles/koffein_orca.molden` (written by `orca_2mkl`),
+  trimmed to the first 60 orbitals of 246 and gzipped: 1.5 MB otherwise, and the occupied
+  set ends at 51. It is here because ORCA writes contraction coefficients for unnormalized
+  primitives, against Molden's specification, and this is the file that catches it
 
 The two GAMESS logs are 16 single-primitive shells and 5 three-primitive contractions (one per
 atom), so they exercise the shell ordering thoroughly and the contraction convention only in

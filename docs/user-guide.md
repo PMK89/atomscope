@@ -801,8 +801,10 @@ Surfaces…`). Give the `Wavefunction` field the path to a Gaussian formatted
 checkpoint (`.fchk`), a Molden file or a GAMESS-US log (`.gamess`, or any file
 whose first lines carry the GAMESS banner) — gzipped or not — and press `Load`:
 the panel lists the orbitals with their energies and marks the HOMO. Of the
-seven readers Avogadro had, these three are here; MOPAC's `.aux`, GAMESS-UK,
-ORCA and Molpro are not read yet. A GAMESS log is read over the Cartesian
+seven readers Avogadro had, these three are here; MOPAC's `.aux`, GAMESS-UK
+and Molpro are not read yet. ORCA has no reader of its own but needs none:
+`orca_2mkl` writes a Molden file, and that is read — including the coefficient
+convention ORCA uses, which is not the one the Molden specification describes. A GAMESS log is read over the Cartesian
 basis its orbitals are printed in, whatever `ISPHER` was set to, which is what
 Avogadro did as well. Choose a
 surface type — a molecular orbital, the electron density, the spin density, the
