@@ -398,3 +398,27 @@ def test_a_gamess_run_with_no_scf_says_which_ci_it_is() -> None:
         water, {"program": "gamess", "task": "energy", "gamess_scftyp": "none"}, "case"
     )
     assert gen.files[0].text.split("\n")[1] == " $CONTRL SCFTYP=NONE RUNTYP=ENERGY CITYP=NONE $END"
+
+
+def test_the_gamess_coupled_cluster_box_reaches_the_eight_the_theory_list_cannot() -> None:
+    """CCTYP has nine values in the Control tab; the Basic theory box offers one of them."""
+    water = from_atoms(molecule("H2O"), name="water")
+    base = {"program": "gamess", "task": "energy"}
+    # the one they share writes the same deck either way, which is what makes it a shorthand
+    from_theory = plugin.generate_inputs(water, {**base, "gamess_theory": "ccsd_t"}, "case")
+    from_box = plugin.generate_inputs(water, {**base, "gamess_cc": "ccsd_t"}, "case")
+    assert from_theory.files[0].text == from_box.files[0].text
+    other = plugin.generate_inputs(water, {**base, "gamess_cc": "cr_eom"}, "case")
+    assert " $CONTRL SCFTYP=RHF RUNTYP=ENERGY CCTYP=CR-EOM $END" in other.files[0].text
+    # and `None` is a choice, not an absence: it turns the theory box's CCSD(T) off
+    off = plugin.generate_inputs(
+        water, {**base, "gamess_theory": "ccsd_t", "gamess_cc": "none"}, "case"
+    )
+    assert "CCTYP" not in off.files[0].text
+
+
+def test_a_stored_gamess_run_type_that_no_longer_exists_is_reported() -> None:
+    """Values outlive schemas; a stale one has to come back as an issue, not a KeyError."""
+    water = from_atoms(molecule("H2O"), name="water")
+    report = plugin.validate(water, {"program": "gamess", "gamess_runtyp": "nonsense"})
+    assert any("no such run type" in i.message for i in report.issues)

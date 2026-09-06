@@ -174,6 +174,19 @@ CI_TYPES = {
     "genci": "GENCI",
 }
 EXEC_TYPES = {"run": "", "check": "CHECK", "debug": "DEBUG"}
+"""The Control tab's coupled-cluster list (`gamessinputdata.cpp:552`); the Basic tab's theory
+box reaches only CCSD(T) of these."""
+CC_TYPES = {
+    "none": "",
+    "lccd": "LCCD",
+    "ccd": "CCD",
+    "ccsd": "CCSD",
+    "ccsd_t": "CCSD(T)",
+    "r_cc": "R-CC",
+    "cr_cc": "CR-CC",
+    "eom_ccsd": "EOM-CCSD",
+    "cr_eom": "CR-EOM",
+}
 
 """The run types GAMESS searches for a stationary point in, and so writes $STATPT for
 (`gamessinputdata.cpp:2481`)."""
@@ -192,6 +205,8 @@ class ControlOptions:
     max_iterations: int = 0
     exec_type: str = "run"
     ci: str = "none"
+    cc: str = ""
+    """empty means the theory box says it; `none` means no coupled cluster at all"""
 
 
 MEGAWORD_MB = 8
@@ -271,8 +286,9 @@ def _control_group(
     # a run with no SCF is a CI run, and says which kind even when the box says None
     if CI_TYPES[control.ci] or control.scftyp == NO_SCF:
         words.append(f"CITYP={CI_TYPES[control.ci] or 'NONE'}")
-    if theory == "ccsd_t":
-        words.append("CCTYP=CCSD(T)")
+    cc = CC_TYPES[control.cc] if control.cc else ("CCSD(T)" if theory == "ccsd_t" else "")
+    if cc:
+        words.append(f"CCTYP={cc}")
     if theory == "b3lyp":
         words.append("DFTTYP=B3LYP")
     if control.max_iterations:

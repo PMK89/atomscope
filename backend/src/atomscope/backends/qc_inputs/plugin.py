@@ -328,6 +328,26 @@ SCHEMA = ParameterSchema(
                     visible_when=[VisibleWhen(key="program", value="gamess")],
                 ),
                 ParameterSpec(
+                    key="gamess_cc",
+                    label="Coupled cluster",
+                    type="enum",
+                    default="",
+                    advanced=True,
+                    choices=[
+                        Choice(value="", label="From the theory box"),
+                        Choice(value="none", label="None"),
+                        Choice(value="lccd", label="LCCD: linearized CC"),
+                        Choice(value="ccd", label="CCD: CC with doubles"),
+                        Choice(value="ccsd", label="CCSD: CC with singles and doubles"),
+                        Choice(value="ccsd_t", label="CCSD(T)"),
+                        Choice(value="r_cc", label="R-CC"),
+                        Choice(value="cr_cc", label="CR-CC"),
+                        Choice(value="eom_ccsd", label="EOM-CCSD"),
+                        Choice(value="cr_eom", label="CR-EOM"),
+                    ],
+                    visible_when=[VisibleWhen(key="program", value="gamess")],
+                ),
+                ParameterSpec(
                     key="gamess_localization",
                     label="Localization method",
                     type="enum",
@@ -559,6 +579,7 @@ def _gamess_control(values: Values) -> ControlOptions:
         max_iterations=_count(values.get("gamess_maxit")),
         exec_type=str(values.get("gamess_exec", "run")),
         ci=str(values.get("gamess_ci", "none")),
+        cc=str(values.get("gamess_cc", "")),
     )
 
 
@@ -640,21 +661,23 @@ class QcInputsPlugin:
                     )
                 )
         chosen_run = str(merged.get("gamess_runtyp", ""))
-        if (
-            program == "gamess"
-            and chosen_run
-            and GAMESS_RUN_TYPES[chosen_run][0] != RUN_TYPES.get(str(merged.get("task")))
-        ):
-            report.issues.append(
-                ValidationIssue(
-                    key="gamess_runtyp",
-                    message=(
-                        f"the deck will say RUNTYP={GAMESS_RUN_TYPES[chosen_run][0]}, not what the"
-                        " calculation type asks for"
-                    ),
-                    severity="warning",
+        if program == "gamess" and chosen_run:
+            keyword = GAMESS_RUN_TYPES.get(chosen_run)
+            if keyword is None:
+                report.issues.append(
+                    ValidationIssue(key="gamess_runtyp", message=f"no such run type {chosen_run}")
                 )
-            )
+            elif keyword[0] != RUN_TYPES.get(str(merged.get("task"))):
+                report.issues.append(
+                    ValidationIssue(
+                        key="gamess_runtyp",
+                        message=(
+                            f"the deck will say RUNTYP={keyword[0]}, not what the calculation"
+                            " type asks for"
+                        ),
+                        severity="warning",
+                    )
+                )
         if merged.get("task") == "transition_state" and program != "gamess":
             report.issues.append(
                 ValidationIssue(
