@@ -105,7 +105,7 @@ the Calculation panel greys it out — nothing else changes.
 | Crystallography (spglib): symmetry, supercells, slabs, Niggli, primitive | Density of states / projected DOS |
 | Open Babel force fields (MMFF94, MMFF94s, UFF, GAFF, Ghemical): energy, optimization, conformer search | Band structures |
 | ASE built-in calculators (EMT, Lennard-Jones, Morse) with BFGS and Langevin MD | |
-| Quantum-chemistry **input generation** (ORCA, Gaussian, NWChem, GAMESS-US, Q-Chem, Psi4, MOPAC, Quantum ESPRESSO, ABINIT) | |
+| Quantum-chemistry **input generation** (ORCA, Gaussian, NWChem, GAMESS-US, GAMESS-UK, Q-Chem, Psi4, MOPAC, Quantum ESPRESSO, ABINIT) | |
 
 CP-PAW is located by looking, in order, at `$ATOMSCOPE_CPPAW_DIR/bin/fast`,
 `$PAWDIR/bin/fast`, `~/cp-paw/bin/fast` and then `PATH`. Set
@@ -871,7 +871,7 @@ appended and the entry disabled when its executables are missing.
 | `CP-PAW` | yes | plane-wave/PAW DFT: single point, forces, damped relaxation, Car-Parrinello MD, densities, orbitals, DOS, band structures |
 | `ASE workflows (built-in calculators or CP-PAW)` | yes | EMT, Lennard-Jones, Morse, an Open Babel force field, or CP-PAW forces; single point, BFGS relaxation, Langevin MD |
 | `Open Babel force fields` | yes | MMFF94, MMFF94s, UFF, GAFF, Ghemical: single point, optimization, conformer search |
-| `Quantum chemistry input generators` | **no** | writes ready-to-run decks for ORCA, Gaussian, NWChem, GAMESS-US, Q-Chem, Psi4, MOPAC, Quantum ESPRESSO and ABINIT |
+| `Quantum chemistry input generators` | **no** | writes ready-to-run decks for ORCA, Gaussian, NWChem, GAMESS-US, GAMESS-UK, Q-Chem, Psi4, MOPAC, Quantum ESPRESSO and ABINIT |
 
 ### 7.2 The parameter form
 
@@ -954,9 +954,18 @@ only under `COORD=CART`, so any other setting wants the block cut down to the
 symmetry-unique atoms — and switches the coordinates to Bohr. Each tab is a
 section of its own,
 and a section with nothing to show for the program you picked does not appear. `Transition state` is a
-calculation type only GAMESS writes so far
-(`RUNTYP=SADPOINT`); the other generators say so rather than writing something
+calculation type two generators write -- GAMESS-US as `RUNTYP=SADPOINT` and
+GAMESS-UK as `runtype saddle`; the others say so rather than writing something
 that is not a saddle-point search.
+GAMESS-UK writes the directive file its dialog wrote, with the same four run
+types, three theories, six functionals, six basis sets and direct-mode switch,
+and the same `Format` box (its compact Z-matrix is written as the one layout
+GAMESS-UK has, and the form says so). Two of its basis entries are named
+differently from Avogadro's: the combo there read `6-31G(d)` and `6-31G(d,p)`
+while the deck asked for `6-31G` and `6-31G*`, so each entry here is named
+after the basis it really requests. That dialog had no open-shell option at
+all, so an open-shell structure raises a warning rather than being given a
+closed-shell SCF in silence.
 Q-Chem has the two lists its dialog had — seven theories (MP2 and CCSD are
 written as a Hartree-Fock reference with a correlation keyword beside them) and
 ten basis sets, the last two of which are effective core potentials — and the

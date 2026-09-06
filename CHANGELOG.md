@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+- A **GAMESS-UK input generator**: the directive file Avogadro's dialog wrote,
+  with its four run types, three theories, six functionals, six basis sets and
+  the direct-mode switch. It is the second generator that writes a
+  **transition-state** deck (`runtype saddle`), so the refusal the other
+  generators give now names both. Four things are repaired rather than
+  inherited -- most of all two basis labels that named a polarization the deck
+  never asked for (`6-31G(d)` wrote `6-31G`, `6-31G(d,p)` wrote `6-31G*`), and
+  `runtype optimze`, a typo GAMESS-UK does not read. Its dialog offered no
+  open-shell SCF at all, so an open-shell structure now raises a warning
+  instead of quietly getting a closed-shell one.
+
 - **File > Export no longer loses a path typed while it is still loading.** The
   dialog fetches the list of formats when it opens, and the defaults it applied
   when that list arrived overwrote whatever had been typed in the meantime,

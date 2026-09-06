@@ -48,6 +48,10 @@ from atomscope.backends.qc_inputs.gamess import (
 from atomscope.backends.qc_inputs.gamess import GBASIS_CHOICES as GAMESS_GBASIS_CHOICES
 from atomscope.backends.qc_inputs.gamess import POINT_GROUPS as GAMESS_POINT_GROUPS
 from atomscope.backends.qc_inputs.gamess import THEORY_CHOICES as GAMESS_THEORIES
+from atomscope.backends.qc_inputs.gamessuk import BASIS_LABELS as GAMESSUK_BASIS_LABELS
+from atomscope.backends.qc_inputs.gamessuk import FUNCTIONALS as GAMESSUK_FUNCTIONALS
+from atomscope.backends.qc_inputs.gamessuk import THEORY_LABELS as GAMESSUK_THEORY_LABELS
+from atomscope.backends.qc_inputs.gamessuk import gamessuk_deck
 from atomscope.backends.qc_inputs.gaussian import gaussian_deck
 from atomscope.backends.qc_inputs.psi4 import BASIS_LABELS as PSI4_BASIS_LABELS
 from atomscope.backends.qc_inputs.psi4 import SAPT_THEORIES as PSI4_SAPT
@@ -73,7 +77,11 @@ from atomscope.schemas import (
 from atomscope.schemas.engine import Choice
 from atomscope.units import Unit
 
-MOLECULAR = ("orca", "gaussian", "nwchem", "gamess", "qchem", "psi4", "mopac")
+MOLECULAR = ("orca", "gaussian", "nwchem", "gamess", "gamessuk", "qchem", "psi4", "mopac")
+
+TS_PROGRAMS = ("gamess", "gamessuk")
+"""The generators that write a transition-state deck: GAMESS-US punches RUNTYP=SADPOINT and
+GAMESS-UK `runtype saddle`. Everything else says so rather than writing a lesser search."""
 """Semi-empirical Hamiltonians MOPAC understands; the method is the first keyword of the deck."""
 MOPAC_METHODS = ("AM1", "PM3", "PM6", "PM7", "RM1", "MNDO", "MNDOD")
 """MOPAC spells the multiplicity as a word (a closed shell is SINGLET and needs no UHF)."""
@@ -91,6 +99,10 @@ MOPAC_MULTIPLICITY = {
 """Programs whose method and basis set are typed in. MOPAC has a Hamiltonian instead, and
 GAMESS-US has lists of its own, from the dialog Avogadro ported from MacMolPlt."""
 _FREE_METHOD = ("orca", "gaussian", "nwchem")
+
+_COORDINATE_BOX = ("gaussian", "qchem", "gamessuk")
+"""The dialogs with a Format box. GAMESS-UK's offers two of the three layouts (there is no
+compact Z-matrix there), and `validate` says so when the third is chosen."""
 PERIODIC = ("espresso", "abinit")
 
 """The Advanced Basis tab is one control per keyword, and replaces the Basic tab's list."""
@@ -124,6 +136,7 @@ SCHEMA = ParameterSchema(
                         Choice(value="gaussian", label="Gaussian"),
                         Choice(value="nwchem", label="NWChem"),
                         Choice(value="gamess", label="GAMESS-US"),
+                        Choice(value="gamessuk", label="GAMESS-UK"),
                         Choice(value="qchem", label="Q-Chem"),
                         Choice(value="psi4", label="Psi4"),
                         Choice(value="mopac", label="MOPAC (semi-empirical)"),
@@ -235,7 +248,7 @@ SCHEMA = ParameterSchema(
                         Choice(value="zmatrix_compact", label="Z-matrix (compact)"),
                     ],
                     help="how the geometry is written into the deck",
-                    visible_when=[VisibleWhen(key="program", op="in", value=["gaussian", "qchem"])],
+                    visible_when=[VisibleWhen(key="program", op="in", value=_COORDINATE_BOX)],
                 ),
                 ParameterSpec(
                     key="gaussian_output",
@@ -286,7 +299,7 @@ SCHEMA = ParameterSchema(
                     type="string",
                     default="",
                     advanced=True,
-                    help="appended to the route or keyword line; a line of its own for GAMESS, lines inside $rem for Q-Chem and lines of their own under `set basis` for Psi4",
+                    help="appended to the route or keyword line; a line of its own for GAMESS, lines inside $rem for Q-Chem, and directives of their own before Psi4's molecule and GAMESS-UK's `enter`",
                 ),
             ],
         ),
@@ -343,6 +356,59 @@ SCHEMA = ParameterSchema(
                         Choice(value=key, label=label) for key, label in PSI4_BASIS_LABELS.items()
                     ],
                     visible_when=[VisibleWhen(key="program", value="psi4")],
+                ),
+            ],
+        ),
+        Section(
+            id="gamessuk",
+            label="GAMESS-UK",
+            help="the theory, functional and basis lists of Avogadro's GAMESS-UK dialog",
+            parameters=[
+                ParameterSpec(
+                    key="gamessuk_theory",
+                    label="Theory",
+                    type="enum",
+                    default="rhf",
+                    choices=[
+                        Choice(value=key, label=label)
+                        for key, label in GAMESSUK_THEORY_LABELS.items()
+                    ],
+                    visible_when=[VisibleWhen(key="program", value="gamessuk")],
+                ),
+                ParameterSpec(
+                    key="gamessuk_functional",
+                    label="DFT functional",
+                    type="enum",
+                    default="b3lyp",
+                    choices=[Choice(value=f, label=f.upper()) for f in GAMESSUK_FUNCTIONALS],
+                    visible_when=[
+                        VisibleWhen(key="program", value="gamessuk"),
+                        VisibleWhen(key="gamessuk_theory", value="dft"),
+                    ],
+                ),
+                ParameterSpec(
+                    key="gamessuk_basis",
+                    label="Basis set",
+                    type="enum",
+                    default="b321g",
+                    choices=[
+                        Choice(value=key, label=label)
+                        for key, label in GAMESSUK_BASIS_LABELS.items()
+                    ],
+                    help=(
+                        "each entry is named after the keyword the deck asks for; Avogadro's own"
+                        " combo called two of them 6-31G(d) and 6-31G(d,p) while writing 6-31G"
+                        " and 6-31G*"
+                    ),
+                    visible_when=[VisibleWhen(key="program", value="gamessuk")],
+                ),
+                ParameterSpec(
+                    key="gamessuk_direct",
+                    label="Run in direct mode",
+                    type="boolean",
+                    default=False,
+                    help="integrals are recalculated as needed rather than stored on disk",
+                    visible_when=[VisibleWhen(key="program", value="gamessuk")],
                 ),
             ],
         ),
@@ -1498,6 +1564,41 @@ def _psi4_issues(structure: Structure, merged: Values) -> list[ValidationIssue]:
     ]
 
 
+def _gamessuk_issues(structure: Structure, merged: Values) -> list[ValidationIssue]:
+    """The two things the GAMESS-UK dialog cannot say, said here instead.
+
+    It has no open-shell SCF at all -- the theory combo is HF, DFT and MP2 -- so a multiplicity
+    above a singlet still gets a closed-shell `scftype`, which is not the calculation that was
+    asked for. And its Format box has two entries where ours has three, so the compact Z-matrix
+    belongs to no layout of its; the deck falls back to the one Z-matrix it does write.
+    """
+    issues: list[ValidationIssue] = []
+    if _multiplicity(structure, merged) > 1:
+        issues.append(
+            ValidationIssue(
+                key="gamessuk_theory",
+                message=(
+                    "Avogadro's GAMESS-UK dialog offers no open-shell SCF, so the deck names a"
+                    " closed-shell one at this multiplicity; the extra keywords are where an"
+                    " open-shell directive goes"
+                ),
+                severity="warning",
+            )
+        )
+    if str(merged.get("coordinates", "cartesian")) == "zmatrix_compact":
+        issues.append(
+            ValidationIssue(
+                key="coordinates",
+                message=(
+                    "GAMESS-UK has one Z-matrix layout, with a variables block; the deck is"
+                    " written that way"
+                ),
+                severity="warning",
+            )
+        )
+    return issues
+
+
 def _gamess_wave_function_issues(merged: Values) -> list[ValidationIssue]:
     """What the GAMESS tabs cannot say in a deck: a box that reaches no keyword, or one whose
     keyword needs something the deck does not carry.
@@ -1698,11 +1799,16 @@ class QcInputsPlugin:
             report.issues += _gamess_wave_function_issues(merged)
         if program == "psi4":
             report.issues += _psi4_issues(structure, merged)
-        if merged.get("task") == "transition_state" and program != "gamess":
+        if program == "gamessuk":
+            report.issues += _gamessuk_issues(structure, merged)
+        if merged.get("task") == "transition_state" and program not in TS_PROGRAMS:
             report.issues.append(
                 ValidationIssue(
                     key="task",
-                    message="only the GAMESS-US generator writes a transition-state deck so far",
+                    message=(
+                        "only the GAMESS-US and GAMESS-UK generators write a transition-state"
+                        " deck so far"
+                    ),
                 )
             )
         if program in MOLECULAR and structure.is_periodic():
@@ -1720,10 +1826,10 @@ class QcInputsPlugin:
     ) -> GeneratedInputs:
         merged = merge_values(SCHEMA, values)
         program = str(merged["program"])
-        if merged["task"] == "transition_state" and program != "gamess":
+        if merged["task"] == "transition_state" and program not in TS_PROGRAMS:
             msg = (
                 f"the {program} generator has no transition-state deck yet;"
-                " GAMESS-US is the one that writes RUNTYP=SADPOINT"
+                " GAMESS-US writes RUNTYP=SADPOINT and GAMESS-UK `runtype saddle`"
             )
             raise ValueError(msg)
         atoms = to_atoms(structure)
@@ -1815,6 +1921,23 @@ class QcInputsPlugin:
                     task=task,
                     charge=charge,
                     multiplicity=mult,
+                    extra=extra,
+                )
+            )
+        elif program == "gamessuk":
+            name = f"{root_name}.gukin"
+            buf.write(
+                gamessuk_deck(
+                    structure,
+                    title=structure.name or root_name,
+                    theory=str(merged.get("gamessuk_theory", "rhf")),
+                    functional=str(merged.get("gamessuk_functional", "b3lyp")),
+                    basis=str(merged.get("gamessuk_basis", "b321g")),
+                    task=task,
+                    charge=charge,
+                    multiplicity=mult,
+                    coordinates=str(merged.get("coordinates", "cartesian")),
+                    direct=bool(merged.get("gamessuk_direct")),
                     extra=extra,
                 )
             )
