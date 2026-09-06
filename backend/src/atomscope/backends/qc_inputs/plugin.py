@@ -1237,6 +1237,22 @@ def _gamess_wave_function_issues(merged: Values) -> list[ValidationIssue]:
                 message="GAMESS has localized MP2 for a closed-shell run only",
             )
         )
+    if merged.get("gamess_guess") == "moread":
+        issues.append(
+            ValidationIssue(
+                key="gamess_guess",
+                message="a MOREAD guess needs a $VEC group, which has to be added to the deck",
+                severity="warning",
+            )
+        )
+    if merged.get("gamess_guess_mix") and scftyp != "uhf":
+        issues.append(
+            ValidationIssue(
+                key="gamess_guess_mix",
+                message="mixing the orbitals is a singlet UHF run's; MIX is left out otherwise",
+                severity="warning",
+            )
+        )
     if scftyp in ("mcscf", "none") and (
         merged.get("gamess_direct_scf") or _count(merged.get("gamess_nconv"))
     ):

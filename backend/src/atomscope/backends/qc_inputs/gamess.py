@@ -495,8 +495,6 @@ def _control_group(
         words.append(f"ICHARG={charge}")
     if multiplicity > 1:
         words.append(f"MULT={multiplicity}")
-    elif electrons % 2:
-        words.append("MULT=2")  # an odd number of electrons is not a singlet
     if LOCALIZATIONS[control.localization]:
         words.append(f"LOCAL={LOCALIZATIONS[control.localization]}")
     if ecp:
@@ -555,7 +553,9 @@ def _hessian_group(
     One departure: Avogadro decides the analytic/semi-numeric question before it looks at the
     basis, so a semi-empirical run whose Method box says Analytic writes `METHOD=NUMERIC` and
     then skips the displacement that only a numerical Hessian has (`:2271-2288`). Here the two
-    keywords answer to the method the deck actually asks for.
+    keywords answer to the method the deck actually asks for. The displacement itself is written
+    whenever it is not GAMESS's own 0.01; Avogadro compares a `float` field against the `double`
+    literal, which never matches, so every non-analytic deck it wrote carried VIBSIZ=0.010000.
     """
     analytic = options.analytic and scftyp in ANALYTIC_SCF_TYPES and theory != "mp2"
     if semi_empirical_basis:
@@ -719,6 +719,9 @@ def gamess_deck(
     """One GAMESS-US deck from the Basic Setup options."""
     _check_choices(theory, basis, detailed, task, control)
     electrons = sum(atomic_numbers[a.element] for a in structure.atoms) - charge
+    # the deck's own multiplicity, not the box's: an odd electron count is a doublet, which is
+    # what Avogadro punched when nothing had been chosen, and what MIX and MULT both answer to
+    multiplicity = multiplicity if multiplicity > 1 else (2 if electrons % 2 else 1)
 
     basis_group, ecp = _basis_group(theory, basis, detailed)
     lines = [basis_group]

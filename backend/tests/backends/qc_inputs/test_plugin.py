@@ -637,6 +637,12 @@ def test_the_wave_function_boxes_avogadro_greyed_out_are_reported_here() -> None
         ).issues
         == []
     )
+    for values, message in (
+        ({"gamess_guess": "moread"}, "$VEC group"),
+        ({"gamess_guess_mix": True}, "singlet UHF run"),
+    ):
+        report = plugin.validate(water, {"program": "gamess", **values})
+        assert any(message in i.message for i in report.issues), values
     localized = plugin.validate(
         water,
         {
@@ -731,6 +737,14 @@ def test_the_gamess_orbital_mixing_box_needs_a_singlet_uhf_run() -> None:
         "case",
     )
     assert " $GUESS" not in triplet.files[0].text
+    # ...and the multiplicity MIX answers to is the deck's, which an odd electron count decides
+    methyl = plugin.generate_inputs(
+        from_atoms(molecule("CH3"), name="methyl"),
+        {"program": "gamess", "gamess_scftyp": "uhf", "gamess_guess_mix": True},
+        "case",
+    )
+    assert " MULT=2 " in methyl.files[0].text
+    assert " $GUESS" not in methyl.files[0].text
 
 
 def test_the_gamess_groups_are_written_in_avogadros_order() -> None:
