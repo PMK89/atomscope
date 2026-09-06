@@ -1,8 +1,8 @@
 # Project state (resume here)
 
-Branch: main; this file is updated in the commit that checkpoints the work, so `git log -1 -- docs/STATE.md` is the last checkpoint. Phases 0-1 done; Phase 2 (editor tools), 3 (volumetric, trajectories, vectors), 4-5 (CP-PAW setup/execution/forces), 6 (CP-PAW analysis: DOS, bands, orbitals), crystallography, molecular mechanics and wavefunction surfaces are merged and working. Parity matrix: 215 IMPLEMENTED, 23 PARTIAL, 73 NOT STARTED, 1 BLOCKED of 312 rows.
+Branch: main; this file is updated in the commit that checkpoints the work, so `git log -1 -- docs/STATE.md` is the last checkpoint. Phases 0-1 done; Phase 2 (editor tools), 3 (volumetric, trajectories, vectors), 4-5 (CP-PAW setup/execution/forces), 6 (CP-PAW analysis: DOS, bands, orbitals), crystallography, molecular mechanics and wavefunction surfaces are merged and working. Parity matrix: 216 IMPLEMENTED, 22 PARTIAL, 73 NOT STARTED, 1 BLOCKED of 312 rows.
 
-Tests: `pytest -q -m "not cppaw"` -> 403 passed, 1 skipped; `pytest -q -m cppaw` -> 7 passed (~90 s, needs the local CP-PAW install); `pnpm vitest run` -> 472 passed; `pnpm exec playwright test` -> 36 passed (against private servers, see below; `make test-e2e` points at the user's 5173, which is stale). **`source env.sh` before Playwright**: without `PLAYWRIGHT_BROWSERS_PATH` it looks in `~/.cache/ms-playwright`, finds nothing, and every test fails at `browserType.launch`. `ruff check`, `mypy` and `pnpm typecheck` are clean. No known failing tests. **Type-check the frontend with `pnpm typecheck` (`tsc -b --noEmit`), never with `pnpm exec tsc --noEmit`:** the root `tsconfig.json` is a solution file with `files: []`, so a bare `tsc --noEmit` checks nothing and exits 0.
+Tests: `pytest -q -m "not cppaw"` -> 421 passed, 1 skipped; `pytest -q -m cppaw` -> 7 passed (~90 s, needs the local CP-PAW install); `pnpm vitest run` -> 493 passed; `pnpm exec playwright test` -> 38 passed (against private servers, see below; `make test-e2e` points at the user's 5173, which is stale). **`source env.sh` before Playwright**: without `PLAYWRIGHT_BROWSERS_PATH` it looks in `~/.cache/ms-playwright`, finds nothing, and every test fails at `browserType.launch`. `ruff check`, `mypy` and `pnpm typecheck` are clean. No known failing tests. **Type-check the frontend with `pnpm typecheck` (`tsc -b --noEmit`), never with `pnpm exec tsc --noEmit`:** the root `tsconfig.json` is a solution file with `files: []`, so a bare `tsc --noEmit` checks nothing and exits 0.
 
 ## Resume commands
 
@@ -192,8 +192,8 @@ run against current code -- Playwright above all -- use the private-server recip
 1. Renderer parity gaps left: ring and polygon engines (AV-VIS-021/022, both LOW) and QTAIM.
    Everything else the renderer owes is done -- cut/copy/paste, the label engine, the Display tab
    (which is where the label content and the selection's own display type are chosen), cartoon and
-   ribbon rendering with DSSP, hydrogen bonds, isosurfaces coloured by a second grid, and the
-   residue/chain/secondary-structure colour schemes.
+   ribbon rendering with DSSP, hydrogen bonds, isosurfaces coloured by a second grid, the
+   residue/chain/secondary-structure colour schemes, and the dipole arrow.
 2. Rows still PARTIAL worth finishing: MD at 300/600/900 K in the auto-optimize tool (AV-MM-010, the
    backend has no MD minimizer). The colour rows left
    are a SMARTS colour (AV-COLOR-006), a per-atom colour override (AV-COLOR-010) and colours as
@@ -208,17 +208,29 @@ run against current code -- Playwright above all -- use the private-server recip
    ```
 
    Today that prints **5 rows, all PARTIAL** -- no CRITICAL or HIGH row is NOT STARTED, which is
-   not the same claim and an earlier version of this file got it wrong. Each of the 5 has a note
-   saying which part is missing; they are the honest remaining HIGH work (the Gaussian and GAMESS
-   option dialogs, the wavefunction readers past fchk/Molden, and the two frontend
-   plugin-registration rows) -- four subsystems, not afternoons. Three rows left the list in this
-   checkpoint: AV-MM-013 (an imported drawing is offered a rough geometry, and Build > Generate
-   3D coordinates builds one on demand), AV-XTAL-015 (the 530-setting space-group table) and
-   AV-EDIT-023 (the Cartesian editor's format and sort boxes).
-   Run the same awk with `MEDIUM` for what is next: today it lists 41 rows, of which the ones with
-   a real workflow behind them are the conformer table (AV-MM-009), per-engine opacity
-   (AV-VIS-007/011) and the dipole arrow (AV-ANAL-013, moved back to PARTIAL in this checkpoint:
-   the number is shown in the Properties tab, the arrow Avogadro's dipole engine drew is not).
+   not the same claim and an earlier version of this file got it wrong. They are four pieces of
+   work, not five:
+
+   - **AV-QM-002 / AV-QM-003** -- the Gaussian and GAMESS input dialogs. The decks are generated
+     (the `qc_inputs` plugin), so what is missing is each program's option form. One dialog
+     apiece, no new science.
+   - **AV-SURF-006** -- the OpenQube reader family. fchk, Molden and GAMESS-US are read; ORCA and
+     GAMESS-UK are Gaussian-basis and would follow `wavefunction/gamess.py` almost exactly, so
+     they are the cheap two. MOPAC's `.aux` is Slater-type and needs a second `basis_values` in
+     `gto.py` -- that one is a subsystem, and the row cannot reach IMPLEMENTED without it.
+   - **AV-PLUG-001 / AV-PLUG-002** -- frontend plugin registration. The backend has a plugin
+     contract and a registry; the frontend does not, and giving it one touches the renderer, the
+     tool host and the dock. The biggest of the four, and the one to plan before starting.
+
+   **Start with ORCA under AV-SURF-006** unless something else has come up: the shape is proved,
+   the fixture is already in the corpus (`testfiles/koffein_orca.out`, 2.8 MB, so trim or gzip),
+   and the physics test that validates it is written. Then GAMESS-UK, then the two option
+   dialogs, and plan the plugin rows deliberately rather than starting them late in a session.
+
+   Run the same awk with `MEDIUM` for what is next there: today it lists 40 rows, 11 of them
+   PARTIAL. The ones with a real workflow behind them are the conformer table (AV-MM-009), the
+   per-engine opacity rows (AV-VIS-007/011), label font and offset (AV-VIS-017), orbital surface
+   settings (AV-SURF-008) and the Project Tree dock (AV-UI-010).
 
    **The matrix drifts the other way too.** Flipping AV-VIS-042 turned up three rows that were
    done but never flipped (AV-SEL-011 Select residues, AV-SEL-012 Select solvent, AV-VIS-031
