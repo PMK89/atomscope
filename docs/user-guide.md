@@ -347,14 +347,40 @@ molecule with O–H = 0.969 Å and H–O–H = 104.0°.
 ### 4.3 The Cartesian editor
 
 `Edit ▸ Cartesian editor…` (also reachable from the Properties tab) opens a
-modal with one atom per line, `element x y z`. The **Units** box says what the
-numbers are: `Ångström`, `Bohr`, or `Fractional` coordinates of the unit cell —
-the last offered only when the structure has a cell, because `0.5 0.5 0.5`
-means something quite different without one. Changing the units rewrites the
-text from the structure, so apply before switching if you have edits in
-progress. `Apply` commits `Edit coordinates` in whatever unit is shown;
-changing the number of atoms re-perceives the bonds. `Revert` restores the text
-from the document.
+modal with one atom per line. The **Units** box says what the numbers are:
+`Ångström`, `Bohr`, or `Fractional` coordinates of the unit cell — the last
+offered only when the structure has a cell, because `0.5 0.5 0.5` means
+something quite different without one. Changing the units rewrites the text
+from the structure, so apply before switching if you have edits in progress.
+`Apply` commits `Edit coordinates` in whatever unit is shown; changing the
+number of atoms re-perceives the bonds. `Revert` restores the text from the
+document.
+
+The **Format** box lays the same numbers out the way one program or another
+wants them, which is Avogadro's list: `XYZ` (`C 1.0 2.0 3.0`), `XYZ with
+numbers` (`C1 …`), `XYZ, coordinates only`, `GAMESS input` (symbol, nuclear
+charge, coordinates), `GAMESS input #2` (the element's name instead of its
+symbol), `Turbomole input` (coordinates first, symbol last) and `Priroda
+input` (the atomic number instead of the symbol). They are column layouts, not
+input decks — a real GAMESS or Turbomole deck comes from the calculation
+backends. What you *type* is read by its shape rather than by the box, so any
+of the layouts can be pasted in whatever the box is set to: the element is the
+first token that names one, by symbol, name or atomic number, and the three
+numbers after it are the coordinates. Columns past them are ignored, so an
+extxyz block with forces on the line is read as coordinates. A line with no
+element at all keeps the element the atom already has. The box is not
+remembered between sessions; Avogadro kept it in its settings.
+
+The **Sort by** box reorders the atoms: `Element` (heaviest first, as Avogadro
+sorted and as an XYZ file is usually written), or `x`, `y` or `z` ascending.
+Sorting here renumbers the atoms *of the structure*, in one undo step, and the
+bonds, per-atom properties, constraints, residues and your selection are
+renumbered with them. Avogadro sorted only the text and rebuilt the molecule
+from it when you pressed Apply, perceiving its bonds afresh from the distances
+— a hand-drawn bond, or a bond order perception disagrees with, did not survive
+the round trip. Sorting rewrites the box
+from the structure, so apply your edits first. A measurement left on screen
+from the Measure tool still names the old numbers and should be taken again.
 
 ### 4.3a The Properties tab
 

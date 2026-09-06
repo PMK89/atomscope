@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import { makeAtom, makeBond, normalizeStructure } from '../model/structure';
-import { removeAtoms } from './edits';
+import { removeAtoms, reorderAtoms } from './edits';
 
 test('removing atoms renumbers the residues and constraints that referred to them', () => {
   const doc = normalizeStructure({
@@ -60,4 +60,50 @@ test('removing atoms takes their partial charges and forces with them', () => {
   ]);
   // the unit and the description come along
   expect(after.atomic_scalars['partial_charges']!.unit).toBe('e');
+});
+
+test('reordering the atoms takes everything that names them by index along', () => {
+  const doc = normalizeStructure({
+    name: 'reorder',
+    atoms: [makeAtom('H', [0, 0, 0]), makeAtom('O', [1, 0, 0]), makeAtom('C', [2, 0, 0])],
+    bonds: [makeBond(0, 1), makeBond(1, 2)],
+    atomic_scalars: { q: { values: [1, 2, 3], unit: '', description: 'q' } },
+    atomic_vectors: {
+      f: {
+        values: [
+          [1, 0, 0],
+          [2, 0, 0],
+          [3, 0, 0],
+        ],
+        unit: 'eV/angstrom',
+        description: 'f',
+      },
+    },
+    constraints: [{ kind: 'fix_atoms', indices: [0, 2] }],
+    residues: [{ name: 'RES', number: 1, chain: 'A', atom_indices: [1, 2] }],
+  } as never);
+
+  const out = reorderAtoms(doc, [2, 1, 0]);
+  expect(out.atoms.map((a) => a.element)).toEqual(['C', 'O', 'H']);
+  expect(out.atoms.map((a) => a.uid)).toEqual([
+    doc.atoms[2]!.uid,
+    doc.atoms[1]!.uid,
+    doc.atoms[0]!.uid,
+  ]);
+  expect(out.bonds).toEqual([
+    { a: 2, b: 1, order: 1, aromatic: false },
+    { a: 1, b: 0, order: 1, aromatic: false },
+  ]);
+  expect(out.atomic_scalars['q']!.values).toEqual([3, 2, 1]);
+  expect(out.atomic_vectors['f']!.values).toEqual([
+    [3, 0, 0],
+    [2, 0, 0],
+    [1, 0, 0],
+  ]);
+  expect(out.constraints[0]).toMatchObject({ indices: [2, 0] });
+  expect(out.residues[0]!.atom_indices).toEqual([0, 1]); // renumbered and back in order
+
+  // a permutation is every atom exactly once, and anything else is a bug in the caller
+  expect(() => reorderAtoms(doc, [0, 1])).toThrow(/every atom once/);
+  expect(() => reorderAtoms(doc, [0, 1, 1])).toThrow(/every atom once/);
 });

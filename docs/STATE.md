@@ -1,6 +1,6 @@
 # Project state (resume here)
 
-Branch: main; this file is updated in the commit that checkpoints the work, so `git log -1 -- docs/STATE.md` is the last checkpoint. Phases 0-1 done; Phase 2 (editor tools), 3 (volumetric, trajectories, vectors), 4-5 (CP-PAW setup/execution/forces), 6 (CP-PAW analysis: DOS, bands, orbitals), crystallography, molecular mechanics and wavefunction surfaces are merged and working. Parity matrix: 213 IMPLEMENTED, 25 PARTIAL, 73 NOT STARTED, 1 BLOCKED of 312 rows.
+Branch: main; this file is updated in the commit that checkpoints the work, so `git log -1 -- docs/STATE.md` is the last checkpoint. Phases 0-1 done; Phase 2 (editor tools), 3 (volumetric, trajectories, vectors), 4-5 (CP-PAW setup/execution/forces), 6 (CP-PAW analysis: DOS, bands, orbitals), crystallography, molecular mechanics and wavefunction surfaces are merged and working. Parity matrix: 214 IMPLEMENTED, 24 PARTIAL, 73 NOT STARTED, 1 BLOCKED of 312 rows.
 
 Tests: `pytest -q -m "not cppaw"` -> 403 passed, 1 skipped; `pytest -q -m cppaw` -> 7 passed (~90 s, needs the local CP-PAW install); `pnpm vitest run` -> 472 passed; `pnpm exec playwright test` -> 36 passed (against private servers, see below; `make test-e2e` points at the user's 5173, which is stale). **`source env.sh` before Playwright**: without `PLAYWRIGHT_BROWSERS_PATH` it looks in `~/.cache/ms-playwright`, finds nothing, and every test fails at `browserType.launch`. `ruff check`, `mypy` and `pnpm typecheck` are clean. No known failing tests. **Type-check the frontend with `pnpm typecheck` (`tsc -b --noEmit`), never with `pnpm exec tsc --noEmit`:** the root `tsconfig.json` is a solution file with `files: []`, so a bare `tsc --noEmit` checks nothing and exits 0.
 
@@ -47,6 +47,15 @@ run against current code -- Playwright above all -- use the private-server recip
   derived per `${doc.id}:${revision}` and never stored. Typing a charge by hand drops
   `properties.dipole_moment`, which was the sum over the charges (editor/edits.ts).
   The IUPAC name is a PubChem lookup on a locally computed InChIKey, on a button.
+- The Cartesian editor's Format and Sort boxes (AV-EDIT-023): seven column layouts written,
+  and read back by shape rather than by the box -- element first (symbol, `C1`, name or atomic
+  number) then three numbers, a GAMESS charge column recognised by equalling that element's
+  atomic number, Turbomole's trailing symbol and Priroda's leading number by position, and
+  anything past the coordinates ignored so an extxyz line reads. Sorting is an edit:
+  `reorderAtoms` (editor/edits.ts) permutes the atoms and renumbers the bonds, per-atom
+  properties, constraints and residues with them, and the panel renumbers the selection.
+  Avogadro sorted its text and rebuilt the molecule from it on Apply, ending in ConnectTheDots
+  + PerceiveBondOrders, so its bonds came back from the distances rather than surviving.
 - Set space group (AV-XTAL-015): `GET /api/crystal/spacegroups` is spglib's whole database, all
   530 settings, and `POST /api/crystal/fill` takes `hall_number` beside the ITA `spacegroup`.
   The Hall path applies `spglib.get_symmetry_from_database` itself because ASE's `crystal` knows
@@ -134,10 +143,13 @@ run against current code -- Playwright above all -- use the private-server recip
   Playwright context is fresh per test, so e2e never sees them; a developer's own browser on 5173
   does. Avogadro's equivalent reset was `--erase-config` (AV-FILE-011, NOT STARTED).
 
-- One flaky Playwright test seen once: `Export writes a file on this machine` failed in a run
-  that took 1.9 minutes (the usual full suite is ~50 s, and the dev server was starting beside
-  it); it passed alone and in the next full run. Timing, not a regression -- but if it fails
-  again, its timeout is the first thing to look at.
+- One flaky Playwright test, seen twice: `Export writes a file on this machine` failed in two
+  runs that each took 1.9 minutes, both started in the same shell command as the dev server and
+  a few seconds after it. The full suite takes ~50 s otherwise, and it passes there -- including
+  a deliberate cold run with `node_modules/.vite` deleted, which finished in 53 s with all 37
+  green, so it is machine load rather than a cold cache. Give the servers time to settle before
+  running the suite; if it fails in a *fast* run, that is new and its timeouts are the place to
+  look.
 
 - Playwright's smoke spec is order-coupled: `Save as writes a second structure` needs a project,
   and the project is created by a test in *another* spec file. The full suite passes; running
@@ -186,13 +198,14 @@ run against current code -- Playwright above all -- use the private-server recip
      docs/avogadro1-feature-parity.md
    ```
 
-   Today that prints **6 rows, all PARTIAL** -- no CRITICAL or HIGH row is NOT STARTED, which is
-   not the same claim and an earlier version of this file got it wrong. Each of the 6 has a note
-   saying which part is missing; they are the honest remaining HIGH work (the sort box in the
-   selection tool, the Gaussian and GAMESS option dialogs, the wavefunction readers past
-   fchk/Molden, and the two frontend plugin-registration rows). Two rows left the list in this
+   Today that prints **5 rows, all PARTIAL** -- no CRITICAL or HIGH row is NOT STARTED, which is
+   not the same claim and an earlier version of this file got it wrong. Each of the 5 has a note
+   saying which part is missing; they are the honest remaining HIGH work (the Gaussian and GAMESS
+   option dialogs, the wavefunction readers past fchk/Molden, and the two frontend
+   plugin-registration rows) -- four subsystems, not afternoons. Three rows left the list in this
    checkpoint: AV-MM-013 (an imported drawing is offered a rough geometry, and Build > Generate
-   3D coordinates builds one on demand) and AV-XTAL-015 (the 530-setting space-group table).
+   3D coordinates builds one on demand), AV-XTAL-015 (the 530-setting space-group table) and
+   AV-EDIT-023 (the Cartesian editor's format and sort boxes).
    Run the same awk with `MEDIUM` for what is next: today it lists 41 rows, of which the ones with
    a real workflow behind them are the conformer table (AV-MM-009), per-engine opacity
    (AV-VIS-007/011) and the dipole arrow (AV-ANAL-013, moved back to PARTIAL in this checkpoint:

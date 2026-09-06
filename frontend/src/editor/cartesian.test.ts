@@ -80,3 +80,70 @@ test('Bohr and fractional coordinates round-trip through the editor', () => {
   expect(formatCoordinates({ ...doc, cell: null }, 'fractional')).toBe('');
   expect(() => parseCoordinates(frac, 'fractional', null)).toThrow(/need a unit cell/);
 });
+
+test('every layout writes what the parser reads back', () => {
+  const doc = normalizeStructure({
+    name: 'formats',
+    atoms: [makeAtom('C', [1.5, -0.25, 0]), makeAtom('Fe', [0, 0, 2])],
+    bonds: [],
+  } as never);
+  const formats = [
+    'xyz',
+    'xyz_numbered',
+    'coords',
+    'gamess',
+    'gamess_name',
+    'turbomole',
+    'priroda',
+  ] as const;
+  for (const format of formats) {
+    const text = formatCoordinates(doc, 'angstrom', 5, format);
+    const back = applyCartesian(doc, parseCartesian(text));
+    expect(
+      back.atoms.map((a) => a.element),
+      format,
+    ).toEqual(['C', 'Fe']);
+    back.atoms.forEach((a, i) =>
+      a.position.forEach((x, k) => expect(x, format).toBeCloseTo(doc.atoms[i]!.position[k]!, 4)),
+    );
+  }
+  // the layouts themselves, one line each
+  const line = (format: (typeof formats)[number]): string =>
+    formatCoordinates(doc, 'angstrom', 2, format).split('\n')[0]!;
+  expect(line('xyz').trim()).toBe('C          1.50        -0.25         0.00');
+  expect(line('xyz_numbered').trim().startsWith('C1')).toBe(true);
+  expect(line('coords').trim().startsWith('1.50')).toBe(true);
+  expect(line('gamess').trim().startsWith('C     6.0')).toBe(true);
+  expect(line('gamess_name').trim().startsWith('Carbon')).toBe(true);
+  expect(line('turbomole').trim().endsWith('C')).toBe(true);
+  expect(line('priroda').trim().startsWith('6 ')).toBe(true);
+});
+
+test('a line with no element keeps the one the atom has, unless the count changed', () => {
+  const doc = normalizeStructure({
+    name: 'water',
+    atoms: [makeAtom('O', [0, 0, 0]), makeAtom('H', [0, 0.8, 0.5])],
+    bonds: [],
+  } as never);
+  const moved = applyCartesian(doc, parseCartesian('0 0 0\n0 1.0 0.5'));
+  expect(moved.atoms.map((a) => a.element)).toEqual(['O', 'H']);
+  expect(moved.atoms[1]!.position[1]).toBeCloseTo(1.0, 6);
+  expect(() => applyCartesian(doc, parseCartesian('0 0 0'))).toThrow(/no element/);
+  // a token that is meant to be an element but is not one is still an error
+  expect(() => parseCartesian('Qq 0 0 0')).toThrow(/unknown element/);
+});
+
+test('a trailing column is not mistaken for a coordinate', () => {
+  // "El x y z fx fy fz" is what an extxyz block looks like; the coordinates are still x y z
+  expect(parseCartesian('C 1 2 3 0.5')[0]).toEqual({ element: 'C', position: [1, 2, 3] });
+  expect(parseCartesian('C 1 2 3 0.1 0.2 0.3')[0]).toEqual({ element: 'C', position: [1, 2, 3] });
+  // GAMESS puts the nuclear charge between the symbol and the coordinates
+  expect(parseCartesian('C 6.0 1 2 3')[0]).toEqual({ element: 'C', position: [1, 2, 3] });
+  expect(parseCartesian('Carbon 6.0 1 2 3')[0]).toEqual({ element: 'C', position: [1, 2, 3] });
+  // a number that is not this element's charge is a coordinate: x = 6 here, not a GAMESS column
+  expect(parseCartesian('H 6.0 1 2')[0]).toEqual({ element: 'H', position: [6, 1, 2] });
+  // the two layouts that start with a number: the symbol last is Turbomole, a bare Z is Priroda
+  expect(parseCartesian('1 2 3 C')[0]).toEqual({ element: 'C', position: [1, 2, 3] });
+  expect(parseCartesian('6 1 2 3')[0]).toEqual({ element: 'C', position: [1, 2, 3] });
+  expect(parseCartesian('1 2 3')[0]).toEqual({ element: null, position: [1, 2, 3] });
+});

@@ -130,9 +130,10 @@ export function removeAtoms(doc: StructureDoc, indices: Iterable<number>): Struc
 }
 
 /**
- * Per-atom properties after a removal: one entry per atom, so the entries of the atoms that went
- * have to go with them. Left alone they keep the old length, and every reader of them checks the
- * length against the atom count -- charges and forces would silently disappear on a delete.
+ * Per-atom properties after a renumbering: one entry per atom, so each entry goes where its atom
+ * went and the entries of atoms that left go with them. Left alone they keep the old length, and
+ * every reader of them checks the length against the atom count -- charges and forces would
+ * silently disappear on a delete, and would describe the wrong atoms after a reorder.
  */
 function filteredProperties<P extends { values: unknown[] }>(
   properties: Record<string, P>,
@@ -140,10 +141,15 @@ function filteredProperties<P extends { values: unknown[] }>(
 ): Record<string, P> {
   const out: Record<string, P> = {};
   for (const [key, property] of Object.entries(properties)) {
-    out[key] =
-      property.values.length === remap.length
-        ? { ...property, values: property.values.filter((_, i) => remap[i]! >= 0) }
-        : property;
+    if (property.values.length !== remap.length) {
+      out[key] = property;
+      continue;
+    }
+    const values: unknown[] = [];
+    property.values.forEach((v, i) => {
+      if (remap[i]! >= 0) values[remap[i]!] = v;
+    });
+    out[key] = { ...property, values };
   }
   return out;
 }
@@ -160,7 +166,11 @@ function reindexed(
   const residues = doc.residues
     .map((r) => ({
       ...r,
-      atom_indices: r.atom_indices.map((i) => remap[i]!).filter((i) => i >= 0),
+      // sorted, because a renumbering can reorder them and the backend keeps them in order
+      atom_indices: r.atom_indices
+        .map((i) => remap[i]!)
+        .filter((i) => i >= 0)
+        .sort((a, b) => a - b),
     }))
     .filter((r) => r.atom_indices.length > 0);
   const kept = (i: number): boolean => remap[i] !== undefined && remap[i]! >= 0;
@@ -196,6 +206,29 @@ function reindexed(
 }
 
 /** Map old atom indices to new ones after `removeAtoms(doc, removed)`; removed ones are dropped. */
+/**
+ * Renumber the atoms: `order[i]` is the index the atom now at position `i` used to have.
+ *
+ * Everything that names an atom by number comes with it -- the bonds, the per-atom properties,
+ * the constraints and the residues -- which is why a reorder is an edit on the document rather
+ * than a way of looking at it. Avogadro sorted the *text* of its Cartesian editor and rebuilt
+ * the molecule from it on Apply (updateMolecule, cartesianextension.cpp:153-175), ending in
+ * `ConnectTheDots` + `PerceiveBondOrders` (:362): the bonds came back from the distances, so a
+ * hand-drawn bond or a bond order that perception disagrees with did not survive. Here the
+ * document is reordered and the editor shows it.
+ */
+export function reorderAtoms(doc: StructureDoc, order: readonly number[]): StructureDoc {
+  if (order.length !== doc.atoms.length) throw new Error('a reorder must name every atom once');
+  const remap = new Int32Array(doc.atoms.length).fill(-1);
+  order.forEach((from, to) => {
+    remap[from] = to;
+  });
+  if (remap.some((i) => i < 0)) throw new Error('a reorder must name every atom once');
+  const atoms = order.map((from) => doc.atoms[from]!);
+  const bonds = doc.bonds.map((b) => ({ ...b, a: remap[b.a]!, b: remap[b.b]! }));
+  return { ...doc, atoms, bonds, ...reindexed(doc, remap) };
+}
+
 export function remapAfterRemoval(
   removed: ReadonlySet<number>,
   indices: Iterable<number>,

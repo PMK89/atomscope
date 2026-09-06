@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+- The Cartesian editor gained a **Format** box — the seven column layouts
+  Avogadro offered (XYZ, XYZ with numbers, coordinates only, GAMESS, GAMESS #2,
+  Turbomole, Priroda) — and a **Sort by** box for element or a coordinate.
+  What you paste in is read by its shape whatever the box says. Sorting
+  renumbers the atoms of the structure in one undo step, carrying the bonds,
+  the per-atom properties, the constraints, the residues and the selection with
+  them.
+
 - `Set space group…` in the Crystal tab lists all 530 settings of the 230
   space groups — International number, Hall symbol, Hermann-Mauguin symbol and
   the setting — and `Fill cell` then uses the one you picked exactly, including
