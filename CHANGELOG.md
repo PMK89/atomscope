@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+- **ORCA has both modes of its dialog now**, not a simple-input line through
+  ASE. Basic mode is its four methods and four basis sets; Advanced mode adds
+  the functional, the auxiliary bases, the grids, chain-of-spheres exchange,
+  the SCF accuracy, the relativistic treatment, and a `%scf` block with the
+  iteration limit, damping, level shifting and both convergers -- plus
+  `%output` when there is something to print. Neither of Avogadro's Z-matrix
+  layouts produced a deck ORCA could read (they wrote another program's syntax
+  and never closed the block), so both write ORCA's own; `ExtremSCF` gets its
+  missing `e` and the PBE0 functional its zero; and the augmented-Hessian
+  converger, whose keyword Avogadro left commented out, now says that it
+  reaches nothing rather than quietly doing so.
+
 - **NWChem writes its own dialog's deck now**, not ASE's, with the four
   theories and nine basis sets Avogadro offered, all three coordinate layouts,
   the frozen cores MP2 and CCSD ask for and the `spherical` keyword Dunning's

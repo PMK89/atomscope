@@ -18,7 +18,8 @@ def test_registered_and_non_executing() -> None:
 @pytest.mark.parametrize(
     "program,ext,tokens",
     [
-        ("orca", ".inp", ["! B3LYP def2-SVP Opt", "%pal nprocs 4", "*xyz -1 2", "O "]),
+        # ORCA's own dialog now: its method list, its word order, and `* xyz` with a space
+        ("orca", ".inp", ["! RHF OPT def2-SVP", "%pal nprocs 4", "* xyz -1 2", "O "]),
         ("gaussian", ".gjf", ["b3lyp", "def2-SVP".lower(), "-1 2", "opt"]),
         ("nwchem", ".nw", ["charge -1", "xc B3LYP".lower(), "mult 2", "task dft optimize"]),
         # GAMESS has boxes of its own; RHF/6-31G(d) is what they default to
@@ -920,6 +921,145 @@ def test_the_qchem_geometry_can_be_either_z_matrix() -> None:
     assert "r3" not in compact
 
 
+def test_the_default_orca_deck_is_pinned_byte_for_byte() -> None:
+    """Basic mode (`orcainputdialog.cpp:1050-1069`): a header, the comment, one `!` line and the
+    coordinates. `%pal` and `%maxcore` are ours -- ORCA's dialog has no box for either."""
+    water = from_atoms(molecule("H2O"), name="water")
+    file = plugin.generate_inputs(water, {"program": "orca"}, "case").files[0]
+    assert file.name == "case.inp"
+    assert file.text == (
+        "# Atomscope generated ORCA input file\n"
+        "# Basic Mode\n"
+        "# water\n"
+        "! RHF SP def2-SVP\n"
+        "%pal nprocs 1 end\n"
+        "%maxcore 2000\n"
+        "\n"
+        "* xyz 0 1\n"
+        "   O        0.00000        0.00000        0.11926\n"
+        "   H        0.00000        0.76324       -0.47705\n"
+        "   H        0.00000       -0.76324       -0.47705\n"
+        "*\n"
+    )
+    # Basic mode's DFT names its auxiliary basis after the orbital one
+    dft = plugin.generate_inputs(water, {"program": "orca", "orca_method": "dft"}, "c")
+    assert "! BP RI SP def2-SVP def2-SVP/J\n" in dft.files[0].text
+
+
+def test_an_orca_z_matrix_is_the_one_layout_orca_reads() -> None:
+    """Avogadro's two branches wrote NWChem's named references and element labels, and neither
+    closed the `* int` block. ORCA counts atoms and takes `symbol NA NB NC R A D`."""
+    ethanol = from_atoms(molecule("CH3CH2OH"), name="ethanol")
+
+    def deck(layout: str) -> str:
+        return (
+            plugin.generate_inputs(ethanol, {"program": "orca", "coordinates": layout}, "c")
+            .files[0]
+            .text
+        )
+
+    for layout in ("zmatrix", "zmatrix_compact"):
+        text = deck(layout)
+        body = text[text.index("* int") :].split("\n")
+        assert body[0] == "* int 0 1"
+        # the first atom references nothing, and a zero is how ORCA is told so
+        assert body[1].split() == ["C", "0", "0", "0", "0.00000", "0.00000", "0.00000"]
+        assert body[2].split()[:4] == ["C", "1", "0", "0"]
+        assert body[3].split()[:4] == ["O", "2", "1", "0"]
+        assert body[-2] == "*"
+        assert "variables" not in text and "C1" not in text
+    # the compact choice is not a layout ORCA has, and the form says so
+    compact = plugin.validate(ethanol, {"program": "orca", "coordinates": "zmatrix_compact"}).issues
+    assert [i.key for i in compact] == ["coordinates"]
+    assert not plugin.validate(ethanol, {"program": "orca", "coordinates": "zmatrix"}).issues
+
+
+def test_the_orca_advanced_line_is_built_in_the_dialogs_order() -> None:
+    """`:1085-1140`: method, calculation, basis, auxiliaries, EPC, print level, grids, RijCosX
+    and its grids, the accuracy and the relativistic keyword."""
+    water = from_atoms(molecule("H2O"), name="water")
+    text = (
+        plugin.generate_inputs(
+            water,
+            {
+                "program": "orca",
+                "orca_mode": "advanced",
+                "orca_adv_method": "dft",
+                "orca_functional": "pbe0",
+                "orca_basis": "tzvp",
+                "orca_cosx": True,
+                "orca_epc": True,
+                "orca_final_grid": "grid6",
+                "orca_accuracy": "extreme",
+                "orca_relativistic": "dkh",
+                "orca_dkh_order": 2,
+                "task": "frequencies",
+            },
+            "c",
+        )
+        .files[0]
+        .text
+    )
+    lines = text.split("\n")
+    assert lines[0] == "## Atomscope generated ORCA input file"
+    assert lines[1] == "# Advanced Mode"
+    assert lines[3] == (
+        # PBE0, not the enum key's PBEO; ExtremeSCF, not the dialog's ExtremSCF
+        "! PBE0 OPT FREQ def2-TZVP def2-SVP/J EPC{def2-TZVP,def2-SVP/J} NormalPrint Grid4"
+        " FinalGrid6 RijCosX GridX4 ExtremeSCF DKH2"
+    )
+    # BP is the functional the dialog gives the resolution of the identity to, and only it
+    bp = plugin.generate_inputs(
+        water, {"program": "orca", "orca_mode": "advanced", "orca_adv_method": "dft"}, "c"
+    )
+    assert bp.files[0].text.split("\n")[3].startswith("! BP RI SP ")
+    # with no method switch on, the SCF type is written in the method's place
+    uhf = plugin.generate_inputs(
+        water, {"program": "orca", "orca_mode": "advanced", "orca_scf_type": "uhf"}, "c"
+    )
+    assert uhf.files[0].text.split("\n")[3] == "! UHF SP def2-SVP NormalPrint NormalSCF"
+
+
+def test_the_orca_scf_block_carries_what_its_tab_asks_for() -> None:
+    """`%scf` (`:1142-1167`), and `%output` only when there is something to print."""
+    water = from_atoms(molecule("H2O"), name="water")
+
+    def deck(**values: object) -> str:
+        return (
+            plugin.generate_inputs(
+                water, {"program": "orca", "orca_mode": "advanced", **values}, "c"
+            )
+            .files[0]
+            .text
+        )
+
+    plain = deck()
+    assert "%scf\n\tMaxIter 125\n\tCNVDIIS 1\n\tCNVSOSCF 1\nend\n" in plain
+    assert "%output" not in plain
+    damped = deck(orca_damping=True, orca_level_shift=True, orca_converger="kdiis")
+    assert "\tCNVDamp 1\n\tDampFac 0.7\n\tDampErr 0.1\n" in damped
+    assert "\tCNVShift 1\n\tLevelShift 0.25\n\tShiftErr 0.001\n" in damped
+    assert "\tCNVKDIIS 1\n" in damped
+    printed = deck(orca_print_mos=True, orca_print_basis=True)
+    assert "%output\n\tprint[p_mos] true\n\tprint[p_basis] 5\nend\n" in printed
+
+
+def test_the_orca_augmented_hessian_converger_is_said_to_reach_nothing() -> None:
+    """`CNVAH 1` is commented out with "not yet implemented" (`:1163`), so the box asks for
+    nothing. It is still offered, and the form says what it will do."""
+    water = from_atoms(molecule("H2O"), name="water")
+    values = {"program": "orca", "orca_mode": "advanced", "orca_second_converger": "ahscf"}
+    text = plugin.generate_inputs(water, values, "c").files[0].text
+    assert "CNVAH" not in text and "CNVSOSCF" not in text and "CNVNR" not in text
+    issues = plugin.validate(water, values).issues
+    assert [i.key for i in issues] == ["orca_second_converger"]
+    assert issues[0].severity == "warning"
+    # the two that do reach one raise nothing, and neither does Basic mode
+    for converger in ("soscf", "nrscf"):
+        assert not plugin.validate(water, {**values, "orca_second_converger": converger}).issues
+    assert not plugin.validate(water, {"program": "orca"}).issues
+
+
 def test_the_default_nwchem_deck_is_pinned_byte_for_byte() -> None:
     """`nwcheminputdialog.cpp:generateInputDeck` in its order: `echo`, `start molecule`, the
     title, the charge, the geometry, the basis, the theory's block and the `task` line."""
@@ -1154,7 +1294,7 @@ def test_a_radical_is_never_written_as_a_singlet() -> None:
     methyl = from_atoms(molecule("CH3"), name="methyl")
     assert methyl.multiplicity is None
     for program, token in (
-        ("orca", "*xyz 0 2"),
+        ("orca", "* xyz 0 2"),
         ("gaussian", "\n0 2\n"),
         ("nwchem", "mult 2"),
         ("gamess", "MULT=2"),

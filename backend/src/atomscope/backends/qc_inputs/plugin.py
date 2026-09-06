@@ -15,7 +15,6 @@ from pathlib import Path
 from typing import Any
 
 import ase.io
-from ase.io.orca import write_orca
 
 from atomscope.ase_bridge.convert import to_atoms
 from atomscope.backends.base import (
@@ -27,6 +26,7 @@ from atomscope.backends.base import (
     ResultBundle,
     Values,
 )
+from atomscope.backends.qc_inputs import orca as orca_module
 from atomscope.backends.qc_inputs.gamess import AXIS_ORDER_GROUPS as GAMESS_AXIS_GROUPS
 from atomscope.backends.qc_inputs.gamess import BASIS_CHOICES as GAMESS_BASIS_CHOICES
 from atomscope.backends.qc_inputs.gamess import DFT_FUNCTIONALS as GAMESS_FUNCTIONALS
@@ -60,6 +60,7 @@ from atomscope.backends.qc_inputs.molpro import molpro_deck
 from atomscope.backends.qc_inputs.nwchem import BASIS_LABELS as NWCHEM_BASIS_LABELS
 from atomscope.backends.qc_inputs.nwchem import THEORY_LABELS as NWCHEM_THEORY_LABELS
 from atomscope.backends.qc_inputs.nwchem import nwchem_deck
+from atomscope.backends.qc_inputs.orca import AdvancedOptions, orca_deck
 from atomscope.backends.qc_inputs.psi4 import BASIS_LABELS as PSI4_BASIS_LABELS
 from atomscope.backends.qc_inputs.psi4 import SAPT_THEORIES as PSI4_SAPT
 from atomscope.backends.qc_inputs.psi4 import THEORY_LABELS as PSI4_THEORY_LABELS
@@ -101,6 +102,10 @@ OPTIMIZE_BEFORE_FREQUENCIES = ("orca", "molpro")
 Molpro's writes `{optg}` above `{frequencies}` (`molproinputdialog.cpp:453-455`). A frequency at
 a geometry that is not stationary is not one, so both are kept and both are said."""
 
+ONE_INTERNAL_LAYOUT = ("orca", "gamessuk")
+"""Whose deck has a single internal-coordinate layout where the shared Format box offers two.
+Choosing the compact one writes the layout the program has, and says so."""
+
 TS_PROGRAMS = ("gamess", "gamessuk")
 """The generators that write a transition-state deck: GAMESS-US punches RUNTYP=SADPOINT and
 GAMESS-UK `runtype saddle`. Everything else says so rather than writing a lesser search."""
@@ -120,11 +125,24 @@ MOPAC_MULTIPLICITY = {
 }
 """Programs whose method and basis set are typed in. MOPAC has a Hamiltonian instead, and
 GAMESS-US has lists of its own, from the dialog Avogadro ported from MacMolPlt."""
-_FREE_METHOD = ("orca", "gaussian")
-"""The two whose method and basis are still free text. Every generator written from its own
-Avogadro dialog has that dialog's lists instead, in a section of its own."""
+_FREE_METHOD = ("gaussian",)
+"""Whose method and basis are still free text. Every generator written from its own Avogadro
+dialog has that dialog's lists instead, in a section of its own."""
 
-_COORDINATE_BOX = ("gaussian", "qchem", "gamessuk", "molpro", "nwchem")
+_COORDINATE_BOX = ("gaussian", "qchem", "gamessuk", "molpro", "nwchem", "orca")
+
+_ORCA_ADVANCED = [
+    VisibleWhen(key="program", value="orca"),
+    VisibleWhen(key="orca_mode", value="advanced"),
+]
+"""The Advanced tabs are one dialog behind a mode switch, so every box on them asks for both."""
+
+
+def _orca_choices(table: dict[str, str], default_label: str = "Program default") -> list[Choice]:
+    """A keyword table as choices, with the entry that writes nothing named for what it means."""
+    return [Choice(value=key, label=text or default_label) for key, text in table.items()]
+
+
 """The dialogs with a Format box. GAMESS-UK's offers two of the three layouts (there is no
 compact Z-matrix there), and `validate` says so when the third is chosen."""
 PERIODIC = ("espresso", "abinit")
@@ -381,6 +399,324 @@ SCHEMA = ParameterSchema(
                         Choice(value=key, label=label) for key, label in PSI4_BASIS_LABELS.items()
                     ],
                     visible_when=[VisibleWhen(key="program", value="psi4")],
+                ),
+            ],
+        ),
+        Section(
+            id="orca",
+            label="ORCA",
+            help="the Basic tab of Avogadro's ORCA dialog, and the switch to its Advanced one",
+            parameters=[
+                ParameterSpec(
+                    key="orca_mode",
+                    label="Mode",
+                    type="enum",
+                    default="basic",
+                    choices=[
+                        Choice(value="basic", label="Basic"),
+                        Choice(value="advanced", label="Advanced"),
+                    ],
+                    help="Advanced opens the SCF, DFT, basis and output tabs below",
+                    visible_when=[VisibleWhen(key="program", value="orca")],
+                ),
+                ParameterSpec(
+                    key="orca_method",
+                    label="Method",
+                    type="enum",
+                    default="rhf",
+                    choices=[
+                        Choice(value=key, label="DFT (BP, RI)" if key == "dft" else text)
+                        for key, text in orca_module.BASIC_METHODS.items()
+                    ],
+                    visible_when=[
+                        VisibleWhen(key="program", value="orca"),
+                        VisibleWhen(key="orca_mode", value="basic"),
+                    ],
+                ),
+                ParameterSpec(
+                    key="orca_basis",
+                    label="Basis set",
+                    type="enum",
+                    default="svp",
+                    choices=[
+                        Choice(value=key, label=text)
+                        for key, text in orca_module.BASIS_SETS.items()
+                    ],
+                    visible_when=[VisibleWhen(key="program", value="orca")],
+                ),
+            ],
+        ),
+        Section(
+            id="orca_advanced",
+            label="ORCA: Advanced",
+            help="the SCF, DFT, basis and output tabs of the dialog's Advanced mode",
+            advanced=True,
+            parameters=[
+                ParameterSpec(
+                    key="orca_adv_method",
+                    label="Method",
+                    type="enum",
+                    default="scf",
+                    choices=[
+                        Choice(value="scf", label="Hartree-Fock"),
+                        Choice(value="dft", label="DFT"),
+                        Choice(value="mp2", label="RI-MP2"),
+                        Choice(value="ccsd", label="CCSD"),
+                    ],
+                    advanced=True,
+                    visible_when=_ORCA_ADVANCED,
+                ),
+                ParameterSpec(
+                    key="orca_scf_type",
+                    label="SCF type",
+                    type="enum",
+                    default="rhf",
+                    choices=_orca_choices(orca_module.SCF_TYPES),
+                    advanced=True,
+                    visible_when=[
+                        *_ORCA_ADVANCED,
+                        VisibleWhen(key="orca_adv_method", value="scf"),
+                    ],
+                ),
+                ParameterSpec(
+                    key="orca_functional",
+                    label="Functional",
+                    type="enum",
+                    default="bp",
+                    choices=_orca_choices(orca_module.FUNCTIONALS),
+                    help="BP is the one the dialog gives the resolution of the identity to",
+                    advanced=True,
+                    visible_when=[
+                        *_ORCA_ADVANCED,
+                        VisibleWhen(key="orca_adv_method", value="dft"),
+                    ],
+                ),
+                ParameterSpec(
+                    key="orca_cosx",
+                    label="Chain-of-spheres exchange (RijCosX)",
+                    type="boolean",
+                    default=False,
+                    advanced=True,
+                    visible_when=_ORCA_ADVANCED,
+                ),
+                ParameterSpec(
+                    key="orca_aux_basis",
+                    label="Auxiliary basis (/J)",
+                    type="enum",
+                    default="svp",
+                    choices=_orca_choices(orca_module.BASIS_SETS),
+                    advanced=True,
+                    visible_when=_ORCA_ADVANCED,
+                ),
+                ParameterSpec(
+                    key="orca_aux_corr_basis",
+                    label="Correlation auxiliary basis (/C)",
+                    type="enum",
+                    default="svp",
+                    choices=_orca_choices(orca_module.BASIS_SETS),
+                    advanced=True,
+                    visible_when=[
+                        *_ORCA_ADVANCED,
+                        VisibleWhen(key="orca_adv_method", value="mp2"),
+                    ],
+                ),
+                ParameterSpec(
+                    key="orca_epc",
+                    label="List the basis sets as EPC{...}",
+                    type="boolean",
+                    default=False,
+                    advanced=True,
+                    visible_when=_ORCA_ADVANCED,
+                ),
+                ParameterSpec(
+                    key="orca_print_level",
+                    label="Print level",
+                    type="enum",
+                    default="normal",
+                    choices=_orca_choices(orca_module.PRINT_LEVELS, "Nothing"),
+                    advanced=True,
+                    visible_when=_ORCA_ADVANCED,
+                ),
+                ParameterSpec(
+                    key="orca_grid",
+                    label="Integration grid",
+                    type="enum",
+                    default="grid4",
+                    choices=_orca_choices(orca_module.GRIDS),
+                    advanced=True,
+                    visible_when=[
+                        *_ORCA_ADVANCED,
+                        VisibleWhen(key="orca_adv_method", value="dft"),
+                    ],
+                ),
+                ParameterSpec(
+                    key="orca_final_grid",
+                    label="Final grid",
+                    type="enum",
+                    default="default",
+                    choices=_orca_choices(orca_module.FINAL_GRIDS),
+                    advanced=True,
+                    visible_when=[
+                        *_ORCA_ADVANCED,
+                        VisibleWhen(key="orca_adv_method", value="dft"),
+                    ],
+                ),
+                ParameterSpec(
+                    key="orca_cosx_grid",
+                    label="COSX grid",
+                    type="enum",
+                    default="grid4",
+                    choices=_orca_choices(orca_module.COSX_GRIDS),
+                    advanced=True,
+                    visible_when=[*_ORCA_ADVANCED, VisibleWhen(key="orca_cosx", op="truthy")],
+                ),
+                ParameterSpec(
+                    key="orca_cosx_final_grid",
+                    label="COSX final grid",
+                    type="enum",
+                    default="default",
+                    choices=_orca_choices(orca_module.COSX_FINAL_GRIDS),
+                    advanced=True,
+                    visible_when=[*_ORCA_ADVANCED, VisibleWhen(key="orca_cosx", op="truthy")],
+                ),
+                ParameterSpec(
+                    key="orca_accuracy",
+                    label="SCF accuracy",
+                    type="enum",
+                    default="normal",
+                    choices=_orca_choices(orca_module.ACCURACIES),
+                    advanced=True,
+                    visible_when=_ORCA_ADVANCED,
+                ),
+                ParameterSpec(
+                    key="orca_relativistic",
+                    label="Relativistic treatment",
+                    type="enum",
+                    default="none",
+                    choices=_orca_choices(orca_module.RELATIVISTIC, "None"),
+                    advanced=True,
+                    visible_when=_ORCA_ADVANCED,
+                ),
+                ParameterSpec(
+                    key="orca_dkh_order",
+                    label="DKH order",
+                    type="integer",
+                    default=0,
+                    minimum=0,
+                    maximum=10,
+                    advanced=True,
+                    visible_when=[
+                        *_ORCA_ADVANCED,
+                        VisibleWhen(key="orca_relativistic", value="dkh"),
+                    ],
+                ),
+                ParameterSpec(
+                    key="orca_max_iter",
+                    label="Maximum SCF iterations",
+                    type="integer",
+                    default=125,
+                    minimum=1,
+                    advanced=True,
+                    visible_when=_ORCA_ADVANCED,
+                ),
+                ParameterSpec(
+                    key="orca_damping",
+                    label="Damp the SCF",
+                    type="boolean",
+                    default=False,
+                    advanced=True,
+                    visible_when=_ORCA_ADVANCED,
+                ),
+                ParameterSpec(
+                    key="orca_damp_factor",
+                    label="Damping factor",
+                    type="number",
+                    default=0.7,
+                    advanced=True,
+                    visible_when=[*_ORCA_ADVANCED, VisibleWhen(key="orca_damping", op="truthy")],
+                ),
+                ParameterSpec(
+                    key="orca_damp_error",
+                    label="Damping error threshold",
+                    type="number",
+                    default=0.1,
+                    advanced=True,
+                    visible_when=[*_ORCA_ADVANCED, VisibleWhen(key="orca_damping", op="truthy")],
+                ),
+                ParameterSpec(
+                    key="orca_level_shift",
+                    label="Shift the virtual orbitals",
+                    type="boolean",
+                    default=False,
+                    advanced=True,
+                    visible_when=_ORCA_ADVANCED,
+                ),
+                ParameterSpec(
+                    key="orca_shift",
+                    label="Level shift",
+                    type="number",
+                    default=0.25,
+                    advanced=True,
+                    visible_when=[
+                        *_ORCA_ADVANCED,
+                        VisibleWhen(key="orca_level_shift", op="truthy"),
+                    ],
+                ),
+                ParameterSpec(
+                    key="orca_shift_error",
+                    label="Level shift error threshold",
+                    type="number",
+                    default=0.001,
+                    advanced=True,
+                    visible_when=[
+                        *_ORCA_ADVANCED,
+                        VisibleWhen(key="orca_level_shift", op="truthy"),
+                    ],
+                ),
+                ParameterSpec(
+                    key="orca_converger",
+                    label="Converger",
+                    type="enum",
+                    default="diis",
+                    choices=[
+                        Choice(value="diis", label="DIIS"),
+                        Choice(value="kdiis", label="KDIIS"),
+                    ],
+                    advanced=True,
+                    visible_when=_ORCA_ADVANCED,
+                ),
+                ParameterSpec(
+                    key="orca_second_converger",
+                    label="Second-order converger",
+                    type="enum",
+                    default="soscf",
+                    choices=[
+                        Choice(value="soscf", label="SOSCF"),
+                        Choice(value="nrscf", label="Newton-Raphson"),
+                        Choice(value="ahscf", label="Augmented Hessian"),
+                    ],
+                    help=(
+                        "Avogadro left the augmented-Hessian keyword commented out, so choosing"
+                        " it asks for no second-order converger at all"
+                    ),
+                    advanced=True,
+                    visible_when=_ORCA_ADVANCED,
+                ),
+                ParameterSpec(
+                    key="orca_print_mos",
+                    label="Print the molecular orbitals",
+                    type="boolean",
+                    default=False,
+                    advanced=True,
+                    visible_when=_ORCA_ADVANCED,
+                ),
+                ParameterSpec(
+                    key="orca_print_basis",
+                    label="Print the basis set",
+                    type="boolean",
+                    default=False,
+                    advanced=True,
+                    visible_when=_ORCA_ADVANCED,
                 ),
             ],
         ),
@@ -1665,9 +2001,8 @@ def _gamessuk_issues(structure: Structure, merged: Values) -> list[ValidationIss
 
     Its theory combo is HF, DFT and MP2, with no UHF or GVB entry, so the deck names the same
     SCF whatever the multiplicity -- worth saying at a multiplicity above a singlet, without
-    claiming to know what GAMESS-UK then does with it. And its Format box has two entries where
-    ours has three, so the compact Z-matrix belongs to no layout of its; the deck falls back to
-    the one Z-matrix it does write.
+    claiming to know what GAMESS-UK then does with it. (The compact Z-matrix its Format box has
+    not got is said in `validate`, beside ORCA's, which has the same shape.)
     """
     issues: list[ValidationIssue] = []
     if _multiplicity(structure, merged) > 1:
@@ -1678,17 +2013,6 @@ def _gamessuk_issues(structure: Structure, merged: Values) -> list[ValidationIss
                     "Avogadro's GAMESS-UK dialog has no UHF or GVB entry, so the deck writes"
                     " `scftype rhf` at this multiplicity; the extra keywords are where another"
                     " wavefunction goes"
-                ),
-                severity="warning",
-            )
-        )
-    if str(merged.get("coordinates", "cartesian")) == "zmatrix_compact":
-        issues.append(
-            ValidationIssue(
-                key="coordinates",
-                message=(
-                    "GAMESS-UK has one Z-matrix layout, with a variables block; the deck is"
-                    " written that way"
                 ),
                 severity="warning",
             )
@@ -1780,6 +2104,63 @@ def _number(value: object, fallback: float) -> float:
 def _count(value: object, fallback: int = 0) -> int:
     """A number of polarization functions, whatever the form put in the values."""
     return int(value) if isinstance(value, int | float) else fallback
+
+
+def _orca_advanced(merged: Values) -> AdvancedOptions | None:
+    """The Advanced tabs' answers, or None when the dialog's Basic mode is the one in use."""
+    if str(merged.get("orca_mode", "basic")) != "advanced":
+        return None
+    return AdvancedOptions(
+        method=str(merged.get("orca_adv_method", "scf")),
+        functional=str(merged.get("orca_functional", "bp")),
+        scf_type=str(merged.get("orca_scf_type", "rhf")),
+        cos_x=bool(merged.get("orca_cosx")),
+        aux_basis=str(merged.get("orca_aux_basis", "svp")),
+        aux_corr_basis=str(merged.get("orca_aux_corr_basis", "svp")),
+        epc=bool(merged.get("orca_epc")),
+        print_level=str(merged.get("orca_print_level", "normal")),
+        grid=str(merged.get("orca_grid", "grid4")),
+        final_grid=str(merged.get("orca_final_grid", "default")),
+        cosx_grid=str(merged.get("orca_cosx_grid", "grid4")),
+        cosx_final_grid=str(merged.get("orca_cosx_final_grid", "default")),
+        accuracy=str(merged.get("orca_accuracy", "normal")),
+        relativistic=str(merged.get("orca_relativistic", "none")),
+        dkh_order=_count(merged.get("orca_dkh_order")),
+        max_iter=_count(merged.get("orca_max_iter"), 125),
+        damping=bool(merged.get("orca_damping")),
+        damp_factor=_number(merged.get("orca_damp_factor"), 0.7),
+        damp_error=_number(merged.get("orca_damp_error"), 0.1),
+        level_shift=bool(merged.get("orca_level_shift")),
+        shift=_number(merged.get("orca_shift"), 0.25),
+        shift_error=_number(merged.get("orca_shift_error"), 0.001),
+        converger=str(merged.get("orca_converger", "diis")),
+        second_converger=str(merged.get("orca_second_converger", "soscf")),
+        print_mos=bool(merged.get("orca_print_mos")),
+        print_basis=bool(merged.get("orca_print_basis")),
+    )
+
+
+def _orca_issues(merged: Values) -> list[ValidationIssue]:
+    """The one box on the Advanced tabs that reaches no keyword.
+
+    `orcainputdialog.cpp:1163` has `CNVAH 1` commented out with "not yet implemented", so the
+    third second-order converger asks for nothing at all. It is still offered, because the dialog
+    offered it, but the deck says so here rather than leaving it to be discovered in the output.
+    """
+    if str(merged.get("orca_mode", "basic")) != "advanced":
+        return []
+    if str(merged.get("orca_second_converger", "soscf")) != "ahscf":
+        return []
+    return [
+        ValidationIssue(
+            key="orca_second_converger",
+            message=(
+                "Avogadro left the augmented-Hessian keyword commented out, so the deck will ask"
+                " for no second-order converger; SOSCF and Newton-Raphson both reach one"
+            ),
+            severity="warning",
+        )
+    ]
 
 
 def _gamess_detailed(values: Values) -> DetailedBasis | None:
@@ -1913,6 +2294,19 @@ class QcInputsPlugin:
             report.issues += _psi4_issues(structure, merged)
         if program == "gamessuk":
             report.issues += _gamessuk_issues(structure, merged)
+        if program == "orca":
+            report.issues += _orca_issues(merged)
+        if program in ONE_INTERNAL_LAYOUT and str(merged.get("coordinates")) == "zmatrix_compact":
+            report.issues.append(
+                ValidationIssue(
+                    key="coordinates",
+                    message=(
+                        f"{program} has one internal-coordinate layout, and the deck is written"
+                        " that way; the shared Format box offers a compact one its dialog had not"
+                    ),
+                    severity="warning",
+                )
+            )
         if program in OPTIMIZE_BEFORE_FREQUENCIES and merged.get("task") == "frequencies":
             report.issues.append(
                 ValidationIssue(
@@ -1983,15 +2377,23 @@ class QcInputsPlugin:
         memory_mb = int(mem_raw) if isinstance(mem_raw, int | float) else 2000
         buf = io.StringIO()
         if program == "orca":
-            keyword = {"energy": "SP", "optimize": "Opt", "frequencies": "Opt Freq"}[task]
-            simple = f"{method} {basis} {keyword} {extra}".strip()
-            blocks = f"%pal nprocs {nprocs} end\n%maxcore {memory_mb}"
-            write_orca(
-                buf,
-                atoms,
-                {"charge": charge, "mult": mult, "orcasimpleinput": simple, "orcablocks": blocks},
-            )
             name = f"{root_name}.inp"
+            buf.write(
+                orca_deck(
+                    structure,
+                    comment=structure.name or root_name,
+                    basis=str(merged.get("orca_basis", "svp")),
+                    task=task,
+                    charge=charge,
+                    multiplicity=mult,
+                    coordinates=str(merged.get("coordinates", "cartesian")),
+                    method=str(merged.get("orca_method", "rhf")),
+                    advanced=_orca_advanced(merged),
+                    nprocs=nprocs,
+                    memory_mb=memory_mb,
+                    extra=extra,
+                )
+            )
         elif program == "gaussian":
             name = f"{root_name}.gjf"
             buf.write(

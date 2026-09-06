@@ -967,6 +967,16 @@ after the basis it really requests. That dialog's theory box has no UHF or
 GVB entry, so the deck asks for `scftype rhf` whatever the multiplicity; above
 a singlet the form says so, and the extra keywords are where another
 wavefunction goes.
+ORCA has the two modes its dialog had. `Basic` is a method, a basis set and a
+calculation type; `Advanced` opens the rest -- the functional and its grids,
+the auxiliary bases, chain-of-spheres exchange, the SCF accuracy and
+relativistic treatment, the iteration limit, damping, level shifting and the
+two convergers, and what to print. Its Z-matrix is ORCA's own layout: Avogadro
+wrote another program's syntax there and never closed the coordinate block, so
+neither of its two internal-coordinate choices produced a file ORCA could read.
+The augmented-Hessian converger is still on the list, and the form tells you
+that Avogadro left its keyword commented out, so the deck will ask for no
+second-order converger at all.
 NWChem has the four theories and nine basis sets its dialog offered and all
 three coordinate layouts. MP2 and CCSD freeze the core, Dunning's basis sets
 add `spherical`, and an open-shell structure reaches a keyword under every
