@@ -105,3 +105,76 @@ def test_run_refused() -> None:
             plugin.generate_inputs(from_atoms(molecule("H2")), {}, "c"),
             Resources(),
         )
+
+
+def test_gaussian_deck_layout() -> None:
+    """Avogadro's Gaussian dialog, line for line: link-0, route, title, charge, geometry."""
+    water = from_atoms(molecule("H2O"), name="water")
+    gen = plugin.generate_inputs(
+        water,
+        {
+            "program": "gaussian",
+            "task": "optimize",
+            "method": "B3LYP",
+            "basis": "6-31G(d)",
+            "nprocs": 4,
+            "gaussian_output": "molden",
+            "gaussian_checkpoint": True,
+        },
+        "case",
+    )
+    lines = gen.files[0].text.split("\n")
+    assert lines[0] == "%NProcShared=4"
+    assert lines[1] == "%Mem=2000MB"
+    # the checkpoint is named after the deck, as Avogadro named it when it saved
+    assert lines[2] == "%Chk=case.chk"
+    # Molden's reader needs the basis and the orbitals printed, which is what those keywords do
+    assert lines[3] == "#n B3LYP/6-31G(d) Opt gfprint pop=full"
+    assert lines[4] == "" and lines[5] == " water" and lines[6] == ""
+    assert lines[7] == "0 1"
+    assert lines[8].split() == ["O", "0.00000", "0.00000", "0.11926"]
+    assert lines[-1] == "" and lines[-2] == ""  # Gaussian wants the deck to end blank
+
+
+def test_a_semi_empirical_gaussian_route_has_no_basis_set() -> None:
+    """`#n AM1/6-31G(d)` is not a calculation; Avogadro greyed the basis box out for AM1 and PM3."""
+    water = from_atoms(molecule("H2O"), name="water")
+    for method, route in (
+        ("AM1", "#n AM1 SP"),
+        ("PM6", "#n PM6 SP"),
+        ("RHF", "#n RHF/STO-3G SP"),
+    ):
+        gen = plugin.generate_inputs(
+            water,
+            {"program": "gaussian", "task": "energy", "method": method, "basis": "STO-3G"},
+            "case",
+        )
+        assert gen.files[0].text.split("\n")[1] == route
+
+
+def test_a_gaussian_deck_can_carry_a_z_matrix() -> None:
+    """The Format box: the same geometry as internal coordinates, in either of its two layouts."""
+    from atomscope.chem.zmatrix import zmatrix  # noqa: PLC0415
+
+    ethanol = from_atoms(molecule("CH3CH2OH"), name="ethanol")
+    values = {"program": "gaussian", "task": "energy", "method": "RHF", "basis": "STO-3G"}
+    verbose = plugin.generate_inputs(ethanol, {**values, "coordinates": "zmatrix"}, "case")
+    body = verbose.files[0].text.split("\n")
+    start = body.index("0 1") + 1
+    rows = zmatrix(ethanol)
+    assert body[start] == rows[0].element  # the first atom is measured against nothing
+    assert body[start + 1] == f"{rows[1].element:<3} {rows[1].a + 1} B1"
+    assert body[start + 2] == f"{rows[2].element:<3} {rows[2].a + 1} B2 {rows[2].b + 1} A2"
+    variables = body[body.index("Variables:") + 1 :]
+    assert variables[0] == f"B1{rows[1].distance:15.5f}"
+    assert variables[1] == f"B2{rows[2].distance:15.5f}"
+    assert variables[2] == f"A2{rows[2].angle:15.5f}"
+
+    compact = plugin.generate_inputs(ethanol, {**values, "coordinates": "zmatrix_compact"}, "case")
+    body = compact.files[0].text.split("\n")
+    assert "Variables:" not in body
+    assert body[body.index("0 1") + 2].split() == [
+        rows[1].element,
+        str(rows[1].a + 1),
+        f"{rows[1].distance:.5f}",
+    ]

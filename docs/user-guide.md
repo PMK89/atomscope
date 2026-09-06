@@ -911,6 +911,15 @@ generation) or warnings (which do not). Real examples:
 which shows each file in full with its role, and offers `Save input files…`.
 Generation is deterministic: the same values always give byte-identical files.
 
+Some programs have boxes of their own, which appear when you pick them.
+Gaussian has the ones its Avogadro dialog had: `Format` writes the geometry as
+Cartesian coordinates or as a Z-matrix (with the values in a `Variables`
+section, or in line), `Output` adds the keywords that make the log readable
+afterwards as a wavefunction (`Molden` and `Molekel`), and a checkpoint file is
+named after the deck — run `formchk` on it and the `.fchk` can be loaded in the
+Surfaces panel. A semi-empirical method (AM1, PM3, PM6, …) is written without a
+basis set, because Gaussian will not read a route line that has both.
+
 **Run** submits the job. Only one job runs at a time per backend process; the
 rest queue. Status moves `draft → ready → queued → running → completed |
 failed | cancelled` and is shown as a badge in the project panel, on the

@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+- The **Gaussian input generator** gained the options Avogadro's dialog had:
+  processors and memory, a checkpoint file named after the deck, the Output box
+  (Molden and Molekel add the keywords that make the log readable as a
+  wavefunction), and the Format box — Cartesian or either of the two Z-matrix
+  layouts. A semi-empirical method drops the basis set from the route line,
+  which is what makes `#n AM1 SP` a calculation and `#n AM1/6-31G(d) SP` not
+  one.
+
 - Surfaces can be generated from a **Molpro output** as well. Molpro names
   every basis function it prints, so the components are ordered by those names
   rather than by a table, and a name the reader does not know stops the read.

@@ -27,6 +27,7 @@ from atomscope.backends.base import (
     ResultBundle,
     Values,
 )
+from atomscope.backends.qc_inputs.gaussian import gaussian_deck
 from atomscope.jobs.models import RunSpec
 from atomscope.model import Structure
 from atomscope.schemas import (
@@ -102,7 +103,7 @@ SCHEMA = ParameterSchema(
                     label="Method / functional",
                     type="string",
                     default="B3LYP",
-                    help="e.g. HF, B3LYP, PBE, MP2, CCSD(T)",
+                    help="e.g. HF, B3LYP, PBE, MP2, CCSD(T); AM1 and PM3 take no basis set",
                     visible_when=[VisibleWhen(key="program", op="in", value=list(_AB_INITIO))],
                 ),
                 ParameterSpec(
@@ -110,7 +111,7 @@ SCHEMA = ParameterSchema(
                     label="Basis set",
                     type="string",
                     default="def2-SVP",
-                    help="e.g. def2-SVP, 6-31G*, cc-pVTZ",
+                    help="e.g. def2-SVP, 6-31G(d), 6-31G(d,p), STO-3G, 3-21G, LANL2DZ, cc-pVTZ",
                     visible_when=[VisibleWhen(key="program", op="in", value=list(_AB_INITIO))],
                 ),
                 ParameterSpec(
@@ -125,6 +126,43 @@ SCHEMA = ParameterSchema(
                     ],
                     help="MOPAC's semi-empirical Hamiltonian; there is no basis set to choose.",
                     visible_when=[VisibleWhen(key="program", value="mopac")],
+                ),
+                ParameterSpec(
+                    key="coordinates",
+                    label="Format",
+                    type="enum",
+                    default="cartesian",
+                    choices=[
+                        Choice(value="cartesian", label="Cartesian"),
+                        Choice(value="zmatrix", label="Z-matrix"),
+                        Choice(value="zmatrix_compact", label="Z-matrix (compact)"),
+                    ],
+                    help="how the geometry is written into the deck",
+                    visible_when=[VisibleWhen(key="program", value="gaussian")],
+                ),
+                ParameterSpec(
+                    key="gaussian_output",
+                    label="Output",
+                    type="enum",
+                    default="standard",
+                    choices=[
+                        Choice(value="standard", label="Standard"),
+                        Choice(value="molden", label="Molden"),
+                        Choice(value="molekel", label="Molekel"),
+                    ],
+                    help=(
+                        "Molden and Molekel add the keywords that print the basis and the"
+                        " orbitals, which is what makes the log readable as a wavefunction"
+                    ),
+                    visible_when=[VisibleWhen(key="program", value="gaussian")],
+                ),
+                ParameterSpec(
+                    key="gaussian_checkpoint",
+                    label="Write a checkpoint file",
+                    type="boolean",
+                    default=False,
+                    help="%Chk, named after the deck; formchk turns it into a .fchk to read here",
+                    visible_when=[VisibleWhen(key="program", value="gaussian")],
                 ),
                 ParameterSpec(
                     key="multiplicity",
@@ -343,22 +381,24 @@ class QcInputsPlugin:
             )
             name = f"{root_name}.inp"
         elif program == "gaussian":
-            route = {"energy": "", "optimize": "opt", "frequencies": "opt freq"}[task]
-            _write(
-                buf,
-                atoms,
-                "gaussian-in",
-                method=method,
-                basis=basis,
-                charge=charge,
-                mult=mult,
-                nprocshared=nprocs,
-                mem=f"{int(merged.get('memory_mb', 2000))}MB",
-                **({route.split()[0]: None} if route else {}),
-                **({"freq": None} if task == "frequencies" else {}),
-                extra=extra or None,
-            )
             name = f"{root_name}.gjf"
+            buf.write(
+                gaussian_deck(
+                    structure,
+                    title=structure.name or root_name,
+                    method=method,
+                    basis=basis,
+                    task=task,
+                    charge=charge,
+                    multiplicity=mult,
+                    nprocs=nprocs,
+                    memory_mb=memory_mb,
+                    extra=extra,
+                    output=str(merged.get("gaussian_output", "standard")),
+                    checkpoint=(f"{root_name}.chk" if merged.get("gaussian_checkpoint") else ""),
+                    coordinates=str(merged.get("coordinates", "cartesian")),
+                )
+            )
         elif program == "nwchem":
             theory = (
                 "scf"
