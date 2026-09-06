@@ -358,6 +358,11 @@ def test_a_semi_empirical_gamess_basis_takes_no_correlated_theory() -> None:
         assert any("semi-empirical basis set" in i.message for i in report.issues), correlated
     # and "no coupled cluster at all" is not a correlated method
     assert plugin.validate(water, {**values, "gamess_cc": "none"}).issues == []
+    # the Basic theory box's own AM1 and PM3 are a GBASIS too, detailed list or not
+    box = {"program": "gamess", "gamess_theory": "am1"}
+    assert plugin.validate(water, box).issues == []
+    report = plugin.validate(water, {**box, "gamess_functional": "BLYP"})
+    assert any("semi-empirical basis set" in i.message for i in report.issues)
 
 
 def test_the_gamess_control_tab_reaches_every_keyword_it_owns() -> None:

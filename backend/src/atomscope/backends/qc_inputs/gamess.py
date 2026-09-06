@@ -639,9 +639,10 @@ def gamess_deck(
     if scf_group:
         lines.append(scf_group)
     # no MP2 run, nothing to say about one: Avogadro's MPLEVL=2 condition
-    mp2_group = _mp2_group(mp2 or MP2Options(), scftyp, run_type(task, control))
-    if theory == "mp2" and mp2_group:
-        lines.append(mp2_group)
+    if theory == "mp2":
+        mp2_group = _mp2_group(mp2 or MP2Options(), scftyp, run_type(task, control))
+        if mp2_group:
+            lines.append(mp2_group)
     if run_type(task, control) in STATIONARY_POINT_RUNS:
         # written for every optimize and saddle-point run, values and all: they are GAMESS's own
         # defaults, and Avogadro punched them "just to remind the user"

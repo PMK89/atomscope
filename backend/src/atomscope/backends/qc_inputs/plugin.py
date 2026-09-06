@@ -1071,7 +1071,8 @@ def _gamess_wave_function_issues(merged: Values) -> list[ValidationIssue]:
                 severity="warning",
             )
         )
-    if merged.get("gamess_mp2_localized") and scftyp not in ("", "rhf"):
+    localized = merged.get("gamess_mp2_localized") and merged.get("gamess_theory") == "mp2"
+    if localized and scftyp not in ("", "rhf"):
         issues.append(
             ValidationIssue(
                 key="gamess_mp2_localized",
