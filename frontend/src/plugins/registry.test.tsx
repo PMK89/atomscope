@@ -6,6 +6,7 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { useToolStore } from '../editor/toolStore';
 import { useStructureStore } from '../state/structureStore';
+import { makeAtom, makeBond, normalizeStructure } from '../model/structure';
 import type { Tool } from '../editor/Tool';
 import { Object3D } from 'three';
 import type { DisplayLayer } from '../renderer/layers/Layer';
@@ -17,6 +18,11 @@ import { ToolSettings } from '../ui/ToolSettings';
 import { PluginProvider } from './context';
 import { defaultRegistry } from './builtins';
 import { PluginRegistry } from './registry';
+
+beforeEach(() => {
+  useStructureStore.getState().load(normalizeStructure({ name: 'empty', charge: 0 }));
+  useToolStore.getState().setActive('navigate');
+});
 
 class WireCutters implements Tool {
   readonly id = 'wire-cutters';
@@ -133,6 +139,16 @@ test('a contributed layer is added to a renderer, one instance per renderer', ()
 
 test('a contributed menu item lands under the menu it names, and undoes like any edit', () => {
   const registry = withPlugin();
+  // a bonded structure, so "cut the bonds" is an edit that can be seen rather than a no-op
+  useStructureStore.getState().load(
+    normalizeStructure({
+      name: 'water',
+      charge: 0,
+      atoms: [makeAtom('O', [0, 0, 0]), makeAtom('H', [0.96, 0, 0]), makeAtom('H', [-0.3, 0.9, 0])],
+      bonds: [makeBond(0, 1), makeBond(0, 2)],
+    }),
+  );
+  expect(useStructureStore.getState().doc.bonds).toHaveLength(2);
   render(
     <PluginProvider registry={registry}>
       <MenuBar onError={() => {}} />

@@ -59,6 +59,17 @@ import { Menu, type MenuItem } from './Menu';
 import { usePlugins } from '../plugins/context';
 import type { StructureStyle } from '../renderer/layers/StructureLayer';
 
+const BUILT_IN_MENUS = [
+  'File',
+  'Edit',
+  'Select',
+  'Build',
+  'Extensions',
+  'Settings',
+  'View',
+  'Help',
+] as const;
+
 export function MenuBar({ onError }: { onError: (msg: string) => void }): JSX.Element {
   const [help, setHelp] = useState<HelpTopic | null>(null);
   const [namedOpen, setNamedOpen] = useState(false);
@@ -198,6 +209,8 @@ export function MenuBar({ onError }: { onError: (msg: string) => void }): JSX.El
 
   // contributed items go under the built-in ones of the menu they name (plugins/registry.ts)
   const registry = usePlugins();
+  // the eight below, named once: a contributed path that is none of them makes a menu of its own
+  const builtInMenus = BUILT_IN_MENUS;
   const contributed = (menu: string): MenuItem[] => [...registry.menuItems(menu)];
   const styleItem = (label: string, style: StructureStyle): MenuItem => ({
     label,
@@ -482,11 +495,9 @@ export function MenuBar({ onError }: { onError: (msg: string) => void }): JSX.El
           ...contributed('Help'),
         ]}
       />
-      {registry
-        .extraMenus(['File', 'Edit', 'Select', 'Build', 'Extensions', 'Settings', 'View', 'Help'])
-        .map((menu) => (
-          <Menu key={menu} title={menu} items={contributed(menu)} />
-        ))}
+      {registry.extraMenus(builtInMenus).map((menu) => (
+        <Menu key={menu} title={menu} items={contributed(menu)} />
+      ))}
       <ImportDialog open={importOpen} onClose={() => setImportOpen(false)} onError={onError} />
       <ExportDialog open={exportOpen} onClose={() => setExportOpen(false)} onError={onError} />
       <ExportImageDialog

@@ -2,7 +2,7 @@
 
 Branch: main; this file is updated in the commit that checkpoints the work, so `git log -1 -- docs/STATE.md` is the last checkpoint. Phases 0-1 done; Phase 2 (editor tools), 3 (volumetric, trajectories, vectors), 4-5 (CP-PAW setup/execution/forces), 6 (CP-PAW analysis: DOS, bands, orbitals), crystallography, molecular mechanics and wavefunction surfaces are merged and working. Parity matrix: 219 IMPLEMENTED, 19 PARTIAL, 73 NOT STARTED, 1 BLOCKED of 312 rows.
 
-Tests: `pytest -q -m "not cppaw"` -> 475 passed, 1 skipped; `pytest -q -m cppaw` -> 7 passed (~90 s, needs the local CP-PAW install); `pnpm vitest run` -> 508 passed; `pnpm exec playwright test` -> 38 passed in 54 s at `61cac6b`+ (against private servers, see below; `make test-e2e` points at the user's 5173, which is stale). **`source env.sh` before Playwright**: without `PLAYWRIGHT_BROWSERS_PATH` it looks in `~/.cache/ms-playwright`, finds nothing, and every test fails at `browserType.launch`. `ruff check`, `mypy` and `pnpm typecheck` are clean. No known failing tests. **Type-check the frontend with `pnpm typecheck` (`tsc -b --noEmit`), never with `pnpm exec tsc --noEmit`:** the root `tsconfig.json` is a solution file with `files: []`, so a bare `tsc --noEmit` checks nothing and exits 0.
+Tests: `pytest -q -m "not cppaw"` -> 475 passed, 1 skipped; `pytest -q -m cppaw` -> 7 passed (~90 s, needs the local CP-PAW install); `pnpm vitest run` -> 508 passed; `pnpm exec playwright test` -> 38 passed in 57 s at `08cb256`+ (against private servers, see below; `make test-e2e` points at the user's 5173, which is stale). **`source env.sh` before Playwright**: without `PLAYWRIGHT_BROWSERS_PATH` it looks in `~/.cache/ms-playwright`, finds nothing, and every test fails at `browserType.launch`. `ruff check`, `mypy` and `pnpm typecheck` are clean. No known failing tests. **Type-check the frontend with `pnpm typecheck` (`tsc -b --noEmit`), never with `pnpm exec tsc --noEmit`:** the root `tsconfig.json` is a solution file with `files: []`, so a bare `tsc --noEmit` checks nothing and exits 0.
 
 ## Resume commands
 
@@ -255,9 +255,17 @@ run against current code -- Playwright above all -- use the private-server recip
      acceptance criterion, which is Avogadro's **Plugin Manager dialog**: "Plugins enable/disable;
      details shown", over tabs Colors / Display Types / Extensions / Tools. So two things left --
      colour schemes as a fifth contract (`renderer/atomColors.ts` enumerates them, `DisplayPanel`
-     consumes them), and a dialog listing every contribution by kind with a switch each. Turning
-     one off has to mean something in each case: a tool leaves the toolbar, a layer is not
-     installed, a panel loses its tab, a menu item its entry.
+     consumes them), and a dialog listing every contribution by kind with a switch each. Read out
+     of Avogadro's own (`avogadro/src/pluginsettings.cpp`, `pluginitemmodel.cpp`): its five kinds
+     are Engine (our layers), Tool, Extension (our menu items), Color and Other; the details pane
+     shows **Name, Identifier, File and Description** (pluginsettings.cpp:52-57); and disabling
+     **takes effect at once**, not at the next start -- `saveValues` emits `reloadPlugins`, which
+     reloads the extensions (their QActions leaving the menus with them), calls
+     `reloadEngines()` on every GL widget and `reloadTools()` (mainwindow.cpp:788-825). So
+     turning one off has to mean something live in each case: a tool leaves the toolbar, a layer
+     leaves the running renderer, a panel loses its tab, a menu item its entry. One difference to
+     record: Avogadro's unit is one plugin file, and an extension file could contribute several
+     actions; ours is one contribution, so its Extensions list is finer-grained than Avogadro's.
 
      **The registry so far:**
      `src/plugins/registry.ts` is a `PluginRegistry` class with a React context beside it
