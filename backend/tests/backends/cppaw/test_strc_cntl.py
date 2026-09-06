@@ -17,6 +17,7 @@ from atomscope.backends.cppaw.deck import parse_deck
 from atomscope.backends.cppaw.strc import (
     StrcOptions,
     atom_name,
+    isolate_mode,
     read_strc_geometry,
     species_name,
     strc_text,
@@ -182,3 +183,52 @@ def test_occupation_states_roundtrip() -> None:
         parse_occupation_states("1 2")
     with pytest.raises(ValueError, match="invalid"):
         parse_occupation_states("0 1 1.0")
+
+
+def test_isolate_is_reachable_for_a_cell_the_structure_brought() -> None:
+    """The tutorial's molecules live in a face-centred cell of their own and still need !ISOLATE.
+
+    `isolate` used to be applied only to structures we had boxed ourselves, which made the
+    tutorial's own water setup -- ch. 2.5, an fcc cell of 12 Å with the electrostatic image
+    interaction subtracted -- impossible to express. It is a three-way choice now.
+    """
+    from ase import Atoms
+
+    water = from_atoms(
+        Atoms(
+            "OH2",
+            positions=[(0.0, 0.0, 0.0), (1.05, 0.0, 0.0), (0.0, 1.05, 0.0)],
+            cell=[(0.0, 6.0, 6.0), (6.0, 0.0, 6.0), (6.0, 6.0, 0.0)],
+            pbc=True,
+        ),
+        name="water",
+    )
+    always = parse_deck(strc_text(water, StrcOptions(isolate="always", kpoint_mode="gamma"))).child(
+        "STRUCTURE"
+    )
+    assert always.child("ISOLATE") is not None
+    # the cell it brought is kept, not replaced by a box of ours
+    assert always.child("LATTICE").get("T")[:3] == [0.0, 6.0, 6.0]
+    assert always.child("KPOINTS").get("DIV") == [1, 1, 1]
+
+    # auto leaves a periodic structure alone, which is what a solid needs
+    auto = parse_deck(strc_text(water, StrcOptions(isolate="auto"))).child("STRUCTURE")
+    assert auto.child("ISOLATE") is None
+    # ...and still isolates a molecule with no cell of its own
+    boxed = parse_deck(strc_text(from_atoms(molecule("H2O")), StrcOptions())).child("STRUCTURE")
+    assert boxed.child("ISOLATE") is not None
+
+    never = parse_deck(strc_text(water, StrcOptions(isolate="never"))).child("STRUCTURE")
+    assert never.child("ISOLATE") is None
+
+
+def test_isolate_reads_the_boolean_older_projects_saved() -> None:
+    """True meant "isolate a molecule we boxed"; False meant never. Both keep their meaning."""
+    assert isolate_mode(True) == "auto"
+    assert isolate_mode(False) == "never"
+    assert isolate_mode("always") == "always"
+    assert StrcOptions.from_values({"isolate": True}).isolate == "auto"
+    assert StrcOptions.from_values({"isolate": False}).isolate == "never"
+    assert StrcOptions.from_values({}).isolate == "auto"
+    # anything unrecognised falls back to the default rather than silently never isolating
+    assert isolate_mode("nonsense") == "auto"

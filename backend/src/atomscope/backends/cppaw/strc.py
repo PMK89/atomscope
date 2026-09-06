@@ -8,6 +8,9 @@ Conventions used by the generator (see docs/cppaw-analysis.md §3.4, §8):
 - setups use the internal families ``<SPECIES>_<type>`` (no external setup files needed);
 - ``CHARGE[E]`` is the ionization state (anion = -1), ``SPIN[HBAR]`` the total spin S;
 - non-periodic structures get an orthorhombic box of extent + 2 × margin and ``!ISOLATE``.
+- ``isolate="always"`` writes ``!ISOLATE`` for a structure that brought its own cell too, which
+  is how the tutorial treats a molecule: a face-centred cell of its own choosing, Γ-point only,
+  and the electrostatic image interaction subtracted.
 """
 
 from __future__ import annotations
@@ -56,6 +59,18 @@ def parse_npro_overrides(text: str) -> dict[str, list[int]]:
     return out
 
 
+def isolate_mode(value: object) -> str:
+    """The three-way choice, accepting the boolean projects saved before it was one.
+
+    ``True`` was "isolate a molecule we boxed ourselves", which is what ``auto`` means; ``False``
+    was "never". Reading them that way leaves every existing project computing what it did.
+    """
+    if isinstance(value, bool):
+        return "auto" if value else "never"
+    text = str(value)
+    return text if text in {"auto", "always", "never"} else "auto"
+
+
 @dataclass
 class StrcOptions:
     setup_type: str = ".75_6.0"
@@ -64,7 +79,7 @@ class StrcOptions:
     npro_overrides: str = ""
     hydrogen_mass: float = 0.0
     box_margin: float = 4.0
-    isolate: bool = True
+    isolate: str = "auto"
     spin_polarized: bool = False
     total_spin: float = 0.0
     empty_bands: int = 4
@@ -84,7 +99,7 @@ class StrcOptions:
             npro_overrides=str(v.get("npro_overrides", "")),
             hydrogen_mass=float(v.get("hydrogen_mass", 0.0)),  # type: ignore[arg-type]
             box_margin=float(v.get("box_margin", 4.0)),  # type: ignore[arg-type]
-            isolate=bool(v.get("isolate", True)),
+            isolate=isolate_mode(v.get("isolate", "auto")),
             spin_polarized=bool(v.get("spin_polarized", False)),
             total_spin=float(v.get("total_spin", 0.0)),  # type: ignore[arg-type]
             empty_bands=int(v.get("empty_bands", 4)),  # type: ignore[call-overload]
@@ -165,7 +180,7 @@ def build_strc(structure: Structure, opts: StrcOptions) -> Block:
             kp.set("DIV", list(opts.kpoint_div))
         else:
             kp.set("R", opts.kpoint_r)
-    elif opts.isolate:
+    if opts.isolate == "always" or (opts.isolate == "auto" and not periodic):
         strc.ensure_child("ISOLATE")
 
     occ = strc.ensure_child("OCCUPATIONS")

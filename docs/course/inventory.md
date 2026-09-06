@@ -33,7 +33,7 @@ we do not have · `TODO` not started.
 | # | Chapter | Exercise | System | Calculation | What the course shows | Atomscope surface | Status |
 |---|---------|----------|--------|-------------|-----------------------|-------------------|--------|
 | 1 | Preparation | shell, build, defaults | — | — | how to run the code at all | not applicable — we drive the binaries | n/a |
-| 2.7 | Water structure | optimize the wave functions | H₂O in a 12 Å fcc cell, isolated | wave-function optimization, `START=T` | protocol file, convergence of the total energy | CP-PAW setup form, job console, convergence plot | TODO |
+| 2.7 | Water structure | optimize the wave functions | H₂O in a 12 Å fcc cell, isolated | wave-function optimization, `START=T` | protocol file, convergence of the total energy | CP-PAW setup form, job console, convergence plot | RUNS |
 | 2.7.4 | Water structure | follow progress graphically | H₂O | — | energy and gap against iteration | convergence plot | TODO |
 | 2.8 | Water structure | relax the atomic positions | H₂O | atomic relaxation | final geometry, bond length and angle | relaxation run, geometry table, trajectory | TODO |
 | 2.8.4 | Water structure | analyse with `paw_strc` | H₂O | — | bond lengths and angles from the tool | properties panel (bond/angle/torsion tables) | TODO |
@@ -67,6 +67,22 @@ we do not have · `TODO` not started.
 | 8.4 | Convergence | number of k-points | Si | a sweep | energy against mesh | as above | BLOCKED |
 | 8.5 | Convergence | cell size for a molecule | H₂O | a sweep over the cell | energy against isolation distance | as above | BLOCKED |
 
+## Findings
+
+- **`!ISOLATE` was unreachable for a cell the structure brought with it.** The course's molecules
+  live in a face-centred cell chosen by hand, Γ-point only, with the electrostatic image
+  interaction subtracted — the setup its ch. 2.5 argues for at length. Our `isolate` flag applied
+  only to structures we had boxed ourselves, so that setup could not be expressed at all. It is a
+  three-way choice now (`auto` / `always` / `never`), and projects saved with the old boolean keep
+  the behaviour they had.
+- **The gap this machine computes is not the gap the course prints.** Ch. 2.7 quotes an absolute
+  gap of 5.4665 eV for water; we get 5.3843 eV. The course's own deck, typed out and run directly
+  against the installed `paw_fast.x`, also gives 5.3843 eV — so the difference is the code or the
+  setup files this machine has, not anything about our input. Worth knowing before comparing any
+  other number in the course against a run here.
+- `!OCCUPATIONS!STATE` **is** implemented (`strc.py`, `parse_occupation_states`), contrary to what
+  ROADMAP Phase 4 still says; whether it covers what the NiO exercise needs is checked in ch. 7.
+
 ## What the course needs that we do not have
 
 Ordered by how many exercises each unblocks.
@@ -75,7 +91,8 @@ Ordered by how many exercises each unblocks.
    chapter 8). One parameter varied over a list, N jobs, one plot of the result against it.
 2. **COOP** — 3.5, 4.7.5. Another `!WEIGHT` kind in the `.dcntl` plus a plot that can show
    negative values.
-3. **`!OCCUPATIONS!STATE`** — 7.3, and already named as remaining in ROADMAP Phase 4.
+3. **Per-state occupations for NiO** — 7.3. The `!OCCUPATIONS!STATE` block exists; what is not
+   yet checked is whether the exercise needs more than it writes.
 4. **Cell dynamics** — 6.3.5; also gives 6.3.7 a second route.
 5. **Empty atoms** — 6.3.3.
 6. **`paw_tra` mode extraction** — 5.10.

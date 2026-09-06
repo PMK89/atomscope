@@ -428,10 +428,27 @@ SCHEMA = ParameterSchema(
                 ParameterSpec(
                     key="isolate",
                     label="Electrostatic decoupling of periodic images (!ISOLATE)",
-                    type="boolean",
-                    default=True,
+                    type="enum",
+                    default="auto",
+                    choices=[
+                        Choice(
+                            value="auto",
+                            label="Automatic",
+                            help="on for a molecule we had to put in a box, off for a structure"
+                            " that brought its own cell",
+                        ),
+                        Choice(
+                            value="always",
+                            label="Always",
+                            help="decouple even in a cell you chose yourself -- what a molecule in"
+                            " the tutorial's fcc cell needs, and it needs Γ-point sampling too",
+                        ),
+                        Choice(value="never", label="Never"),
+                    ],
                     backend_path="STRUCTURE/ISOLATE",
-                    help="Recommended for molecules; applied only to non-periodic structures.",
+                    help="A plane-wave code repeats the cell, so a molecule feels its own images."
+                    " !ISOLATE subtracts the electrostatic part of that interaction; keeping the"
+                    " images far apart is what handles the rest.",
                 ),
                 ParameterSpec(
                     key="kpoint_mode",
