@@ -848,9 +848,6 @@ def gamess_deck(
     """One GAMESS-US deck from the Basic Setup options."""
     _check_choices(theory, basis, detailed, task, control)
     electrons = sum(atomic_numbers[a.element] for a in structure.atoms) - charge
-    # the deck's own multiplicity, not the box's: an odd electron count is a doublet, which is
-    # what Avogadro punched when nothing had been chosen, and what MIX and MULT both answer to
-    multiplicity = multiplicity if multiplicity > 1 else (2 if electrons % 2 else 1)
 
     basis_group, ecp = _basis_group(theory, basis, detailed)
     lines = [basis_group]

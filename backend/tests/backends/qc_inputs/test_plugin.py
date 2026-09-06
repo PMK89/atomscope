@@ -1034,6 +1034,10 @@ def test_molpro_frequencies_optimize_first_and_say_so() -> None:
     issues = plugin.validate(water, values).issues
     assert [i.key for i in issues] == ["task"]
     assert issues[0].severity == "warning"
+    # ORCA's route says `Opt Freq`, which is the same thing, and it is said the same way
+    orca = plugin.validate(water, {"program": "orca", "task": "frequencies"}).issues
+    assert [i.key for i in orca] == ["task"]
+    assert not plugin.validate(water, {"program": "gaussian", "task": "frequencies"}).issues
     # a single point asks for nothing: the wavefunction blocks are the calculation
     assert (
         plugin.generate_inputs(water, {"program": "molpro"}, "c")
@@ -1067,6 +1071,10 @@ def test_a_radical_is_never_written_as_a_singlet() -> None:
     assert "\n0 4\n" in plugin.generate_inputs(quartet, {"program": "psi4"}, "c").files[0].text
     forced = plugin.generate_inputs(methyl, {"program": "psi4", "multiplicity": 6}, "c")
     assert "\n0 6\n" in forced.files[0].text
+    # including one the electrons cannot have: it is written as asked and `validate` says so,
+    # which is the same in the GAMESS-US writer now that the resolution lives in one place
+    impossible = plugin.generate_inputs(methyl, {"program": "gamess", "multiplicity": 1}, "c")
+    assert " MULT=" not in impossible.files[0].text
 
 
 def test_a_multiplicity_the_electrons_cannot_have_is_said() -> None:

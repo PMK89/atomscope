@@ -93,6 +93,11 @@ MOLECULAR = (
     "mopac",
 )
 
+OPTIMIZE_BEFORE_FREQUENCIES = ("orca", "molpro")
+"""The two whose frequency deck runs an optimization first -- ORCA's route says `Opt Freq` and
+Molpro's writes `{optg}` above `{frequencies}` (`molproinputdialog.cpp:453-455`). A frequency at
+a geometry that is not stationary is not one, so both are kept and both are said."""
+
 TS_PROGRAMS = ("gamess", "gamessuk")
 """The generators that write a transition-state deck: GAMESS-US punches RUNTYP=SADPOINT and
 GAMESS-UK `runtype saddle`. Everything else says so rather than writing a lesser search."""
@@ -1874,13 +1879,13 @@ class QcInputsPlugin:
             report.issues += _psi4_issues(structure, merged)
         if program == "gamessuk":
             report.issues += _gamessuk_issues(structure, merged)
-        if program == "molpro" and merged.get("task") == "frequencies":
+        if program in OPTIMIZE_BEFORE_FREQUENCIES and merged.get("task") == "frequencies":
             report.issues.append(
                 ValidationIssue(
                     key="task",
                     message=(
-                        "Avogadro's Molpro deck runs `{optg}` above `{frequencies}`, so the"
-                        " frequencies are those of the optimized geometry, not of this one"
+                        f"the {program} deck optimizes before it takes the frequencies, so they"
+                        " are those of the optimized geometry, not of this one"
                     ),
                     severity="warning",
                 )
