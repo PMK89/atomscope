@@ -5,10 +5,12 @@
  */
 import { fireEvent, render, screen } from '@testing-library/react';
 import { useToolStore } from '../editor/toolStore';
+import { useStructureStore } from '../state/structureStore';
 import type { Tool } from '../editor/Tool';
 import { Object3D } from 'three';
 import type { DisplayLayer } from '../renderer/layers/Layer';
 import { installExtraLayers } from '../ui/viewportLayers';
+import { MenuBar } from '../ui/MenuBar';
 import { RightDock } from '../ui/RightDock';
 import { ToolBar } from '../ui/ToolBar';
 import { ToolSettings } from '../ui/ToolSettings';
@@ -31,6 +33,14 @@ function withPlugin(): PluginRegistry {
     settings: () => <p>snips</p>,
   });
   registry.registerPanel({ id: 'wires', label: 'Wires', component: () => <p>one wire</p> });
+  registry.registerMenuItem({
+    menuPath: 'Extensions',
+    label: 'Cut wires',
+    action: () => {
+      const doc = useStructureStore.getState().doc;
+      useStructureStore.getState().commit('Cut wires', { ...doc, bonds: [] });
+    },
+  });
   return registry;
 }
 
@@ -121,8 +131,44 @@ test('a contributed layer is added to a renderer, one instance per renderer', ()
   expect(built[0]).not.toBe(built[1]);
 });
 
+test('a contributed menu item lands under the menu it names, and undoes like any edit', () => {
+  const registry = withPlugin();
+  render(
+    <PluginProvider registry={registry}>
+      <MenuBar onError={() => {}} />
+    </PluginProvider>,
+  );
+  fireEvent.click(screen.getByRole('button', { name: 'Extensions' }));
+  // below everything built in, which is what "additively" means
+  const items = screen.getAllByRole('menuitem').map((el) => el.textContent);
+  expect(items[items.length - 1]).toContain('Cut wires');
+  fireEvent.click(screen.getByRole('menuitem', { name: /Cut wires/ }));
+  // performCommand with undo: a contributed action edits through the same history as a built-in
+  expect(useStructureStore.getState().undoLabel()).toBe('Cut wires');
+  expect(useStructureStore.getState().doc.bonds).toHaveLength(0);
+});
+
+test('a menu nothing built in provides is made for the item that asks for it', () => {
+  const registry = withPlugin();
+  registry.registerMenuItem({ menuPath: 'Wires', label: 'Coil', action: () => {} });
+  render(
+    <PluginProvider registry={registry}>
+      <MenuBar onError={() => {}} />
+    </PluginProvider>,
+  );
+  fireEvent.click(screen.getByRole('button', { name: 'Wires' }));
+  expect(screen.getByRole('menuitem', { name: 'Coil' })).toBeInTheDocument();
+});
+
+test('a menu path with more than one level is refused', () => {
+  expect(() =>
+    defaultRegistry().registerMenuItem({ menuPath: 'a/b', label: 'x', action: () => {} }),
+  ).toThrow('more than one level');
+});
+
 test('a layer whose factory builds another layer is refused rather than lost', () => {
-  const registry = defaultRegistry();
+  // a registry of its own: building the application's layers wants a canvas jsdom has not got
+  const registry = new PluginRegistry();
   registry.registerLayer({ id: 'wires', create: () => new WireLayer('cables') });
   expect(() => installExtraLayers(new FakeRenderer() as never, registry)).toThrow('calls itself');
 });
@@ -133,6 +179,7 @@ test('the application registry does not carry a test plugin', () => {
   expect(registry.tools()).toHaveLength(8);
   expect(registry.panels().map((p) => p.id)).not.toContain('wires');
   expect(registry.layers().map((l) => l.id)).not.toContain('wires');
+  expect(registry.menuItems('Extensions')).toHaveLength(0);
 });
 
 test('registering the same id twice is refused, and so is taking a shortcut twice', () => {

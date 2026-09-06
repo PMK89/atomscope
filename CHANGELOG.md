@@ -2,11 +2,14 @@
 
 ## Unreleased
 
-- The **editor tools, the display layers and the dock panels are plugins now**.
-  Nothing enumerates them any more: the toolbar, the status bar, the settings
-  box, the input host, the renderer and the dock's tab strip all ask a registry,
-  and everything the application ships registers into it through the same calls
-  a plugin would use. A tool brings its own settings panel, says whether it
+- The **editor tools, the display layers, the dock panels and the menu items are
+  plugins now**. Nothing enumerates them any more: the toolbar, the status bar,
+  the settings box, the input host, the renderer, the dock's tab strip and the
+  menu bar all ask a registry, and everything the application ships registers
+  into it through the same calls a plugin would use. An extension contributes a
+  menu entry by naming the menu it belongs under — one that is there, or one of
+  its own — and edits the document through the same undo history as everything
+  else, so its command appears in Undo under the name it gave. A tool brings its own settings panel, says whether it
   leaves the camera its drags and what cursor it wants, and its id is any string
   rather than one of eight; a panel brings its own tab. Avogadro's plugins were shared libraries loaded at
   start-up; a browser bundle has no such loader, so a plugin here is a module and

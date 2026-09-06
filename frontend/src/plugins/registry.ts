@@ -12,6 +12,7 @@
  */
 import type { Tool } from '../editor/Tool';
 import type { DisplayLayer } from '../renderer/layers/Layer';
+import type { MenuItem } from '../ui/Menu';
 
 export type ErrorSink = (message: string) => void;
 
@@ -48,10 +49,27 @@ export interface PanelContribution {
   component: (props: { onError: ErrorSink }) => JSX.Element;
 }
 
+export interface MenuContribution extends MenuItem {
+  /**
+   * The menu the item belongs under: one level, a top menu's title. A path naming a menu that is
+   * there (`File`, `Extensions`, ...) appends to it, below everything built in; any other name
+   * makes a menu of its own, after the built-in ones and in registration order. Submenus would be
+   * a second level and `Menu` has only one, so a path with a `/` in it is refused.
+   */
+  menuPath: string;
+  /**
+   * Display text only, as it is for the built-in items: the accelerators are bound by hand in
+   * `MenuBar`'s keydown handler, and a contributed one would need a combination parser and a
+   * clash check against those before it could be more than a label.
+   */
+  shortcut?: string;
+}
+
 export class PluginRegistry {
   private readonly toolList: ToolContribution[] = [];
   private readonly layerList: LayerContribution[] = [];
   private readonly panelList: PanelContribution[] = [];
+  private readonly menuList: MenuContribution[] = [];
 
   registerTool(contribution: ToolContribution): void {
     if (this.toolList.some((c) => c.tool.id === contribution.tool.id)) {
@@ -97,5 +115,29 @@ export class PluginRegistry {
   /** Contributed dock panels in registration order, which is tab order. */
   panels(): readonly PanelContribution[] {
     return this.panelList;
+  }
+
+  registerMenuItem(contribution: MenuContribution): void {
+    if (contribution.menuPath.includes('/')) {
+      throw new Error(`menu path ${contribution.menuPath} has more than one level`);
+    }
+    this.menuList.push(contribution);
+  }
+
+  /** Contributed items of one menu, in registration order. */
+  menuItems(menuPath: string): readonly MenuContribution[] {
+    return this.menuList.filter((c) => c.menuPath === menuPath);
+  }
+
+  /** Menus contributed items ask for that are not in `existing`, in registration order. */
+  extraMenus(existing: readonly string[]): string[] {
+    const seen = new Set(existing);
+    const out: string[] = [];
+    for (const item of this.menuList) {
+      if (seen.has(item.menuPath)) continue;
+      seen.add(item.menuPath);
+      out.push(item.menuPath);
+    }
+    return out;
   }
 }

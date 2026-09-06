@@ -8,6 +8,17 @@ import { useViewStore } from '../state/viewStore';
 import { makeAtom, normalizeStructure } from '../model/structure';
 import { useStructureStore } from '../state/structureStore';
 import { MenuBar } from './MenuBar';
+import { PluginProvider } from '../plugins/context';
+import { plugins } from '../plugins/builtins';
+
+/** The bar needs a plugin registry above it, as it has one in the application. */
+const renderMenuBar = (onError: (m: string) => void = () => {}): void => {
+  render(
+    <PluginProvider registry={plugins()}>
+      <MenuBar onError={onError} />
+    </PluginProvider>,
+  );
+};
 
 function water() {
   return normalizeStructure({
@@ -34,17 +45,17 @@ beforeEach(() => {
 });
 
 test('Ctrl+Z outside a text field undoes the document edit', () => {
-  render(<MenuBar onError={() => {}} />);
+  renderMenuBar();
   fireEvent.keyDown(document.body, { key: 'z', ctrlKey: true });
   expect(useStructureStore.getState().doc.name).toBe('water');
 });
 
 test('Ctrl+Z / Ctrl+Y / Ctrl+A inside a text field are left to the browser', () => {
   render(
-    <>
+    <PluginProvider registry={plugins()}>
       <MenuBar onError={() => {}} />
       <input aria-label="a field" defaultValue="text" />
-    </>,
+    </PluginProvider>,
   );
   const field = screen.getByLabelText('a field');
   const before = useStructureStore.getState();
@@ -59,7 +70,7 @@ test('Ctrl+Z / Ctrl+Y / Ctrl+A inside a text field are left to the browser', () 
 });
 
 test('menu titles announce their popup and items carry checkable roles', () => {
-  render(<MenuBar onError={() => {}} />);
+  renderMenuBar();
   const view = screen.getByRole('button', { name: 'View' });
   expect(view).toHaveAttribute('aria-haspopup', 'menu');
   expect(view).toHaveAttribute('aria-expanded', 'false');
@@ -84,7 +95,7 @@ test('menu titles announce their popup and items carry checkable roles', () => {
 });
 
 test('menus support arrow-key navigation, skip disabled items and close on Escape', () => {
-  render(<MenuBar onError={() => {}} />);
+  renderMenuBar();
   const edit = screen.getByRole('button', { name: 'Edit' });
   const label = (): string => (document.activeElement as HTMLElement).textContent ?? '';
   fireEvent.keyDown(edit, { key: 'ArrowDown' });
@@ -110,7 +121,7 @@ test('Select SMARTS asks the backend and selects the matching atoms', async () =
     .mockResolvedValue({ matches: [[0, 1]], atoms: [0, 1] } as never);
   vi.spyOn(window, 'prompt').mockReturnValue('[OX2H]');
 
-  render(<MenuBar onError={() => {}} />);
+  renderMenuBar();
   fireEvent.click(screen.getByRole('button', { name: 'Select' }));
   fireEvent.click(screen.getByText('Select SMARTS…'));
 
@@ -123,7 +134,7 @@ test('a SMARTS pattern that matches nothing is reported', async () => {
   vi.spyOn(window, 'prompt').mockReturnValue('[Fe]');
   const onError = vi.fn();
 
-  render(<MenuBar onError={onError} />);
+  renderMenuBar(onError);
   fireEvent.click(screen.getByRole('button', { name: 'Select' }));
   fireEvent.click(screen.getByText('Select SMARTS…'));
 
@@ -131,7 +142,7 @@ test('a SMARTS pattern that matches nothing is reported', async () => {
 });
 
 test('a selection can be named and recalled from the Select menu', () => {
-  render(<MenuBar onError={() => {}} />);
+  renderMenuBar();
   fireEvent.click(screen.getByRole('button', { name: 'Select' }));
   // nothing selected: there is nothing to name
   expect(screen.getByRole('menuitem', { name: 'Add named selection…' })).toBeDisabled();
@@ -154,7 +165,7 @@ test('Fetch from PDB loads what the backend returns', async () => {
     .mockResolvedValue({ name: '1CRN', atoms: [makeAtom('N', [0, 0, 0])] } as never);
   vi.spyOn(window, 'prompt').mockReturnValue('1crn');
 
-  render(<MenuBar onError={() => {}} />);
+  renderMenuBar();
   fireEvent.click(screen.getByRole('button', { name: 'File' }));
   fireEvent.click(screen.getByText('Fetch from PDB…'));
 
@@ -168,7 +179,7 @@ test('an id the database does not have is reported, not swallowed', async () => 
   vi.spyOn(window, 'prompt').mockReturnValue('9ZZZ');
   const onError = vi.fn();
 
-  render(<MenuBar onError={onError} />);
+  renderMenuBar(onError);
   fireEvent.click(screen.getByRole('button', { name: 'File' }));
   fireEvent.click(screen.getByText('Fetch from PDB…'));
 
@@ -187,7 +198,7 @@ test('the File menu lists recent files, opens one and clears the list', async ()
   ]);
   const clearRecent = vi.spyOn(api.io, 'clearRecent').mockResolvedValue([]);
 
-  render(<MenuBar onError={() => {}} />);
+  renderMenuBar();
   await waitFor(() => expect(recent).toHaveBeenCalled());
   fireEvent.click(screen.getByRole('button', { name: 'File' }));
 

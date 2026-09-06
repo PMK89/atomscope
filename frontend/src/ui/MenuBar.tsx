@@ -56,6 +56,7 @@ import { ImportDialog } from './ImportDialog';
 import { isFlat, offerGeometry } from './buildGeometry';
 import { confirmReplace } from './replaceDocument';
 import { Menu, type MenuItem } from './Menu';
+import { usePlugins } from '../plugins/context';
 import type { StructureStyle } from '../renderer/layers/StructureLayer';
 
 export function MenuBar({ onError }: { onError: (msg: string) => void }): JSX.Element {
@@ -195,6 +196,9 @@ export function MenuBar({ onError }: { onError: (msg: string) => void }): JSX.El
   // Ctrl+X/C/V arrive as clipboard events, which carry the data without asking for permission
   useEffect(() => installClipboardEvents(onError), [onError]);
 
+  // contributed items go under the built-in ones of the menu they name (plugins/registry.ts)
+  const registry = usePlugins();
+  const contributed = (menu: string): MenuItem[] => [...registry.menuItems(menu)];
   const styleItem = (label: string, style: StructureStyle): MenuItem => ({
     label,
     checked: view.style === style,
@@ -252,6 +256,7 @@ export function MenuBar({ onError }: { onError: (msg: string) => void }): JSX.El
           { label: 'Export…', action: () => setExportOpen(true) },
           { label: 'Export image…', action: () => setExportImage(true) },
           { label: 'Export POV-Ray scene', action: exportPov },
+          ...contributed('File'),
         ]}
       />
       <Menu
@@ -298,6 +303,7 @@ export function MenuBar({ onError }: { onError: (msg: string) => void }): JSX.El
             action: clearSelection,
           },
           { label: 'Cartesian editor…', action: () => openCartesian(true) },
+          ...contributed('Edit'),
         ]}
       />
       <Menu
@@ -359,6 +365,7 @@ export function MenuBar({ onError }: { onError: (msg: string) => void }): JSX.El
               disabled: atoms.length === 0,
             };
           }),
+          ...contributed('Select'),
         ]}
       />
       <Menu
@@ -387,6 +394,7 @@ export function MenuBar({ onError }: { onError: (msg: string) => void }): JSX.El
           },
           { label: 'Slab…', disabled: !store.doc.cell, action: () => openCrystalDialog('slab') },
           { label: 'Crystal library…', action: () => openCrystalDialog('library') },
+          ...contributed('Build'),
         ]}
       />
       <Menu
@@ -416,11 +424,15 @@ export function MenuBar({ onError }: { onError: (msg: string) => void }): JSX.El
           { label: 'Copy as InChI', action: () => void copyIdentifier('inchi', onError, onError) },
           { label: 'Invert chirality', action: () => void invertChirality(onError) },
           { label: 'Hydrogen → methyl', action: () => void hydrogenToMethyl(onError) },
+          ...contributed('Extensions'),
         ]}
       />
       <Menu
         title="Settings"
-        items={[{ label: 'Preferences…', action: () => openSettings(true) }]}
+        items={[
+          { label: 'Preferences…', action: () => openSettings(true) },
+          ...contributed('Settings'),
+        ]}
       />
       <Menu
         title="View"
@@ -457,6 +469,7 @@ export function MenuBar({ onError }: { onError: (msg: string) => void }): JSX.El
             checked: !view.backgroundColor && view.background === 'black',
             action: () => view.setBackground('black'),
           },
+          ...contributed('View'),
         ]}
       />
       <Menu
@@ -466,8 +479,14 @@ export function MenuBar({ onError }: { onError: (msg: string) => void }): JSX.El
           { label: 'Tutorials (docs/tutorials/)', action: () => setHelp('tutorials') },
           { label: 'Keyboard shortcuts', action: () => setHelp('shortcuts') },
           { label: 'About Atomscope', action: () => setHelp('about') },
+          ...contributed('Help'),
         ]}
       />
+      {registry
+        .extraMenus(['File', 'Edit', 'Select', 'Build', 'Extensions', 'Settings', 'View', 'Help'])
+        .map((menu) => (
+          <Menu key={menu} title={menu} items={contributed(menu)} />
+        ))}
       <ImportDialog open={importOpen} onClose={() => setImportOpen(false)} onError={onError} />
       <ExportDialog open={exportOpen} onClose={() => setExportOpen(false)} onError={onError} />
       <ExportImageDialog
