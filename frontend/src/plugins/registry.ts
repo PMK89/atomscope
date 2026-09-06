@@ -11,6 +11,9 @@
  * `PluginProvider` (context.tsx) is how a component is given one.
  */
 import type { Tool } from '../editor/Tool';
+import type { DisplayLayer } from '../renderer/layers/Layer';
+
+export type ErrorSink = (message: string) => void;
 
 export interface ToolContribution {
   /**
@@ -24,8 +27,28 @@ export interface ToolContribution {
   settings?: () => JSX.Element;
 }
 
+export interface LayerContribution {
+  id: string;
+  /**
+   * A factory, not an instance: a layer owns Three.js objects that belong to one renderer and
+   * are disposed with it, so a second Viewport needs layers of its own. (A tool, which owns only
+   * gesture state, is contributed as an instance.)
+   */
+  create: () => DisplayLayer;
+}
+
+export interface PanelContribution {
+  /** Stable: it is what the open tab is remembered under in this browser. */
+  id: string;
+  label: string;
+  /** The panel's body. Panels stay mounted while another tab is open. */
+  render: (props: { onError: ErrorSink }) => JSX.Element;
+}
+
 export class PluginRegistry {
   private readonly toolList: ToolContribution[] = [];
+  private readonly layerList: LayerContribution[] = [];
+  private readonly panelList: PanelContribution[] = [];
 
   registerTool(contribution: ToolContribution): void {
     if (this.toolList.some((c) => c.tool.id === contribution.tool.id)) {
@@ -47,5 +70,29 @@ export class PluginRegistry {
 
   tool(id: string): ToolContribution | undefined {
     return this.toolList.find((c) => c.tool.id === id);
+  }
+
+  registerLayer(contribution: LayerContribution): void {
+    if (this.layerList.some((c) => c.id === contribution.id)) {
+      throw new Error(`layer ${contribution.id} is already registered`);
+    }
+    this.layerList.push(contribution);
+  }
+
+  /** Contributed display layers in registration order, which is the order they are added in. */
+  layers(): readonly LayerContribution[] {
+    return this.layerList;
+  }
+
+  registerPanel(contribution: PanelContribution): void {
+    if (this.panelList.some((c) => c.id === contribution.id)) {
+      throw new Error(`panel ${contribution.id} is already registered`);
+    }
+    this.panelList.push(contribution);
+  }
+
+  /** Contributed dock panels in registration order, which is tab order. */
+  panels(): readonly PanelContribution[] {
+    return this.panelList;
   }
 }

@@ -20,6 +20,20 @@ import {
   MeasureReadout,
   SelectSettings,
 } from '../ui/toolPanels';
+import { AnalysisPanel } from '../ui/AnalysisPanel';
+import { CalculationPanel } from '../ui/CalculationPanel';
+import { CrystalPanel } from '../ui/CrystalPanel';
+import { DisplayPanel } from '../ui/DisplayPanel';
+import { PropertiesPanel } from '../ui/PropertiesPanel';
+import { SpectrumPanel } from '../ui/SpectrumPanel';
+import { SurfacesPanel } from '../ui/SurfacesPanel';
+import { AxesLayer } from '../renderer/layers/AxesLayer';
+import { DipoleLayer } from '../renderer/layers/DipoleLayer';
+import { HBondLayer } from '../renderer/layers/HBondLayer';
+import { LabelLayer } from '../renderer/layers/LabelLayer';
+import { RibbonLayer } from '../renderer/layers/RibbonLayer';
+import { UnitCellLayer } from '../renderer/layers/UnitCellLayer';
+import { VectorLayer } from '../renderer/layers/VectorLayer';
 import { PluginRegistry } from './registry';
 
 let application: PluginRegistry | null = null;
@@ -41,5 +55,20 @@ export function defaultRegistry(): PluginRegistry {
   registry.registerTool({ tool: new MeasureTool(), settings: MeasureReadout });
   registry.registerTool({ tool: new AutoOptimizeTool(), settings: AutoOptimizeSettings });
   registry.registerTool({ tool: new AutoRotateTool(), settings: AutoRotateSettings });
+  // the structure layer is the renderer's own and is not contributed: it is what a renderer is
+  registry.registerLayer({ id: 'vectors', create: () => new VectorLayer() });
+  registry.registerLayer({ id: 'dipole', create: () => new DipoleLayer() });
+  registry.registerLayer({ id: 'unit-cell', create: () => new UnitCellLayer() });
+  registry.registerLayer({ id: 'axes', create: () => new AxesLayer() });
+  registry.registerLayer({ id: 'labels', create: () => new LabelLayer() });
+  registry.registerLayer({ id: 'ribbon', create: () => new RibbonLayer() });
+  registry.registerLayer({ id: 'hbonds', create: () => new HBondLayer() });
+  registry.registerPanel({ id: 'calculation', label: 'Calculation', render: CalculationPanel });
+  registry.registerPanel({ id: 'analysis', label: 'Analysis', render: AnalysisPanel });
+  registry.registerPanel({ id: 'spectra', label: 'Spectra', render: SpectrumPanel });
+  registry.registerPanel({ id: 'surfaces', label: 'Surfaces', render: SurfacesPanel });
+  registry.registerPanel({ id: 'display', label: 'Display', render: () => <DisplayPanel /> });
+  registry.registerPanel({ id: 'crystal', label: 'Crystal', render: CrystalPanel });
+  registry.registerPanel({ id: 'properties', label: 'Properties', render: PropertiesPanel });
   return registry;
 }

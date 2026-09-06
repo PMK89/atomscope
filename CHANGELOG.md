@@ -2,12 +2,13 @@
 
 ## Unreleased
 
-- The **editor tools are plugins now**. Nothing enumerates them any more: the
-  toolbar, the status bar, the settings box and the input host all ask a
-  registry, and the eight built-in tools register into it through the same calls
+- The **editor tools, the display layers and the dock panels are plugins now**.
+  Nothing enumerates them any more: the toolbar, the status bar, the settings
+  box, the input host, the renderer and the dock's tab strip all ask a registry,
+  and everything the application ships registers into it through the same calls
   a plugin would use. A tool brings its own settings panel, says whether it
   leaves the camera its drags and what cursor it wants, and its id is any string
-  rather than one of eight. Avogadro's plugins were shared libraries loaded at
+  rather than one of eight; a panel brings its own tab. Avogadro's plugins were shared libraries loaded at
   start-up; a browser bundle has no such loader, so a plugin here is a module and
   adding one means a rebuild.
 

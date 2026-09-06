@@ -1,22 +1,17 @@
 /** Glue between the view store and the extra display layers (vectors, unit cell, axes). */
 import type { Renderer } from '../renderer/Renderer';
-import { AxesLayer } from '../renderer/layers/AxesLayer';
 import { LabelLayer } from '../renderer/layers/LabelLayer';
 import { HBondLayer } from '../renderer/layers/HBondLayer';
 import { RibbonLayer, type SecondaryStructureData } from '../renderer/layers/RibbonLayer';
 import { UnitCellLayer } from '../renderer/layers/UnitCellLayer';
 import { VectorLayer } from '../renderer/layers/VectorLayer';
 import { DipoleLayer } from '../renderer/layers/DipoleLayer';
+import type { PluginRegistry } from '../plugins/registry';
 import type { ViewState } from '../state/viewStore';
 
-export function installExtraLayers(renderer: Renderer): void {
-  renderer.addLayer(new VectorLayer());
-  renderer.addLayer(new DipoleLayer());
-  renderer.addLayer(new UnitCellLayer());
-  renderer.addLayer(new AxesLayer());
-  renderer.addLayer(new LabelLayer());
-  renderer.addLayer(new RibbonLayer());
-  renderer.addLayer(new HBondLayer());
+/** Add every contributed layer to a renderer, in registration order. */
+export function installExtraLayers(renderer: Renderer, registry: PluginRegistry): void {
+  for (const layer of registry.layers()) renderer.addLayer(layer.create());
 }
 
 export function syncExtraLayers(

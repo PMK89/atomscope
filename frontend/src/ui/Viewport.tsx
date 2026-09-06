@@ -86,7 +86,7 @@ export function Viewport(): JSX.Element {
   useEffect(() => {
     if (!ref.current) return;
     const renderer = new Renderer(ref.current);
-    installExtraLayers(renderer);
+    installExtraLayers(renderer, registry);
     rendererRef.current = renderer;
     const tools = registry.tools().map((c) => c.tool);
     const host = new ToolHost(renderer, tools, renderer.gl.domElement);
