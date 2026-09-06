@@ -283,6 +283,48 @@ class StatPointOptions:
     print_orbitals: bool = False
 
 
+GUESS_TYPES = {
+    "huckel": "",
+    "hcore": "HCORE",
+    "moread": "MOREAD",
+    "mosaved": "MOSAVED",
+    "skip": "SKIP",
+}
+"""The MO Guess tab's list (`gamessinputdata.cpp:1928`). Huckel is GAMESS's own guess, and
+Avogadro's combo stores that entry as `unset` (`gamessinputdialog.cpp:2153-2158`), so choosing it
+writes nothing at all -- which is what the empty keyword here means."""
+ANALYTIC_SCF_TYPES = ("RHF", "ROHF", "GVB")
+"""The wave functions GAMESS has analytic force constants for, and then only without a
+perturbation (`gamessinputdata.cpp:2266`)."""
+SEMI_EMPIRICAL_GBASIS = ("MNDO", "AM1", "PM3")
+
+
+@dataclass(frozen=True)
+class GuessOptions:
+    """The MO Guess tab: where the initial orbitals come from ($GUESS)."""
+
+    guess: str = "huckel"
+    orbitals: int = 0
+    """NORB, which only a MOREAD guess uses. Avogadro's writer reads it from a field its dialog
+    never filled in ("FIXME help! i need somebody", gamessinputdata.cpp:1988-1989), so every
+    MOREAD deck it wrote said NORB=0."""
+    print_guess: bool = False
+    mix: bool = False
+
+
+@dataclass(frozen=True)
+class HessianOptions:
+    """The Hessian tab: how the force constants are computed ($FORCE)."""
+
+    analytic: bool = True
+    double_differenced: bool = False
+    purify: bool = False
+    print_internal: bool = False
+    vibrational_analysis: bool = True
+    displacement: float = 0.01
+    scale_factor: float = 1.0
+
+
 SCF_GROUP_TYPES = ("RHF", "UHF", "ROHF", "GVB")
 """The wave functions $SCF applies to: Avogadro punches nothing above GVB (`:2095`)."""
 FDIFF_TYPES = ("RHF", "UHF", "ROHF")
@@ -485,6 +527,60 @@ def _system_group(memory_mb: int, system: SystemOptions | None) -> str:
     return " $SYSTEM " + " ".join(words) + " $END" if words else ""
 
 
+def _guess_group(options: GuessOptions, scftyp: str, multiplicity: int) -> str:
+    """$GUESS (`gamessinputdata.cpp:1967-2017`), empty when there is nothing to say.
+
+    Avogadro's punch test asks only that the mixing box is ticked for a UHF run, but the keyword
+    itself also wants a singlet (`:1972-1974` against `:2012-2013`), so a triplet UHF run with
+    that box ticked got an empty ` $GUESS $END`. Here the words decide whether there is a group.
+    """
+    words = []
+    if GUESS_TYPES[options.guess]:
+        words.append(f"GUESS={GUESS_TYPES[options.guess]}")
+        if options.guess == "moread":
+            words.append(f"NORB={options.orbitals}")
+    if options.print_guess:
+        words.append("PRTMO=.TRUE.")
+    # mixing the two sets of orbitals is how a singlet UHF run is pushed off the closed shell
+    if options.mix and multiplicity == 1 and scftyp == "UHF":
+        words.append("MIX=.TRUE.")
+    return " $GUESS " + " ".join(words) + " $END" if words else ""
+
+
+def _hessian_group(
+    options: HessianOptions, theory: str, scftyp: str, semi_empirical_basis: bool
+) -> str:
+    """$FORCE (`gamessinputdata.cpp:2250-2308`).
+
+    One departure: Avogadro decides the analytic/semi-numeric question before it looks at the
+    basis, so a semi-empirical run whose Method box says Analytic writes `METHOD=NUMERIC` and
+    then skips the displacement that only a numerical Hessian has (`:2271-2288`). Here the two
+    keywords answer to the method the deck actually asks for.
+    """
+    analytic = options.analytic and scftyp in ANALYTIC_SCF_TYPES and theory != "mp2"
+    if semi_empirical_basis:
+        method, analytic = "NUMERIC", False
+    else:
+        method = "ANALYTIC" if analytic else "SEMINUM"
+    words = [f"METHOD={method}"]
+    if not analytic:
+        if options.double_differenced:
+            words.append("NVIB=2")
+        if abs(options.displacement - 0.01) > 1e-9:
+            words.append(f"VIBSIZ={options.displacement:f}")
+    if options.purify:
+        words.append("PURIFY=.TRUE.")
+    if options.print_internal:
+        words.append("PRTIFC=.TRUE.")
+    if options.vibrational_analysis:
+        words.append("VIBANL=.TRUE.")
+        if abs(options.scale_factor - 1.0) > 1e-9:
+            words.append(f"SCLFAC={options.scale_factor:f}")
+    else:
+        words.append("VIBANL=.FALSE.")
+    return " $FORCE " + " ".join(words) + " $END"
+
+
 def _scf_group(options: SCFOptions, scftyp: str) -> str:
     """$SCF (`gamessinputdata.cpp:2089-2122`), empty when there is nothing to say.
 
@@ -565,6 +661,15 @@ def _stat_point_group(options: StatPointOptions, runtyp: str) -> str:
     return " $STATPT " + " ".join(words) + " $END"
 
 
+def _force(task: str, control: ControlOptions | None, stat_point: StatPointOptions | None) -> bool:
+    """Whether $FORCE is written: a Hessian run, or a search that starts by computing one."""
+    runtyp = run_type(task, control)
+    if runtyp == "HESSIAN":
+        return True
+    initial = (stat_point or StatPointOptions()).initial_hessian
+    return runtyp in STATIONARY_POINT_RUNS and initial == "calculate"
+
+
 def _check_choices(
     theory: str,
     basis: str,
@@ -598,7 +703,9 @@ def gamess_deck(
     basis: str = "n31d",
     detailed: DetailedBasis | None = None,
     control: ControlOptions | None = None,
+    guess: GuessOptions | None = None,
     scf: SCFOptions | None = None,
+    hessian: HessianOptions | None = None,
     mp2: MP2Options | None = None,
     stat_point: StatPointOptions | None = None,
     system: SystemOptions | None = None,
@@ -635,6 +742,9 @@ def gamess_deck(
     if system_group:
         lines.append(system_group)
     scftyp = _scf_type(control, multiplicity, electrons)
+    guess_group = _guess_group(guess or GuessOptions(), scftyp, multiplicity)
+    if guess_group:
+        lines.append(guess_group)
     scf_group = _scf_group(scf or SCFOptions(), scftyp)
     if scf_group:
         lines.append(scf_group)
@@ -650,6 +760,13 @@ def gamess_deck(
         # its Frequencies entry asks for HESS=CALC, but Avogadro's writer punches the group for
         # OPTIMIZE and SADPOINT only, so that keyword never reached a deck there either
         lines.append(_stat_point_group(stat_point or StatPointOptions(), run_type(task, control)))
+    if _force(task, control, stat_point):
+        semi_empirical_basis = theory in SEMI_EMPIRICAL or (
+            detailed is not None and GBASIS_CHOICES[detailed.gbasis].gbasis in SEMI_EMPIRICAL_GBASIS
+        )
+        lines.append(
+            _hessian_group(hessian or HessianOptions(), theory, scftyp, semi_empirical_basis)
+        )
     if extra.strip():
         lines.append(extra.strip())
     lines += ["", " $DATA", title, "C1"]

@@ -647,3 +647,121 @@ def test_the_wave_function_boxes_avogadro_greyed_out_are_reported_here() -> None
         },
     )
     assert any("closed-shell" in i.message for i in localized.issues)
+
+
+def test_the_gamess_mo_guess_and_hessian_tabs_reach_their_groups() -> None:
+    """$GUESS and $FORCE, in the writers' order and under their conditions."""
+    water = from_atoms(molecule("H2O"), name="water")
+    gen = plugin.generate_inputs(
+        water,
+        {
+            "program": "gamess",
+            "task": "frequencies",
+            "gamess_guess": "moread",
+            "gamess_guess_orbitals": 5,
+            "gamess_guess_print": True,
+            "gamess_hessian_method": "numeric",
+            "gamess_hessian_double": True,
+            "gamess_hessian_displacement": 0.02,
+            "gamess_hessian_purify": True,
+            "gamess_hessian_print_fc": True,
+            "gamess_hessian_scale": 0.89,
+        },
+        "case",
+    )
+    text = gen.files[0].text
+    assert " $GUESS GUESS=MOREAD NORB=5 PRTMO=.TRUE. $END" in text
+    # the displacement and the scale factor keep the writer's six decimals
+    assert (
+        " $FORCE METHOD=SEMINUM NVIB=2 VIBSIZ=0.020000 PURIFY=.TRUE. PRTIFC=.TRUE."
+        " VIBANL=.TRUE. SCLFAC=0.890000 $END"
+    ) in text
+
+
+def test_the_gamess_hessian_group_belongs_to_the_runs_that_need_one() -> None:
+    """A Hessian run, or a search that starts by computing one -- and nothing else."""
+    water = from_atoms(molecule("H2O"), name="water")
+    for values, wanted in (
+        ({"task": "energy"}, False),
+        ({"task": "frequencies"}, True),
+        ({"task": "optimize"}, False),
+        ({"task": "optimize", "gamess_initial_hessian": "calculate"}, True),
+        ({"task": "optimize", "gamess_initial_hessian": "guess"}, False),
+    ):
+        text = plugin.generate_inputs(water, {"program": "gamess", **values}, "case").files[0].text
+        assert (" $FORCE" in text) is wanted, values
+
+
+def test_a_gamess_hessian_is_analytic_only_where_gamess_has_one() -> None:
+    """RHF, ROHF and GVB without a perturbation; a semi-empirical basis is numerical outright."""
+    water = from_atoms(molecule("H2O"), name="water")
+    base = {"program": "gamess", "task": "frequencies"}
+    for values, method in (
+        ({}, "ANALYTIC"),
+        ({"gamess_scftyp": "uhf"}, "SEMINUM"),
+        ({"gamess_theory": "mp2"}, "SEMINUM"),
+        ({"gamess_hessian_method": "numeric"}, "SEMINUM"),
+        ({"gamess_theory": "am1"}, "NUMERIC"),
+    ):
+        text = plugin.generate_inputs(water, {**base, **values}, "case").files[0].text
+        assert f" $FORCE METHOD={method} " in text, values
+    # and the displacement follows the method the deck asks for, which in Avogadro it did not:
+    # its analytic/numeric decision was made before it looked at the basis set
+    semi = plugin.generate_inputs(
+        water, {**base, "gamess_theory": "am1", "gamess_hessian_displacement": 0.02}, "case"
+    )
+    assert " $FORCE METHOD=NUMERIC VIBSIZ=0.020000 " in semi.files[0].text
+
+
+def test_the_gamess_orbital_mixing_box_needs_a_singlet_uhf_run() -> None:
+    """Avogadro's punch test and its keyword disagreed, so a triplet gave an empty group."""
+    water = from_atoms(molecule("H2O"), name="water")
+    singlet = plugin.generate_inputs(
+        water, {"program": "gamess", "gamess_scftyp": "uhf", "gamess_guess_mix": True}, "case"
+    )
+    assert " $GUESS MIX=.TRUE. $END" in singlet.files[0].text
+    triplet = plugin.generate_inputs(
+        water,
+        {
+            "program": "gamess",
+            "gamess_scftyp": "uhf",
+            "gamess_guess_mix": True,
+            "multiplicity": 3,
+        },
+        "case",
+    )
+    assert " $GUESS" not in triplet.files[0].text
+
+
+def test_the_gamess_groups_are_written_in_avogadros_order() -> None:
+    """One deck with every group in it, in the order of `gamessinputdata.cpp:234-243`."""
+    water = from_atoms(molecule("H2O"), name="water")
+    gen = plugin.generate_inputs(
+        water,
+        {
+            "program": "gamess",
+            "task": "transition_state",
+            "gamess_theory": "mp2",
+            "gamess_scftyp": "uhf",
+            "gamess_solvent": "water",
+            "gamess_guess": "hcore",
+            "gamess_direct_scf": True,
+            "gamess_mp2_core": 2,
+            "gamess_initial_hessian": "calculate",
+        },
+        "case",
+    )
+    groups = [line.split()[0] for line in gen.files[0].text.split("\n") if line.startswith(" $")]
+    assert groups == [
+        "$BASIS",
+        "$PCM",
+        "$CONTRL",
+        "$SYSTEM",
+        "$GUESS",
+        "$SCF",
+        "$MP2",
+        "$STATPT",
+        "$FORCE",
+        "$DATA",
+        "$END",
+    ]

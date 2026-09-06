@@ -34,6 +34,8 @@ from atomscope.backends.qc_inputs.gamess import (
     RUN_TYPES,
     ControlOptions,
     DetailedBasis,
+    GuessOptions,
+    HessianOptions,
     MP2Options,
     SCFOptions,
     StatPointOptions,
@@ -524,6 +526,60 @@ SCHEMA = ParameterSchema(
             ],
         ),
         Section(
+            id="gamess_guess",
+            label="GAMESS: MO Guess",
+            help="the MO Guess tab: where the initial orbitals come from ($GUESS)",
+            advanced=True,
+            parameters=[
+                ParameterSpec(
+                    key="gamess_guess",
+                    label="Initial guess",
+                    type="enum",
+                    default="huckel",
+                    advanced=True,
+                    choices=[
+                        Choice(value="huckel", label="H\u00fcckel"),
+                        Choice(value="hcore", label="HCore"),
+                        Choice(value="moread", label="MO read ($VEC)"),
+                        Choice(value="mosaved", label="MO saved (DICTNRY)"),
+                        Choice(value="skip", label="Skip"),
+                    ],
+                    help="H\u00fcckel is GAMESS's own, and writes no keyword",
+                    visible_when=[VisibleWhen(key="program", value="gamess")],
+                ),
+                ParameterSpec(
+                    key="gamess_guess_orbitals",
+                    label="Orbitals to read",
+                    type="integer",
+                    default=0,
+                    minimum=0,
+                    advanced=True,
+                    help="NORB; the $VEC group itself has to be added to the deck by hand",
+                    visible_when=[
+                        VisibleWhen(key="program", value="gamess"),
+                        VisibleWhen(key="gamess_guess", value="moread"),
+                    ],
+                ),
+                ParameterSpec(
+                    key="gamess_guess_print",
+                    label="Print the initial guess",
+                    type="boolean",
+                    default=False,
+                    advanced=True,
+                    visible_when=[VisibleWhen(key="program", value="gamess")],
+                ),
+                ParameterSpec(
+                    key="gamess_guess_mix",
+                    label="Rotate alpha and beta orbitals",
+                    type="boolean",
+                    default=False,
+                    advanced=True,
+                    help="MIX, which pushes a singlet UHF run off the closed shell",
+                    visible_when=[VisibleWhen(key="program", value="gamess")],
+                ),
+            ],
+        ),
+        Section(
             id="gamess_scf",
             label="GAMESS: SCF",
             help="the SCF tab: how the SCF is converged ($SCF)",
@@ -798,6 +854,85 @@ SCHEMA = ParameterSchema(
             ],
         ),
         Section(
+            id="gamess_hessian",
+            label="GAMESS: Hessian",
+            help="the Hessian tab: how the force constants are computed ($FORCE)",
+            advanced=True,
+            parameters=[
+                ParameterSpec(
+                    key="gamess_hessian_method",
+                    label="Method",
+                    type="enum",
+                    default="analytic",
+                    advanced=True,
+                    choices=[
+                        Choice(value="analytic", label="Analytic"),
+                        Choice(value="numeric", label="Numeric"),
+                    ],
+                    help="GAMESS has analytic force constants for RHF, ROHF and GVB without MP2",
+                    visible_when=[VisibleWhen(key="program", value="gamess")],
+                ),
+                ParameterSpec(
+                    key="gamess_hessian_vibanl",
+                    label="Vibrational analysis",
+                    type="boolean",
+                    default=True,
+                    advanced=True,
+                    visible_when=[VisibleWhen(key="program", value="gamess")],
+                ),
+                ParameterSpec(
+                    key="gamess_hessian_scale",
+                    label="Frequency scale factor",
+                    type="number",
+                    default=1.0,
+                    minimum=0.0,
+                    exclusive_minimum=True,
+                    advanced=True,
+                    visible_when=[
+                        VisibleWhen(key="program", value="gamess"),
+                        VisibleWhen(key="gamess_hessian_vibanl", op="truthy"),
+                    ],
+                ),
+                ParameterSpec(
+                    key="gamess_hessian_double",
+                    label="Double differenced Hessian",
+                    type="boolean",
+                    default=False,
+                    advanced=True,
+                    help="a numerical Hessian's; twice the displacements for a better one",
+                    visible_when=[VisibleWhen(key="program", value="gamess")],
+                ),
+                ParameterSpec(
+                    key="gamess_hessian_displacement",
+                    label="Displacement size (bohr)",
+                    type="number",
+                    default=0.01,
+                    minimum=0.0,
+                    exclusive_minimum=True,
+                    advanced=True,
+                    help="a numerical Hessian's; GAMESS's own is 0.01",
+                    visible_when=[VisibleWhen(key="program", value="gamess")],
+                ),
+                ParameterSpec(
+                    key="gamess_hessian_purify",
+                    label="Purify the Hessian",
+                    type="boolean",
+                    default=False,
+                    advanced=True,
+                    help="project the translations and rotations out of it",
+                    visible_when=[VisibleWhen(key="program", value="gamess")],
+                ),
+                ParameterSpec(
+                    key="gamess_hessian_print_fc",
+                    label="Print internal force constants",
+                    type="boolean",
+                    default=False,
+                    advanced=True,
+                    visible_when=[VisibleWhen(key="program", value="gamess")],
+                ),
+            ],
+        ),
+        Section(
             id="gamess_system",
             label="GAMESS: System",
             help="the System tab: what the run is allowed to use ($SYSTEM)",
@@ -1028,6 +1163,29 @@ def _gamess_system(values: Values) -> SystemOptions:
         diagonalization=str(values.get("gamess_kdiag", "default")),
         balance=str(values.get("gamess_balance", "loop")),
         external_representation=bool(values.get("gamess_xdr")),
+    )
+
+
+def _gamess_guess(values: Values) -> GuessOptions:
+    """The MO Guess tab's values."""
+    return GuessOptions(
+        guess=str(values.get("gamess_guess", "huckel")),
+        orbitals=_count(values.get("gamess_guess_orbitals")),
+        print_guess=bool(values.get("gamess_guess_print")),
+        mix=bool(values.get("gamess_guess_mix")),
+    )
+
+
+def _gamess_hessian(values: Values) -> HessianOptions:
+    """The Hessian tab's values."""
+    return HessianOptions(
+        analytic=str(values.get("gamess_hessian_method", "analytic")) == "analytic",
+        double_differenced=bool(values.get("gamess_hessian_double")),
+        purify=bool(values.get("gamess_hessian_purify")),
+        print_internal=bool(values.get("gamess_hessian_print_fc")),
+        vibrational_analysis=bool(values.get("gamess_hessian_vibanl", True)),
+        displacement=_number(values.get("gamess_hessian_displacement"), 0.01),
+        scale_factor=_number(values.get("gamess_hessian_scale"), 1.0),
     )
 
 
@@ -1314,7 +1472,9 @@ class QcInputsPlugin:
                     basis=str(merged.get("gamess_basis", "n31d")),
                     detailed=_gamess_detailed(merged),
                     control=_gamess_control(merged),
+                    guess=_gamess_guess(merged),
                     scf=_gamess_scf(merged),
+                    hessian=_gamess_hessian(merged),
                     mp2=_gamess_mp2(merged),
                     stat_point=_gamess_stat_point(merged),
                     system=_gamess_system(merged),

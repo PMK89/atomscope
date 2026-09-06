@@ -932,8 +932,13 @@ differencing, UHF natural orbitals and how far the density has to converge —
 and, when the theory is MP2, that tab's: the frozen core, memory, the integral
 cutoff, localized orbitals, MP2 properties, the transformation method and
 whether the AO integrals are duplicated on each node or spread over all of
-them. Each tab is a section of its own, and a section with nothing to show for
-the program you picked does not appear. `Transition state` is a
+them. The MO Guess tab says where the initial orbitals come from — a `MO read`
+guess writes `GUESS=MOREAD` and the orbital count, but the `$VEC` group itself
+has to be pasted into the deck by hand — and the Hessian tab, which applies to
+a frequency run or to an optimization that starts by computing one, chooses
+analytic or numerical force constants, the displacement, the purification and a
+frequency scale factor. Each tab is a section of its own, and a section with
+nothing to show for the program you picked does not appear. `Transition state` is a
 calculation type only GAMESS writes so far
 (`RUNTYP=SADPOINT`); the other generators say so rather than writing something
 that is not a saddle-point search.

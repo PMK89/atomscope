@@ -245,12 +245,16 @@ run against current code -- Playwright above all -- use the private-server recip
 
    - **AV-QM-003** -- the GAMESS-US option dialog, the largest of Avogadro's generators (3035
      lines of `.ui` over a 2688-line input-data class, a port of the MacMolPlt input builder).
-     Eight of its twelve tabs are done (`backends/qc_inputs/gamess.py`): Basic Setup, Basis,
-     Control, DFT, SCF, MP2, Stat Point and System. What is left is Hessian, Data, MO Guess and
-     Misc -- a tab's worth of keywords each, landing one or two at a time, each one read out of
-     the group writer it feeds rather than out of the dialog. Each tab is a `Section`
-     of its own in `qc_inputs/plugin.py` (`gamess_basis_detail`, `gamess_control`, `gamess_dft`,
-     `gamess_scf`, `gamess_mp2`, `gamess_statpt`, `gamess_system`), which is what keeps the form readable and what keeps
+     Ten of its twelve tabs are done (`backends/qc_inputs/gamess.py`): Basic Setup, Basis,
+     Control, DFT, MO Guess, SCF, MP2, Stat Point, Hessian and System. What is left is Data and
+     Misc -- and Data is the one that reshapes what is already written rather than adding a
+     group: `GamessDataGroup::WriteToFile` (gamessinputdata.cpp:1750) writes $DATA itself, title,
+     point group, coordinate type and units, where `gamess_deck` hand-writes $DATA/C1/Cartesians
+     and every golden-deck test pins that block. Each tab is read out of the group writer it
+     feeds rather than out of the dialog, and is a `Section` of its own in
+     `qc_inputs/plugin.py` (`gamess_basis_detail`, `gamess_control`, `gamess_dft`,
+     `gamess_guess`, `gamess_scf`, `gamess_mp2`, `gamess_statpt`, `gamess_hessian`,
+     `gamess_system`), which is what keeps the form readable and what keeps
      GAMESS's boxes out of the other programs' forms: `SchemaForm.tsx` draws no heading for a
      section whose parameters are all hidden, pinned by a vitest case. A new tab is a new
      section. Read the row's note first: it lists them and says where each one's keywords live in Avogadro's source.
