@@ -17,6 +17,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from ase.data import atomic_numbers
+from ase.units import Bohr
 
 from atomscope.model import Structure
 
@@ -283,6 +284,46 @@ class StatPointOptions:
     print_orbitals: bool = False
 
 
+POINT_GROUPS = {
+    "c1": "C1",
+    "cs": "CS",
+    "ci": "CI",
+    "cnh": "CNH",
+    "cnv": "CNV",
+    "cn": "CN",
+    "s2n": "S2N",
+    "dnd": "DND",
+    "dnh": "DNH",
+    "dn": "DN",
+    "td": "TD",
+    "th": "TH",
+    "t": "T",
+    "oh": "OH",
+    "o": "O",
+}
+"""The Data tab's point groups (`gamessinputdata.cpp:1572`)."""
+AXIS_ORDER_GROUPS = ("cnh", "cnv", "cn", "s2n", "dnd", "dnh", "dn")
+"""...and the seven that name the order of their principal axis beside the group (`:1773`)."""
+COORD_TYPES = {"default": "", "unique": "UNIQUE", "cartesian": "CART"}
+"""Its coordinate list, less the three that need coordinates nothing here writes: Hilderbrant
+internals and both Z-matrix layouts, whose writers are commented out in Avogadro too
+(`gamessinputdata.cpp:1761-1768`). `default` is GAMESS's own, which is UNIQUE."""
+
+
+@dataclass(frozen=True)
+class DataOptions:
+    """The Data tab: the shape of the $DATA block, and four keywords in $CONTRL."""
+
+    title: str = ""
+    """empty means the structure names the deck, which is what this generator always did"""
+    point_group: str = "c1"
+    axis_order: int = 2
+    coordinates: str = "default"
+    units: str = "angstrom"
+    z_matrix_variables: int = 0
+    use_symmetry: bool = True
+
+
 FRIENDS = {
     "none": "",
     "hondo": "HONDO",
@@ -486,6 +527,43 @@ def _scf_type(control: ControlOptions | None, multiplicity: int, electrons: int)
     return "ROHF" if multiplicity > 1 or electrons % 2 else "RHF"
 
 
+def _data_words(data: DataOptions) -> list[str]:
+    """The Data tab's four $CONTRL keywords (`gamessinputdata.cpp:888-910`)."""
+    words = []
+    if COORD_TYPES[data.coordinates]:
+        words.append(f"COORD={COORD_TYPES[data.coordinates]}")
+    if data.units == "bohr":
+        words.append("UNITS=BOHR")
+    if data.z_matrix_variables:
+        words.append(f"NZVAR={data.z_matrix_variables}")
+    if not data.use_symmetry:
+        words.append("NOSYM=1")
+    return words
+
+
+def _data_group(structure: Structure, title: str, data: DataOptions) -> list[str]:
+    """The $DATA block: title, symmetry, then the atoms (`gamessinputdata.cpp:1738-1895`).
+
+    Two departures. GAMESS wants a blank line under any group but C1, and Avogadro writes one
+    above ` $DATA` instead (`:1759`), where it separates nothing. And its coordinates are the
+    molecule's angstroms whatever the units box says, so a ``UNITS=BOHR`` deck carried angstrom
+    numbers; here the box converts them.
+    """
+    group = POINT_GROUPS[data.point_group]
+    if data.point_group in AXIS_ORDER_GROUPS:
+        group = f"{group} {data.axis_order}"
+    lines = ["", " $DATA", data.title or title, group]
+    if data.point_group != "c1":
+        lines.append("")
+    scale = 1.0 / Bohr if data.units == "bohr" else 1.0
+    for atom in structure.atoms:
+        z = float(atomic_numbers[atom.element])
+        x, y, zc = (c * scale for c in atom.position)
+        lines.append(f"{atom.element:<3}{z:6.1f}  {x:10.5f}{y:10.5f}{zc:10.5f}")
+    lines.append(" $END")
+    return lines
+
+
 def _misc_words(misc: MiscOptions, exec_type: str) -> list[str]:
     """The Misc tab's tail of $CONTRL (`gamessinputdata.cpp:912-932`)."""
     friend = FRIENDS[misc.friend]
@@ -514,6 +592,7 @@ def _control_group(
     multiplicity: int,
     electrons: int,
     control: ControlOptions | None,
+    data: DataOptions | None = None,
     misc: MiscOptions | None = None,
 ) -> str:
     """$CONTRL, keyword by keyword in the order Avogadro punched them (gamessinputdata.cpp:821)."""
@@ -545,6 +624,7 @@ def _control_group(
         words.append(f"LOCAL={LOCALIZATIONS[control.localization]}")
     if ecp:
         words.append(f"ECP={ecp}")
+    words += _data_words(data or DataOptions())
     words += _misc_words(misc, control.exec_type)
     return " $CONTRL " + " ".join(words) + " $END"
 
@@ -750,6 +830,7 @@ def gamess_deck(
     basis: str = "n31d",
     detailed: DetailedBasis | None = None,
     control: ControlOptions | None = None,
+    data: DataOptions | None = None,
     misc: MiscOptions | None = None,
     guess: GuessOptions | None = None,
     scf: SCFOptions | None = None,
@@ -784,6 +865,7 @@ def gamess_deck(
             multiplicity=multiplicity,
             electrons=electrons,
             control=control,
+            data=data,
             misc=misc,
         )
     )
@@ -821,10 +903,5 @@ def gamess_deck(
         )
     if extra.strip():
         lines.append(extra.strip())
-    lines += ["", " $DATA", title, "C1"]
-    for atom in structure.atoms:
-        z = float(atomic_numbers[atom.element])
-        x, y, zc = atom.position
-        lines.append(f"{atom.element:<3}{z:6.1f}  {x:10.5f}{y:10.5f}{zc:10.5f}")
-    lines.append(" $END")
+    lines += _data_group(structure, title, data or DataOptions())
     return "\n".join(lines) + "\n"

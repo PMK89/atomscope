@@ -812,3 +812,52 @@ def test_a_gamess_run_that_writes_another_programs_input_is_a_check_run() -> Non
     # a check run keeps EXETYP and drops the same two boxes
     check = plugin.generate_inputs(water, {**base, "gamess_exec": "check"}, "case")
     assert " $CONTRL SCFTYP=RHF RUNTYP=ENERGY EXETYP=CHECK $END" in check.files[0].text
+
+
+def test_the_gamess_data_tab_shapes_the_data_block_and_four_control_keywords() -> None:
+    """Its point group and title are the block's; its other boxes are $CONTRL's."""
+    water = from_atoms(molecule("H2O"), name="water")
+    gen = plugin.generate_inputs(
+        water,
+        {
+            "program": "gamess",
+            "gamess_title": "a water molecule",
+            "gamess_point_group": "cnv",
+            "gamess_axis_order": 2,
+            "gamess_coord_type": "cartesian",
+            "gamess_nzvar": 3,
+            "gamess_use_symmetry": False,
+        },
+        "case",
+    )
+    lines = gen.files[0].text.split("\n")
+    assert lines[1] == (" $CONTRL SCFTYP=RHF RUNTYP=ENERGY COORD=CART NZVAR=3 NOSYM=1 $END")
+    # the title, then the group with the order of its axis, then the blank line GAMESS wants
+    # under any group but C1 -- which Avogadro wrote above $DATA, where it separates nothing
+    assert lines[3:8] == [
+        "",
+        " $DATA",
+        "a water molecule",
+        "CNV 2",
+        "",
+    ]
+    assert lines[8].startswith("O     8.0")
+    report = plugin.validate(water, {"program": "gamess", "gamess_point_group": "cnv"})
+    assert any("symmetry-unique atoms" in i.message for i in report.issues)
+
+
+def test_a_gamess_deck_in_bohr_carries_bohr_coordinates() -> None:
+    """Avogadro wrote UNITS=BOHR beside the molecule's angstroms; the box converts here."""
+    water = from_atoms(molecule("H2O"), name="water")
+    angstrom = plugin.generate_inputs(water, {"program": "gamess"}, "case").files[0].text
+    bohr = (
+        plugin.generate_inputs(water, {"program": "gamess", "gamess_units": "bohr"}, "case")
+        .files[0]
+        .text
+    )
+    assert "UNITS=BOHR" in bohr and "UNITS=BOHR" not in angstrom
+    z_angstrom = float(
+        [line for line in angstrom.split("\n") if line.startswith("O ")][0].split()[-1]
+    )
+    z_bohr = float([line for line in bohr.split("\n") if line.startswith("O ")][0].split()[-1])
+    assert z_bohr == pytest.approx(z_angstrom / 0.5291772, rel=1e-4)

@@ -27,12 +27,14 @@ from atomscope.backends.base import (
     ResultBundle,
     Values,
 )
+from atomscope.backends.qc_inputs.gamess import AXIS_ORDER_GROUPS as GAMESS_AXIS_GROUPS
 from atomscope.backends.qc_inputs.gamess import BASIS_CHOICES as GAMESS_BASIS_CHOICES
 from atomscope.backends.qc_inputs.gamess import DFT_FUNCTIONALS as GAMESS_FUNCTIONALS
 from atomscope.backends.qc_inputs.gamess import (
     GAMESS_RUN_TYPES,
     RUN_TYPES,
     ControlOptions,
+    DataOptions,
     DetailedBasis,
     GuessOptions,
     HessianOptions,
@@ -44,6 +46,7 @@ from atomscope.backends.qc_inputs.gamess import (
     gamess_deck,
 )
 from atomscope.backends.qc_inputs.gamess import GBASIS_CHOICES as GAMESS_GBASIS_CHOICES
+from atomscope.backends.qc_inputs.gamess import POINT_GROUPS as GAMESS_POINT_GROUPS
 from atomscope.backends.qc_inputs.gamess import THEORY_CHOICES as GAMESS_THEORIES
 from atomscope.backends.qc_inputs.gaussian import gaussian_deck
 from atomscope.jobs.models import RunSpec
@@ -522,6 +525,94 @@ SCHEMA = ParameterSchema(
                         Choice(value="grid", label="Grid"),
                         Choice(value="gridfree", label="Grid-free"),
                     ],
+                    visible_when=[VisibleWhen(key="program", value="gamess")],
+                ),
+            ],
+        ),
+        Section(
+            id="gamess_data",
+            label="GAMESS: Data",
+            help="the Data tab: the shape of the $DATA block, and four $CONTRL keywords",
+            advanced=True,
+            parameters=[
+                ParameterSpec(
+                    key="gamess_title",
+                    label="Title",
+                    type="string",
+                    default="",
+                    advanced=True,
+                    help="empty names the deck after the structure",
+                    visible_when=[VisibleWhen(key="program", value="gamess")],
+                ),
+                ParameterSpec(
+                    key="gamess_point_group",
+                    label="Point group",
+                    type="enum",
+                    default="c1",
+                    advanced=True,
+                    choices=[
+                        Choice(value=key, label=label) for key, label in GAMESS_POINT_GROUPS.items()
+                    ],
+                    help="anything but C1 needs the symmetry-unique atoms, or COORD=CART",
+                    visible_when=[VisibleWhen(key="program", value="gamess")],
+                ),
+                ParameterSpec(
+                    key="gamess_axis_order",
+                    label="Order of the principal axis",
+                    type="integer",
+                    default=2,
+                    minimum=2,
+                    advanced=True,
+                    visible_when=[
+                        VisibleWhen(key="program", value="gamess"),
+                        VisibleWhen(
+                            key="gamess_point_group", op="in", value=list(GAMESS_AXIS_GROUPS)
+                        ),
+                    ],
+                ),
+                ParameterSpec(
+                    key="gamess_coord_type",
+                    label="Coordinate type",
+                    type="enum",
+                    default="default",
+                    advanced=True,
+                    choices=[
+                        Choice(value="default", label="GAMESS's own (unique)"),
+                        Choice(value="unique", label="Unique Cartesian coordinates"),
+                        Choice(value="cartesian", label="Cartesian coordinates"),
+                    ],
+                    help="COORD=CART is the one that reads every atom of a symmetric molecule",
+                    visible_when=[VisibleWhen(key="program", value="gamess")],
+                ),
+                ParameterSpec(
+                    key="gamess_units",
+                    label="Units",
+                    type="enum",
+                    default="angstrom",
+                    advanced=True,
+                    choices=[
+                        Choice(value="angstrom", label="\u00c5ngstr\u00f6m"),
+                        Choice(value="bohr", label="Bohr"),
+                    ],
+                    visible_when=[VisibleWhen(key="program", value="gamess")],
+                ),
+                ParameterSpec(
+                    key="gamess_nzvar",
+                    label="Z-matrix variables",
+                    type="integer",
+                    default=0,
+                    minimum=0,
+                    advanced=True,
+                    help="NZVAR; the $ZMAT group itself has to be added to the deck",
+                    visible_when=[VisibleWhen(key="program", value="gamess")],
+                ),
+                ParameterSpec(
+                    key="gamess_use_symmetry",
+                    label="Use symmetry during the calculation",
+                    type="boolean",
+                    default=True,
+                    advanced=True,
+                    help="unchecking it writes NOSYM=1",
                     visible_when=[VisibleWhen(key="program", value="gamess")],
                 ),
             ],
@@ -1225,6 +1316,19 @@ def _gamess_system(values: Values) -> SystemOptions:
     )
 
 
+def _gamess_data(values: Values) -> DataOptions:
+    """The Data tab's values."""
+    return DataOptions(
+        title=str(values.get("gamess_title", "")),
+        point_group=str(values.get("gamess_point_group", "c1")),
+        axis_order=_count(values.get("gamess_axis_order"), 2),
+        coordinates=str(values.get("gamess_coord_type", "default")),
+        units=str(values.get("gamess_units", "angstrom")),
+        z_matrix_variables=_count(values.get("gamess_nzvar")),
+        use_symmetry=bool(values.get("gamess_use_symmetry", True)),
+    )
+
+
 def _gamess_misc(values: Values) -> MiscOptions:
     """The Misc tab's values, which are $CONTRL keywords."""
     return MiscOptions(
@@ -1320,6 +1424,18 @@ def _gamess_wave_function_issues(merged: Values) -> list[ValidationIssue]:
             ValidationIssue(
                 key="gamess_guess_mix",
                 message="mixing the orbitals is a singlet UHF run's; MIX is left out otherwise",
+                severity="warning",
+            )
+        )
+    point_group = str(merged.get("gamess_point_group", "c1"))
+    if point_group != "c1" and merged.get("gamess_coord_type") != "cartesian":
+        issues.append(
+            ValidationIssue(
+                key="gamess_point_group",
+                message=(
+                    "every atom is written, which GAMESS reads only under COORD=CART; otherwise"
+                    " the block has to be cut down to the symmetry-unique atoms"
+                ),
                 severity="warning",
             )
         )
@@ -1558,6 +1674,7 @@ class QcInputsPlugin:
                     basis=str(merged.get("gamess_basis", "n31d")),
                     detailed=_gamess_detailed(merged),
                     control=_gamess_control(merged),
+                    data=_gamess_data(merged),
                     misc=_gamess_misc(merged),
                     guess=_gamess_guess(merged),
                     scf=_gamess_scf(merged),

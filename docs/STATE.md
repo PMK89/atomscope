@@ -1,8 +1,8 @@
 # Project state (resume here)
 
-Branch: main; this file is updated in the commit that checkpoints the work, so `git log -1 -- docs/STATE.md` is the last checkpoint. Phases 0-1 done; Phase 2 (editor tools), 3 (volumetric, trajectories, vectors), 4-5 (CP-PAW setup/execution/forces), 6 (CP-PAW analysis: DOS, bands, orbitals), crystallography, molecular mechanics and wavefunction surfaces are merged and working. Parity matrix: 217 IMPLEMENTED, 21 PARTIAL, 73 NOT STARTED, 1 BLOCKED of 312 rows.
+Branch: main; this file is updated in the commit that checkpoints the work, so `git log -1 -- docs/STATE.md` is the last checkpoint. Phases 0-1 done; Phase 2 (editor tools), 3 (volumetric, trajectories, vectors), 4-5 (CP-PAW setup/execution/forces), 6 (CP-PAW analysis: DOS, bands, orbitals), crystallography, molecular mechanics and wavefunction surfaces are merged and working. Parity matrix: 218 IMPLEMENTED, 20 PARTIAL, 73 NOT STARTED, 1 BLOCKED of 312 rows.
 
-Tests: `pytest -q -m "not cppaw"` -> 471 passed, 1 skipped; `pytest -q -m cppaw` -> 7 passed (~90 s, needs the local CP-PAW install); `pnpm vitest run` -> 496 passed; `pnpm exec playwright test` -> 38 passed in 54 s at `ee4149c` (against private servers, see below; `make test-e2e` points at the user's 5173, which is stale). **`source env.sh` before Playwright**: without `PLAYWRIGHT_BROWSERS_PATH` it looks in `~/.cache/ms-playwright`, finds nothing, and every test fails at `browserType.launch`. `ruff check`, `mypy` and `pnpm typecheck` are clean. No known failing tests. **Type-check the frontend with `pnpm typecheck` (`tsc -b --noEmit`), never with `pnpm exec tsc --noEmit`:** the root `tsconfig.json` is a solution file with `files: []`, so a bare `tsc --noEmit` checks nothing and exits 0.
+Tests: `pytest -q -m "not cppaw"` -> 475 passed, 1 skipped; `pytest -q -m cppaw` -> 7 passed (~90 s, needs the local CP-PAW install); `pnpm vitest run` -> 496 passed; `pnpm exec playwright test` -> 38 passed in 54 s at `ee4149c` (against private servers, see below; `make test-e2e` points at the user's 5173, which is stale). **`source env.sh` before Playwright**: without `PLAYWRIGHT_BROWSERS_PATH` it looks in `~/.cache/ms-playwright`, finds nothing, and every test fails at `browserType.launch`. `ruff check`, `mypy` and `pnpm typecheck` are clean. No known failing tests. **Type-check the frontend with `pnpm typecheck` (`tsc -b --noEmit`), never with `pnpm exec tsc --noEmit`:** the root `tsconfig.json` is a solution file with `files: []`, so a bare `tsc --noEmit` checks nothing and exits 0.
 
 ## Resume commands
 
@@ -137,8 +137,8 @@ run against current code -- Playwright above all -- use the private-server recip
   Molpro output (checked on methane's four equivalent bonds, which is what a permuted basis
   breaks and orthonormality does not).
 - Quantum input generators: the Gaussian dialog's whole option set (AV-QM-002, including
-  `chem/zmatrix.py`, which belongs to no one program) and the GAMESS-US Basic Setup tab
-  (AV-QM-003, one of twelve).
+  `chem/zmatrix.py`, which belongs to no one program) and the GAMESS-US dialog's, all twelve
+  tabs of it (AV-QM-003).
 
 ## Known problems / open questions
 
@@ -239,27 +239,23 @@ run against current code -- Playwright above all -- use the private-server recip
      docs/avogadro1-feature-parity.md
    ```
 
-   Today that prints **4 rows, all PARTIAL** -- no CRITICAL or HIGH row is NOT STARTED, which is
-   not the same claim and an earlier version of this file got it wrong. They are three pieces of
-   work, not four:
+   Today that prints **3 rows, all PARTIAL** -- no CRITICAL or HIGH row is NOT STARTED, which is
+   not the same claim and an earlier version of this file got it wrong. They are two pieces of
+   work, not three:
 
-   - **AV-QM-003** -- the GAMESS-US option dialog, the largest of Avogadro's generators (3035
-     lines of `.ui` over a 2688-line input-data class, a port of the MacMolPlt input builder).
-     Eleven of its twelve tabs are done (`backends/qc_inputs/gamess.py`): Basic Setup, Basis,
-     Control, DFT, Misc, MO Guess, SCF, MP2, Stat Point, Hessian and System. What is left is
-     Data, the one that reshapes what is already written rather than adding a group: `GamessDataGroup::WriteToFile` (gamessinputdata.cpp:1750) writes $DATA itself, title,
-     point group, coordinate type and units, where `gamess_deck` hand-writes $DATA/C1/Cartesians
-     and every golden-deck test pins that block. Each tab is read out of the group writer it
-     feeds rather than out of the dialog, and is a `Section` of its own in
-     `qc_inputs/plugin.py` (`gamess_basis_detail`, `gamess_control`, `gamess_dft`,
-     `gamess_misc`, `gamess_guess`, `gamess_scf`, `gamess_mp2`, `gamess_statpt`,
-     `gamess_hessian`, `gamess_system`), which is what keeps the form readable and what keeps
-     GAMESS's boxes out of the other programs' forms: `SchemaForm.tsx` draws no heading for a
-     section whose parameters are all hidden, pinned by a vitest case. A new tab is a new
-     section. Read the row's note first: it lists them and says where each one's keywords live in Avogadro's source.
-     AV-QM-002, the Gaussian one, is done. Both follow the same shape: the deck is written here
-     rather than through ASE, because ASE's writers cannot say what the dialogs offer, and each
-     program's own boxes are schema parameters made visible by `program == <name>`.
+   - **AV-QM-003 is done** and no longer in this list -- it is here only because the next
+     reader will look for it. All twelve tabs of the GAMESS-US dialog are ported
+     (`backends/qc_inputs/gamess.py`), each read out of the group writer it feeds rather than
+     out of the dialog, and each a `Section` of its own in `qc_inputs/plugin.py`
+     (`gamess_basis_detail`, `gamess_control`, `gamess_data`, `gamess_dft`, `gamess_misc`,
+     `gamess_guess`, `gamess_scf`, `gamess_mp2`, `gamess_statpt`, `gamess_hessian`,
+     `gamess_system`), which is what keeps the form readable and what keeps GAMESS's boxes out
+     of the other programs' forms: `SchemaForm.tsx` draws no heading for a section whose
+     parameters are all hidden, pinned by a vitest case. What is left is the geometry formats
+     Avogadro's own code does not write either -- a GAMESS Z-matrix and Hilderbrant internals,
+     both commented out in gamessinputdata.cpp:1761-1768. The row's note lists every departure
+     from Avogadro and why; roughly a dozen of its writers drop a box on the floor, and the note
+     names each one with a line number.
    - **AV-SURF-006** -- the OpenQube reader family. fchk, Molden, GAMESS-US, ORCA output and
      Molpro output are read: every reader the Avogadro corpus can validate. MOPAC's `.aux` is
      Slater-type and needs a second `basis_values` in `gto.py` -- that one is a subsystem, and
