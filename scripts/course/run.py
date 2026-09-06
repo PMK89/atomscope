@@ -46,7 +46,9 @@ async def run(exercise: Exercise, work_root: Path, *, fresh: bool) -> dict[str, 
         previous = work_root.parent / exercise.continues / "work"
         restart = previous / f"{exercise.continues}.rstrt"
         if not restart.exists():
-            msg = f"{exercise.id} continues {exercise.continues}, which has not been run"
+            msg = (
+                f"{exercise.id} continues {exercise.continues}, which has not been run"
+            )
             raise SystemExit(msg)
         shutil.copy(restart, work / f"{exercise.id}.rstrt")
 
