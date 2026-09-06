@@ -1,8 +1,8 @@
 # Project state (resume here)
 
-Branch: main; this file is updated in the commit that checkpoints the work, so `git log -1 -- docs/STATE.md` is the last checkpoint. Phases 0-1 done; Phase 2 (editor tools), 3 (volumetric, trajectories, vectors), 4-5 (CP-PAW setup/execution/forces), 6 (CP-PAW analysis: DOS, bands, orbitals), crystallography, molecular mechanics and wavefunction surfaces are merged and working. Parity matrix: 222 IMPLEMENTED, 18 PARTIAL, 71 NOT STARTED, 1 BLOCKED of 312 rows.
+Branch: main; this file is updated in the commit that checkpoints the work, so `git log -1 -- docs/STATE.md` is the last checkpoint. Phases 0-1 done; Phase 2 (editor tools), 3 (volumetric, trajectories, vectors), 4-5 (CP-PAW setup/execution/forces), 6 (CP-PAW analysis: DOS, bands, orbitals), crystallography, molecular mechanics and wavefunction surfaces are merged and working. Parity matrix at `8c51b48`, derived (see ROADMAP for the command): 229 IMPLEMENTED, 16 PARTIAL, 66 NOT STARTED, 1 BLOCKED of 312 rows.
 
-Tests: `pytest -q -m "not cppaw"` -> 519 passed, 1 skipped; `pytest -q -m cppaw` -> 7 passed (93 s, runs the real binaries -- **CP-PAW is found through `$PAWDIR`, which the user's own shell sets (`/home/pmk/cp-paw`), not `env.sh`**; `$ATOMSCOPE_CPPAW_DIR` overrides it); `pnpm vitest run` -> 517 passed; `pnpm exec playwright test` -> 39 passed in 56 s at `86da76e` (against private servers, see below; `make test-e2e` points at the user's 5173, which is stale). **`source env.sh` before Playwright**: without `PLAYWRIGHT_BROWSERS_PATH` it looks in `~/.cache/ms-playwright`, finds nothing, and every test fails at `browserType.launch`. `ruff check`, `mypy` and `pnpm typecheck` are clean. No known failing tests. **Type-check the frontend with `pnpm typecheck` (`tsc -b --noEmit`), never with `pnpm exec tsc --noEmit`:** the root `tsconfig.json` is a solution file with `files: []`, so a bare `tsc --noEmit` checks nothing and exits 0.
+Tests: `pytest -q -m "not cppaw"` -> 519 passed, 1 skipped; `pytest -q -m cppaw` -> 7 passed (93 s, runs the real binaries -- **CP-PAW is found through `$PAWDIR`, which the user's own shell sets (`/home/pmk/cp-paw`), not `env.sh`**; `$ATOMSCOPE_CPPAW_DIR` overrides it); `pnpm vitest run` -> 518 passed; `pnpm exec playwright test` -> 39 passed in 52 s at the commit that carries this line (the Export-reopen fix), against current code (against private servers, see below; `make test-e2e` points at the user's 5173, which is stale). **`source env.sh` before Playwright**: without `PLAYWRIGHT_BROWSERS_PATH` it looks in `~/.cache/ms-playwright`, finds nothing, and every test fails at `browserType.launch`. `ruff check`, `mypy` and `pnpm typecheck` are clean. No known failing tests. **Type-check the frontend with `pnpm typecheck` (`tsc -b --noEmit`), never with `pnpm exec tsc --noEmit`:** the root `tsconfig.json` is a solution file with `files: []`, so a bare `tsc --noEmit` checks nothing and exits 0.
 
 ## Resume commands
 
@@ -11,7 +11,8 @@ cd /home/pmk/Projects/atomscope && source env.sh
 git status && git log --oneline | head -20
 cat docs/STATE.md ROADMAP.md
 make test          # backend pytest + frontend vitest -- note `test-backend` is a bare
-                   # `pytest -q`, so it includes the seven CP-PAW-marked tests: ~3.5 min, not 2.
+                   # `pytest -q`, so it includes the seven CP-PAW-marked tests: measured 149 s
+                   # for the backend at `8c51b48`, plus ~17 s of vitest.
                    # `pytest -q -m "not cppaw"` is the fast loop.
 make lint typecheck
 make dev-backend   # 127.0.0.1:8765 ; make dev-frontend -> 127.0.0.1:5173
@@ -208,13 +209,24 @@ run against current code -- Playwright above all -- use the private-server recip
   is missed (AV-VIS-020's note says so).
 - **Two pytest sessions at once used to destroy each other, and it looked like a CP-PAW bug.**
   `backend/pyproject.toml` set `--basetemp=../.scratch/pytest`, and pytest deletes and recreates
-  that directory at the start of every session -- so running `make test` and `pytest -m cppaw` in
-  two shells made the second wipe the first's `tmp_path` tree mid-run. What surfaced was
-  `test_cppaw_analysis_tools_over_api` failing with `FileNotFoundError` on its own tmp directory
-  and `test_real_parallel_run` failing with its work directory gone: two CP-PAW failures with no
-  CP-PAW cause. `backend/tests/conftest.py` now sets `PYTEST_DEBUG_TEMPROOT` to an absolute
-  `.scratch/pytest` instead, under which pytest makes a numbered per-session root, so concurrent
-  runs are independent -- verified by running both suites at once. It also no longer matters which
+  that directory at the start of every session -- so a second session starting while a first was
+  running wiped the first's `tmp_path` tree mid-run. That is how it was hit: the user ran the two
+  commands from "how to test" one after the other in one shell, while *this session* was running
+  `pytest -q -m "not cppaw"` in the same tree between commits. Their runs failed; mine, being
+  shorter and holding no `tmp_path` for long, did not. The CP-PAW tests are the ones that hold a
+  `tmp_path` longest -- ~90 s of real binaries -- so they were what surfaced:
+  `test_cppaw_analysis_tools_over_api` with `FileNotFoundError` on its own tmp directory, and
+  `test_real_parallel_run` with **an empty assertion message** -- that message is
+  `logs[-3000:]` over `driver.log`, `driver.err` and `case.out`
+  (`tests/backends/cppaw/test_plugin.py:208-213`), so empty means none of the three existed. A
+  CP-PAW failure leaves `driver.err`; a deleted work directory leaves nothing. Two CP-PAW failures
+  with no CP-PAW cause.
+  `backend/tests/conftest.py` now sets `PYTEST_DEBUG_TEMPROOT` to an absolute `.scratch/pytest`
+  instead, under which pytest builds a numbered `pytest-of-<user>/pytest-N` root per session, so
+  concurrent runs are independent -- verified by running both suites at once, eight seconds apart.
+  Retention (`keep=3`) cannot prune a live session either: each root carries a `.lock`,
+  `cleanup_numbered_dir` skips any whose lock is younger than `LOCK_TIMEOUT` (three days,
+  `_pytest/pathlib.py:45`), and the lock is removed at exit. It also no longer matters which
   directory pytest is started from, though `backend/` is still the habit the Makefile keeps.
 - The dev servers on 127.0.0.1:8765/5173 are not ours and do not reload, so they serve whatever
   routes existed when they were started. E2E tests that need a new route want private servers:

@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- **Export dialog: reopening it no longer wipes the path.** The dialog is hidden
+  rather than unmounted, so a second Export starts with the last path still in
+  the box -- and the defaults, applied a tick after the reopen, dropped it. The
+  writers are only fetched once now, and a reopen applies the defaults at once.
+  A controlled input given the value it already holds fires no change event, so
+  re-entering the same path could not undo the wipe and Save stayed disabled.
+
 - A **TeraChem input generator**, with the seven theories, seven basis sets,
   four dispersion corrections and three run types its dialog offered -- and the
   geometry file the deck names. Avogadro wrote a `coordinates` line pointing at

@@ -143,3 +143,32 @@ test('a path typed before the format list arrives survives it, and chooses the w
   expect(screen.getByLabelText('Format')).toHaveValue('pdb');
   expect(screen.getByRole('button', { name: 'Save' })).toBeEnabled();
 });
+
+test('reopening the dialog does not wipe the path a moment after it is entered', async () => {
+  // The dialog is hidden, not unmounted, so a reopen finds the last path still in the box. Entering
+  // that same path again changes nothing, and a controlled input whose value did not change fires
+  // no change event -- so the defaults, if they were applied a tick later, wiped it and left Save
+  // disabled with no way to enable it. `smoke.spec.ts` caught this on the second Export of the run.
+  const { rerender } = render(
+    <ExportDialog open onClose={() => {}} onError={(m) => void errors.push(m)} />,
+  );
+  await screen.findByRole('option', { name: /Chemical Markup/ });
+  const enter = (value: string): void => {
+    fireEvent.change(screen.getByLabelText('Path on this machine'), { target: { value } });
+  };
+  enter('/tmp/water.pdb');
+  expect(screen.getByLabelText('Format')).toHaveValue('pdb');
+
+  rerender(<ExportDialog open={false} onClose={() => {}} onError={(m) => void errors.push(m)} />);
+  rerender(<ExportDialog open onClose={() => {}} onError={(m) => void errors.push(m)} />);
+  // the defaults are already in: reopening starts from them, so entering a path is a real change
+  expect(screen.getByLabelText('Path on this machine')).toHaveValue('');
+  enter('/tmp/water.pdb');
+
+  // and nothing arrives afterwards to take it away again
+  await new Promise((resolve) => setTimeout(resolve, 0));
+  expect(screen.getByLabelText('Path on this machine')).toHaveValue('/tmp/water.pdb');
+  expect(screen.getByLabelText('Format')).toHaveValue('pdb');
+  expect(screen.getByRole('button', { name: 'Save' })).toBeEnabled();
+  expect(errors).toEqual([]);
+});

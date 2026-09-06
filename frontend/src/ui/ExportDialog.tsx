@@ -43,6 +43,8 @@ export function ExportDialog({
    * throw the path away. It picks the writer from what was typed instead.
    */
   const typed = useRef('');
+  /** the writers as last fetched, readable from the open effect without re-running it */
+  const known = useRef<FormatDescription[]>([]);
 
   // `onError` is the App's setState, which never changes identity: this effect sets the format and
   // the path, so it must not re-run while the dialog is open or it would overwrite what is typed.
@@ -51,21 +53,33 @@ export function ExportDialog({
     typed.current = '';
     const previous = document.activeElement as HTMLElement | null;
     first.current?.focus();
+    // where the structure came from decides both the format and the folder, as a Save As does
+    const source = doc.provenance?.source ?? '';
+    const apply = (list: FormatDescription[]): void => {
+      const from = extensionOf(source) ? formatForPath(list, source) : null;
+      const chosen = defaultFormat(list, from);
+      if (typed.current) {
+        // typed before the writers were known: the path chooses one, as it does afterwards
+        setFormat(formatForPath(list, typed.current, chosen) ?? chosen);
+        return;
+      }
+      setFormat(chosen);
+      setPath(extensionOf(source) ? pathForFormat(list, source, chosen) : '');
+    };
+    if (known.current.length) {
+      // Reopened, with the writers already in hand: the defaults go in now, not a tick later. Late
+      // defaults land on top of whatever was typed in between, and on a reopen `typed` does not
+      // catch it -- the box still holds the last path, so entering that same path again changes
+      // nothing and fires no change event at all.
+      apply(known.current);
+      return () => previous?.focus();
+    }
     api.io
       .formats()
       .then((list) => {
+        known.current = list;
         setFormats(list);
-        // where the structure came from decides both the format and the folder, as a Save As does
-        const source = doc.provenance?.source ?? '';
-        const from = extensionOf(source) ? formatForPath(list, source) : null;
-        const chosen = defaultFormat(list, from);
-        if (typed.current) {
-          // typed before the writers were known: the path chooses one, as it does afterwards
-          setFormat(formatForPath(list, typed.current, chosen) ?? chosen);
-          return;
-        }
-        setFormat(chosen);
-        setPath(extensionOf(source) ? pathForFormat(list, source, chosen) : '');
+        apply(list);
       })
       .catch((e: Error) => onError(e.message));
     return () => previous?.focus();
