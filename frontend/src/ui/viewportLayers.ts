@@ -9,9 +9,20 @@ import { DipoleLayer } from '../renderer/layers/DipoleLayer';
 import type { PluginRegistry } from '../plugins/registry';
 import type { ViewState } from '../state/viewStore';
 
-/** Add every contributed layer to a renderer, in registration order. */
+/**
+ * Add every contributed layer to a renderer, in registration order. The registry knows a layer
+ * by its contribution's id and the renderer by the instance's, so a contribution whose factory
+ * builds a layer of another name would register and then never be found again: it is refused
+ * here rather than going quiet.
+ */
 export function installExtraLayers(renderer: Renderer, registry: PluginRegistry): void {
-  for (const layer of registry.layers()) renderer.addLayer(layer.create());
+  for (const contribution of registry.layers()) {
+    const layer = contribution.create();
+    if (layer.id !== contribution.id) {
+      throw new Error(`layer ${contribution.id} builds a layer that calls itself ${layer.id}`);
+    }
+    renderer.addLayer(layer);
+  }
 }
 
 export function syncExtraLayers(

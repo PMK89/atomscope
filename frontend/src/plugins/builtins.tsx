@@ -63,12 +63,12 @@ export function defaultRegistry(): PluginRegistry {
   registry.registerLayer({ id: 'labels', create: () => new LabelLayer() });
   registry.registerLayer({ id: 'ribbon', create: () => new RibbonLayer() });
   registry.registerLayer({ id: 'hbonds', create: () => new HBondLayer() });
-  registry.registerPanel({ id: 'calculation', label: 'Calculation', render: CalculationPanel });
-  registry.registerPanel({ id: 'analysis', label: 'Analysis', render: AnalysisPanel });
-  registry.registerPanel({ id: 'spectra', label: 'Spectra', render: SpectrumPanel });
-  registry.registerPanel({ id: 'surfaces', label: 'Surfaces', render: SurfacesPanel });
-  registry.registerPanel({ id: 'display', label: 'Display', render: () => <DisplayPanel /> });
-  registry.registerPanel({ id: 'crystal', label: 'Crystal', render: CrystalPanel });
-  registry.registerPanel({ id: 'properties', label: 'Properties', render: PropertiesPanel });
+  registry.registerPanel({ id: 'calculation', label: 'Calculation', component: CalculationPanel });
+  registry.registerPanel({ id: 'analysis', label: 'Analysis', component: AnalysisPanel });
+  registry.registerPanel({ id: 'spectra', label: 'Spectra', component: SpectrumPanel });
+  registry.registerPanel({ id: 'surfaces', label: 'Surfaces', component: SurfacesPanel });
+  registry.registerPanel({ id: 'display', label: 'Display', component: () => <DisplayPanel /> });
+  registry.registerPanel({ id: 'crystal', label: 'Crystal', component: CrystalPanel });
+  registry.registerPanel({ id: 'properties', label: 'Properties', component: PropertiesPanel });
   return registry;
 }

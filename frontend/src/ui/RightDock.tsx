@@ -41,7 +41,7 @@ export function RightDock({ onError }: { onError: (m: string) => void }): JSX.El
           </button>
         ))}
       </div>
-      {panels.map(({ id, render: Panel }) => (
+      {panels.map(({ id, component: Panel }) => (
         <div
           key={id}
           role="tabpanel"

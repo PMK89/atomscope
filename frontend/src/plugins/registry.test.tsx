@@ -30,13 +30,13 @@ function withPlugin(): PluginRegistry {
     tool: new WireCutters(),
     settings: () => <p>snips</p>,
   });
-  registry.registerPanel({ id: 'wires', label: 'Wires', render: () => <p>one wire</p> });
+  registry.registerPanel({ id: 'wires', label: 'Wires', component: () => <p>one wire</p> });
   return registry;
 }
 
 class WireLayer implements DisplayLayer {
-  readonly id = 'wires';
   readonly object = new Object3D();
+  constructor(readonly id: string = 'wires') {}
   visible = true;
   update(): void {}
   dispose(): void {}
@@ -121,6 +121,12 @@ test('a contributed layer is added to a renderer, one instance per renderer', ()
   expect(built[0]).not.toBe(built[1]);
 });
 
+test('a layer whose factory builds another layer is refused rather than lost', () => {
+  const registry = defaultRegistry();
+  registry.registerLayer({ id: 'wires', create: () => new WireLayer('cables') });
+  expect(() => installExtraLayers(new FakeRenderer() as never, registry)).toThrow('calls itself');
+});
+
 test('the application registry does not carry a test plugin', () => {
   const registry = defaultRegistry();
   expect(registry.tool('wire-cutters')).toBeUndefined();
@@ -133,7 +139,7 @@ test('registering the same id twice is refused, and so is taking a shortcut twic
   const registry = withPlugin();
   expect(() => registry.registerTool({ tool: new WireCutters() })).toThrow('already registered');
   expect(() =>
-    registry.registerPanel({ id: 'wires', label: 'Wires again', render: () => <p /> }),
+    registry.registerPanel({ id: 'wires', label: 'Wires again', component: () => <p /> }),
   ).toThrow('already registered');
   const pliers: Tool = { ...new WireCutters(), id: 'pliers', label: 'Pliers' };
   expect(() => registry.registerTool({ tool: pliers })).toThrow('shortcut');

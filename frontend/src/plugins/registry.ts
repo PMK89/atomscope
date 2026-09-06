@@ -41,8 +41,11 @@ export interface PanelContribution {
   /** Stable: it is what the open tab is remembered under in this browser. */
   id: string;
   label: string;
-  /** The panel's body. Panels stay mounted while another tab is open. */
-  render: (props: { onError: ErrorSink }) => JSX.Element;
+  /**
+   * The panel's body, rendered as a component (`<Panel onError={...} />`), so it may use hooks.
+   * Panels stay mounted while another tab is open, which is what keeps their form state.
+   */
+  component: (props: { onError: ErrorSink }) => JSX.Element;
 }
 
 export class PluginRegistry {
