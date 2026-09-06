@@ -770,10 +770,30 @@ test('the Properties tab shows the weight, the backend atom type and an editable
   await page.getByRole('button', { name: 'Extensions' }).click();
   await page.getByRole('menuitem', { name: 'Assign partial charges' }).click();
   await expect(page.getByLabel('Partial charge')).toBeVisible();
-  await expect(page.getByText('dipole moment')).toBeVisible();
+  // exact: the Display tab's "Dipole moment" heading is in the DOM too, and getByText is
+  // case-insensitive by default
+  await expect(page.getByText('dipole moment', { exact: true })).toBeVisible();
 
   // typing one by hand drops the dipole, which was the sum over the charges as they were
   await page.getByLabel('Partial charge').fill('-0.9');
   await page.getByLabel('Partial charge').blur();
-  await expect(page.getByText('dipole moment')).toHaveCount(0);
+  await expect(page.getByText('dipole moment', { exact: true })).toHaveCount(0);
+});
+
+test('the dipole moment is drawn as an arrow once the charges are there', async ({ page }) => {
+  await page.goto('/');
+  await expect(page.locator('.app-statusbar')).toContainText('H2O');
+  await page.getByRole('tab', { name: 'Display' }).click();
+
+  // the panel says what is missing rather than drawing an arrow of nothing
+  await expect(
+    page.getByText(/summed from the partial charges, and this structure carries none/),
+  ).toBeVisible();
+  await page.locator('#display-dipole').check();
+
+  await page.locator('button.menu-title', { hasText: 'Extensions' }).click();
+  await page.getByRole('menuitem', { name: 'Assign partial charges' }).click();
+  // water's dipole from Gasteiger charges, summed in the browser from the current positions
+  await expect(page.getByText(/D, from the partial charges/)).toBeVisible();
+  await page.screenshot({ path: '../.scratch/dev/dipole-arrow.png' });
 });

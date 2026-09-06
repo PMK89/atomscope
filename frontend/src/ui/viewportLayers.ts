@@ -6,10 +6,12 @@ import { HBondLayer } from '../renderer/layers/HBondLayer';
 import { RibbonLayer, type SecondaryStructureData } from '../renderer/layers/RibbonLayer';
 import { UnitCellLayer } from '../renderer/layers/UnitCellLayer';
 import { VectorLayer } from '../renderer/layers/VectorLayer';
+import { DipoleLayer } from '../renderer/layers/DipoleLayer';
 import type { ViewState } from '../state/viewStore';
 
 export function installExtraLayers(renderer: Renderer): void {
   renderer.addLayer(new VectorLayer());
+  renderer.addLayer(new DipoleLayer());
   renderer.addLayer(new UnitCellLayer());
   renderer.addLayer(new AxesLayer());
   renderer.addLayer(new LabelLayer());
@@ -46,6 +48,11 @@ export function syncExtraLayers(
     vectors.visible = view.showVectors;
     vectors.setSettings({ field: view.vectorField, scale: view.vectorScale });
     vectors.setHidden(hiddenAtoms);
+  }
+  const dipole = renderer.getLayer('dipole');
+  if (dipole instanceof DipoleLayer) {
+    dipole.visible = view.showDipole;
+    dipole.setSettings({ scale: view.dipoleScale });
   }
   const cell = renderer.getLayer('unit-cell');
   if (cell instanceof UnitCellLayer) {

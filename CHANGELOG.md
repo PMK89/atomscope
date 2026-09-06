@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- The dipole moment is drawn: one red arrow through the molecule, summed from
+  the partial charges every time the picture is rebuilt, so it follows an atom
+  you drag. `View ▸ Show dipole moment`, or the Display tab, which also shows
+  the magnitude.
+
 - The Cartesian editor gained a **Format** box — the seven column layouts
   Avogadro offered (XYZ, XYZ with numbers, coordinates only, GAMESS, GAMESS #2,
   Turbomole, Priroda) — and a **Sort by** box for element or a coordinate.

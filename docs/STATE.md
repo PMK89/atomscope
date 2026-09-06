@@ -1,6 +1,6 @@
 # Project state (resume here)
 
-Branch: main; this file is updated in the commit that checkpoints the work, so `git log -1 -- docs/STATE.md` is the last checkpoint. Phases 0-1 done; Phase 2 (editor tools), 3 (volumetric, trajectories, vectors), 4-5 (CP-PAW setup/execution/forces), 6 (CP-PAW analysis: DOS, bands, orbitals), crystallography, molecular mechanics and wavefunction surfaces are merged and working. Parity matrix: 214 IMPLEMENTED, 24 PARTIAL, 73 NOT STARTED, 1 BLOCKED of 312 rows.
+Branch: main; this file is updated in the commit that checkpoints the work, so `git log -1 -- docs/STATE.md` is the last checkpoint. Phases 0-1 done; Phase 2 (editor tools), 3 (volumetric, trajectories, vectors), 4-5 (CP-PAW setup/execution/forces), 6 (CP-PAW analysis: DOS, bands, orbitals), crystallography, molecular mechanics and wavefunction surfaces are merged and working. Parity matrix: 215 IMPLEMENTED, 23 PARTIAL, 73 NOT STARTED, 1 BLOCKED of 312 rows.
 
 Tests: `pytest -q -m "not cppaw"` -> 403 passed, 1 skipped; `pytest -q -m cppaw` -> 7 passed (~90 s, needs the local CP-PAW install); `pnpm vitest run` -> 472 passed; `pnpm exec playwright test` -> 36 passed (against private servers, see below; `make test-e2e` points at the user's 5173, which is stale). **`source env.sh` before Playwright**: without `PLAYWRIGHT_BROWSERS_PATH` it looks in `~/.cache/ms-playwright`, finds nothing, and every test fails at `browserType.launch`. `ruff check`, `mypy` and `pnpm typecheck` are clean. No known failing tests. **Type-check the frontend with `pnpm typecheck` (`tsc -b --noEmit`), never with `pnpm exec tsc --noEmit`:** the root `tsconfig.json` is a solution file with `files: []`, so a bare `tsc --noEmit` checks nothing and exits 0.
 
@@ -47,6 +47,15 @@ run against current code -- Playwright above all -- use the private-server recip
   derived per `${doc.id}:${revision}` and never stored. Typing a charge by hand drops
   `properties.dipole_moment`, which was the sum over the charges (editor/edits.ts).
   The IUPAC name is a PubChem lookup on a locally computed InChIKey, on a button.
+- The dipole arrow (AV-ANAL-013): `renderer/layers/DipoleLayer.ts` draws one arrow from
+  `model/dipole.ts`'s `dipoleFromCharges`, recomputed every rebuild from the charges and the
+  current positions -- derived, never stored, which is also what Avogadro did. Always the
+  estimate from the charges: the QC output importer keeps only the magnitude of a computed
+  dipole, and keeping the vector is the follow-up. Physics sign (negative toward positive), as
+  the backend's `Dipole.vector` reports; anchored at the centroid; 1 A/Debye by default where
+  the reference drew 3. `properties["dipole_moment"]` has two writers with different units
+  (Debye from chem/properties.py, e*A from io/qc_outputs.py) -- fine today because the Quantity
+  carries its unit, but not a key to read blind.
 - The Cartesian editor's Format and Sort boxes (AV-EDIT-023): seven column layouts written,
   and read back by shape rather than by the box -- element first (symbol, `C1`, name or atomic
   number) then three numbers, a GAMESS charge column recognised by equalling that element's

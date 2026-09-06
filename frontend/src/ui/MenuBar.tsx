@@ -441,6 +441,7 @@ export function MenuBar({ onError }: { onError: (msg: string) => void }): JSX.El
           { label: 'Fit to structure', action: view.requestFit },
           { label: 'Centre', action: view.requestCenter },
           { label: 'Show force vectors', checked: view.showVectors, action: view.toggleVectors },
+          { label: 'Show dipole moment', checked: view.showDipole, action: view.toggleDipole },
           { label: 'Show unit cell', checked: view.showUnitCell, action: view.toggleUnitCell },
           { label: 'Show axes', checked: view.showAxes, action: view.toggleAxes },
           // what the labels say is chosen in the Display tab; the menu only switches them on

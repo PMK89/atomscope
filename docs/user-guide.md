@@ -650,7 +650,23 @@ of the right dock, which is Avogadro's Display Types dock:
 | Hydrogen bonds | on/off, cut-off distance and angle; drawn as dashed sticks from the geometry on screen |
 | Ribbons | cartoon, ribbon or backbone rendering of a protein, a **colour by** of its own (secondary structure, chain or residue) and a width; helices red, strands yellow with an arrowhead, coil thin |
 | Vectors | on/off, which field (forces, moments, mode displacements) and a scale |
+| Dipole moment | on/off and a scale in Ångström per Debye |
 | Unit cell and axes | the cell box, the repeat counts, the corner gizmo |
+
+**The dipole moment** is drawn as one red arrow through the molecule
+(`View ▸ Show dipole moment`, or the Display tab, where the magnitude is shown
+beside the toggle). It is summed from the partial charges and the current
+positions every time the picture is rebuilt, so it always agrees with the
+charges in the Properties tab and follows an atom you drag; a structure with no
+charges has no arrow, and the panel says to run `Extensions ▸ Assign partial
+charges` first. The arrow starts at the centre of the molecule and points from
+negative toward positive charge, the same direction the API's dipole vector
+has — Avogadro's arrow pointed the other way, and started at the world origin.
+Its length is the scale times the magnitude; the default is 1 Å per Debye,
+where Avogadro drew a fixed 3 Å per Debye, which for a small molecule reaches
+outside the view. A dipole read from a calculation output is *not* what is
+drawn: the importer keeps only its magnitude, so the arrow is always the
+estimate from the charges.
 
 Atom colours come from the built-in element table (generated from ASE);
 selected atoms are tinted towards blue, hovered atoms towards yellow.

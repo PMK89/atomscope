@@ -8,6 +8,7 @@
  * have. Isosurfaces keep their own panel because they are per-grid rather than per-structure.
  */
 import { useState } from 'react';
+import { dipoleFromCharges } from '../model/dipole';
 import type { RibbonStyle } from '../model/ribbon';
 import { ATOM_LABEL_OPTIONS, BOND_LABEL_OPTIONS } from '../renderer/labels';
 import {
@@ -197,6 +198,7 @@ export function DisplayPanel(): JSX.Element {
   const view = useViewStore();
   const doc = useStructureStore((s) => s.doc);
   const vectorFields = Object.keys(doc.atomic_vectors ?? {});
+  const dipole = dipoleFromCharges(doc);
   const ribbonError = useBioStore((s) => (view.showRibbon ? s.error : null));
   const layer = useRendererStore((s) => s.renderer)?.structureLayer;
   const repeatTruncated = layer?.truncated === true && doc.atoms.length > 0;
@@ -503,6 +505,37 @@ export function DisplayPanel(): JSX.Element {
       </div>
       {vectorFields.length === 0 && (
         <p className="muted">This structure carries no vector field (forces, moments).</p>
+      )}
+
+      <h3>Dipole moment</h3>
+      <Toggle
+        id="display-dipole"
+        label="Enabled"
+        checked={view.showDipole}
+        onChange={view.toggleDipole}
+      />
+      <div className="form-row">
+        <label htmlFor="display-dipole-scale">Scale (Å per Debye)</label>
+        <input
+          id="display-dipole-scale"
+          type="range"
+          min="0.5"
+          max="10"
+          step="0.5"
+          value={view.dipoleScale}
+          onChange={(e) => view.setDipoleScale(Number(e.target.value))}
+        />
+      </div>
+      {dipole === null ? (
+        <p className="muted">
+          The dipole is summed from the partial charges, and this structure carries none. Run
+          Extensions ▸ Assign partial charges first.
+        </p>
+      ) : (
+        <p className="muted">
+          {dipole.magnitude.toFixed(3)} D, from the partial charges and the current positions. The
+          arrow points from negative toward positive charge.
+        </p>
       )}
 
       <h3>Unit cell and axes</h3>

@@ -53,6 +53,10 @@ export interface ViewState {
   showVectors: boolean;
   vectorField: string;
   vectorScale: number;
+  /** The dipole implied by the partial charges, drawn as one arrow (Avogadro's dipole engine). */
+  showDipole: boolean;
+  /** Å per Debye */
+  dipoleScale: number;
   showUnitCell: boolean;
   cellRepeat: [number, number, number];
   showAxes: boolean;
@@ -113,6 +117,8 @@ export interface ViewState {
   toggleVectors: () => void;
   setVectorField: (field: string) => void;
   setVectorScale: (scale: number) => void;
+  toggleDipole: () => void;
+  setDipoleScale: (scale: number) => void;
   toggleUnitCell: () => void;
   setCellRepeat: (repeat: [number, number, number]) => void;
   toggleAxes: () => void;
@@ -190,12 +196,16 @@ export const useViewStore = create<ViewState>((set) => ({
   showVectors: false,
   vectorField: 'forces',
   vectorScale: 1,
+  showDipole: false,
+  dipoleScale: 1,
   showUnitCell: true,
   cellRepeat: [1, 1, 1],
   showAxes: true,
   toggleVectors: () => set((s) => ({ showVectors: !s.showVectors })),
   setVectorField: (vectorField) => set({ vectorField }),
   setVectorScale: (vectorScale) => set({ vectorScale }),
+  toggleDipole: () => set((s) => ({ showDipole: !s.showDipole })),
+  setDipoleScale: (dipoleScale) => set({ dipoleScale }),
   toggleUnitCell: () => set((s) => ({ showUnitCell: !s.showUnitCell })),
   // the repeat multiplies every atom, so it is bounded here as well as in the input
   setCellRepeat: ([a, b, c]) =>
