@@ -283,6 +283,30 @@ class StatPointOptions:
     print_orbitals: bool = False
 
 
+FRIENDS = {
+    "none": "",
+    "hondo": "HONDO",
+    "meldf": "MELDF",
+    "gamessuk": "GAMESSUK",
+    "gaussian": "GAUSSIAN",
+    "all": "ALL",
+}
+"""The Misc tab's `Force a Check Run Type` list (`gamessinputdata.cpp:717`): FRIEND asks GAMESS
+to write another program's input, which is a check run whatever the Control tab says, and
+Avogadro's writer leaves EXETYP out when it is set (`:840`)."""
+
+
+@dataclass(frozen=True)
+class MiscOptions:
+    """The Misc tab: the interfaces to other codes, which are $CONTRL keywords."""
+
+    friend: str = "none"
+    molplt: bool = False
+    pltorb: bool = False
+    aimpac: bool = False
+    rpac: bool = False
+
+
 GUESS_TYPES = {
     "huckel": "",
     "hcore": "HCORE",
@@ -462,6 +486,25 @@ def _scf_type(control: ControlOptions | None, multiplicity: int, electrons: int)
     return "ROHF" if multiplicity > 1 or electrons % 2 else "RHF"
 
 
+def _misc_words(misc: MiscOptions, exec_type: str) -> list[str]:
+    """The Misc tab's tail of $CONTRL (`gamessinputdata.cpp:912-932`)."""
+    friend = FRIENDS[misc.friend]
+    words = []
+    if friend:
+        words.append(f"FRIEND={friend}")
+    if misc.molplt:
+        words.append("MOLPLT=.TRUE.")
+    if misc.pltorb:
+        words.append("PLTORB=.TRUE.")
+    # these two write their files at the end of a run, so a check run has nothing to give them
+    if exec_type != "check" and not friend:
+        if misc.aimpac:
+            words.append("AIMPAC=.TRUE.")
+        if misc.rpac:
+            words.append("RPAC=.TRUE.")
+    return words
+
+
 def _control_group(
     *,
     theory: str,
@@ -471,12 +514,15 @@ def _control_group(
     multiplicity: int,
     electrons: int,
     control: ControlOptions | None,
+    misc: MiscOptions | None = None,
 ) -> str:
     """$CONTRL, keyword by keyword in the order Avogadro punched them (gamessinputdata.cpp:821)."""
     control = control or ControlOptions()
+    misc = misc or MiscOptions()
+    friend = FRIENDS[misc.friend]
     words = [f"SCFTYP={_scf_type(control, multiplicity, electrons)}"]
     words.append(f"RUNTYP={run_type(task, control)}")
-    if EXEC_TYPES[control.exec_type]:
+    if EXEC_TYPES[control.exec_type] and not friend:
         words.append(f"EXETYP={EXEC_TYPES[control.exec_type]}")
     if theory == "mp2":
         words.append("MPLEVL=2")
@@ -499,6 +545,7 @@ def _control_group(
         words.append(f"LOCAL={LOCALIZATIONS[control.localization]}")
     if ecp:
         words.append(f"ECP={ecp}")
+    words += _misc_words(misc, control.exec_type)
     return " $CONTRL " + " ".join(words) + " $END"
 
 
@@ -703,6 +750,7 @@ def gamess_deck(
     basis: str = "n31d",
     detailed: DetailedBasis | None = None,
     control: ControlOptions | None = None,
+    misc: MiscOptions | None = None,
     guess: GuessOptions | None = None,
     scf: SCFOptions | None = None,
     hessian: HessianOptions | None = None,
@@ -736,6 +784,7 @@ def gamess_deck(
             multiplicity=multiplicity,
             electrons=electrons,
             control=control,
+            misc=misc,
         )
     )
     if _grid_free(theory, control, multiplicity, electrons):

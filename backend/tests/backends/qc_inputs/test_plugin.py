@@ -779,3 +779,36 @@ def test_the_gamess_groups_are_written_in_avogadros_order() -> None:
         "$DATA",
         "$END",
     ]
+
+
+def test_the_gamess_misc_tab_writes_its_interfaces_into_control() -> None:
+    """The tab's boxes are $CONTRL keywords, and they come after everything else in the group."""
+    water = from_atoms(molecule("H2O"), name="water")
+    gen = plugin.generate_inputs(
+        water,
+        {
+            "program": "gamess",
+            "gamess_molplt": True,
+            "gamess_pltorb": True,
+            "gamess_aimpac": True,
+            "gamess_rpac": True,
+        },
+        "case",
+    )
+    assert gen.files[0].text.split("\n")[1] == (
+        " $CONTRL SCFTYP=RHF RUNTYP=ENERGY MOLPLT=.TRUE. PLTORB=.TRUE. AIMPAC=.TRUE."
+        " RPAC=.TRUE. $END"
+    )
+
+
+def test_a_gamess_run_that_writes_another_programs_input_is_a_check_run() -> None:
+    """FRIEND is one, so Avogadro leaves EXETYP out beside it -- and the two file interfaces."""
+    water = from_atoms(molecule("H2O"), name="water")
+    base = {"program": "gamess", "gamess_aimpac": True, "gamess_rpac": True}
+    friend = plugin.generate_inputs(
+        water, {**base, "gamess_friend": "gaussian", "gamess_exec": "debug"}, "case"
+    )
+    assert " $CONTRL SCFTYP=RHF RUNTYP=ENERGY FRIEND=GAUSSIAN $END" in friend.files[0].text
+    # a check run keeps EXETYP and drops the same two boxes
+    check = plugin.generate_inputs(water, {**base, "gamess_exec": "check"}, "case")
+    assert " $CONTRL SCFTYP=RHF RUNTYP=ENERGY EXETYP=CHECK $END" in check.files[0].text

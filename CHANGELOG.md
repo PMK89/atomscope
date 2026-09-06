@@ -14,7 +14,9 @@
   GAMESS's own run-type list (IRC, Raman, NMR, energy surfaces and the rest),
   UHF/GVB/MCSCF, CI and coupled cluster, the localization methods, the SCF
   iteration limit and `Check`/`Debug` runs. So are the DFT tab (both of
-  GAMESS's functional lists, grid or grid-free), the MO Guess tab (where the
+  GAMESS's functional lists, grid or grid-free), the Misc tab (the interfaces to
+  MolPlt, PltOrb, AIMPAC and RPAC, and writing another program's input instead
+  of running), the MO Guess tab (where the
   initial orbitals come from, whether to print them, and the alpha/beta mixing
   a singlet UHF run uses), the Hessian tab (analytic or numerical force
   constants, the displacement, the purification and the frequency scale

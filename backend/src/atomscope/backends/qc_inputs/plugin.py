@@ -36,6 +36,7 @@ from atomscope.backends.qc_inputs.gamess import (
     DetailedBasis,
     GuessOptions,
     HessianOptions,
+    MiscOptions,
     MP2Options,
     SCFOptions,
     StatPointOptions,
@@ -521,6 +522,64 @@ SCHEMA = ParameterSchema(
                         Choice(value="grid", label="Grid"),
                         Choice(value="gridfree", label="Grid-free"),
                     ],
+                    visible_when=[VisibleWhen(key="program", value="gamess")],
+                ),
+            ],
+        ),
+        Section(
+            id="gamess_misc",
+            label="GAMESS: Misc",
+            help="the Misc tab: the interfaces to other codes, which are $CONTRL keywords",
+            advanced=True,
+            parameters=[
+                ParameterSpec(
+                    key="gamess_friend",
+                    label="Write input for",
+                    type="enum",
+                    default="none",
+                    advanced=True,
+                    choices=[
+                        Choice(value="none", label="None"),
+                        Choice(value="hondo", label="Hondo 8.2"),
+                        Choice(value="meldf", label="MELDF"),
+                        Choice(value="gamessuk", label="GAMESS (UK version)"),
+                        Choice(value="gaussian", label="Gaussian 9x"),
+                        Choice(value="all", label="All"),
+                    ],
+                    help="FRIEND, which makes the run a check run whatever the Control tab says",
+                    visible_when=[VisibleWhen(key="program", value="gamess")],
+                ),
+                ParameterSpec(
+                    key="gamess_molplt",
+                    label="Write a MolPlt file",
+                    type="boolean",
+                    default=False,
+                    advanced=True,
+                    visible_when=[VisibleWhen(key="program", value="gamess")],
+                ),
+                ParameterSpec(
+                    key="gamess_pltorb",
+                    label="Write a PltOrb file",
+                    type="boolean",
+                    default=False,
+                    advanced=True,
+                    visible_when=[VisibleWhen(key="program", value="gamess")],
+                ),
+                ParameterSpec(
+                    key="gamess_aimpac",
+                    label="Write an AIMPAC file",
+                    type="boolean",
+                    default=False,
+                    advanced=True,
+                    help="written at the end of a real run, so a check run leaves it out",
+                    visible_when=[VisibleWhen(key="program", value="gamess")],
+                ),
+                ParameterSpec(
+                    key="gamess_rpac",
+                    label="Write an RPAC file",
+                    type="boolean",
+                    default=False,
+                    advanced=True,
                     visible_when=[VisibleWhen(key="program", value="gamess")],
                 ),
             ],
@@ -1166,6 +1225,17 @@ def _gamess_system(values: Values) -> SystemOptions:
     )
 
 
+def _gamess_misc(values: Values) -> MiscOptions:
+    """The Misc tab's values, which are $CONTRL keywords."""
+    return MiscOptions(
+        friend=str(values.get("gamess_friend", "none")),
+        molplt=bool(values.get("gamess_molplt")),
+        pltorb=bool(values.get("gamess_pltorb")),
+        aimpac=bool(values.get("gamess_aimpac")),
+        rpac=bool(values.get("gamess_rpac")),
+    )
+
+
 def _gamess_guess(values: Values) -> GuessOptions:
     """The MO Guess tab's values."""
     return GuessOptions(
@@ -1488,6 +1558,7 @@ class QcInputsPlugin:
                     basis=str(merged.get("gamess_basis", "n31d")),
                     detailed=_gamess_detailed(merged),
                     control=_gamess_control(merged),
+                    misc=_gamess_misc(merged),
                     guess=_gamess_guess(merged),
                     scf=_gamess_scf(merged),
                     hessian=_gamess_hessian(merged),

@@ -937,8 +937,10 @@ guess writes `GUESS=MOREAD` and the orbital count, but the `$VEC` group itself
 has to be pasted into the deck by hand — and the Hessian tab, which applies to
 a frequency run or to an optimization that starts by computing one, chooses
 analytic or numerical force constants, the displacement, the purification and a
-frequency scale factor. Each tab is a section of its own, and a section with
-nothing to show for the program you picked does not appear. `Transition state` is a
+frequency scale factor. The Misc tab turns on GAMESS's interfaces to other
+codes — MolPlt, PltOrb, AIMPAC and RPAC — and can have the run write another
+program's input instead of running at all. Each tab is a section of its own,
+and a section with nothing to show for the program you picked does not appear. `Transition state` is a
 calculation type only GAMESS writes so far
 (`RUNTYP=SADPOINT`); the other generators say so rather than writing something
 that is not a saddle-point search.
