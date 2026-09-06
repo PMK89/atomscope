@@ -1011,7 +1011,26 @@ operation is a single undo step.
 * Operations on the symmetry: `Symmetrize`, `Primitive`,
   `Primitive + standardize`, `Niggli`, `Asymmetric unit`, and
   `Fill cell (group)` which regenerates the full cell from an asymmetric unit
-  and a space-group number.
+  and a space group. Which group is Fill's, three ways: leave the field empty
+  and the group is perceived from the atoms — which only works when they
+  already fill the cell; type an International number (`225`) and the setting
+  is left to ASE; or press `Set space group…` and pick a row.
+
+  That table is Avogadro's, and it has **530 rows, not 230**: a group with
+  more than one setting gets a row per setting, listed by International number,
+  Hall symbol and full Hermann-Mauguin symbol, with the setting in the last
+  column and the perceived group marked. The setting is the point of the table
+  — `P 1 2 1`, `P 1 1 2` and `P 2 1 1` are all number 3 and fill the cell
+  differently — so a row chosen here is applied exactly, using spglib's own
+  operations rather than ASE's number-and-origin-choice path. The search box
+  takes a number or either symbol. `Clear` goes back to the typed field.
+
+  The chosen setting belongs to the panel, not to the document: it is not
+  saved with the structure, because the group of a filled cell is a function
+  of its atoms and a second, asserted copy would be a second truth to
+  reconcile after every operation that moves them. The cost is that an
+  asymmetric unit saved before filling does not remember which group it was
+  waiting for.
 * **Operations** — `Wrap atoms`, `Standard orientation`, `Supercell…`,
   `Slab…`, `Crystal library…`, `Remove unit cell`, and `Scale to volume`.
 * **Display** — the cell repeat counts described in [§6](#6-visualization).

@@ -31,6 +31,7 @@ export type TrajectoryImport = components['schemas']['TrajectoryImport'];
 export type ExportTrajectoryResponse = components['schemas']['ExportTrajectoryResponse'];
 export type SymmetryInfo = components['schemas']['SymmetryInfo'];
 export type LibraryEntry = components['schemas']['LibraryEntry'];
+export type SpacegroupSetting = components['schemas']['SpacegroupSetting'];
 export type ScalarSeries = components['schemas']['ScalarSeries'];
 export type AnalysisJob = components['schemas']['AnalysisJob'];
 export type OrbitalEntry = components['schemas']['OrbitalEntry'];
@@ -244,6 +245,7 @@ export const api = {
     bulk: (body: Body<'/api/crystal/bulk', 'post'>) =>
       request<Structure>('/api/crystal/bulk', json(body)),
     library: () => request<LibraryEntry[]>('/api/crystal/library'),
+    spacegroups: () => request<SpacegroupSetting[]>('/api/crystal/spacegroups'),
     libraryEntry: (category: string, name: string) =>
       request<Structure>(
         `/api/crystal/library/${encodeURIComponent(category)}/${encodeURIComponent(name)}`,

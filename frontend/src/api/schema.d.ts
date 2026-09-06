@@ -1221,6 +1221,26 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/crystal/spacegroups': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Spacegroups
+     * @description The 530 settings of the 230 space groups, in Hall order: the Set space group table.
+     */
+    get: operations['spacegroups_api_crystal_spacegroups_get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/crystal/standard-orientation': {
     parameters: {
       query?: never;
@@ -2796,6 +2816,11 @@ export interface components {
     };
     /** FillRequest */
     FillRequest: {
+      /**
+       * Hall Number
+       * @description one of the 530 settings; honoured exactly, unlike an ITA number
+       */
+      hall_number?: number | null;
       /** Spacegroup */
       spacegroup?: number | null;
       structure: components['schemas']['Structure'];
@@ -4229,6 +4254,33 @@ export interface components {
       spacegroup: number;
       /** Symbols */
       symbols: string[];
+    };
+    /**
+     * SpacegroupSetting
+     * @description One of the 530 settings of the 230 space groups, as spglib's database names it.
+     */
+    SpacegroupSetting: {
+      /**
+       * Choice
+       * @description which setting of this group: origin, axis or cell choice
+       */
+      choice: string;
+      /** Hall */
+      hall: string;
+      /** Hall Number */
+      hall_number: number;
+      /**
+       * International
+       * @description short Hermann-Mauguin symbol, e.g. 'Fm-3m'
+       */
+      international: string;
+      /** International Full */
+      international_full: string;
+      /**
+       * Number
+       * @description International (ITA) number
+       */
+      number: number;
     };
     /**
      * Spectrum
@@ -7274,6 +7326,26 @@ export interface operations {
         };
         content: {
           'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  spacegroups_api_crystal_spacegroups_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['SpacegroupSetting'][];
         };
       };
     };

@@ -31,6 +31,8 @@ export function CrystalPanel({ onError }: { onError: (m: string) => void }): JSX
   const symmetry = useCrystalStore((s) => s.symmetry);
   const setSymmetry = useCrystalStore((s) => s.setSymmetry);
   const openDialog = useCrystalStore((s) => s.openDialog);
+  const setting = useCrystalStore((s) => s.setting);
+  const setSetting = useCrystalStore((s) => s.setSetting);
   const cellRepeat = useViewStore((s) => s.cellRepeat);
   const setCellRepeat = useViewStore((s) => s.setCellRepeat);
 
@@ -198,12 +200,20 @@ export function CrystalPanel({ onError }: { onError: (m: string) => void }): JSX
                 id="fill-sg"
                 placeholder="perceive"
                 value={spacegroup}
+                disabled={setting !== null}
                 onChange={(e) => setSpacegroup(e.target.value)}
               />
+              <button onClick={() => openDialog('spacegroup')}>Set space group…</button>
               <button
                 onClick={() => {
+                  // a chosen setting is exact; a typed number leaves the setting to ASE; neither
+                  // perceives the group from the atoms, which needs a complete cell
                   const n = Number(spacegroup);
-                  const body = Number.isInteger(n) && n >= 1 ? { spacegroup: n } : {};
+                  const body = setting
+                    ? { hall_number: setting.hall_number }
+                    : Number.isInteger(n) && n >= 1
+                      ? { spacegroup: n }
+                      : {};
                   run('Fill unit cell', (structure) =>
                     api.crystal.fill({ ...symmetryBody(structure), ...body }),
                   );
@@ -213,6 +223,15 @@ export function CrystalPanel({ onError }: { onError: (m: string) => void }): JSX
               </button>
             </div>
           </div>
+          {setting && (
+            <p className="muted">
+              {setting.international_full} (no. {setting.number}, Hall {setting.hall}
+              {setting.choice ? `, setting ${setting.choice}` : ''}){' '}
+              <button className="tree-item" onClick={() => setSetting(null)}>
+                Clear
+              </button>
+            </p>
+          )}
 
           <h3>Operations</h3>
           <div className="button-row">

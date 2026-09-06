@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- `Set space group…` in the Crystal tab lists all 530 settings of the 230
+  space groups — International number, Hall symbol, Hermann-Mauguin symbol and
+  the setting — and `Fill cell` then uses the one you picked exactly, including
+  the unique-axis settings that an International number alone cannot express.
+
 - A file that was drawn rather than computed -- a molfile from a sketcher, a
   2D database record -- is offered a rough 3D geometry when it is opened, built
   from the bonds and cleaned up with a force field. It is one undo step, and

@@ -1,7 +1,10 @@
-/** Modal dialogs opened from the Build menu / Crystal tab: supercell, slab and crystal library. */
+/**
+ * Modal dialogs opened from the Build menu / Crystal tab: supercell, slab, crystal library and
+ * the space-group table.
+ */
 import { useEffect, useRef, useState } from 'react';
 import { dialogKeyHandler } from './dialogKeys';
-import { api, type LibraryEntry } from '../api/client';
+import { api, type LibraryEntry, type SpacegroupSetting } from '../api/client';
 import { parseMiller, parseRepeat } from '../model/crystal';
 import { normalizeStructure } from '../model/structure';
 import { useCrystalStore } from '../state/crystalStore';
@@ -14,6 +17,7 @@ export function CrystalDialogs({ onError }: { onError: (m: string) => void }): J
   if (dialog === 'supercell') return <SupercellDialog onClose={close} onError={onError} />;
   if (dialog === 'slab') return <SlabDialog onClose={close} onError={onError} />;
   if (dialog === 'library') return <LibraryDialog onClose={close} onError={onError} />;
+  if (dialog === 'spacegroup') return <SpacegroupDialog onClose={close} onError={onError} />;
   return null;
 }
 
@@ -228,6 +232,110 @@ function LibraryDialog({ onClose, onError }: DialogProps): JSX.Element {
       </ul>
       <div className="button-row">
         <button onClick={onClose}>Close</button>
+      </div>
+    </Dialog>
+  );
+}
+
+/**
+ * Avogadro's Set Spacegroup (crystallographyextension.cpp:2495-2559): a table of every setting
+ * with the International number, the Hall name and the Hermann-Mauguin name, the current group
+ * preselected. 530 rows, not 230 — a group with more than one setting has one row per setting,
+ * and which one is chosen decides where Fill puts the atoms.
+ *
+ * Two differences. The chosen setting is remembered by the panel rather than written onto the
+ * document: the group of a filled cell is a function of its atoms, so an asserted one beside it
+ * would be a second truth. And there is a filter box, because 530 rows is a long scroll; it is
+ * the one the crystal library already has.
+ */
+function SpacegroupDialog({ onClose, onError }: DialogProps): JSX.Element {
+  const [settings, setSettings] = useState<SpacegroupSetting[] | null>(null);
+  const [filter, setFilter] = useState('');
+  const setSetting = useCrystalStore((s) => s.setSetting);
+  const chosen = useCrystalStore((s) => s.setting);
+  const symmetry = useCrystalStore((s) => s.symmetry);
+  const current = chosen?.hall_number ?? symmetry?.info.hall_number ?? null;
+
+  useEffect(() => {
+    api.crystal
+      .spacegroups()
+      .then(setSettings)
+      .catch((e: Error) => onError(`Space groups: ${e.message}`));
+  }, [onError]);
+
+  const needle = filter.trim().toLowerCase();
+  const shown = (settings ?? []).filter(
+    (s) =>
+      !needle ||
+      String(s.number) === needle ||
+      s.international.toLowerCase().includes(needle) ||
+      s.international_full.toLowerCase().includes(needle) ||
+      s.hall.toLowerCase().includes(needle),
+  );
+
+  const choose = (setting: SpacegroupSetting): void => {
+    setSetting(setting);
+    onClose();
+  };
+
+  return (
+    <Dialog title="Set space group" onClose={onClose}>
+      <p className="muted">
+        The setting Fill unit cell will use. A group with more than one setting has one row per
+        setting; the current one is marked.
+      </p>
+      <div className="form-row">
+        <label htmlFor="spacegroup-filter">Search</label>
+        <input
+          id="spacegroup-filter"
+          placeholder="number, Hermann-Mauguin or Hall symbol"
+          value={filter}
+          onChange={(e) => setFilter(e.target.value)}
+        />
+      </div>
+      {settings === null && <p className="muted">Loading…</p>}
+      <div className="orbital-table-wrap spacegroup-table">
+        <table className="orbital-table" aria-label="Space groups">
+          <thead>
+            <tr>
+              <th scope="col">International</th>
+              <th scope="col">Hall</th>
+              <th scope="col">Hermann-Mauguin</th>
+              <th scope="col">Setting</th>
+            </tr>
+          </thead>
+          <tbody>
+            {shown.map((s) => (
+              <tr key={s.hall_number} className={s.hall_number === current ? 'selected' : ''}>
+                <td>
+                  <button
+                    className="tree-item"
+                    aria-label={`Set ${s.international_full} (Hall ${s.hall_number})`}
+                    onClick={() => choose(s)}
+                  >
+                    {s.number} {s.international}
+                  </button>
+                </td>
+                <td>{s.hall}</td>
+                <td>{s.international_full}</td>
+                <td>{s.choice || '—'}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <div className="button-row">
+        {chosen && (
+          <button
+            onClick={() => {
+              setSetting(null);
+              onClose();
+            }}
+          >
+            Clear
+          </button>
+        )}
+        <button onClick={onClose}>Cancel</button>
       </div>
     </Dialog>
   );

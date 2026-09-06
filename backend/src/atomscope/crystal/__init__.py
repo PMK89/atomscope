@@ -22,6 +22,7 @@ from atomscope.crystal.cell import (
 )
 from atomscope.crystal.library import LibraryEntry, library_entries, load_entry
 from atomscope.crystal.symmetry import (
+    SpacegroupSetting,
     SymmetryInfo,
     asymmetric_unit,
     fill_unit_cell,
@@ -29,6 +30,7 @@ from atomscope.crystal.symmetry import (
     perceive_symmetry,
     primitive_cell,
     primitive_standardized,
+    spacegroup_settings,
     symmetrize,
 )
 
@@ -36,6 +38,7 @@ __all__ = [
     "CoordinateMode",
     "LatticeType",
     "LibraryEntry",
+    "SpacegroupSetting",
     "SymmetryInfo",
     "add_cell",
     "asymmetric_unit",
@@ -59,6 +62,7 @@ __all__ = [
     "set_fractional_coordinates",
     "slab",
     "supercell",
+    "spacegroup_settings",
     "symmetrize",
     "translate_atoms",
     "wrap_atoms",

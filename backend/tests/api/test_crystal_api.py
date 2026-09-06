@@ -188,6 +188,24 @@ def test_builders(client: TestClient) -> None:
     assert nacl.n_atoms == 8
 
 
+def test_spacegroup_table_and_fill_by_setting(client: TestClient) -> None:
+    r = client.get("/api/crystal/spacegroups")
+    assert r.status_code == 200
+    table = r.json()
+    assert len(table) == 530
+    assert table[0]["hall_number"] == 1 and table[0]["number"] == 1
+    assert table[-1]["number"] == 230
+    assert {"hall_number", "number", "international", "international_full", "hall", "choice"} == set(
+        table[0]
+    )
+
+    asym = _post(client, "asymmetric-unit", {"structure": _json(NACL)})
+    filled = _post(client, "fill", {"structure": _json(asym), "hall_number": 523})
+    assert filled.n_atoms == 8
+    bad = client.post("/api/crystal/fill", json={"structure": _json(asym), "hall_number": 999})
+    assert bad.status_code == 422  # the request model knows the range
+
+
 def test_library(client: TestClient) -> None:
     r = client.get("/api/crystal/library")
     assert r.status_code == 200

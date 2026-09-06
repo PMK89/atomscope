@@ -1,6 +1,6 @@
 # Project state (resume here)
 
-Branch: main; this file is updated in the commit that checkpoints the work, so `git log -1 -- docs/STATE.md` is the last checkpoint. Phases 0-1 done; Phase 2 (editor tools), 3 (volumetric, trajectories, vectors), 4-5 (CP-PAW setup/execution/forces), 6 (CP-PAW analysis: DOS, bands, orbitals), crystallography, molecular mechanics and wavefunction surfaces are merged and working. Parity matrix: 212 IMPLEMENTED, 26 PARTIAL, 73 NOT STARTED, 1 BLOCKED of 312 rows.
+Branch: main; this file is updated in the commit that checkpoints the work, so `git log -1 -- docs/STATE.md` is the last checkpoint. Phases 0-1 done; Phase 2 (editor tools), 3 (volumetric, trajectories, vectors), 4-5 (CP-PAW setup/execution/forces), 6 (CP-PAW analysis: DOS, bands, orbitals), crystallography, molecular mechanics and wavefunction surfaces are merged and working. Parity matrix: 213 IMPLEMENTED, 25 PARTIAL, 73 NOT STARTED, 1 BLOCKED of 312 rows.
 
 Tests: `pytest -q -m "not cppaw"` -> 403 passed, 1 skipped; `pytest -q -m cppaw` -> 7 passed (~90 s, needs the local CP-PAW install); `pnpm vitest run` -> 472 passed; `pnpm exec playwright test` -> 36 passed (against private servers, see below; `make test-e2e` points at the user's 5173, which is stale). **`source env.sh` before Playwright**: without `PLAYWRIGHT_BROWSERS_PATH` it looks in `~/.cache/ms-playwright`, finds nothing, and every test fails at `browserType.launch`. `ruff check`, `mypy` and `pnpm typecheck` are clean. No known failing tests. **Type-check the frontend with `pnpm typecheck` (`tsc -b --noEmit`), never with `pnpm exec tsc --noEmit`:** the root `tsconfig.json` is a solution file with `files: []`, so a bare `tsc --noEmit` checks nothing and exits 0.
 
@@ -47,6 +47,14 @@ run against current code -- Playwright above all -- use the private-server recip
   derived per `${doc.id}:${revision}` and never stored. Typing a charge by hand drops
   `properties.dipole_moment`, which was the sum over the charges (editor/edits.ts).
   The IUPAC name is a PubChem lookup on a locally computed InChIKey, on a button.
+- Set space group (AV-XTAL-015): `GET /api/crystal/spacegroups` is spglib's whole database, all
+  530 settings, and `POST /api/crystal/fill` takes `hall_number` beside the ITA `spacegroup`.
+  The Hall path applies `spglib.get_symmetry_from_database` itself because ASE's `crystal` knows
+  only origin/cell choices -- ITA 3's unique-axis settings cannot be said through it, and the
+  test asserts the three fill differently. The chosen setting lives in `crystalStore`, not on the
+  document (a filled cell's group is a function of its atoms; a stored assertion would be a
+  second truth). Avogadro's dialog is 530 rows, not the 230 the matrix's description claimed --
+  corrected in the same commit.
 - A file drawn in two dimensions is offered a rough geometry on import (AV-MM-013): the offer
   is made in `frontend/src/ui/buildGeometry.ts`, on the one path File > Open, Open Recent and a
   dropped file share, and `POST /api/chem/generate-3d` builds it exactly as the reference did
@@ -125,6 +133,11 @@ run against current code -- Playwright above all -- use the private-server recip
   Playwright context is fresh per test, so e2e never sees them; a developer's own browser on 5173
   does. Avogadro's equivalent reset was `--erase-config` (AV-FILE-011, NOT STARTED).
 
+- One flaky Playwright test seen once: `Export writes a file on this machine` failed in a run
+  that took 1.9 minutes (the usual full suite is ~50 s, and the dev server was starting beside
+  it); it passed alone and in the next full run. Timing, not a regression -- but if it fails
+  again, its timeout is the first thing to look at.
+
 - Playwright's smoke spec is order-coupled: `Save as writes a second structure` needs a project,
   and the project is created by a test in *another* spec file. The full suite passes; running
   `smoke.spec.ts` alone fails that one test with "No project open". Run the whole suite, or create
@@ -172,13 +185,13 @@ run against current code -- Playwright above all -- use the private-server recip
      docs/avogadro1-feature-parity.md
    ```
 
-   Today that prints **7 rows, all PARTIAL** -- no CRITICAL or HIGH row is NOT STARTED, which is
-   not the same claim and an earlier version of this file got it wrong. Each of the 7 has a note
+   Today that prints **6 rows, all PARTIAL** -- no CRITICAL or HIGH row is NOT STARTED, which is
+   not the same claim and an earlier version of this file got it wrong. Each of the 6 has a note
    saying which part is missing; they are the honest remaining HIGH work (the sort box in the
-   selection tool, Set Spacegroup, the Gaussian and GAMESS option dialogs, the wavefunction
-   readers past fchk/Molden, frontend plugin registration). AV-MM-013 left the list in this
-   checkpoint: an imported drawing is offered a rough geometry and Build > Generate 3D
-   coordinates builds one on demand.
+   selection tool, the Gaussian and GAMESS option dialogs, the wavefunction readers past
+   fchk/Molden, and the two frontend plugin-registration rows). Two rows left the list in this
+   checkpoint: AV-MM-013 (an imported drawing is offered a rough geometry, and Build > Generate
+   3D coordinates builds one on demand) and AV-XTAL-015 (the 530-setting space-group table).
    Run the same awk with `MEDIUM` for what is next: today it lists 41 rows, of which the ones with
    a real workflow behind them are the conformer table (AV-MM-009), per-engine opacity
    (AV-VIS-007/011) and the dipole arrow (AV-ANAL-013, moved back to PARTIAL in this checkpoint:

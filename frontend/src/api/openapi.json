@@ -1595,6 +1595,20 @@
       "FillRequest": {
         "additionalProperties": false,
         "properties": {
+          "hall_number": {
+            "anyOf": [
+              {
+                "maximum": 530.0,
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "one of the 530 settings; honoured exactly, unlike an ITA number",
+            "title": "Hall Number"
+          },
           "spacegroup": {
             "anyOf": [
               {
@@ -4612,6 +4626,53 @@
         },
         "required": ["symbols", "basis", "spacegroup", "cellpar"],
         "title": "SpacegroupBuildRequest",
+        "type": "object"
+      },
+      "SpacegroupSetting": {
+        "additionalProperties": false,
+        "description": "One of the 530 settings of the 230 space groups, as spglib's database names it.",
+        "properties": {
+          "choice": {
+            "description": "which setting of this group: origin, axis or cell choice",
+            "title": "Choice",
+            "type": "string"
+          },
+          "hall": {
+            "title": "Hall",
+            "type": "string"
+          },
+          "hall_number": {
+            "maximum": 530.0,
+            "minimum": 1.0,
+            "title": "Hall Number",
+            "type": "integer"
+          },
+          "international": {
+            "description": "short Hermann-Mauguin symbol, e.g. 'Fm-3m'",
+            "title": "International",
+            "type": "string"
+          },
+          "international_full": {
+            "title": "International Full",
+            "type": "string"
+          },
+          "number": {
+            "description": "International (ITA) number",
+            "maximum": 230.0,
+            "minimum": 1.0,
+            "title": "Number",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "hall_number",
+          "number",
+          "international",
+          "international_full",
+          "hall",
+          "choice"
+        ],
+        "title": "SpacegroupSetting",
         "type": "object"
       },
       "Spectrum": {
@@ -9258,6 +9319,30 @@
           }
         },
         "summary": "From Spacegroup",
+        "tags": ["crystal"]
+      }
+    },
+    "/api/crystal/spacegroups": {
+      "get": {
+        "description": "The 530 settings of the 230 space groups, in Hall order: the Set space group table.",
+        "operationId": "spacegroups_api_crystal_spacegroups_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/SpacegroupSetting"
+                  },
+                  "title": "Response Spacegroups Api Crystal Spacegroups Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Spacegroups",
         "tags": ["crystal"]
       }
     },

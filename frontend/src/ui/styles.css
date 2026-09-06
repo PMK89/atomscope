@@ -808,3 +808,13 @@ button {
 .spectrum-panel .orbital-table-wrap {
   max-height: 12rem;
 }
+
+/* the space-group table has four columns of symbols: let it be as wide as it needs, and taller
+   than the other tables, because it is the whole dialog */
+.spacegroup-table {
+  max-height: 22rem;
+}
+.spacegroup-table .orbital-table th,
+.spacegroup-table .orbital-table td {
+  text-align: left;
+}

@@ -4,7 +4,7 @@ from ase.build import bulk
 
 from atomscope import crystal
 from atomscope.ase_bridge.convert import from_atoms
-from atomscope.model import Structure
+from atomscope.model import Atom, Cell, Structure
 
 
 def test_perceive_silicon(si_primitive: Structure) -> None:
@@ -85,3 +85,45 @@ def test_fill_and_reduce_round_trip(nacl: Structure, si_conventional: Structure)
     assert crystal.fill_unit_cell(si_asym, spacegroup=227).n_atoms == 8
     with pytest.raises(ValueError, match="invalid"):
         crystal.fill_unit_cell(si_asym, spacegroup=300)
+
+
+def test_the_settings_table_is_the_530_the_dialog_lists() -> None:
+    table = crystal.spacegroup_settings()
+    assert len(table) == 530
+    assert [s.hall_number for s in table] == list(range(1, 531))
+    assert (table[0].number, table[0].international) == (1, "P1")
+    assert (table[-1].number, table[-1].international) == (230, "Ia-3d")
+    # what the dialog's rows are for: one ITA number, three settings that differ
+    p2 = [s for s in table if s.number == 3]
+    assert [s.choice for s in p2] == ["b", "c", "a"]
+    assert [s.international_full for s in p2] == ["P 1 2 1", "P 1 1 2", "P 2 1 1"]
+
+
+def test_filling_by_hall_number_honours_the_setting(nacl: Structure) -> None:
+    """An ITA number leaves the setting to ASE; a Hall number is the setting, and must be kept."""
+    asym = crystal.asymmetric_unit(nacl)
+    by_number = crystal.fill_unit_cell(asym, spacegroup=225)
+    by_hall = crystal.fill_unit_cell(asym, hall_number=523)  # the only setting of Fm-3m
+
+    def sites(s: Structure) -> list[tuple[str, tuple[float, ...]]]:
+        assert s.cell is not None
+        frac = np.linalg.solve(np.array(s.cell.vectors).T, np.array(s.positions()).T).T
+        return sorted(
+            (a.element, tuple(np.round(np.mod(f, 1.0), 4)))
+            for a, f in zip(s.atoms, frac, strict=True)
+        )
+
+    assert sites(by_number) == sites(by_hall)
+
+    # ITA 3 has three settings, differing in which axis is unique: they fill differently, which
+    # is what ASE's number path cannot express (it knows origin choices, not axis choices)
+    cell = Cell(vectors=((4.0, 0.0, 0.0), (0.0, 5.0, 0.0), (0.0, 0.0, 6.0)))
+    general = Structure(
+        name="P2", atoms=[Atom(element="C", position=(1.2, 1.0, 0.6))], bonds=[], cell=cell
+    )
+    filled = {h: sites(crystal.fill_unit_cell(general, hall_number=h)) for h in (3, 4, 5)}
+    assert all(len(v) == 2 for v in filled.values())
+    assert filled[3] != filled[4] != filled[5] and filled[3] != filled[5]
+
+    with pytest.raises(ValueError, match="Hall"):
+        crystal.fill_unit_cell(general, hall_number=600)

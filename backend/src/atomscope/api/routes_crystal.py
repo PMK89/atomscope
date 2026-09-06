@@ -12,7 +12,7 @@ from fastapi import APIRouter, HTTPException, status
 from pydantic import Field
 
 from atomscope import crystal
-from atomscope.crystal import LibraryEntry, SymmetryInfo
+from atomscope.crystal import LibraryEntry, SpacegroupSetting, SymmetryInfo
 from atomscope.crystal.cell import Cellpar, CoordinateMode
 from atomscope.io.registry import FormatError
 from atomscope.model import Structure
@@ -58,6 +58,12 @@ class AddCellRequest(StructureBody):
 
 class FillRequest(SymmetryRequest):
     spacegroup: int | None = Field(default=None, ge=1, le=230)
+    hall_number: int | None = Field(
+        default=None,
+        ge=1,
+        le=530,
+        description="one of the 530 settings; honoured exactly, unlike an ITA number",
+    )
 
 
 class SupercellRequest(StructureBody):
@@ -187,7 +193,17 @@ def niggli(body: StructureBody) -> Structure:
 
 @router.post("/fill", response_model=Structure)
 def fill(body: FillRequest) -> Structure:
-    return _run(lambda: crystal.fill_unit_cell(body.structure, body.spacegroup, body.symprec))
+    return _run(
+        lambda: crystal.fill_unit_cell(
+            body.structure, body.spacegroup, body.symprec, hall_number=body.hall_number
+        )
+    )
+
+
+@router.get("/spacegroups", response_model=list[SpacegroupSetting])
+def spacegroups() -> list[SpacegroupSetting]:
+    """The 530 settings of the 230 space groups, in Hall order: the Set space group table."""
+    return list(crystal.spacegroup_settings())
 
 
 @router.post("/asymmetric-unit", response_model=Structure)
