@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- Surfaces can be generated from an **ORCA output** — the ordinary `.out`, with
+  the orbitals printed in it — beside the Molden file `orca_2mkl` writes. An
+  optimization gives its converged step. The two readings of one job were
+  checked against each other: same geometry, same basis, and every orbital
+  coefficient agreeing to half the last printed digit.
+
 - Surfaces can be generated from a **GAMESS-US log**, beside Gaussian
   checkpoints and Molden files: the geometry, the basis and the orbitals are
   read from the log itself. Molden files written by ORCA (`orca_2mkl`) now read

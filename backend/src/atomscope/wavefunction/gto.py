@@ -182,6 +182,86 @@ def shell_values(shell: Shell, centre: np.ndarray, points: np.ndarray) -> np.nda
     return out
 
 
+def primitive_convention(shells: list[Shell]) -> str | None:
+    """Which convention the single-primitive s and p shells are written in, if they agree.
+
+    An uncontracted shell has nothing to contract, so a program that publishes coefficients for
+    normalized primitives writes exactly 1; one that publishes them for unnormalized primitives
+    writes the primitive's own normalization N(alpha). Shells with l >= 2 are left out: ORCA
+    folds a further constant into them (sqrt(3) for d, so that the xy component comes out
+    normalized), which is a per-shell factor the self-overlap absorbs but this test would not.
+
+    Returns "normalized", "unnormalized", or None when the shells disagree, say neither, or
+    there are no uncontracted s or p shells to ask.
+    """
+    votes: set[str] = set()
+    for shell in shells:
+        if len(shell.exponents) != 1 or shell.angular_momentum > 1:
+            continue
+        c = abs(float(shell.coefficients[0]))
+        n = primitive_norm(float(shell.exponents[0]), (shell.angular_momentum, 0, 0))
+        if abs(c - 1.0) < 0.01:
+            votes.add("normalized")
+        elif abs(c / n - 1.0) < 0.01:
+            votes.add("unnormalized")
+        else:
+            return None
+    return votes.pop() if len(votes) == 1 else None
+
+
+def with_normalized_primitives(shells: list[Shell]) -> tuple[list[Shell], str]:
+    """Put the contraction coefficients into the convention the evaluator expects.
+
+    Molden's specification says the coefficients are for *normalized* primitives, and the
+    conforming files here -- from Molden, Gaussian and GAMESS -- follow it: every contracted
+    shell then has a self-overlap of one, to the last digit, and a single-primitive shell is
+    written with a coefficient of exactly 1.
+
+    ORCA's `orca_2mkl` does not: it writes the coefficients for unnormalized primitives, so the
+    primitive's own normalization is folded into them (a single-primitive s shell comes out as
+    0.36, a d shell as 1.93 = sqrt(3) N). Read as the specification says, the *shapes* of the
+    contracted functions are wrong -- each is still normalized afterwards, so nothing looks amiss
+    until the orbitals are integrated and come back with norms around 0.82 instead of 1.
+
+    The convention is measured rather than guessed from which program wrote the file, and two
+    independent measurements have to agree before anything is divided out:
+
+    * every shell's self-overlap is 1.000 under the specification (0.11 to 7.35 for the ORCA
+      file here), and
+    * an uncontracted s or p shell is written as 1 under the specification, as N(alpha) by ORCA.
+
+    The first test alone would also fire on a conforming file whose *contractions* are not
+    normalized -- coefficients copied out of a basis-set library, which Molden itself renormalizes
+    on read. No such file is in the corpus here, but the second test tells that case apart, and
+    when the two disagree the coefficients are left exactly as written.
+
+    Returns the shells and a short note naming the convention they were read in.
+    """
+    factors = np.array([contraction_norm(shell) for shell in shells])
+    if float(np.abs(factors - 1.0).max()) < 0.01:
+        return shells, "normalized primitives"
+    convention = primitive_convention(shells)
+    if convention == "normalized":
+        return shells, "normalized primitives, unnormalized contractions"
+    note = "unnormalized primitives"
+    if convention is None:
+        note += " (self-overlaps only)"
+    fixed: list[Shell] = []
+    for shell in shells:
+        powers = (shell.angular_momentum, 0, 0)
+        norms = np.array([primitive_norm(float(e), powers) for e in shell.exponents])
+        fixed.append(
+            Shell(
+                shell.atom_index,
+                shell.angular_momentum,
+                shell.pure,
+                shell.exponents,
+                shell.coefficients / norms,
+            )
+        )
+    return fixed, note
+
+
 def basis_values(shells: list[Shell], centres: np.ndarray, points: np.ndarray) -> np.ndarray:
     """Evaluate the whole basis: array of shape (n_basis, n_points)."""
     blocks = [shell_values(s, centres[s.atom_index], points) for s in shells]

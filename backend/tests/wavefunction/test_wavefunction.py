@@ -402,3 +402,98 @@ def test_a_file_with_no_uncontracted_s_or_p_shell_falls_back_to_the_self_overlap
     wf = read_molden(path)
     assert wf.metadata["coefficient_convention"] == "unnormalized primitives (self-overlaps only)"
     assert wf.shells[0].coefficients == pytest.approx(conforming)
+
+
+def test_an_orca_output_holds_the_same_wavefunction_as_the_molden_file_beside_it() -> None:
+    """Two readers, two file formats, one calculation: they have to agree function by function.
+
+    `caffeine_orca.out.gz` and `caffeine_orca.molden.gz` are the same ORCA job -- the output and
+    what `orca_2mkl` wrote from its gbw -- so the readers can be checked against each other
+    rather than against a norm. They lay the basis out differently (ORCA prints pz, px, py and
+    labels every row; Molden writes px, py, pz and labels nothing), which is exactly what makes
+    the comparison worth making: agreeing to the printed precision means both permutations are
+    right, not that one mistake was made twice.
+    """
+    out = read_wavefunction(FIX / "caffeine_orca.out.gz")
+    molden = read_wavefunction(FIX / "caffeine_orca.molden.gz")
+    assert out.metadata["format"] == "orca"
+    assert out.structure.formula() == molden.structure.formula() == "C8H10N4O2"
+    assert out.n_basis == molden.n_basis == 246
+    assert out.n_electrons == molden.n_electrons == 102
+    assert out.homo_index() == molden.homo_index() == 50
+    assert out.charge == 0.0 and out.multiplicity == 1
+
+    positions = np.array([a.position for a in out.structure.atoms])
+    assert positions == pytest.approx(
+        np.array([a.position for a in molden.structure.atoms]), abs=1e-8
+    )
+    assert len(out.shells) == 114
+    for a, b in zip(out.shells, molden.shells, strict=True):
+        assert (a.atom_index, a.angular_momentum) == (b.atom_index, b.angular_momentum)
+        assert a.exponents == pytest.approx(b.exponents)
+        # both files are now read in the normalized-primitive convention, so s and p agree to
+        # the printed digits -- but ORCA folds a further sqrt(3) into the d coefficients it
+        # writes to a Molden file (its xy component comes out normalized, the others do not),
+        # and that is a per-shell factor `contraction_norm` divides out again at evaluation.
+        # Hence the same orbitals from coefficients that differ by exactly that much.
+        scale = np.sqrt(3.0) if a.angular_momentum == 2 else 1.0
+        assert a.coefficients * scale == pytest.approx(b.coefficients, abs=1e-9)
+    # the coefficients are printed to six decimals, so half of the last digit is the agreement
+    for i, (a, b) in enumerate(zip(out.orbitals, molden.orbitals, strict=True)):
+        assert a.coefficients == pytest.approx(b.coefficients, abs=5e-7), i
+        assert a.energy == pytest.approx(b.energy, abs=5e-6), i
+
+
+def test_an_orca_output_gives_normalized_orbitals() -> None:
+    """The independent check: whatever the two readers agree on still has to be physics."""
+    wf = read_wavefunction(FIX / "caffeine_orca.out.gz")
+    box = bounding_box(wf.structure, padding=4.0, spacing=0.2)
+    for index in (45, 50):
+        assert integrate(orbital_values(wf, index, box) ** 2, box) == pytest.approx(1.0, abs=0.02)
+
+
+def test_the_converged_step_is_the_one_read_from_an_orca_optimization() -> None:
+    """An optimization prints geometry, basis and orbitals once a step; the last is the answer."""
+    wf = read_wavefunction(FIX / "caffeine_orca.out.gz")
+    # the first step's first atom sits at x = -1.514559 Bohr, the converged one at -1.267887
+    assert wf.structure.atoms[0].position[0] == pytest.approx(-1.267886929935834 * Bohr)
+    # and its first orbital came out at -18.75360 Eh on that step, -18.75958 at the end
+    assert wf.orbitals[0].energy == pytest.approx(-18.75958)
+
+
+def test_an_unrestricted_orca_output_is_refused_rather_than_half_read(tmp_path: Path) -> None:
+    """Reading only the alpha orbitals would quietly halve the density; there is no fixture."""
+    from atomscope.wavefunction.orca import read_orca  # noqa: PLC0415
+
+    path = tmp_path / "uhf.out"
+    path.write_text("* O   R   C   A *\n SPIN UP ORBITALS\nMOLECULAR ORBITALS\n")
+    with pytest.raises(ValueError, match="unrestricted"):
+        read_orca(path)
+
+
+def test_a_cartesian_orca_output_is_refused_rather_than_read_as_solid_harmonics(
+    tmp_path: Path,
+) -> None:
+    """The row labels say which components a shell has, and an unknown set stops the read.
+
+    ORCA prints solid harmonics by default and every component label here is one of those. A run
+    in a Cartesian basis prints six d functions under labels this reader has never seen, and
+    taking them for the five it knows would put the coefficients on the wrong functions.
+    """
+    from atomscope.wavefunction.orca import read_orca  # noqa: PLC0415
+
+    rows = "\n".join(
+        f"  0He  1{label}       {1.0 if label == 's' else 0.0:.6f}"
+        for label in ("s", "dxx", "dyy", "dzz", "dxy", "dxz", "dyz")
+    )
+    path = tmp_path / "cartesian.out"
+    path.write_text(
+        "* O   R   C   A *\n\n"
+        "CARTESIAN COORDINATES (A.U.)\n----\n  NO LB      ZA    FRAG    MASS        X   Y   Z\n"
+        "   0 He    2.0000    0     4.003     0.000000     0.000000     0.000000\n\n"
+        "BASIS SET IN INPUT FORMAT\n\n NewGTO He \n S 1 \n   1   1.0000   1.0000\n"
+        " D 1 \n   1   1.0000   1.0000\n  end;\n\n"
+        f"MOLECULAR ORBITALS\n------\n     0\n  -1.00000\n   2.00000\n  --------\n{rows}\n"
+    )
+    with pytest.raises(ValueError, match="not the .* this reader knows"):
+        read_orca(path)

@@ -16,6 +16,7 @@ from atomscope.wavefunction.fchk import read_fchk
 from atomscope.wavefunction.gamess import read_gamess
 from atomscope.wavefunction.model import MolecularOrbital, Shell, Wavefunction
 from atomscope.wavefunction.molden import read_molden
+from atomscope.wavefunction.orca import read_orca
 
 __all__ = [
     "EvaluationCancelledError",
@@ -32,10 +33,33 @@ __all__ = [
     "read_fchk",
     "read_gamess",
     "read_molden",
+    "read_orca",
     "read_wavefunction",
     "spin_density_values",
     "vdw_values",
 ]
+
+
+# The readers a file name picks out, and the markers that name the program when it does not.
+# A GAMESS log and an ORCA output are prose; their banners are the only thing at the top that
+# says which program wrote them.
+_BY_SUFFIX = {
+    ".fchk": read_fchk,
+    ".fch": read_fchk,
+    ".molden": read_molden,
+    ".mold": read_molden,
+    ".input": read_molden,
+    ".gamess": read_gamess,
+    ".gamout": read_gamess,
+    ".orcaout": read_orca,
+}
+_BY_BANNER = (
+    ("O   R   C   A", read_orca),
+    ("[Molden Format]", read_molden),
+    ("[Atoms]", read_molden),
+    ("GAMESS VERSION", read_gamess),
+    ("GAMESS execution script", read_gamess),
+)
 
 
 def read_wavefunction(path: "Path") -> Wavefunction:  # type: ignore[name-defined] # noqa: F821
@@ -44,19 +68,15 @@ def read_wavefunction(path: "Path") -> Wavefunction:  # type: ignore[name-define
 
     p = Path(path)
     suffix = p.suffix.lower()
-    stem_suffix = Path(p.stem).suffix.lower() if suffix == ".gz" else ""
-    if suffix in (".fchk", ".fch") or stem_suffix in (".fchk", ".fch"):
-        return read_fchk(p)
-    if suffix in (".molden", ".mold", ".input") or stem_suffix in (".molden", ".mold"):
-        return read_molden(p)
-    if suffix in (".gamess", ".gamout") or stem_suffix in (".gamess", ".gamout"):
-        return read_gamess(p)
+    if suffix == ".gz":
+        suffix = Path(p.stem).suffix.lower()
+    reader = _BY_SUFFIX.get(suffix)
+    if reader is not None:
+        return reader(p)
     head = _head(p)
-    if "[Molden Format]" in head or "[Atoms]" in head:
-        return read_molden(p)
-    # a GAMESS log is prose; the banner is the only thing at the top that names the program
-    if "GAMESS VERSION" in head or "GAMESS execution script" in head:
-        return read_gamess(p)
+    for marker, by_banner in _BY_BANNER:
+        if marker in head:
+            return by_banner(p)
     return read_fchk(p)
 
 
