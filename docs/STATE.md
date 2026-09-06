@@ -206,9 +206,16 @@ run against current code -- Playwright above all -- use the private-server recip
 - `ase-cp-paw` declares MIT but has no LICENSE file (author = project owner).
 - Hydrogen bonds are found without a minimum-image convention, so one across a periodic boundary
   is missed (AV-VIS-020's note says so).
-- `backend/pyproject.toml` sets `--basetemp=../.scratch/pytest`, which is relative to the working
-  directory: run pytest from `backend/`, as the Makefile does. From the repository root it resolves
-  outside PROJECT_ROOT and every tmp_path test errors out.
+- **Two pytest sessions at once used to destroy each other, and it looked like a CP-PAW bug.**
+  `backend/pyproject.toml` set `--basetemp=../.scratch/pytest`, and pytest deletes and recreates
+  that directory at the start of every session -- so running `make test` and `pytest -m cppaw` in
+  two shells made the second wipe the first's `tmp_path` tree mid-run. What surfaced was
+  `test_cppaw_analysis_tools_over_api` failing with `FileNotFoundError` on its own tmp directory
+  and `test_real_parallel_run` failing with its work directory gone: two CP-PAW failures with no
+  CP-PAW cause. `backend/tests/conftest.py` now sets `PYTEST_DEBUG_TEMPROOT` to an absolute
+  `.scratch/pytest` instead, under which pytest makes a numbered per-session root, so concurrent
+  runs are independent -- verified by running both suites at once. It also no longer matters which
+  directory pytest is started from, though `backend/` is still the habit the Makefile keeps.
 - The dev servers on 127.0.0.1:8765/5173 are not ours and do not reload, so they serve whatever
   routes existed when they were started. E2E tests that need a new route want private servers:
   `ATOMSCOPE_DATA_DIR=/tmp/atomscope-e2e python -m atomscope.api.server --host 127.0.0.1 --port 8791`,

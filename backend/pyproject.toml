@@ -51,8 +51,10 @@ packages = ["src/atomscope"]
 testpaths = ["tests"]
 asyncio_mode = "auto"
 markers = ["cppaw: runs the real CP-PAW executable (slow; skipped when unavailable)"]
-# keep temporary test directories inside the project tree
-addopts = "--basetemp=../.scratch/pytest"
+# Temporary test directories stay inside the project tree, but the root is set in
+# tests/conftest.py rather than with --basetemp, which pytest wipes at every session
+# start and which therefore made two concurrent runs destroy each other. See the
+# conftest docstring.
 
 [tool.ruff]
 line-length = 100
