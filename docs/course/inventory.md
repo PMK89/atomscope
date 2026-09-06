@@ -38,9 +38,9 @@ we do not have · `TODO` not started.
 | 2.8 | Water structure | relax the atomic positions | H₂O | atomic relaxation | final geometry, bond length and angle | relaxation run, geometry table, trajectory | RUNS |
 | 2.8.4 | Water structure | analyse with `paw_strc` | H₂O | — | bond lengths and angles from the tool | properties panel (bond/angle/torsion tables) | TODO |
 | 2.8.5 | Water structure | analyse in Avogadro | H₂O | — | the point of the whole application | our own viewer | TODO |
-| 3.3 | Water wave functions | extract and plot orbitals | H₂O | one-shot with orbital export | isosurfaces of the occupied and empty orbitals | orbital browser, isosurface engine | TODO |
+| 3.3 | Water wave functions | extract and plot orbitals | H₂O | one-shot with orbital export | isosurfaces of the occupied and empty orbitals | orbital browser, isosurface engine | RUNS |
 | 3.4 | Water wave functions | contour plots (optional) | H₂O | — | a plane cut through an orbital | **no contour/slice view** | BLOCKED |
-| 3.5 | Water wave functions | DOS and COOP | H₂O | `paw_dos` | density of states; crystal-orbital overlap population | DOS plot; **no COOP** | BLOCKED |
+| 3.5 | Water wave functions | DOS and COOP | H₂O | `paw_dos` | density of states; crystal-orbital overlap population | DOS plot (8 series); **no COOP** | RUNS |
 | 4.4 | Malonaldehyde | build from the Lewis formula | C₃H₄O₂ | — | building a molecule by hand | draw tool, builder | TODO |
 | 4.5 | Malonaldehyde | optimize the electronic structure | C₃H₄O₂ | wave-function optimization | convergence | as 2.7 | TODO |
 | 4.6 | Malonaldehyde | relax the atomic structure | C₃H₄O₂ | relaxation | the enol geometry, intramolecular H bond | relaxation, geometry, H-bond layer | TODO |
@@ -89,6 +89,15 @@ we do not have · `TODO` not started.
   105.07°, against the 0.981 Å and 105.2° the course reports (experiment: 0.9572 Å, 104.474°).
   That is the whole chain — our schema, our deck, the real binaries, our parsing — agreeing with a
   published result.
+- **A grid whose molecule sits at the cell origin is drawn inside out.** The course puts water at
+  (0,0,0) of its fcc cell, so CP-PAW's density and orbital cubes wrap across the grid boundary:
+  the density maximum is at index (0,0,0) and the lobes come out at the corners of the box rather
+  than around the atoms. Measured, not guessed — `argmax` of `case_density.cub` is the first
+  point. The cube also lists ten atoms for a three-atom molecule, because CP-PAW writes the corner
+  images. Nothing here is wrong; it is what a periodic grid of a molecule at the origin looks
+  like. But it makes ch. 3's pictures unreadable, and the fix is a real feature: roll a periodic
+  grid so the structure it belongs to sits in the middle of it, and drop the duplicate image atoms
+  a cube brings with it. **This is the next thing to build.**
 - `!OCCUPATIONS!STATE` **is** implemented (`strc.py`, `parse_occupation_states`), contrary to what
   ROADMAP Phase 4 still says; whether it covers what the NiO exercise needs is checked in ch. 7.
 
@@ -106,6 +115,9 @@ Ordered by how many exercises each unblocks.
 5. **Empty atoms** — 6.3.3.
 6. **`paw_tra` mode extraction** — 5.10.
 7. **Contour/slice plots** — 3.4, and a genuinely useful viewer feature beyond this course.
+8. **Centring a periodic grid on its structure** — every isosurface in ch. 3, 4 and 6, for any
+   molecule the course places at the origin. Small, and it blocks the pictures rather than the
+   numbers.
 
 ## Working notes
 

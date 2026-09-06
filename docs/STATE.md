@@ -2,7 +2,28 @@
 
 Branch: main; this file is updated in the commit that checkpoints the work, so `git log -1 -- docs/STATE.md` is the last checkpoint. Phases 0-1 done; Phase 2 (editor tools), 3 (volumetric, trajectories, vectors), 4-5 (CP-PAW setup/execution/forces), 6 (CP-PAW analysis: DOS, bands, orbitals), crystallography, molecular mechanics and wavefunction surfaces are merged and working. Parity matrix at `8c51b48`, derived (see ROADMAP for the command): 229 IMPLEMENTED, 16 PARTIAL, 66 NOT STARTED, 1 BLOCKED of 312 rows.
 
-Tests: `pytest -q -m "not cppaw"` -> 519 passed, 1 skipped; `pytest -q -m cppaw` -> 7 passed (93 s, runs the real binaries -- **CP-PAW is found through `$PAWDIR`, which the user's own shell sets (`/home/pmk/cp-paw`), not `env.sh`**; `$ATOMSCOPE_CPPAW_DIR` overrides it); `pnpm vitest run` -> 518 passed; `pnpm exec playwright test` -> 39 passed in 52 s at the commit that carries this line (the Export-reopen fix), against current code (against private servers, see below; `make test-e2e` points at the user's 5173, which is stale). **`source env.sh` before Playwright**: without `PLAYWRIGHT_BROWSERS_PATH` it looks in `~/.cache/ms-playwright`, finds nothing, and every test fails at `browserType.launch`. `ruff check`, `mypy` and `pnpm typecheck` are clean. No known failing tests. **Type-check the frontend with `pnpm typecheck` (`tsc -b --noEmit`), never with `pnpm exec tsc --noEmit`:** the root `tsconfig.json` is a solution file with `files: []`, so a bare `tsc --noEmit` checks nothing and exits 0.
+Tests: `pytest -q -m "not cppaw"` -> 519 passed, 1 skipped; `pytest -q -m cppaw` -> 7 passed (93 s, runs the real binaries -- **CP-PAW is found through `$PAWDIR`, which the user's own shell sets (`/home/pmk/cp-paw`), not `env.sh`**; `$ATOMSCOPE_CPPAW_DIR` overrides it); `pnpm vitest run` -> 531 passed; `pnpm exec playwright test` -> 40 passed in 54 s at the commit that carries this line (the Export-reopen fix), against current code (against private servers, see below; `make test-e2e` points at the user's 5173, which is stale). **`source env.sh` before Playwright**: without `PLAYWRIGHT_BROWSERS_PATH` it looks in `~/.cache/ms-playwright`, finds nothing, and every test fails at `browserType.launch`. `ruff check`, `mypy` and `pnpm typecheck` are clean. No known failing tests. **Type-check the frontend with `pnpm typecheck` (`tsc -b --noEmit`), never with `pnpm exec tsc --noEmit`:** the root `tsconfig.json` is a solution file with `files: []`, so a bare `tsc --noEmit` checks nothing and exits 0.
+
+## The CP-PAW hands-on course
+
+`docs/course/inventory.md` is the map: every exercise, what shows it, and what is missing.
+`scripts/course/exercises.py` holds the exercises as structures plus schema values;
+`scripts/course/run.py` runs one:
+
+```bash
+cd backend && PYTHONPATH=src:../scripts/course ../.venv/bin/python -m run water-wavefunction
+# then water-relax, then water-orbitals -- each continues the one before, via case.rstrt
+```
+
+Runs land in `.scratch/course-runs/<id>/` (gitignored); the root is always `case`, because that is
+what the application uses and what `analysis_run_spec` assumes. Chapter 2 reproduces the course's
+published geometry (0.9815 Å / 105.07° against 0.981 / 105.2). Timings: water single point 15 s,
+relaxation 29 s, orbital export + DOS about 20 s more.
+
+**Next: centre a periodic grid on its structure.** The course puts molecules at the cell origin,
+so their cubes wrap and the isosurfaces come out at the corners of the box -- see the finding in
+the inventory. After that, a sweep runner (it unblocks all of chapter 8 and two of chapter 6) and
+COOP.
 
 ## Resume commands
 
@@ -254,6 +275,9 @@ run against current code -- Playwright above all -- use the private-server recip
   clearing it -- pointed at `app-data/` it would wipe the list the person using Atomscope built up.
   Playwright needs `PLAYWRIGHT_BROWSERS_PATH=$(pwd)/.playwright-browsers` too (the Makefile exports
   it; a bare `pnpm exec playwright test` looks in ~/.cache and finds nothing).
+  `ATOMSCOPE_COURSE=1 pnpm exec playwright test` takes the course pictures instead of running the
+  suite; it is out of the suite because it opens structures of its own and the other specs share
+  one document. `.scratch/course-shots/` is where they land.
   The backend has **no `/health` route**: a readiness loop polling it never finishes. Poll
   `/docs` (or the dev server's `/`) instead, or just start both and go on with something else.
   Stop them again with `kill $(lsof -ti tcp:8791) $(lsof -ti tcp:5191)` -- never `pkill -f "port 8791"`,

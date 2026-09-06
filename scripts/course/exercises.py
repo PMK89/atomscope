@@ -32,6 +32,8 @@ class Exercise:
     """Schema values that differ from the plugin's defaults, or that the course states outright."""
     shows: str
     """What the course asks you to look at, and therefore what the example has to visualize."""
+    analysis: tuple[tuple[str, dict[str, Any]], ...] = ()
+    """Analysis tools to run once the calculation finishes: ("dos" | "bands" | "orbitals", opts)."""
     continues: str | None = None
     """An exercise whose restart file this one carries on from, as the course's chapters do."""
     notes: tuple[str, ...] = field(default_factory=tuple)
@@ -148,6 +150,58 @@ def _water_relaxation() -> Exercise:
 
 
 EXERCISES = (*EXERCISES, _water_relaxation())
+
+
+def _water_orbitals() -> Exercise:
+    """Chapter 3: the molecular orbitals, the electron density, and the density of states.
+
+    The course exports the wave functions of a converged calculation as grids and looks at them
+    as isosurfaces, then runs `paw_dos` over the same calculation for the total and projected
+    density of states. Both come off the relaxed geometry of ch. 2.8.
+    """
+    return Exercise(
+        id="water-orbitals",
+        chapter="3.3, 3.5",
+        title="Molecular orbitals, density and DOS of water",
+        structure=_water(),
+        values={
+            **COURSE_WAVEFUNCTION,
+            "task": "single_point",
+            "start": "restart",
+            "nstep": 200,
+            "empty_bands": 5,
+            "write_density": True,
+            "grid_spacing": 0.25,
+        },
+        shows=(
+            "isosurfaces of the four occupied orbitals and the first empty one, the electron"
+            " density, and the total and projected density of states"
+        ),
+        continues="water-relax",
+        analysis=(
+            (
+                "orbitals",
+                {
+                    "orbitals": [
+                        {"band": b, "kpoint": 1, "spin": 1} for b in range(1, 7)
+                    ]
+                },
+            ),
+            # 2000 K in the course's !GRID BROADENING[K]; k_B T at 2000 K is 0.172 eV
+            ("dos", {"broadening_ev": 0.172, "de_ev": 0.01, "projection": "atom"}),
+        ),
+        notes=(
+            (
+                "The course's .dcntl asks for the total DOS, oxygen s and p separately, and the"
+                " two hydrogens together, then a COOP between the oxygen sp3 and the hydrogen s."
+                " We write the total and a projection per atom and angular momentum, which covers"
+                " the first four weights; the COOP is not something we can express yet."
+            ),
+        ),
+    )
+
+
+EXERCISES = (*EXERCISES, _water_orbitals())
 
 
 def by_id(exercise_id: str) -> Exercise:
