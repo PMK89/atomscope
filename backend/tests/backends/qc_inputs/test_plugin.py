@@ -422,3 +422,108 @@ def test_a_stored_gamess_run_type_that_no_longer_exists_is_reported() -> None:
     water = from_atoms(molecule("H2O"), name="water")
     report = plugin.validate(water, {"program": "gamess", "gamess_runtyp": "nonsense"})
     assert any("no such run type" in i.message for i in report.issues)
+
+
+def test_the_gamess_dft_tab_chooses_a_functional_by_its_keyword() -> None:
+    """DFTTYP lives in $CONTRL; the grid-free method is the only thing $DFT carries here.
+
+    Avogadro shows one list of labels and looks the chosen index up in whichever of GAMESS's two
+    functional enums the method selects, so from GOP on its labels and its keywords disagree.
+    Going by keyword is what keeps that out of the deck, and it costs the pairing: a functional
+    that GAMESS has in one list only is refused for the other.
+    """
+    water = from_atoms(molecule("H2O"), name="water")
+    base = {"program": "gamess", "task": "energy"}
+    grid = plugin.generate_inputs(water, {**base, "gamess_functional": "PBEOP"}, "case")
+    assert " $CONTRL SCFTYP=RHF RUNTYP=ENERGY DFTTYP=PBEOP $END" in grid.files[0].text
+    assert "$DFT" not in grid.files[0].text
+
+    free = plugin.generate_inputs(
+        water, {**base, "gamess_functional": "CAMB", "gamess_dft_method": "gridfree"}, "case"
+    )
+    lines = free.files[0].text.split("\n")
+    assert lines[1] == " $CONTRL SCFTYP=RHF RUNTYP=ENERGY DFTTYP=CAMB $END"
+    assert lines[2] == " $DFT METHOD=GRIDFREE $END"
+
+    # the theory box's B3LYP is the same request as choosing B3LYP here
+    from_theory = plugin.generate_inputs(water, {**base, "gamess_theory": "b3lyp"}, "case")
+    from_box = plugin.generate_inputs(water, {**base, "gamess_functional": "B3LYP"}, "case")
+    assert from_theory.files[0].text == from_box.files[0].text
+
+    for values, message in (
+        ({"gamess_functional": "CAMB"}, "grid-free list only"),
+        ({"gamess_functional": "PBE", "gamess_dft_method": "gridfree"}, "grid list only"),
+    ):
+        report = plugin.validate(water, {**base, **values})
+        assert any(message in i.message for i in report.issues), values
+
+
+def test_the_gamess_stat_point_and_system_tabs_reach_their_groups() -> None:
+    """$STATPT and $SYSTEM, under the conditions their writers impose."""
+    water = from_atoms(molecule("H2O"), name="water")
+    gen = plugin.generate_inputs(
+        water,
+        {
+            "program": "gamess",
+            "task": "transition_state",
+            "memory_mb": 2000,
+            "gamess_opt_method": "rfo",
+            "gamess_opttol": 1e-5,
+            "gamess_nstep": 40,
+            "gamess_initial_radius": 0.2,
+            "gamess_max_radius": 0.5,
+            "gamess_min_radius": 0.02,
+            "gamess_update_radius": False,
+            "gamess_initial_hessian": "calculate",
+            "gamess_hess_recalc": 5,
+            "gamess_follow_mode": 2,
+            "gamess_stationary": True,
+            "gamess_jump_size": 0.02,
+            "gamess_print_orbitals": True,
+            "gamess_timlim": 600,
+            "gamess_memddi_mb": 8000,
+            "gamess_parallel": True,
+            "gamess_core_file": True,
+            "gamess_kdiag": "jacobi",
+            "gamess_balance": "nxtval",
+            "gamess_xdr": True,
+        },
+        "case",
+    )
+    lines = gen.files[0].text.split("\n")
+    assert lines[2] == (
+        " $SYSTEM TIMLIM=600 MWORDS=250 MEMDDI=1000 PARALL=.TRUE. KDIAG=3 COREFL=.TRUE."
+        " BALTYP=NXTVAL XDR=.TRUE. $END"
+    )
+    assert lines[3] == (
+        " $STATPT OPTTOL=1e-05 NSTEP=40 Method=RFO DXMAX=0.2 TRUPD=.FALSE. TRMAX=0.5 TRMIN=0.02"
+        " IFOLOW=2 STPT=.TRUE. STSTEP=0.02 HESS=CALC IHREP=5 NPRT=1 $END"
+    )
+
+
+def test_the_gamess_defaults_still_write_the_two_reminder_keywords() -> None:
+    """Everything in those two groups is conditional, and the conditions are Avogadro's.
+
+    A trust radius belongs to the two methods that keep one, the mode to follow only to a
+    saddle-point search, and a step size of 0.05 is the default it is not worth writing. What is
+    left with nothing asked for is the pair GAMESS would have used anyway.
+    """
+    water = from_atoms(molecule("H2O"), name="water")
+    gen = plugin.generate_inputs(water, {"program": "gamess", "task": "optimize"}, "case")
+    lines = gen.files[0].text.split("\n")
+    assert lines[2] == " $SYSTEM MWORDS=250 $END"
+    assert lines[3] == " $STATPT OPTTOL=0.0001 NSTEP=20 $END"
+    # Newton-Raphson keeps no trust radius, and an optimization follows no mode
+    trimmed = plugin.generate_inputs(
+        water,
+        {
+            "program": "gamess",
+            "task": "optimize",
+            "gamess_opt_method": "nr",
+            "gamess_initial_radius": 0.2,
+            "gamess_max_radius": 0.5,
+            "gamess_follow_mode": 3,
+        },
+        "case",
+    )
+    assert trimmed.files[0].text.split("\n")[3] == " $STATPT OPTTOL=0.0001 NSTEP=20 Method=NR $END"

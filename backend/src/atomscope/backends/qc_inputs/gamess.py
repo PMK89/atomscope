@@ -188,9 +188,106 @@ CC_TYPES = {
     "cr_eom": "CR-EOM",
 }
 
+"""The DFT tab's functionals, by the keyword each one is (`gamessinputdata.cpp:2345,2392`).
+
+GAMESS has two lists, one for the grid method and one for the grid-free one, sharing eight names
+and diverging after that; a functional is offered here under its keyword with the methods it
+belongs to, rather than by position in a combo. Avogadro's dialog shows one list of labels and
+looks the index up in whichever enum the method selects, so from `GOP` on its labels and its
+keywords disagree -- picking `PBEVWN` in grid mode writes `DFTTYP=GOP`. Going by keyword is what
+avoids inheriting that.
+"""
+DFT_FUNCTIONALS: dict[str, tuple[str, str]] = {
+    "SLATER": ("Slater exchange", "both"),
+    "BECKE": ("Becke 1988 exchange", "both"),
+    "VWN": ("VWN: Vosko-Wilk-Nusair (VWN5) correlation", "both"),
+    "LYP": ("LYP: Lee-Yang-Parr correlation", "both"),
+    "SVWN": ("SVWN: Slater exchange + VWN correlation", "both"),
+    "BVWN": ("BVWN: Becke exchange + VWN5 correlation", "both"),
+    "BLYP": ("BLYP: Becke exchange + LYP correlation", "both"),
+    "B3LYP": ("B3LYP", "both"),
+    "GILL": ("Gill 1996 exchange", "grid"),
+    "PBE": ("Perdew-Burke-Ernzerhof (PBE) exchange", "grid"),
+    "OP": ("OP: one-parameter progressive correlation", "grid"),
+    "SLYP": ("SLYP: Slater + LYP correlation", "grid"),
+    "SOP": ("SOP: Slater + OP correlation", "grid"),
+    "BOP": ("BOP: Becke exchange + OP correlation", "grid"),
+    "GVWN": ("GVWN: Gill exchange + VWN5 correlation", "grid"),
+    "GLYP": ("GLYP: Gill exchange + LYP correlation", "grid"),
+    "GOP": ("GOP: Gill exchange + OP correlation", "grid"),
+    "PBEVWN": ("PBEVWN: PBE exchange + VWN correlation", "grid"),
+    "PBELYP": ("PBELYP: PBE exchange + LYP correlation", "grid"),
+    "PBEOP": ("PBEOP: PBE exchange + OP correlation", "grid"),
+    "BHHLYP": ("BHHLYP: HF and Becke exchange + LYP correlation", "grid"),
+    "XALPHA": ("X-alpha exchange", "gridfree"),
+    "DEPRISTO": ("Depristo", "gridfree"),
+    "CAMA": ("CAMA", "gridfree"),
+    "HALF": ("HALF", "gridfree"),
+    "PWLOC": ("PWLOC", "gridfree"),
+    "BPWLOC": ("BPWLOC", "gridfree"),
+    "CAMB": ("CAMB", "gridfree"),
+    "XVWN": ("XVWN", "gridfree"),
+    "XPWLOC": ("XPWLOC", "gridfree"),
+    "SPWLOC": ("SPWLOC", "gridfree"),
+    "WIGNER": ("Wigner", "gridfree"),
+    "WS": ("WS", "gridfree"),
+    "WIGEXP": ("WIGEXP", "gridfree"),
+}
+
+"""The SCF types a $DFT group is punched for: RHF, UHF and ROHF (`gamessinputdata.cpp:2330`)."""
+DFT_SCF_TYPES = ("RHF", "UHF", "ROHF")
+
+
 """The run types GAMESS searches for a stationary point in, and so writes $STATPT for
 (`gamessinputdata.cpp:2481`)."""
 STATIONARY_POINT_RUNS = ("OPTIMIZE", "SADPOINT")
+
+
+OPTIMIZATION_METHODS = {
+    "nr": "NR",
+    "rfo": "RFO",
+    "qa": "QA",
+    "schlegel": "SCHLEGEL",
+    "conopt": "CONOPT",
+}
+"""QA is GAMESS's default and the one Avogadro left unwritten (`gamessinputdata.cpp:2493`)."""
+DEFAULT_OPTIMIZATION = "qa"
+"""...and the two methods that keep a trust radius, which is what its three sizes belong to."""
+TRUST_RADIUS_METHODS = ("rfo", "qa")
+INITIAL_HESSIANS = {"": "", "guess": "GUESS", "read": "READ", "calculate": "CALC"}
+DIAGONALIZATIONS = {"default": 0, "evvrsp": 1, "giveis": 2, "jacobi": 3}
+
+
+@dataclass(frozen=True)
+class StatPointOptions:
+    """The Stat Point tab: how a stationary point is searched for ($STATPT)."""
+
+    convergence: float = 0.0001
+    max_steps: int = 20
+    method: str = DEFAULT_OPTIMIZATION
+    initial_radius: float = 0.0
+    min_radius: float = 0.05
+    max_radius: float = 0.0
+    update_radius: bool = True
+    initial_hessian: str = ""
+    recalculate_hessian: int = 0
+    follow_mode: int = 1
+    stationary_point: bool = False
+    jump_size: float = 0.01
+    print_orbitals: bool = False
+
+
+@dataclass(frozen=True)
+class SystemOptions:
+    """The System tab: what the run is allowed to use ($SYSTEM)."""
+
+    time_limit_minutes: int = 0
+    memddi_mb: int = 0
+    parallel: bool = False
+    core_file: bool = False
+    diagonalization: str = "default"
+    balance: str = "loop"
+    external_representation: bool = False
 
 
 @dataclass(frozen=True)
@@ -207,6 +304,9 @@ class ControlOptions:
     ci: str = "none"
     cc: str = ""
     """empty means the theory box says it; `none` means no coupled cluster at all"""
+    functional: str = ""
+    """empty means the theory box says it: B3LYP for its B3LYP entry, no DFT otherwise"""
+    dft_method: str = "grid"
 
 
 MEGAWORD_MB = 8
@@ -251,6 +351,18 @@ def _basis_group(theory: str, basis: str, detailed: DetailedBasis | None) -> tup
     return " $BASIS " + " ".join(words) + " $END", ecp
 
 
+def _grid_free(
+    theory: str, control: ControlOptions | None, multiplicity: int, electrons: int
+) -> bool:
+    """Whether a $DFT group is written: a grid-free DFT run over one of the HF wave functions."""
+    control = control or ControlOptions()
+    if control.dft_method != "gridfree":
+        return False
+    if not (control.functional or theory == "b3lyp"):
+        return False
+    return _scf_type(control, multiplicity, electrons) in DFT_SCF_TYPES
+
+
 def run_type(task: str, control: ControlOptions | None) -> str:
     """The RUNTYP keyword: the Control tab's choice when there is one, else the Calculate box."""
     if control is not None and control.runtyp:
@@ -289,8 +401,9 @@ def _control_group(
     cc = CC_TYPES[control.cc] if control.cc else ("CCSD(T)" if theory == "ccsd_t" else "")
     if cc:
         words.append(f"CCTYP={cc}")
-    if theory == "b3lyp":
-        words.append("DFTTYP=B3LYP")
+    functional = control.functional or ("B3LYP" if theory == "b3lyp" else "")
+    if functional:
+        words.append(f"DFTTYP={functional}")
     if control.max_iterations:
         words.append(f"MAXIT={control.max_iterations}")
     if charge:
@@ -306,6 +419,59 @@ def _control_group(
     return " $CONTRL " + " ".join(words) + " $END"
 
 
+def _system_group(memory_mb: int, system: SystemOptions | None) -> str:
+    """$SYSTEM, which Avogadro punches only when something in it was asked for."""
+    system = system or SystemOptions()
+    words: list[str] = []
+    if system.time_limit_minutes:
+        words.append(f"TIMLIM={system.time_limit_minutes}")
+    if memory_mb:
+        words.append(f"MWORDS={max(1, memory_mb // MEGAWORD_MB)}")
+    if system.memddi_mb:
+        words.append(f"MEMDDI={max(1, system.memddi_mb // MEGAWORD_MB)}")
+    if system.parallel:
+        words.append("PARALL=.TRUE.")
+    if DIAGONALIZATIONS[system.diagonalization]:
+        words.append(f"KDIAG={DIAGONALIZATIONS[system.diagonalization]}")
+    if system.core_file:
+        words.append("COREFL=.TRUE.")
+    if system.balance == "nxtval":
+        words.append("BALTYP=NXTVAL")
+    if system.external_representation:
+        words.append("XDR=.TRUE.")
+    return " $SYSTEM " + " ".join(words) + " $END" if words else ""
+
+
+def _stat_point_group(options: StatPointOptions, runtyp: str) -> str:
+    """$STATPT, in the order and under the conditions of `gamessinputdata.cpp:2475-2560`."""
+    # the convergence and the step count are always written, to remind the user of them
+    words = [f"OPTTOL={options.convergence:g}", f"NSTEP={options.max_steps}"]
+    if options.method != DEFAULT_OPTIMIZATION:
+        words.append(f"Method={OPTIMIZATION_METHODS[options.method]}")
+    if options.initial_radius and options.method != "nr":
+        words.append(f"DXMAX={options.initial_radius:g}")
+    if options.method in TRUST_RADIUS_METHODS:
+        if not options.update_radius:
+            words.append("TRUPD=.FALSE.")
+        if options.max_radius:
+            words.append(f"TRMAX={options.max_radius:g}")
+        if abs(options.min_radius - 0.05) > 1e-5:
+            words.append(f"TRMIN={options.min_radius:g}")
+    if runtyp == "SADPOINT" and options.follow_mode != 1:
+        words.append(f"IFOLOW={options.follow_mode}")
+    if options.stationary_point:
+        words.append("STPT=.TRUE.")
+        if abs(options.jump_size - 0.01) > 1e-5:
+            words.append(f"STSTEP={options.jump_size:g}")
+    if INITIAL_HESSIANS[options.initial_hessian]:
+        words.append(f"HESS={INITIAL_HESSIANS[options.initial_hessian]}")
+    if options.recalculate_hessian:
+        words.append(f"IHREP={options.recalculate_hessian}")
+    if options.print_orbitals:
+        words.append("NPRT=1")
+    return " $STATPT " + " ".join(words) + " $END"
+
+
 def gamess_deck(
     structure: Structure,
     *,
@@ -314,6 +480,8 @@ def gamess_deck(
     basis: str = "n31d",
     detailed: DetailedBasis | None = None,
     control: ControlOptions | None = None,
+    stat_point: StatPointOptions | None = None,
+    system: SystemOptions | None = None,
     task: str = "energy",
     charge: int = 0,
     multiplicity: int = 1,
@@ -354,15 +522,19 @@ def gamess_deck(
             control=control,
         )
     )
-    if memory_mb:
-        lines.append(f" $SYSTEM MWORDS={max(1, memory_mb // MEGAWORD_MB)} $END")
+    if _grid_free(theory, control, multiplicity, electrons):
+        # the group carries the method and nothing else here; the grid one is GAMESS's default
+        lines.append(" $DFT METHOD=GRIDFREE $END")
+    system_group = _system_group(memory_mb, system)
+    if system_group:
+        lines.append(system_group)
     if run_type(task, control) in STATIONARY_POINT_RUNS:
         # written for every optimize and saddle-point run, values and all: they are GAMESS's own
         # defaults, and Avogadro punched them "just to remind the user"
         # (gamessinputdata.cpp:2481-2489). Nothing else of the group is set from the Basic tab --
         # its Frequencies entry asks for HESS=CALC, but Avogadro's writer punches the group for
         # OPTIMIZE and SADPOINT only, so that keyword never reached a deck there either
-        lines.append(" $STATPT OPTTOL=0.0001 NSTEP=20 $END")
+        lines.append(_stat_point_group(stat_point or StatPointOptions(), run_type(task, control)))
     if extra.strip():
         lines.append(extra.strip())
     lines += ["", " $DATA", title, "C1"]

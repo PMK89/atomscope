@@ -12,8 +12,12 @@
   polarization functions and where their exponents come from, the diffuse
   shells, and the effective core potential. The Control tab is there too:
   GAMESS's own run-type list (IRC, Raman, NMR, energy surfaces and the rest),
-  UHF/GVB/MCSCF, CI and coupled cluster, the localization methods, the SCF iteration limit and
-  `Check`/`Debug` runs. **The free-text `Method` and `Basis set`
+  UHF/GVB/MCSCF, CI and coupled cluster, the localization methods, the SCF
+  iteration limit and `Check`/`Debug` runs. So are the DFT tab (both of
+  GAMESS's functional lists, grid or grid-free), the Stat Point tab (the
+  optimization method, its step sizes, the initial Hessian and how often to
+  recompute it) and the System tab (a time limit, distributed memory, the
+  diagonalization and the load balance). **The free-text `Method` and `Basis set`
   boxes no longer apply to GAMESS**: it has its own lists, so a stored GAMESS
   calculation that carried, say, `basis: N311` regenerates from the new boxes
   and their defaults (RHF/6-31G(d)) unless you set them. Every other program is

@@ -28,11 +28,14 @@ from atomscope.backends.base import (
     Values,
 )
 from atomscope.backends.qc_inputs.gamess import BASIS_CHOICES as GAMESS_BASIS_CHOICES
+from atomscope.backends.qc_inputs.gamess import DFT_FUNCTIONALS as GAMESS_FUNCTIONALS
 from atomscope.backends.qc_inputs.gamess import (
     GAMESS_RUN_TYPES,
     RUN_TYPES,
     ControlOptions,
     DetailedBasis,
+    StatPointOptions,
+    SystemOptions,
     gamess_deck,
 )
 from atomscope.backends.qc_inputs.gamess import GBASIS_CHOICES as GAMESS_GBASIS_CHOICES
@@ -328,6 +331,34 @@ SCHEMA = ParameterSchema(
                     visible_when=[VisibleWhen(key="program", value="gamess")],
                 ),
                 ParameterSpec(
+                    key="gamess_functional",
+                    label="DFT functional",
+                    type="enum",
+                    default="",
+                    advanced=True,
+                    choices=[
+                        Choice(value="", label="From the theory box"),
+                        *(
+                            Choice(value=key, label=label)
+                            for key, (label, _) in GAMESS_FUNCTIONALS.items()
+                        ),
+                    ],
+                    help="choosing one turns DFT on, whatever the theory box says",
+                    visible_when=[VisibleWhen(key="program", value="gamess")],
+                ),
+                ParameterSpec(
+                    key="gamess_dft_method",
+                    label="DFT method",
+                    type="enum",
+                    default="grid",
+                    advanced=True,
+                    choices=[
+                        Choice(value="grid", label="Grid"),
+                        Choice(value="gridfree", label="Grid-free"),
+                    ],
+                    visible_when=[VisibleWhen(key="program", value="gamess")],
+                ),
+                ParameterSpec(
                     key="gamess_cc",
                     label="Coupled cluster",
                     type="enum",
@@ -382,6 +413,210 @@ SCHEMA = ParameterSchema(
                         Choice(value="check", label="Check"),
                         Choice(value="debug", label="Debug"),
                     ],
+                    visible_when=[VisibleWhen(key="program", value="gamess")],
+                ),
+                ParameterSpec(
+                    key="gamess_opt_method",
+                    label="Optimization method",
+                    type="enum",
+                    default="qa",
+                    advanced=True,
+                    choices=[
+                        Choice(value="nr", label="Newton-Raphson"),
+                        Choice(value="rfo", label="Rational function optimization"),
+                        Choice(value="qa", label="Quadratic approximation"),
+                        Choice(value="schlegel", label="Schlegel (quasi-NR)"),
+                        Choice(value="conopt", label="Constrained optimization"),
+                    ],
+                    help="$STATPT, for an optimization or a saddle-point search",
+                    visible_when=[VisibleWhen(key="program", value="gamess")],
+                ),
+                ParameterSpec(
+                    key="gamess_opttol",
+                    label="Gradient convergence",
+                    type="number",
+                    default=0.0001,
+                    minimum=0.0,
+                    exclusive_minimum=True,
+                    advanced=True,
+                    visible_when=[VisibleWhen(key="program", value="gamess")],
+                ),
+                ParameterSpec(
+                    key="gamess_nstep",
+                    label="Max optimization steps",
+                    type="integer",
+                    default=20,
+                    minimum=1,
+                    advanced=True,
+                    visible_when=[VisibleWhen(key="program", value="gamess")],
+                ),
+                ParameterSpec(
+                    key="gamess_initial_hessian",
+                    label="Initial Hessian",
+                    type="enum",
+                    default="",
+                    advanced=True,
+                    choices=[
+                        Choice(value="", label="GAMESS's own"),
+                        Choice(value="guess", label="Guess"),
+                        Choice(value="read", label="Read (from $HESS)"),
+                        Choice(value="calculate", label="Calculate"),
+                    ],
+                    visible_when=[VisibleWhen(key="program", value="gamess")],
+                ),
+                ParameterSpec(
+                    key="gamess_hess_recalc",
+                    label="Recalculate the Hessian every",
+                    type="integer",
+                    default=0,
+                    minimum=0,
+                    advanced=True,
+                    help="steps; 0 never",
+                    visible_when=[VisibleWhen(key="program", value="gamess")],
+                ),
+                ParameterSpec(
+                    key="gamess_initial_radius",
+                    label="Initial step size",
+                    type="number",
+                    default=0.0,
+                    minimum=0.0,
+                    advanced=True,
+                    help="0 leaves GAMESS its own",
+                    visible_when=[VisibleWhen(key="program", value="gamess")],
+                ),
+                ParameterSpec(
+                    key="gamess_min_radius",
+                    label="Minimum step size",
+                    type="number",
+                    default=0.05,
+                    minimum=0.0,
+                    advanced=True,
+                    visible_when=[VisibleWhen(key="program", value="gamess")],
+                ),
+                ParameterSpec(
+                    key="gamess_max_radius",
+                    label="Maximum step size",
+                    type="number",
+                    default=0.0,
+                    minimum=0.0,
+                    advanced=True,
+                    help="0 leaves GAMESS its own",
+                    visible_when=[VisibleWhen(key="program", value="gamess")],
+                ),
+                ParameterSpec(
+                    key="gamess_update_radius",
+                    label="Update the step size",
+                    type="boolean",
+                    default=True,
+                    advanced=True,
+                    visible_when=[VisibleWhen(key="program", value="gamess")],
+                ),
+                ParameterSpec(
+                    key="gamess_follow_mode",
+                    label="Follow mode",
+                    type="integer",
+                    default=1,
+                    minimum=1,
+                    advanced=True,
+                    help="which vibrational mode a saddle-point search climbs",
+                    visible_when=[VisibleWhen(key="program", value="gamess")],
+                ),
+                ParameterSpec(
+                    key="gamess_stationary",
+                    label="Stationary point",
+                    type="boolean",
+                    default=False,
+                    advanced=True,
+                    visible_when=[VisibleWhen(key="program", value="gamess")],
+                ),
+                ParameterSpec(
+                    key="gamess_jump_size",
+                    label="Jump size",
+                    type="number",
+                    default=0.01,
+                    minimum=0.0,
+                    advanced=True,
+                    visible_when=[
+                        VisibleWhen(key="program", value="gamess"),
+                        VisibleWhen(key="gamess_stationary", op="truthy"),
+                    ],
+                ),
+                ParameterSpec(
+                    key="gamess_print_orbitals",
+                    label="Print the orbitals every iteration",
+                    type="boolean",
+                    default=False,
+                    advanced=True,
+                    visible_when=[VisibleWhen(key="program", value="gamess")],
+                ),
+                ParameterSpec(
+                    key="gamess_timlim",
+                    label="Time limit (minutes)",
+                    type="integer",
+                    default=0,
+                    minimum=0,
+                    advanced=True,
+                    help="$SYSTEM; 0 leaves GAMESS its own",
+                    visible_when=[VisibleWhen(key="program", value="gamess")],
+                ),
+                ParameterSpec(
+                    key="gamess_memddi_mb",
+                    label="Distributed memory (MB)",
+                    type="integer",
+                    default=0,
+                    minimum=0,
+                    advanced=True,
+                    help="MEMDDI, the memory spread over the nodes of a parallel run",
+                    visible_when=[VisibleWhen(key="program", value="gamess")],
+                ),
+                ParameterSpec(
+                    key="gamess_parallel",
+                    label="Force parallel methods",
+                    type="boolean",
+                    default=False,
+                    advanced=True,
+                    visible_when=[VisibleWhen(key="program", value="gamess")],
+                ),
+                ParameterSpec(
+                    key="gamess_core_file",
+                    label="Produce a core file on abort",
+                    type="boolean",
+                    default=False,
+                    advanced=True,
+                    visible_when=[VisibleWhen(key="program", value="gamess")],
+                ),
+                ParameterSpec(
+                    key="gamess_kdiag",
+                    label="Diagonalization",
+                    type="enum",
+                    default="default",
+                    advanced=True,
+                    choices=[
+                        Choice(value="default", label="Default"),
+                        Choice(value="evvrsp", label="EVVRSP"),
+                        Choice(value="giveis", label="GIVEIS"),
+                        Choice(value="jacobi", label="JACOBI"),
+                    ],
+                    visible_when=[VisibleWhen(key="program", value="gamess")],
+                ),
+                ParameterSpec(
+                    key="gamess_balance",
+                    label="Load balance",
+                    type="enum",
+                    default="loop",
+                    advanced=True,
+                    choices=[
+                        Choice(value="loop", label="Loop"),
+                        Choice(value="nxtval", label="Next value"),
+                    ],
+                    visible_when=[VisibleWhen(key="program", value="gamess")],
+                ),
+                ParameterSpec(
+                    key="gamess_xdr",
+                    label="External data representation",
+                    type="boolean",
+                    default=False,
+                    advanced=True,
                     visible_when=[VisibleWhen(key="program", value="gamess")],
                 ),
                 ParameterSpec(
@@ -580,7 +815,45 @@ def _gamess_control(values: Values) -> ControlOptions:
         exec_type=str(values.get("gamess_exec", "run")),
         ci=str(values.get("gamess_ci", "none")),
         cc=str(values.get("gamess_cc", "")),
+        functional=str(values.get("gamess_functional", "")),
+        dft_method=str(values.get("gamess_dft_method", "grid")),
     )
+
+
+def _gamess_stat_point(values: Values) -> StatPointOptions:
+    """The Stat Point tab's values."""
+    return StatPointOptions(
+        convergence=_number(values.get("gamess_opttol"), 0.0001),
+        max_steps=_count(values.get("gamess_nstep")) or 20,
+        method=str(values.get("gamess_opt_method", "qa")),
+        initial_radius=_number(values.get("gamess_initial_radius"), 0.0),
+        min_radius=_number(values.get("gamess_min_radius"), 0.05),
+        max_radius=_number(values.get("gamess_max_radius"), 0.0),
+        update_radius=bool(values.get("gamess_update_radius", True)),
+        initial_hessian=str(values.get("gamess_initial_hessian", "")),
+        recalculate_hessian=_count(values.get("gamess_hess_recalc")),
+        follow_mode=_count(values.get("gamess_follow_mode")) or 1,
+        stationary_point=bool(values.get("gamess_stationary")),
+        jump_size=_number(values.get("gamess_jump_size"), 0.01),
+        print_orbitals=bool(values.get("gamess_print_orbitals")),
+    )
+
+
+def _gamess_system(values: Values) -> SystemOptions:
+    """The System tab's values."""
+    return SystemOptions(
+        time_limit_minutes=_count(values.get("gamess_timlim")),
+        memddi_mb=_count(values.get("gamess_memddi_mb")),
+        parallel=bool(values.get("gamess_parallel")),
+        core_file=bool(values.get("gamess_core_file")),
+        diagonalization=str(values.get("gamess_kdiag", "default")),
+        balance=str(values.get("gamess_balance", "loop")),
+        external_representation=bool(values.get("gamess_xdr")),
+    )
+
+
+def _number(value: object, fallback: float) -> float:
+    return float(value) if isinstance(value, int | float) else fallback
 
 
 def _count(value: object) -> int:
@@ -676,6 +949,20 @@ class QcInputsPlugin:
                             " type asks for"
                         ),
                         severity="warning",
+                    )
+                )
+        functional = str(merged.get("gamess_functional", ""))
+        if program == "gamess" and functional in GAMESS_FUNCTIONALS:
+            belongs = GAMESS_FUNCTIONALS[functional][1]
+            method = str(merged.get("gamess_dft_method", "grid"))
+            if belongs not in ("both", method):
+                report.issues.append(
+                    ValidationIssue(
+                        key="gamess_functional",
+                        message=(
+                            f"GAMESS has {functional} in its"
+                            f" {'grid-free' if belongs == 'gridfree' else 'grid'} list only"
+                        ),
                     )
                 )
         if merged.get("task") == "transition_state" and program != "gamess":
@@ -779,6 +1066,8 @@ class QcInputsPlugin:
                     basis=str(merged.get("gamess_basis", "n31d")),
                     detailed=_gamess_detailed(merged),
                     control=_gamess_control(merged),
+                    stat_point=_gamess_stat_point(merged),
+                    system=_gamess_system(merged),
                     task=task,
                     charge=charge,
                     multiplicity=mult,

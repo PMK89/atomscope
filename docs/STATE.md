@@ -2,7 +2,7 @@
 
 Branch: main; this file is updated in the commit that checkpoints the work, so `git log -1 -- docs/STATE.md` is the last checkpoint. Phases 0-1 done; Phase 2 (editor tools), 3 (volumetric, trajectories, vectors), 4-5 (CP-PAW setup/execution/forces), 6 (CP-PAW analysis: DOS, bands, orbitals), crystallography, molecular mechanics and wavefunction surfaces are merged and working. Parity matrix: 217 IMPLEMENTED, 21 PARTIAL, 73 NOT STARTED, 1 BLOCKED of 312 rows.
 
-Tests: `pytest -q -m "not cppaw"` -> 458 passed, 1 skipped; `pytest -q -m cppaw` -> 7 passed (~90 s, needs the local CP-PAW install); `pnpm vitest run` -> 495 passed; `pnpm exec playwright test` -> 38 passed in 54 s at `119cdf1` (against private servers, see below; `make test-e2e` points at the user's 5173, which is stale). **`source env.sh` before Playwright**: without `PLAYWRIGHT_BROWSERS_PATH` it looks in `~/.cache/ms-playwright`, finds nothing, and every test fails at `browserType.launch`. `ruff check`, `mypy` and `pnpm typecheck` are clean. No known failing tests. **Type-check the frontend with `pnpm typecheck` (`tsc -b --noEmit`), never with `pnpm exec tsc --noEmit`:** the root `tsconfig.json` is a solution file with `files: []`, so a bare `tsc --noEmit` checks nothing and exits 0.
+Tests: `pytest -q -m "not cppaw"` -> 461 passed, 1 skipped; `pytest -q -m cppaw` -> 7 passed (~90 s, needs the local CP-PAW install); `pnpm vitest run` -> 495 passed; `pnpm exec playwright test` -> 38 passed in 54 s at `119cdf1` (against private servers, see below; `make test-e2e` points at the user's 5173, which is stale). **`source env.sh` before Playwright**: without `PLAYWRIGHT_BROWSERS_PATH` it looks in `~/.cache/ms-playwright`, finds nothing, and every test fails at `browserType.launch`. `ruff check`, `mypy` and `pnpm typecheck` are clean. No known failing tests. **Type-check the frontend with `pnpm typecheck` (`tsc -b --noEmit`), never with `pnpm exec tsc --noEmit`:** the root `tsconfig.json` is a solution file with `files: []`, so a bare `tsc --noEmit` checks nothing and exits 0.
 
 ## Resume commands
 
@@ -243,10 +243,10 @@ run against current code -- Playwright above all -- use the private-server recip
 
    - **AV-QM-003** -- the GAMESS-US option dialog, the largest of Avogadro's generators (3035
      lines of `.ui` over a 2688-line input-data class, a port of the MacMolPlt input builder).
-     Its **Basic Setup, Advanced Basis and Advanced Control tabs are done**
-     (`backends/qc_inputs/gamess.py`); what is left is nine Advanced tabs -- SCF, DFT, MP2,
-     Hessian, Stat Point, Data, System, MO Guess, Misc -- which are a tab's worth of keywords
-     each and can land one at a time. Each so far has taken one commit. Read the row's
+     Six of its twelve tabs are done (`backends/qc_inputs/gamess.py`): Basic Setup, Basis,
+     Control, DFT, Stat Point and System. What is left is SCF, MP2, Hessian, Data, MO Guess and
+     Misc -- a tab's worth of keywords each, landing one or two at a time, each one read out of
+     the group writer it feeds rather than out of the dialog. Read the row's
      note first: it lists them and says where each one's keywords live in Avogadro's source.
      AV-QM-002, the Gaussian one, is done. Both follow the same shape: the deck is written here
      rather than through ASE, because ASE's writers cannot say what the dialogs offer, and each

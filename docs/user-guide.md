@@ -923,7 +923,11 @@ diffuse shells, and the effective core potential. Beside it are the Control
 tab's boxes: GAMESS's own run-type list (which wins over `Calculation type`,
 and the form says so when the two disagree), the SCF type — UHF, GVB, MCSCF or
 `None (CI)` — the CI and coupled-cluster methods, the localization methods, the SCF iteration limit
-and `Check` or `Debug` instead of a real run. `Transition state` is a
+and `Check` or `Debug` instead of a real run. A DFT functional can be picked
+from either of GAMESS's two lists — the form says when one belongs to the
+method you did not choose — and the optimizer's own settings (method, step
+sizes, initial Hessian) and the run's limits (time, distributed memory,
+diagonalization) are there as well. `Transition state` is a
 calculation type only GAMESS writes so far
 (`RUNTYP=SADPOINT`); the other generators say so rather than writing something
 that is not a saddle-point search.
