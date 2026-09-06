@@ -582,3 +582,79 @@ def test_an_unrestricted_molpro_output_is_refused_rather_than_half_read(tmp_path
     path.write_text(" PROGRAM SYSTEM MOLPRO\n ELECTRON ORBITALS FOR NEGATIVE SPIN\n")
     with pytest.raises(ValueError, match="unrestricted"):
         read_molpro(path)
+
+
+def test_a_molpro_orbital_row_is_not_confused_with_a_line_of_coefficients() -> None:
+    """Both begin with a number and a dot, and only the field widths tell them apart.
+
+    Molpro prints the energies to four decimals and the coefficients to six, so an orbital row is
+    `orbital.irrep occupancy energy energy coefficients...` and a continuation line is nothing but
+    coefficients. Reading `0.036089  0.129290 ...` as orbital 0.036089 with occupancy 0.129290
+    is exactly what a looser pattern does, and it costs a whole block of coefficients.
+    """
+    from atomscope.wavefunction.molpro import _ORBITAL_ROW  # noqa: PLC0415
+
+    orbital = "   1.1   2   -11.2312  -31.0184  0.996237  0.024711 -0.014973  0.000008"
+    assert _ORBITAL_ROW.match(orbital) is not None
+    assert (
+        _ORBITAL_ROW.match(
+            "                                 0.036089  0.129290  0.036089  0.129304  0.036092"
+        )
+        is None
+    )
+    # natural orbitals come with fractional occupancies, which are read
+    natural = _ORBITAL_ROW.match("   2.1   1.98   -0.9262   -6.2984 -0.195144  0.369017")
+    assert natural is not None and natural.group(3) == "1.98"
+
+
+def _molpro(electrons: str, orbitals: str, symmetry: str = "1 A") -> str:
+    """A one-atom Molpro output with two s functions, for the shapes that are refused."""
+    number, label = symmetry.split()
+    return (
+        " PROGRAM SYSTEM MOLPRO\n"
+        " NR  ATOM    CHARGE       X              Y              Z\n\n"
+        "   1  He      2.00    0.000000000    0.000000000    0.000000000\n\n"
+        " BASIS DATA\n\n"
+        "   Nr Sym  Nuc  Type         Exponents   Contraction coefficients\n\n"
+        f"   1.{number} {label}     1  1s            1.000000     1.000000\n"
+        f"   2.{number} {label}     1  2s            0.300000     1.000000\n\n"
+        f" NUMBER OF ELECTRONS:       {electrons}\n\n"
+        "   Orb  Occ    Energy  Couls-En    Coefficients\n\n"
+        "                                   1 1s      1 2s\n\n"
+        f"{orbitals}\n"
+    )
+
+
+def test_a_molpro_output_that_used_point_group_symmetry_is_refused(tmp_path: Path) -> None:
+    """Molpro symmetrizes unless told not to, and then a basis function is not one function.
+
+    With symmetry on, everything is printed per irreducible representation -- `1.2`, `B1` -- and
+    a row named `2 1s` is a combination over the equivalent centres, not the 1s of atom 2. The
+    corpus has no such file, so the reader stops instead of reading the labels as atoms.
+    """
+    from atomscope.wavefunction.molpro import read_molpro  # noqa: PLC0415
+
+    path = tmp_path / "symmetric.mpo"
+    path.write_text(
+        _molpro("1+    1-", "   1.2   2   -0.9000   -1.0000  1.000000  0.000000", "2 B1")
+    )
+    with pytest.raises(ValueError, match="point-group symmetry"):
+        read_molpro(path)
+
+
+def test_molpro_orbitals_that_do_not_account_for_the_electrons_are_refused(tmp_path: Path) -> None:
+    """The measured guard against half a wavefunction, which the spelling of a marker is not.
+
+    One spin of an unrestricted calculation, or an active space printed without its core, gives
+    orbitals whose occupations do not add up to the electrons the header counts -- and a density
+    built from them would be wrong by exactly what is missing.
+    """
+    from atomscope.wavefunction.molpro import read_molpro  # noqa: PLC0415
+
+    path = tmp_path / "half.mpo"
+    path.write_text(_molpro("1+    1-", "   1.1   1   -0.9000   -1.0000  1.000000  0.000000"))
+    with pytest.raises(ValueError, match="account for 1 of the 2 electrons"):
+        read_molpro(path)
+    # the same file with both electrons in the orbital is read
+    path.write_text(_molpro("1+    1-", "   1.1   2   -0.9000   -1.0000  1.000000  0.000000"))
+    assert read_molpro(path).n_electrons == 2

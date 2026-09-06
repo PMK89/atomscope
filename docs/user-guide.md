@@ -805,9 +805,10 @@ banner) — gzipped or not — and press `Load`:
 the panel lists the orbitals with their energies and marks the HOMO. Of the
 seven readers Avogadro had, these five are here; MOPAC's `.aux` and GAMESS-UK
 are not read yet. A Molpro output needs `gprint,basis` and `gprint,orbitals`,
-and one written for a generally contracted basis (cc-pVDZ, say) is refused
-rather than read the wrong way round — no file was to hand to check that layout
-against. An ORCA output needs the orbitals printed in it
+and it has to have been run without point-group symmetry (`symmetry,nosym`);
+one written for a generally contracted basis (cc-pVDZ, say) or with symmetry on
+is refused rather than read the wrong way round — no file was to hand to check
+those layouts against. An ORCA output needs the orbitals printed in it
 (`! LargePrint`, or `%output print[p_mos] 1 end`); `orca_2mkl`'s Molden file
 works as well, and is read in the coefficient convention ORCA uses, which is not
 the one the Molden specification describes. Which convention a file is in is

@@ -251,8 +251,10 @@ run against current code -- Playwright above all -- use the private-server recip
    `c60.fchk.gz`, `CO-cc-6Z.fchk.gz`, `NH3.fchk`, `methane.FChk`, `methane.mpo` (**Molpro**, not
    MOPAC, despite sitting in the row's Test column next to a MOPAC reader) and three AIM `.wfn`
    files that no OpenQube reader ever read. To go further someone has to bring a file: a MOPAC
-   `.aux`, a GAMESS-UK output, a generally contracted Molpro output (cc-pVDZ, which the reader
-   refuses today), or any Molpro output with a d shell -- `molpro.cpp:296` reorders d5 components,
+   `.aux`, a GAMESS-UK output, a generally contracted Molpro output (cc-pVDZ), a Molpro output
+   run with point-group symmetry -- Molpro's default, and refused today because a symmetry-adapted
+   basis function is a combination over equivalent centres rather than one function on one atom --
+   or any Molpro output with a d shell -- `molpro.cpp:296` reorders d5 components,
    `methane.mpo` is 1s/2px/2py/2pz throughout, and so that path is ordered by the names Molpro
    prints with its phase convention untested.
 

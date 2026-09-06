@@ -28,8 +28,10 @@ README named only the GPL.)
   files be read against each other function by function
 - `methane.mpo` — `testfiles/methane.mpo`, gzipped and otherwise untouched: RHF/6-31G methane
   from Molpro with `gprint,basis` and `gprint,orbitals`, 17 basis functions. s and p only and
-  segmented, so it checks neither Molpro's d5 component order nor a generally contracted basis
-  -- the reader refuses both rather than guessing. Despite the name it is Molpro, not MOPAC
+  segmented, and run without point-group symmetry, so it checks none of Molpro's d5 component
+  order, a generally contracted basis or a symmetry-adapted one -- the reader refuses all three
+  rather than guessing. Written by Molpro 2006.1, which is the one release the layout is checked
+  against. Despite the name it is Molpro, not MOPAC
 
 The two GAMESS logs are 16 single-primitive shells and 5 three-primitive contractions (one per
 atom), so they exercise the shell ordering thoroughly and the contraction convention only in

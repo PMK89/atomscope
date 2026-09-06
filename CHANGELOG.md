@@ -6,7 +6,9 @@
   every basis function it prints, so the components are ordered by those names
   rather than by a table, and a name the reader does not know stops the read.
   Checked on methane, whose four bonds have to carry the same density — which
-  they do to 0.05%, and would not with the axes permuted.
+  they do to 0.05%, and would not with the axes permuted. The file has to come
+  from a run without point-group symmetry; a symmetrized or generally
+  contracted one is refused rather than misread.
 
 - Surfaces can be generated from an **ORCA output** — the ordinary `.out`, with
   the orbitals printed in it — beside the Molden file `orca_2mkl` writes. An

@@ -18,11 +18,17 @@ says which atom, which shell and which solid harmonic (``d2-`` is m = -2), and a
 does not know stops the read rather than being taken for a neighbour.
 
 Two shapes are refused instead of guessed at, because the one Molpro file in the Avogadro corpus
-(6-31G methane, s and p only, segmented) cannot check either:
+(6-31G methane, s and p only, segmented, no symmetry) cannot check any of them:
 
 * a generally contracted basis, where several basis functions share one exponent list and Molpro
-  prints a column of coefficients per function, and
-* unrestricted output, whose alpha and beta orbitals are printed as two blocks.
+  prints a column of coefficients per function,
+* a run that used point-group symmetry, which is Molpro's default: the basis functions and the
+  orbitals are then printed per irreducible representation (``1.2``, ``B1``) and a basis function
+  is a combination over equivalent centres rather than one function on one atom, and
+* unrestricted output, whose alpha and beta orbitals are printed as two blocks. The marker for
+  it (``NEGATIVE SPIN``) is recalled rather than sourced -- Avogadro's reader has no such check
+  and the corpus has no such file -- so the guard that does the work is the electron count: the
+  occupations of the orbitals read have to add up to the electrons the header says there are.
 
 The solid-harmonic phase convention for d and above is likewise unchecked here: the component
 *order* comes from the names, but no file in the corpus has a d shell to compare against.
@@ -46,7 +52,12 @@ from atomscope.wavefunction.model import SHELL_LETTERS, MolecularOrbital, Shell,
 # component. s and p are named after the Cartesian axes, d and above after m.
 _COMPONENT = re.compile(r"^\d*([a-z])([a-z]*|\d[+-]?)$")
 _BASIS_ROW = re.compile(r"^\s*(\d+)\.(\d+)\s+([A-Za-z][A-Za-z0-9']*)\s+(.*)$")
-_ORBITAL_ROW = re.compile(r"^\s*(\d+)\.(\d+)\s+(\d+)\s+(-?\d+\.\d+)\s+(-?\d+\.\d+)\s+(.*\S)\s*$")
+# "  1.1   2   -11.2312  -31.0184  0.996237 ..." -- orbital.irrep, occupancy (fractional for
+# natural orbitals), energy and Coulomb energy to four decimals, then the coefficients to six.
+# The four decimals are what tells this from a continuation line of coefficients.
+_ORBITAL_ROW = re.compile(
+    r"^\s*(\d+)\.(\d+)\s+(\d+(?:\.\d+)?)\s+(-?\d+\.\d{4})\s+(-?\d+\.\d{4})\s+(.*\S)\s*$"
+)
 _NUMBER = re.compile(r"-?\d+\.\d{6}")
 
 # the components of a shell, in the order gto.py evaluates them: x, y, z for p, then m order
@@ -63,6 +74,15 @@ _INTERNAL = {
 _GENERAL = (
     "this Molpro basis is generally contracted (several basis functions to one exponent list,"
     " a column of coefficients each), which this reader has no file to check itself against"
+)
+# Molpro numbers every basis function and every orbital <n>.<irrep>. A run that uses point-group
+# symmetry -- which is what Molpro does unless told otherwise -- prints them per irreducible
+# representation, and a basis function is then a combination over equivalent centres rather than
+# one function on one atom. The corpus has no such file, so it is refused.
+_SYMMETRY = (
+    "this Molpro output uses point-group symmetry: its basis functions and orbitals are printed"
+    " per irreducible representation, which this reader has no file to check itself against."
+    " Rerun with `symmetry,nosym`"
 )
 
 
@@ -153,6 +173,8 @@ def _read_functions(lines: list[str]) -> list[_Function]:
             continue
         row = _BASIS_ROW.match(line)
         if row is not None:
+            if row.group(2) != "1":
+                raise ValueError(_SYMMETRY)
             rest = row.group(4).split()
             if not rest or not rest[0].isdigit():
                 raise ValueError(_GENERAL)
@@ -249,6 +271,8 @@ def _read_orbitals(
     for line in lines[starts[-1] + 1 :]:
         row = _ORBITAL_ROW.match(line)
         if row is not None:
+            if row.group(2) != "1":
+                raise ValueError(_SYMMETRY)
             if current:
                 columns.append(np.array(current))
             current = [float(v) for v in _NUMBER.findall(row.group(6))]
@@ -323,6 +347,14 @@ def read_molpro(path: Path) -> Wavefunction:
     shells, convention = with_normalized_primitives(shells)
 
     electrons, multiplicity = _electrons(lines)
+    counted = float(sum(occupations))
+    if electrons and abs(counted - electrons) > 0.5:
+        msg = (
+            f"the orbitals printed account for {counted:g} of the {electrons:g} electrons of this"
+            " calculation -- one spin of an unrestricted wavefunction, or an active space without"
+            " its core -- and reading them as the whole would give the wrong density"
+        )
+        raise ValueError(msg)
     wavefunction = Wavefunction(
         structure=structure,
         shells=shells,
