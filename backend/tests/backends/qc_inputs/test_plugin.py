@@ -921,6 +921,80 @@ def test_the_qchem_geometry_can_be_either_z_matrix() -> None:
     assert "r3" not in compact
 
 
+def test_a_terachem_run_is_the_deck_and_the_geometry_it_names() -> None:
+    """`coordinates` names a file the dialog never wrote (`:319-323`) -- and for a molecule that
+    had never been saved it named `.pdb`, a file that cannot exist. The pair is written here."""
+    water = from_atoms(molecule("H2O"), name="water")
+    files = plugin.generate_inputs(water, {"program": "terachem"}, "case").files
+    assert [(f.name, f.role) for f in files] == [("case.tcin", "input"), ("case.xyz", "structure")]
+    assert files[0].text == (
+        "#\n"
+        "# water\n"
+        "#\n"
+        "\n"
+        # every keyword is padded to fifteen columns
+        "run            energy\n"
+        "\n"
+        "method         rhf\n"
+        "basis          sto-3g\n"
+        "charge         0\n"
+        "spinmul        1\n"
+        "\n"
+        "coordinates    case.xyz\n"
+        "\n"
+        "\n"
+        "end\n"
+    )
+    assert files[1].text.split("\n")[0] == "3"
+    # and the format box decides which file is written and what the deck points at
+    pdb = plugin.generate_inputs(
+        water, {"program": "terachem", "terachem_coordinates": "pdb"}, "case"
+    ).files
+    assert pdb[1].name == "case.pdb" and "MODEL" in pdb[1].text
+    assert "coordinates    case.pdb\n" in pdb[0].text
+
+
+def test_the_terachem_method_keyword_carries_the_restriction() -> None:
+    """`getTheoryType` prepends `u` for an unrestricted run, and spells Hartree-Fock `rhf`/`uhf`
+    rather than prefixing it."""
+    water = from_atoms(molecule("H2O"), name="water")
+
+    def method(**values: object) -> str:
+        text = plugin.generate_inputs(water, {"program": "terachem", **values}, "c").files[0].text
+        return next(line for line in text.split("\n") if line.startswith("method"))
+
+    assert method() == "method         rhf"
+    assert method(terachem_unrestricted=True) == "method         uhf"
+    assert method(terachem_theory="b3lyp") == "method         b3lyp"
+    assert method(terachem_theory="b3lyp", terachem_unrestricted=True) == "method         ub3lyp"
+    assert method(terachem_theory="revpbe", terachem_unrestricted=True) == "method         urevpbe"
+
+
+def test_terachem_dispersion_and_its_three_run_types() -> None:
+    """The dispersion line is left out for `no`, and the gradient run is the switch the shared
+    calculation box has no entry for."""
+    water = from_atoms(molecule("H2O"), name="water")
+
+    def deck(**values: object) -> str:
+        return plugin.generate_inputs(water, {"program": "terachem", **values}, "c").files[0].text
+
+    assert "dispersion" not in deck()
+    assert "dispersion     d2\n" in deck(terachem_dispersion="d2")
+    assert "dispersion     yes\n" in deck(terachem_dispersion="yes")
+    assert "run            energy\n" in deck()
+    assert "run            minimize\n" in deck(task="optimize")
+    assert "run            gradient\n" in deck(terachem_gradient=True)
+    # the gradient wins over the shared box, which has no entry of its own for it
+    assert "run            gradient\n" in deck(task="optimize", terachem_gradient=True)
+    # and the two calculation types it has no run for are refused
+    for task in ("frequencies", "transition_state"):
+        assert "task" in [
+            i.key for i in plugin.validate(water, {"program": "terachem", "task": task}).issues
+        ]
+        with pytest.raises(ValueError, match="no frequency or transition-state deck"):
+            plugin.generate_inputs(water, {"program": "terachem", "task": task}, "c")
+
+
 def test_a_dalton_run_is_the_pair_of_files_dalton_reads() -> None:
     """Everything above `**DALTON INPUT` is the molecule file and everything below it the input
     file; `saveInputFile(..., "dal")` saved the two concatenated, which Dalton cannot read."""

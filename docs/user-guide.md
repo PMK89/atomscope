@@ -967,7 +967,12 @@ after the basis it really requests. That dialog's theory box has no UHF or
 GVB entry, so the deck asks for `scftype rhf` whatever the multiplicity; above
 a singlet the form says so, and the extra keywords are where another
 wavefunction goes.
-Dalton is the one generator that writes **two** files: the `.mol` holding the
+TeraChem has its seven theories, seven basis sets, four dispersion corrections
+and an `Unrestricted` switch that prepends `u` to the method keyword. Its
+gradient run is a switch of its own, the shared calculation box having no entry
+for one. It writes **two** files -- the deck and the XYZ or PDB geometry the
+deck's `coordinates` line names, which Avogadro's dialog named but never wrote.
+Dalton is the other generator that writes **two** files: the `.mol` holding the
 basis and the geometry, and the `.dal` holding the run. Its basis tab is a
 family -- STO-nG, Pople, Jensen's pc-n or Dunning's correlation-consistent
 sets -- with polarization, diffuse and core-valence switches that choose which

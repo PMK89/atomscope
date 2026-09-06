@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- A **TeraChem input generator**, with the seven theories, seven basis sets,
+  four dispersion corrections and three run types its dialog offered -- and the
+  geometry file the deck names. Avogadro wrote a `coordinates` line pointing at
+  a file it never produced (for a molecule that had never been saved, at a file
+  that could not exist), so the deck alone ran nothing; here the XYZ or PDB is
+  written beside it.
+
 - A **Dalton input generator** -- and it writes the pair of files Dalton
   actually reads. Avogadro built the molecule file and the input file in one
   buffer and saved them concatenated under a single `.dal`, which Dalton

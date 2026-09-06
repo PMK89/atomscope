@@ -28,6 +28,7 @@ from atomscope.backends.base import (
 )
 from atomscope.backends.qc_inputs import dalton as dalton_module
 from atomscope.backends.qc_inputs import orca as orca_module
+from atomscope.backends.qc_inputs import terachem as terachem_module
 from atomscope.backends.qc_inputs.dalton import (
     BasisChoice,
     DaltonOptions,
@@ -75,6 +76,7 @@ from atomscope.backends.qc_inputs.psi4 import psi4_deck
 from atomscope.backends.qc_inputs.qchem import BASIS_LABELS as QCHEM_BASIS_LABELS
 from atomscope.backends.qc_inputs.qchem import THEORY_LABELS as QCHEM_THEORY_LABELS
 from atomscope.backends.qc_inputs.qchem import qchem_deck
+from atomscope.backends.qc_inputs.terachem import terachem_deck
 from atomscope.chem.bonds import perceive_bonds
 from atomscope.jobs.models import RunSpec
 from atomscope.model import Structure
@@ -102,6 +104,7 @@ MOLECULAR = (
     "dalton",
     "qchem",
     "psi4",
+    "terachem",
     "mopac",
 )
 
@@ -200,6 +203,7 @@ SCHEMA = ParameterSchema(
                         Choice(value="dalton", label="Dalton"),
                         Choice(value="qchem", label="Q-Chem"),
                         Choice(value="psi4", label="Psi4"),
+                        Choice(value="terachem", label="TeraChem"),
                         Choice(value="mopac", label="MOPAC (semi-empirical)"),
                         Choice(value="espresso", label="Quantum ESPRESSO (pw.x)"),
                         Choice(value="abinit", label="ABINIT"),
@@ -360,7 +364,7 @@ SCHEMA = ParameterSchema(
                     type="string",
                     default="",
                     advanced=True,
-                    help="appended to the route or keyword line; a line of its own for GAMESS, lines inside $rem for Q-Chem, and directives of their own before Psi4's molecule, Molpro's basis, NWChem's task, GAMESS-UK's `enter` and Dalton's end marker, or after ORCA's `%maxcore`",
+                    help="appended to the route or keyword line; a line of its own for GAMESS, lines inside $rem for Q-Chem, and directives of their own before Psi4's molecule, Molpro's basis, NWChem's task, GAMESS-UK's `enter`, TeraChem's `end` and Dalton's end marker, or after ORCA's `%maxcore`",
                 ),
             ],
         ),
@@ -417,6 +421,79 @@ SCHEMA = ParameterSchema(
                         Choice(value=key, label=label) for key, label in PSI4_BASIS_LABELS.items()
                     ],
                     visible_when=[VisibleWhen(key="program", value="psi4")],
+                ),
+            ],
+        ),
+        Section(
+            id="terachem",
+            label="TeraChem",
+            help="the theory, basis and dispersion lists of Avogadro's TeraChem dialog",
+            parameters=[
+                ParameterSpec(
+                    key="terachem_theory",
+                    label="Theory",
+                    type="enum",
+                    default="hf",
+                    choices=[
+                        Choice(value=key, label=label)
+                        for key, label in terachem_module.THEORY_LABELS.items()
+                    ],
+                    visible_when=[VisibleWhen(key="program", value="terachem")],
+                ),
+                ParameterSpec(
+                    key="terachem_basis",
+                    label="Basis set",
+                    type="enum",
+                    default="sto3g",
+                    choices=[
+                        Choice(value=key, label=label)
+                        for key, label in terachem_module.BASIS_LABELS.items()
+                    ],
+                    visible_when=[VisibleWhen(key="program", value="terachem")],
+                ),
+                ParameterSpec(
+                    key="terachem_unrestricted",
+                    label="Unrestricted",
+                    type="boolean",
+                    default=False,
+                    help="prepends `u` to the method keyword, as the dialog does",
+                    visible_when=[VisibleWhen(key="program", value="terachem")],
+                ),
+                ParameterSpec(
+                    key="terachem_dispersion",
+                    label="Dispersion correction",
+                    type="enum",
+                    default="none",
+                    choices=[
+                        Choice(value="none", label="None"),
+                        Choice(value="yes", label="Yes (TeraChem's default)"),
+                        Choice(value="d2", label="D2"),
+                        Choice(value="d3", label="D3"),
+                    ],
+                    visible_when=[VisibleWhen(key="program", value="terachem")],
+                ),
+                ParameterSpec(
+                    key="terachem_gradient",
+                    label="Gradient run",
+                    type="boolean",
+                    default=False,
+                    help=(
+                        "TeraChem's third run type, which the shared calculation box has no"
+                        " entry for; it wins over a single point"
+                    ),
+                    visible_when=[VisibleWhen(key="program", value="terachem")],
+                ),
+                ParameterSpec(
+                    key="terachem_coordinates",
+                    label="Geometry file format",
+                    type="enum",
+                    default="xyz",
+                    choices=[
+                        Choice(value="xyz", label="XYZ"),
+                        Choice(value="pdb", label="PDB"),
+                    ],
+                    help="the deck names this file, and it is written beside the deck",
+                    visible_when=[VisibleWhen(key="program", value="terachem")],
                 ),
             ],
         ),
@@ -2705,6 +2782,16 @@ class QcInputsPlugin:
             report.issues += _gamessuk_issues(structure, merged)
         if program == "orca":
             report.issues += _orca_issues(merged)
+        if program == "terachem" and merged.get("task") not in ("energy", "optimize"):
+            report.issues.append(
+                ValidationIssue(
+                    key="task",
+                    message=(
+                        "TeraChem's run types are an energy, a gradient and a minimization;"
+                        " the gradient is the switch in the TeraChem box"
+                    ),
+                )
+            )
         if program == "dalton" and merged.get("task") != "energy":
             report.issues.append(
                 ValidationIssue(
@@ -2789,6 +2876,12 @@ class QcInputsPlugin:
     ) -> GeneratedInputs:
         merged = merge_values(SCHEMA, values)
         program = str(merged["program"])
+        if program == "terachem" and merged["task"] not in ("energy", "optimize"):
+            msg = (
+                "Avogadro's TeraChem dialog runs an energy, a gradient or a minimization;"
+                " there is no frequency or transition-state deck to write"
+            )
+            raise ValueError(msg)
         if program == "dalton" and merged["task"] != "energy":
             msg = (
                 "Avogadro's Dalton dialog has no geometry optimization: its calculation types are"
@@ -2895,6 +2988,31 @@ class QcInputsPlugin:
                     task=task,
                     charge=charge,
                     multiplicity=mult,
+                    extra=extra,
+                )
+            )
+        elif program == "terachem":
+            fmt = str(merged.get("terachem_coordinates", "cartesian"))
+            fmt = fmt if fmt in terachem_module.COORDINATE_FORMATS else "xyz"
+            geometry = f"{root_name}{terachem_module.COORDINATE_FORMATS[fmt]}"
+            coords = io.StringIO()
+            _write(coords, atoms, "proteindatabank" if fmt == "pdb" else "xyz")
+            # the dialog named a coordinate file and wrote none; the pair is what TeraChem reads
+            extra_files.append(
+                GeneratedFile(name=geometry, text=coords.getvalue(), role="structure")
+            )
+            name = f"{root_name}.tcin"
+            buf.write(
+                terachem_deck(
+                    title=structure.name or root_name,
+                    coordinate_file=geometry,
+                    theory=str(merged.get("terachem_theory", "hf")),
+                    basis=str(merged.get("terachem_basis", "sto3g")),
+                    task="gradient" if merged.get("terachem_gradient") else task,
+                    charge=charge,
+                    multiplicity=mult,
+                    dispersion=str(merged.get("terachem_dispersion", "none")),
+                    unrestricted=bool(merged.get("terachem_unrestricted")),
                     extra=extra,
                 )
             )
