@@ -920,6 +920,58 @@ def test_the_qchem_geometry_can_be_either_z_matrix() -> None:
     assert "r3" not in compact
 
 
+def test_a_radical_is_never_written_as_a_singlet() -> None:
+    """A methyl radical has nine electrons, which cannot pair up. Every generator used to write
+    multiplicity 1 for it unless the structure or the form said otherwise -- only the GAMESS-US
+    writer resolved it -- and each of those decks is one the program refuses or misreads."""
+    methyl = from_atoms(molecule("CH3"), name="methyl")
+    assert methyl.multiplicity is None
+    for program, token in (
+        ("orca", "*xyz 0 2"),
+        ("gaussian", "\n0 2\n"),
+        ("nwchem", "mult 2"),
+        ("gamess", "MULT=2"),
+        ("gamessuk", "\nmult 2\n"),
+        ("qchem", "\n   0 2\n"),
+        ("psi4", "\n0 2\n"),
+        ("mopac", "DOUBLET"),
+    ):
+        text = plugin.generate_inputs(methyl, {"program": program}, "case").files[0].text
+        assert token in text, (program, text)
+
+    # what the structure says still wins, and so does what the form says
+    quartet = from_atoms(molecule("CH3"), name="methyl")
+    quartet.multiplicity = 4
+    assert "\n0 4\n" in plugin.generate_inputs(quartet, {"program": "psi4"}, "c").files[0].text
+    forced = plugin.generate_inputs(methyl, {"program": "psi4", "multiplicity": 6}, "c")
+    assert "\n0 6\n" in forced.files[0].text
+
+
+def test_a_multiplicity_the_electrons_cannot_have_is_said() -> None:
+    """The resolution above only fills a multiplicity in; one that is asked for is written as
+    asked, so the parity is checked rather than corrected."""
+    methyl = from_atoms(molecule("CH3"), name="methyl")
+    issues = plugin.validate(methyl, {"program": "qchem", "multiplicity": 1}).issues
+    assert [i.key for i in issues] == ["multiplicity"]
+    assert "9 electrons" in issues[0].message
+    # the doublet it resolves to on its own raises nothing, and neither does a triplet
+    assert not plugin.validate(methyl, {"program": "qchem"}).issues
+    assert not plugin.validate(methyl, {"program": "qchem", "multiplicity": 4}).issues
+
+    # a closed-shell molecule is checked the same way round
+    water = from_atoms(molecule("H2O"), name="water")
+    assert not plugin.validate(water, {"program": "qchem"}).issues
+    even = plugin.validate(water, {"program": "qchem", "multiplicity": 2}).issues
+    assert [i.key for i in even] == ["multiplicity"]
+
+    # and the charge counts: an anion of an even molecule is odd
+    hydroxide = from_atoms(molecule("H2O"), name="hydroxide")
+    hydroxide.charge = -1.0
+    assert (
+        "\n   -1 2\n" in plugin.generate_inputs(hydroxide, {"program": "qchem"}, "c").files[0].text
+    )
+
+
 def test_the_default_gamessuk_deck_is_pinned_byte_for_byte() -> None:
     """The directive file `gamessukinputdialog.cpp:generateInputDeck` writes, with its trailing
     spaces normalized and the header naming the program that really generated it."""

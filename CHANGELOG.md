@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+- **A radical is no longer written as a singlet.** An odd number of electrons
+  cannot pair up, and every input generator but the GAMESS-US one wrote
+  multiplicity 1 for a structure that named none -- so a methyl radical came
+  out as `0 1`, a deck the program refuses or, worse, runs as a different
+  molecule. The smallest multiplicity the electron count allows is now filled
+  in wherever nothing else has said, and a multiplicity that *is* asked for is
+  written as asked but checked: an odd electron count needs an even
+  multiplicity, and the form says so when it does not have one.
+
 - A **GAMESS-UK input generator**: the directive file Avogadro's dialog wrote,
   with its four run types, three theories, six functionals, six basis sets and
   the direct-mode switch. It is the second generator that writes a

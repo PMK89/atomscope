@@ -1702,12 +1702,27 @@ def _gamess_detailed(values: Values) -> DetailedBasis | None:
     )
 
 
+def _electrons(structure: Structure) -> int:
+    """How many electrons the deck is about: the nuclear charge less the molecular one."""
+    return int(sum(a.atomic_number for a in structure.atoms) - round(structure.charge))
+
+
 def _multiplicity(structure: Structure, values: Values) -> int:
+    """The multiplicity a deck is written with: the form's, else the structure's, else the
+    smallest one the electron count allows.
+
+    An odd number of electrons cannot be a singlet, and every generator here used to write
+    `mult 1` for a radical unless something else had said otherwise -- a deck the program refuses
+    or, worse, one it runs as a different molecule. Only the GAMESS-US writer resolved it, in a
+    line of its own (`gamess.py`); it belongs here, where every generator reads it.
+    """
     raw = values.get("multiplicity", 0)
     m = int(raw) if isinstance(raw, int | float) else 0
     if m > 0:
         return m
-    return int(structure.multiplicity or 1)
+    if structure.multiplicity:
+        return int(structure.multiplicity)
+    return 2 if _electrons(structure) % 2 else 1
 
 
 class QcInputsPlugin:
@@ -1809,6 +1824,20 @@ class QcInputsPlugin:
                     message=(
                         "only the GAMESS-US and GAMESS-UK generators write a transition-state"
                         " deck so far"
+                    ),
+                )
+            )
+        if (
+            program in MOLECULAR
+            and _electrons(structure) % 2 == _multiplicity(structure, merged) % 2
+        ):
+            report.issues.append(
+                ValidationIssue(
+                    key="multiplicity",
+                    message=(
+                        f"{_electrons(structure)} electrons cannot have multiplicity"
+                        f" {_multiplicity(structure, merged)}: an odd electron count needs an"
+                        " even multiplicity and an even one an odd multiplicity"
                     ),
                 )
             )
