@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+- A **Psi4 input generator**: the psithon script Avogadro's dialog writes -- a
+  `set basis` line, a `molecule {}` block and the call that runs the job -- with
+  its nine theories and five basis sets. Three things there are repaired rather
+  than inherited: the dialog's title box reached no output at all, so ours writes
+  it as a comment; `set basis` came out with two spaces; and Reset put the form
+  back to something the dialog never opened with. Its default theory is
+  Hartree-Fock rather than the dialog's SAPT0, because a SAPT deck is an
+  interaction energy that Psi4 refuses for a single molecule -- choosing one for
+  a structure that holds one fragment says so instead.
+
 - A **Q-Chem input generator**, with the theory and basis lists of Avogadro's
   dialog and the same three coordinate layouts as the Gaussian one. MP2 and CCSD
   are written as a Hartree-Fock reference with a correlation keyword beside it,

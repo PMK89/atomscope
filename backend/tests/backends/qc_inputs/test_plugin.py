@@ -5,6 +5,7 @@ from ase.build import bulk, molecule
 from atomscope.ase_bridge import from_atoms
 from atomscope.backends.base import BackendPlugin
 from atomscope.backends.qc_inputs import plugin
+from atomscope.backends.qc_inputs.psi4 import psi4_deck
 from atomscope.backends.registry import default_registry
 
 
@@ -917,6 +918,88 @@ def test_the_qchem_geometry_can_be_either_z_matrix() -> None:
     )
     assert "  H3    O1        0.96857    H2      103.99988" in compact
     assert "r3" not in compact
+
+
+def test_the_default_psi4_deck_is_pinned_byte_for_byte() -> None:
+    """The psithon script Avogadro's dialog writes (`psi4inputdialog.cpp:225-251`), with the
+    title it drops written as a comment and `set basis` given one space rather than two."""
+    water = from_atoms(molecule("H2O"), name="water")
+    file = plugin.generate_inputs(water, {"program": "psi4"}, "case").files[0]
+    assert file.name == "case.in"
+    assert file.text == (
+        "# water\n"
+        "set basis jun-cc-pVDZ\n"
+        "molecule {\n"
+        "0 1\n"
+        "   O        0.00000        0.00000        0.11926\n"
+        "   H        0.00000        0.76324       -0.47705\n"
+        "   H        0.00000       -0.76324       -0.47705\n"
+        "}\n"
+        "energy('scf')\n"
+    )
+
+
+def test_the_psi4_title_reaches_the_deck_that_avogadro_drops_it_from() -> None:
+    """`setTitle` fills `m_title` and `generateInputDeck` never reads it, so the box does nothing
+    there. Ours is the deck's first line, and a title that is empty writes no line at all."""
+    named = from_atoms(molecule("CH4"), name="methane scan")
+    assert (
+        plugin.generate_inputs(named, {"program": "psi4"}, "case")
+        .files[0]
+        .text.startswith("# methane scan\nset basis")
+    )
+    # a structure always carries a name (`untitled` when nothing named it), so the deck with no
+    # comment line at all is only reachable through the writer itself
+    assert psi4_deck(from_atoms(molecule("CH4")), title="").startswith("set basis")
+
+
+def test_a_psi4_sapt_run_splits_the_fragments_first() -> None:
+    """`auto_fragments('')` is written for the two SAPT theories and for nothing else."""
+    water = from_atoms(molecule("H2O"), name="water")
+    for theory in ("sapt0", "sapt2"):
+        text = (
+            plugin.generate_inputs(water, {"program": "psi4", "psi4_theory": theory}, "case")
+            .files[0]
+            .text
+        )
+        assert f"}}\nauto_fragments('')\nenergy('{theory}')\n" in text
+    plain = plugin.generate_inputs(water, {"program": "psi4", "psi4_theory": "mp2"}, "case")
+    assert "auto_fragments" not in plain.files[0].text
+    # the theory name is the dialog's own spelling, case and all
+    assert plain.files[0].text.endswith("energy('MP2')\n")
+
+
+def test_psi4_extra_keywords_are_lines_under_the_basis() -> None:
+    """Psi4 takes its options as `set` statements, so they go between the basis and the molecule."""
+    water = from_atoms(molecule("H2O"), name="water")
+    text = (
+        plugin.generate_inputs(
+            water,
+            {"program": "psi4", "extra_keywords": "set scf_type df\nset freeze_core true"},
+            "case",
+        )
+        .files[0]
+        .text
+    )
+    assert "set basis jun-cc-pVDZ\nset scf_type df\nset freeze_core true\nmolecule {\n" in text
+
+
+def test_sapt_on_one_fragment_is_said_rather_than_silently_written() -> None:
+    """Avogadro opens its Psi4 dialog on SAPT0, whose deck Psi4 rejects for a single molecule."""
+    water = from_atoms(molecule("H2O"), name="water")
+    issues = plugin.validate(water, {"program": "psi4", "psi4_theory": "sapt0"}).issues
+    assert [i.key for i in issues] == ["psi4_theory"]
+    assert issues[0].severity == "warning"
+    # two waters far enough apart are two fragments, which is what SAPT is for
+    dimer = molecule("H2O")
+    partner = molecule("H2O")
+    partner.translate([3.5, 0.0, 0.0])
+    dimer += partner
+    assert not plugin.validate(
+        from_atoms(dimer, name="dimer"), {"program": "psi4", "psi4_theory": "sapt0"}
+    ).issues
+    # and the default theory raises nothing at all
+    assert not plugin.validate(water, {"program": "psi4"}).issues
 
 
 def test_the_default_qchem_deck_is_pinned_byte_for_byte() -> None:

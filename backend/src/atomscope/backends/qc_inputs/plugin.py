@@ -49,9 +49,14 @@ from atomscope.backends.qc_inputs.gamess import GBASIS_CHOICES as GAMESS_GBASIS_
 from atomscope.backends.qc_inputs.gamess import POINT_GROUPS as GAMESS_POINT_GROUPS
 from atomscope.backends.qc_inputs.gamess import THEORY_CHOICES as GAMESS_THEORIES
 from atomscope.backends.qc_inputs.gaussian import gaussian_deck
+from atomscope.backends.qc_inputs.psi4 import BASIS_LABELS as PSI4_BASIS_LABELS
+from atomscope.backends.qc_inputs.psi4 import SAPT_THEORIES as PSI4_SAPT
+from atomscope.backends.qc_inputs.psi4 import THEORY_LABELS as PSI4_THEORY_LABELS
+from atomscope.backends.qc_inputs.psi4 import psi4_deck
 from atomscope.backends.qc_inputs.qchem import BASIS_LABELS as QCHEM_BASIS_LABELS
 from atomscope.backends.qc_inputs.qchem import THEORY_LABELS as QCHEM_THEORY_LABELS
 from atomscope.backends.qc_inputs.qchem import qchem_deck
+from atomscope.chem.bonds import perceive_bonds
 from atomscope.jobs.models import RunSpec
 from atomscope.model import Structure
 from atomscope.schemas import (
@@ -68,7 +73,7 @@ from atomscope.schemas import (
 from atomscope.schemas.engine import Choice
 from atomscope.units import Unit
 
-MOLECULAR = ("orca", "gaussian", "nwchem", "gamess", "qchem", "mopac")
+MOLECULAR = ("orca", "gaussian", "nwchem", "gamess", "qchem", "psi4", "mopac")
 """Semi-empirical Hamiltonians MOPAC understands; the method is the first keyword of the deck."""
 MOPAC_METHODS = ("AM1", "PM3", "PM6", "PM7", "RM1", "MNDO", "MNDOD")
 """MOPAC spells the multiplicity as a word (a closed shell is SINGLET and needs no UHF)."""
@@ -120,6 +125,7 @@ SCHEMA = ParameterSchema(
                         Choice(value="nwchem", label="NWChem"),
                         Choice(value="gamess", label="GAMESS-US"),
                         Choice(value="qchem", label="Q-Chem"),
+                        Choice(value="psi4", label="Psi4"),
                         Choice(value="mopac", label="MOPAC (semi-empirical)"),
                         Choice(value="espresso", label="Quantum ESPRESSO (pw.x)"),
                         Choice(value="abinit", label="ABINIT"),
@@ -280,7 +286,7 @@ SCHEMA = ParameterSchema(
                     type="string",
                     default="",
                     advanced=True,
-                    help="appended to the route or keyword line; a line of its own for GAMESS, and lines inside $rem for Q-Chem",
+                    help="appended to the route or keyword line; a line of its own for GAMESS, lines inside $rem for Q-Chem and lines of their own under `set basis` for Psi4",
                 ),
             ],
         ),
@@ -308,6 +314,35 @@ SCHEMA = ParameterSchema(
                         Choice(value=key, label=label) for key, label in QCHEM_BASIS_LABELS.items()
                     ],
                     visible_when=[VisibleWhen(key="program", value="qchem")],
+                ),
+            ],
+        ),
+        Section(
+            id="psi4",
+            label="Psi4",
+            help="the theory and basis lists of Avogadro's Psi4 dialog",
+            parameters=[
+                ParameterSpec(
+                    key="psi4_theory",
+                    label="Theory",
+                    type="enum",
+                    # Avogadro opens on SAPT0, which is an interaction energy and needs two
+                    # fragments; the first entry is the one that makes a deck for one molecule
+                    default="scf",
+                    choices=[
+                        Choice(value=key, label=label) for key, label in PSI4_THEORY_LABELS.items()
+                    ],
+                    visible_when=[VisibleWhen(key="program", value="psi4")],
+                ),
+                ParameterSpec(
+                    key="psi4_basis",
+                    label="Basis set",
+                    type="enum",
+                    default="jundz",
+                    choices=[
+                        Choice(value=key, label=label) for key, label in PSI4_BASIS_LABELS.items()
+                    ],
+                    visible_when=[VisibleWhen(key="program", value="psi4")],
                 ),
             ],
         ),
@@ -1417,6 +1452,52 @@ def _gamess_mp2(values: Values) -> MP2Options:
     )
 
 
+def _fragment_count(structure: Structure) -> int:
+    """How many connected pieces the bonds leave the structure in.
+
+    Psi4's `auto_fragments` runs its own connectivity, so this only decides what to warn about.
+    A structure that carries no bonds at all -- an XYZ that was never perceived -- would come out
+    as one fragment per atom, so the bonds are perceived first in that case.
+    """
+    bonds = structure.bonds or perceive_bonds(structure)
+    parent = list(range(len(structure.atoms)))
+
+    def root(i: int) -> int:
+        while parent[i] != i:
+            parent[i] = parent[parent[i]]
+            i = parent[i]
+        return i
+
+    for bond in bonds:
+        a, b = root(bond.a), root(bond.b)
+        if a != b:
+            parent[a] = b
+    return len({root(i) for i in range(len(parent))})
+
+
+def _psi4_issues(structure: Structure, merged: Values) -> list[ValidationIssue]:
+    """SAPT is an interaction energy between two fragments, and Psi4 will not run it on one.
+
+    Avogadro's dialog offers SAPT0 and SAPT2 for any molecule and opens on SAPT0, so its default
+    deck fails for the commonest input there is; ours opens on Hartree-Fock and says this instead.
+    """
+    if str(merged.get("psi4_theory", "scf")) not in PSI4_SAPT:
+        return []
+    if _fragment_count(structure) >= 2:
+        return []
+    return [
+        ValidationIssue(
+            key="psi4_theory",
+            message=(
+                "SAPT is the interaction energy of two fragments; this structure holds one,"
+                " and auto_fragments will not find a second"
+            ),
+            # our own bond perception said so, and Psi4 runs its own: a warning, not a refusal
+            severity="warning",
+        )
+    ]
+
+
 def _gamess_wave_function_issues(merged: Values) -> list[ValidationIssue]:
     """What the GAMESS tabs cannot say in a deck: a box that reaches no keyword, or one whose
     keyword needs something the deck does not carry.
@@ -1615,6 +1696,8 @@ class QcInputsPlugin:
                 )
         if program == "gamess":
             report.issues += _gamess_wave_function_issues(merged)
+        if program == "psi4":
+            report.issues += _psi4_issues(structure, merged)
         if merged.get("task") == "transition_state" and program != "gamess":
             report.issues.append(
                 ValidationIssue(
@@ -1718,6 +1801,20 @@ class QcInputsPlugin:
                     charge=charge,
                     multiplicity=mult,
                     coordinates=str(merged.get("coordinates", "cartesian")),
+                    extra=extra,
+                )
+            )
+        elif program == "psi4":
+            name = f"{root_name}.in"
+            buf.write(
+                psi4_deck(
+                    structure,
+                    title=structure.name or root_name,
+                    theory=str(merged.get("psi4_theory", "scf")),
+                    basis=str(merged.get("psi4_basis", "jundz")),
+                    task=task,
+                    charge=charge,
+                    multiplicity=mult,
                     extra=extra,
                 )
             )

@@ -105,7 +105,7 @@ the Calculation panel greys it out — nothing else changes.
 | Crystallography (spglib): symmetry, supercells, slabs, Niggli, primitive | Density of states / projected DOS |
 | Open Babel force fields (MMFF94, MMFF94s, UFF, GAFF, Ghemical): energy, optimization, conformer search | Band structures |
 | ASE built-in calculators (EMT, Lennard-Jones, Morse) with BFGS and Langevin MD | |
-| Quantum-chemistry **input generation** (ORCA, Gaussian, NWChem, GAMESS-US, Q-Chem, MOPAC, Quantum ESPRESSO, ABINIT) | |
+| Quantum-chemistry **input generation** (ORCA, Gaussian, NWChem, GAMESS-US, Q-Chem, Psi4, MOPAC, Quantum ESPRESSO, ABINIT) | |
 
 CP-PAW is located by looking, in order, at `$ATOMSCOPE_CPPAW_DIR/bin/fast`,
 `$PAWDIR/bin/fast`, `~/cp-paw/bin/fast` and then `PATH`. Set
@@ -871,7 +871,7 @@ appended and the entry disabled when its executables are missing.
 | `CP-PAW` | yes | plane-wave/PAW DFT: single point, forces, damped relaxation, Car-Parrinello MD, densities, orbitals, DOS, band structures |
 | `ASE workflows (built-in calculators or CP-PAW)` | yes | EMT, Lennard-Jones, Morse, an Open Babel force field, or CP-PAW forces; single point, BFGS relaxation, Langevin MD |
 | `Open Babel force fields` | yes | MMFF94, MMFF94s, UFF, GAFF, Ghemical: single point, optimization, conformer search |
-| `Quantum chemistry input generators` | **no** | writes ready-to-run decks for ORCA, Gaussian, NWChem, GAMESS-US, Q-Chem, MOPAC, Quantum ESPRESSO and ABINIT |
+| `Quantum chemistry input generators` | **no** | writes ready-to-run decks for ORCA, Gaussian, NWChem, GAMESS-US, Q-Chem, Psi4, MOPAC, Quantum ESPRESSO and ABINIT |
 
 ### 7.2 The parameter form
 
@@ -962,6 +962,14 @@ written as a Hartree-Fock reference with a correlation keyword beside them) and
 ten basis sets, the last two of which are effective core potentials — and the
 same `Format` box as Gaussian. Its deck has no transition-state job type, so the
 form says so if you ask for one.
+Psi4 writes the psithon script its dialog wrote -- a `set basis` line, a
+`molecule {}` block and the call that runs the job -- with its nine theories and
+five basis sets. Extra keywords are `set` statements of their own, written under
+the basis. The title reaches the deck as a comment, which Avogadro's own dialog
+never wrote it to at all. The theory box opens on Hartree-Fock rather than on
+SAPT0 as Avogadro did: SAPT is the interaction energy of two fragments, and Psi4
+will not run it on a single molecule -- choose it for a structure that holds one
+and the form says so rather than writing a deck that fails.
 Gaussian has the ones its Avogadro dialog had: `Format` writes the geometry as
 Cartesian coordinates or as a Z-matrix (with the values in a `Variables`
 section, or in line), `Output` adds the keywords that make the log readable

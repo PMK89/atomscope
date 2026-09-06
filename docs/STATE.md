@@ -353,8 +353,8 @@ run against current code -- Playwright above all -- use the private-server recip
    (AV-SURF-013), engine primitive scoping (AV-VIS-029) and the colour maps (AV-COLOR-002/003/
    004/007/008) are done.
 4. **The input generators are the thread being pulled through the MEDIUM stratum.** Q-Chem
-   (AV-QM-010) is done; the ones still open, smallest dialog first, are PSI4 (AV-QM-012, 339 lines
-   of cpp / 436 of ui), GAMESS-UK (AV-QM-006, 525/563), Molpro (AV-QM-008, 535/559) and Dalton
+   (AV-QM-010) and Psi4 (AV-QM-012) are done; the ones still open, smallest dialog first, are
+   GAMESS-UK (AV-QM-006, 525 lines of cpp / 563 of ui), Molpro (AV-QM-008, 535/559) and Dalton
    (AV-QM-011, 1644/1667); NWChem (AV-QM-009) and ORCA (AV-QM-016) are PARTIAL. Each follows the
    same shape: read the dialog's `generateInputDeck` and its `get*Type` tables out of Avogadro's
    source, write a `<program>.py` beside `qchem.py` with the keyword table and a label table, add
