@@ -251,3 +251,43 @@ test('a boolean can show one field and hide another', () => {
   expect(screen.queryByLabelText('Quick list')).toBeNull();
   expect(screen.getByLabelText('Exact value')).toBeInTheDocument();
 });
+
+const sectionSchema: ParameterSchema = {
+  id: 'p',
+  backend: 'p',
+  version: 1,
+  title: 'P',
+  sections: [
+    gateSchema.sections[0]!,
+    {
+      id: 'detail-only',
+      label: 'Detailed settings',
+      help: '',
+      advanced: false,
+      parameters: [
+        {
+          key: 'tolerance',
+          label: 'Tolerance',
+          type: 'string',
+          default: '',
+          required: false,
+          advanced: false,
+          help: '',
+          exclusive_minimum: false,
+          integer_vector: false,
+          visible_when: [{ key: 'detail', op: 'truthy', value: null }],
+        },
+      ],
+    },
+  ],
+};
+
+test('a section whose fields are all hidden draws no heading', () => {
+  // what keeps the per-program sections (GAMESS's five) out of every other program's form
+  const { rerender } = render(
+    <SchemaForm schema={sectionSchema} values={{ detail: false }} onChange={() => {}} />,
+  );
+  expect(screen.queryByText('Detailed settings')).toBeNull();
+  rerender(<SchemaForm schema={sectionSchema} values={{ detail: true }} onChange={() => {}} />);
+  expect(screen.getByText('Detailed settings')).toBeInTheDocument();
+});

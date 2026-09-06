@@ -192,10 +192,16 @@ CC_TYPES = {
 
 GAMESS has two lists, one for the grid method and one for the grid-free one, sharing eight names
 and diverging after that; a functional is offered here under its keyword with the methods it
-belongs to, rather than by position in a combo. Avogadro's dialog shows one list of labels and
-looks the index up in whichever enum the method selects, so from `GOP` on its labels and its
-keywords disagree -- picking `PBEVWN` in grid mode writes `DFTTYP=GOP`. Going by keyword is what
-avoids inheriting that.
+belongs to, rather than by position in a combo.
+
+Avogadro's dialog has a single combo of twenty labels (gamessinputdialog.ui:2279-2380), stores
+the index plus one (gamessinputdialog.cpp:2236), and reads that number back through whichever
+enum the method selects -- twenty-one names each (gamessinputdata.h:657,683). The labels are the
+grid list with `GOP` missing, so in grid mode everything from `PBEVWN` on writes the keyword one
+place before it: picking `PBEVWN` writes `DFTTYP=GOP`. In grid-free mode the same twenty labels
+index the other list, which agrees with them only through `B3LYP`: picking `Gill 1996 exchange`
+writes `DFTTYP=XALPHA`. (The labels are not to be trusted on their own either -- the one for
+`GVWN` reads `BVWN`, ui:2352.) Going by keyword is what avoids inheriting any of it.
 """
 DFT_FUNCTIONALS: dict[str, tuple[str, str]] = {
     "SLATER": ("Slater exchange", "both"),

@@ -352,6 +352,12 @@ def test_a_semi_empirical_gamess_basis_takes_no_correlated_theory() -> None:
     assert plugin.validate(water, values).issues == []
     report = plugin.validate(water, {**values, "gamess_theory": "b3lyp"})
     assert any("semi-empirical basis set" in i.message for i in report.issues)
+    # the Advanced boxes write DFTTYP and CCTYP without going through the theory box
+    for correlated in ({"gamess_functional": "BLYP"}, {"gamess_cc": "ccsd"}):
+        report = plugin.validate(water, {**values, **correlated})
+        assert any("semi-empirical basis set" in i.message for i in report.issues), correlated
+    # and "no coupled cluster at all" is not a correlated method
+    assert plugin.validate(water, {**values, "gamess_cc": "none"}).issues == []
 
 
 def test_the_gamess_control_tab_reaches_every_keyword_it_owns() -> None:

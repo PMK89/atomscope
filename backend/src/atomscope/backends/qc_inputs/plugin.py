@@ -191,6 +191,89 @@ SCHEMA = ParameterSchema(
                     ],
                 ),
                 ParameterSpec(
+                    key="gamess_solvent",
+                    label="Solvent",
+                    type="enum",
+                    default="gas",
+                    choices=[
+                        Choice(value="gas", label="Gas"),
+                        Choice(value="water", label="Water (PCM)"),
+                    ],
+                    visible_when=[VisibleWhen(key="program", value="gamess")],
+                ),
+                ParameterSpec(
+                    key="coordinates",
+                    label="Format",
+                    type="enum",
+                    default="cartesian",
+                    choices=[
+                        Choice(value="cartesian", label="Cartesian"),
+                        Choice(value="zmatrix", label="Z-matrix"),
+                        Choice(value="zmatrix_compact", label="Z-matrix (compact)"),
+                    ],
+                    help="how the geometry is written into the deck",
+                    visible_when=[VisibleWhen(key="program", value="gaussian")],
+                ),
+                ParameterSpec(
+                    key="gaussian_output",
+                    label="Output",
+                    type="enum",
+                    default="standard",
+                    choices=[
+                        Choice(value="standard", label="Standard"),
+                        Choice(value="molden", label="Molden"),
+                        Choice(value="molekel", label="Molekel"),
+                    ],
+                    help=(
+                        "Molden and Molekel add the keywords that print the basis and the"
+                        " orbitals, which is what makes the log readable as a wavefunction"
+                    ),
+                    visible_when=[VisibleWhen(key="program", value="gaussian")],
+                ),
+                ParameterSpec(
+                    key="gaussian_checkpoint",
+                    label="Write a checkpoint file",
+                    type="boolean",
+                    default=False,
+                    help="%Chk, named after the deck; formchk turns it into a .fchk to read here",
+                    visible_when=[VisibleWhen(key="program", value="gaussian")],
+                ),
+                ParameterSpec(
+                    key="multiplicity",
+                    label="Spin multiplicity",
+                    type="integer",
+                    default=0,
+                    minimum=0,
+                    help="0 = take from the structure (or 1)",
+                ),
+                ParameterSpec(
+                    key="nprocs", label="Processors", type="integer", default=1, minimum=1
+                ),
+                ParameterSpec(
+                    key="memory_mb",
+                    label="Memory per process (MB)",
+                    type="integer",
+                    default=2000,
+                    minimum=100,
+                    advanced=True,
+                ),
+                ParameterSpec(
+                    key="extra_keywords",
+                    label="Extra keywords",
+                    type="string",
+                    default="",
+                    advanced=True,
+                    help="appended to the route or keyword line; a line of its own for GAMESS",
+                ),
+            ],
+        ),
+        Section(
+            id="gamess_basis_detail",
+            label="GAMESS: Basis",
+            help="the Advanced Basis tab: $BASIS, keyword by keyword",
+            advanced=True,
+            parameters=[
+                ParameterSpec(
                     key="gamess_gbasis",
                     label="Basis set (detailed)",
                     type="enum",
@@ -280,6 +363,14 @@ SCHEMA = ParameterSchema(
                     advanced=True,
                     visible_when=_GAMESS_DETAIL,
                 ),
+            ],
+        ),
+        Section(
+            id="gamess_control",
+            label="GAMESS: Control",
+            help="the Advanced Control tab, as far as $CONTRL carries it",
+            advanced=True,
+            parameters=[
                 ParameterSpec(
                     key="gamess_runtyp",
                     label="Run type",
@@ -327,34 +418,6 @@ SCHEMA = ParameterSchema(
                         Choice(value="cis", label="CI singles"),
                         Choice(value="fsoci", label="Full second-order CI"),
                         Choice(value="genci", label="General CI"),
-                    ],
-                    visible_when=[VisibleWhen(key="program", value="gamess")],
-                ),
-                ParameterSpec(
-                    key="gamess_functional",
-                    label="DFT functional",
-                    type="enum",
-                    default="",
-                    advanced=True,
-                    choices=[
-                        Choice(value="", label="From the theory box"),
-                        *(
-                            Choice(value=key, label=label)
-                            for key, (label, _) in GAMESS_FUNCTIONALS.items()
-                        ),
-                    ],
-                    help="choosing one turns DFT on, whatever the theory box says",
-                    visible_when=[VisibleWhen(key="program", value="gamess")],
-                ),
-                ParameterSpec(
-                    key="gamess_dft_method",
-                    label="DFT method",
-                    type="enum",
-                    default="grid",
-                    advanced=True,
-                    choices=[
-                        Choice(value="grid", label="Grid"),
-                        Choice(value="gridfree", label="Grid-free"),
                     ],
                     visible_when=[VisibleWhen(key="program", value="gamess")],
                 ),
@@ -415,6 +478,50 @@ SCHEMA = ParameterSchema(
                     ],
                     visible_when=[VisibleWhen(key="program", value="gamess")],
                 ),
+            ],
+        ),
+        Section(
+            id="gamess_dft",
+            label="GAMESS: DFT",
+            help="the DFT tab: $DFT and the functional in $CONTRL",
+            advanced=True,
+            parameters=[
+                ParameterSpec(
+                    key="gamess_functional",
+                    label="DFT functional",
+                    type="enum",
+                    default="",
+                    advanced=True,
+                    choices=[
+                        Choice(value="", label="From the theory box"),
+                        *(
+                            Choice(value=key, label=label)
+                            for key, (label, _) in GAMESS_FUNCTIONALS.items()
+                        ),
+                    ],
+                    help="choosing one turns DFT on, whatever the theory box says",
+                    visible_when=[VisibleWhen(key="program", value="gamess")],
+                ),
+                ParameterSpec(
+                    key="gamess_dft_method",
+                    label="DFT method",
+                    type="enum",
+                    default="grid",
+                    advanced=True,
+                    choices=[
+                        Choice(value="grid", label="Grid"),
+                        Choice(value="gridfree", label="Grid-free"),
+                    ],
+                    visible_when=[VisibleWhen(key="program", value="gamess")],
+                ),
+            ],
+        ),
+        Section(
+            id="gamess_statpt",
+            label="GAMESS: Stat Point",
+            help="the Stat Point tab: how a stationary point is searched for ($STATPT)",
+            advanced=True,
+            parameters=[
                 ParameterSpec(
                     key="gamess_opt_method",
                     label="Optimization method",
@@ -549,6 +656,14 @@ SCHEMA = ParameterSchema(
                     advanced=True,
                     visible_when=[VisibleWhen(key="program", value="gamess")],
                 ),
+            ],
+        ),
+        Section(
+            id="gamess_system",
+            label="GAMESS: System",
+            help="the System tab: what the run is allowed to use ($SYSTEM)",
+            advanced=True,
+            parameters=[
                 ParameterSpec(
                     key="gamess_timlim",
                     label="Time limit (minutes)",
@@ -618,81 +733,6 @@ SCHEMA = ParameterSchema(
                     default=False,
                     advanced=True,
                     visible_when=[VisibleWhen(key="program", value="gamess")],
-                ),
-                ParameterSpec(
-                    key="gamess_solvent",
-                    label="Solvent",
-                    type="enum",
-                    default="gas",
-                    choices=[
-                        Choice(value="gas", label="Gas"),
-                        Choice(value="water", label="Water (PCM)"),
-                    ],
-                    visible_when=[VisibleWhen(key="program", value="gamess")],
-                ),
-                ParameterSpec(
-                    key="coordinates",
-                    label="Format",
-                    type="enum",
-                    default="cartesian",
-                    choices=[
-                        Choice(value="cartesian", label="Cartesian"),
-                        Choice(value="zmatrix", label="Z-matrix"),
-                        Choice(value="zmatrix_compact", label="Z-matrix (compact)"),
-                    ],
-                    help="how the geometry is written into the deck",
-                    visible_when=[VisibleWhen(key="program", value="gaussian")],
-                ),
-                ParameterSpec(
-                    key="gaussian_output",
-                    label="Output",
-                    type="enum",
-                    default="standard",
-                    choices=[
-                        Choice(value="standard", label="Standard"),
-                        Choice(value="molden", label="Molden"),
-                        Choice(value="molekel", label="Molekel"),
-                    ],
-                    help=(
-                        "Molden and Molekel add the keywords that print the basis and the"
-                        " orbitals, which is what makes the log readable as a wavefunction"
-                    ),
-                    visible_when=[VisibleWhen(key="program", value="gaussian")],
-                ),
-                ParameterSpec(
-                    key="gaussian_checkpoint",
-                    label="Write a checkpoint file",
-                    type="boolean",
-                    default=False,
-                    help="%Chk, named after the deck; formchk turns it into a .fchk to read here",
-                    visible_when=[VisibleWhen(key="program", value="gaussian")],
-                ),
-                ParameterSpec(
-                    key="multiplicity",
-                    label="Spin multiplicity",
-                    type="integer",
-                    default=0,
-                    minimum=0,
-                    help="0 = take from the structure (or 1)",
-                ),
-                ParameterSpec(
-                    key="nprocs", label="Processors", type="integer", default=1, minimum=1
-                ),
-                ParameterSpec(
-                    key="memory_mb",
-                    label="Memory per process (MB)",
-                    type="integer",
-                    default=2000,
-                    minimum=100,
-                    advanced=True,
-                ),
-                ParameterSpec(
-                    key="extra_keywords",
-                    label="Extra keywords",
-                    type="string",
-                    default="",
-                    advanced=True,
-                    help="appended to the route or keyword line; a line of its own for GAMESS",
                 ),
             ],
         ),
@@ -923,7 +963,13 @@ class QcInputsPlugin:
             "AM1",
             "PM3",
         ):
-            if merged.get("gamess_theory") not in ("rhf", None):
+            # the Advanced boxes reach $CONTRL on their own, whatever the theory box says
+            correlated = (
+                merged.get("gamess_theory") not in ("rhf", None)
+                or merged.get("gamess_functional") not in ("", None)
+                or merged.get("gamess_cc") not in ("", "none", None)
+            )
+            if correlated:
                 report.issues.append(
                     ValidationIssue(
                         key="gamess_gbasis",
