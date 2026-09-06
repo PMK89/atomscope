@@ -57,13 +57,48 @@ export function defaultRegistry(): PluginRegistry {
   registry.registerTool({ tool: new AutoOptimizeTool(), settings: AutoOptimizeSettings });
   registry.registerTool({ tool: new AutoRotateTool(), settings: AutoRotateSettings });
   // the structure layer is the renderer's own and is not contributed: it is what a renderer is
-  registry.registerLayer({ id: 'vectors', create: () => new VectorLayer() });
-  registry.registerLayer({ id: 'dipole', create: () => new DipoleLayer() });
-  registry.registerLayer({ id: 'unit-cell', create: () => new UnitCellLayer() });
-  registry.registerLayer({ id: 'axes', create: () => new AxesLayer() });
-  registry.registerLayer({ id: 'labels', create: () => new LabelLayer() });
-  registry.registerLayer({ id: 'ribbon', create: () => new RibbonLayer() });
-  registry.registerLayer({ id: 'hbonds', create: () => new HBondLayer() });
+  registry.registerLayer({
+    id: 'vectors',
+    name: 'Atomic vectors',
+    description: 'Arrows for a per-atom vector field, such as forces or a normal mode.',
+    create: () => new VectorLayer(),
+  });
+  registry.registerLayer({
+    id: 'dipole',
+    name: 'Dipole moment',
+    description: 'One arrow for the dipole the partial charges imply.',
+    create: () => new DipoleLayer(),
+  });
+  registry.registerLayer({
+    id: 'unit-cell',
+    name: 'Unit cell',
+    description: 'The cell edges, repeated as many times as the crystal panel asks.',
+    create: () => new UnitCellLayer(),
+  });
+  registry.registerLayer({
+    id: 'axes',
+    name: 'Axes',
+    description: 'A corner gizmo showing which way x, y and z point.',
+    create: () => new AxesLayer(),
+  });
+  registry.registerLayer({
+    id: 'labels',
+    name: 'Labels',
+    description: 'Text beside every atom and bond, of whatever the display panel chooses.',
+    create: () => new LabelLayer(),
+  });
+  registry.registerLayer({
+    id: 'ribbon',
+    name: 'Ribbons',
+    description: 'Cartoon secondary structure for a protein or a nucleic acid.',
+    create: () => new RibbonLayer(),
+  });
+  registry.registerLayer({
+    id: 'hbonds',
+    name: 'Hydrogen bonds',
+    description: 'Dashed lines between donors and acceptors within the cut-offs.',
+    create: () => new HBondLayer(),
+  });
   // the built-in schemes share one implementation (`renderer/atomColors.ts`), which is what the
   // dispatch inside it is; what the registry owns is the list, so a contributed scheme needs no
   // entry there and no branch of that function
@@ -71,6 +106,7 @@ export function defaultRegistry(): PluginRegistry {
     registry.registerColorScheme({
       id: scheme.id,
       label: scheme.label,
+      description: scheme.description,
       colors: (ctx: ColorContext) =>
         atomColors(ctx.residues, ctx.atomCount, scheme.id, ctx.secondary, {
           atoms: ctx.atoms,
@@ -80,12 +116,47 @@ export function defaultRegistry(): PluginRegistry {
         }),
     });
   }
-  registry.registerPanel({ id: 'calculation', label: 'Calculation', component: CalculationPanel });
-  registry.registerPanel({ id: 'analysis', label: 'Analysis', component: AnalysisPanel });
-  registry.registerPanel({ id: 'spectra', label: 'Spectra', component: SpectrumPanel });
-  registry.registerPanel({ id: 'surfaces', label: 'Surfaces', component: SurfacesPanel });
-  registry.registerPanel({ id: 'display', label: 'Display', component: () => <DisplayPanel /> });
-  registry.registerPanel({ id: 'crystal', label: 'Crystal', component: CrystalPanel });
-  registry.registerPanel({ id: 'properties', label: 'Properties', component: PropertiesPanel });
+  registry.registerPanel({
+    id: 'calculation',
+    label: 'Calculation',
+    description: 'Set a calculation up for a backend and generate or run it.',
+    component: CalculationPanel,
+  });
+  registry.registerPanel({
+    id: 'analysis',
+    label: 'Analysis',
+    description: 'What a finished run produced: energies, geometries, densities of states.',
+    component: AnalysisPanel,
+  });
+  registry.registerPanel({
+    id: 'spectra',
+    label: 'Spectra',
+    description: 'Vibrational, UV/Vis and NMR spectra from a run that has them.',
+    component: SpectrumPanel,
+  });
+  registry.registerPanel({
+    id: 'surfaces',
+    label: 'Surfaces',
+    description: 'Isosurfaces from a cube file or from a wavefunction.',
+    component: SurfacesPanel,
+  });
+  registry.registerPanel({
+    id: 'display',
+    label: 'Display',
+    description: 'How the structure is drawn: representation, colours, labels, layers.',
+    component: () => <DisplayPanel />,
+  });
+  registry.registerPanel({
+    id: 'crystal',
+    label: 'Crystal',
+    description: 'The unit cell, its symmetry and the supercell to show.',
+    component: CrystalPanel,
+  });
+  registry.registerPanel({
+    id: 'properties',
+    label: 'Properties',
+    description: 'The selected atoms and the structure itself, editable.',
+    component: PropertiesPanel,
+  });
   return registry;
 }

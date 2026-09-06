@@ -14,15 +14,35 @@ import type { StructureDoc } from '../model/structure';
 export type ColorScheme =
   'element' | 'residue' | 'chain' | 'secondary' | 'index' | 'distance' | 'charge' | 'custom';
 
-export const COLOR_SCHEMES: { id: ColorScheme; label: string }[] = [
-  { id: 'element', label: 'Element' },
-  { id: 'residue', label: 'Residue' },
-  { id: 'chain', label: 'Chain' },
-  { id: 'secondary', label: 'Secondary structure' },
-  { id: 'index', label: 'Atom index' },
-  { id: 'distance', label: 'Distance from the first atom' },
-  { id: 'charge', label: 'Partial charge' },
-  { id: 'custom', label: 'One colour' },
+export const COLOR_SCHEMES: { id: ColorScheme; label: string; description: string }[] = [
+  { id: 'element', label: 'Element', description: 'Every atom the colour of its element.' },
+  {
+    id: 'residue',
+    label: 'Residue',
+    description: 'Amino acids and nucleotides by kind, in the chosen palette.',
+  },
+  { id: 'chain', label: 'Chain', description: 'One colour per chain of a biomolecule.' },
+  {
+    id: 'secondary',
+    label: 'Secondary structure',
+    description: 'Helices, sheets and coils, each its own colour.',
+  },
+  {
+    id: 'index',
+    label: 'Atom index',
+    description: 'A rainbow from the first atom to the last, which shows the ordering.',
+  },
+  {
+    id: 'distance',
+    label: 'Distance from the first atom',
+    description: 'A rainbow by how far each atom is from atom 1.',
+  },
+  {
+    id: 'charge',
+    label: 'Partial charge',
+    description: 'Red to blue over the partial charges the structure carries.',
+  },
+  { id: 'custom', label: 'One colour', description: 'Every atom the same chosen colour.' },
 ];
 
 /** Schemes that need residues; the others work on any molecule. */

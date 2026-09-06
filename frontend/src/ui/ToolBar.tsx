@@ -1,11 +1,11 @@
 import { useToolStore } from '../editor/toolStore';
-import { usePlugins } from '../plugins/context';
+import { useTools } from '../plugins/enabled';
 
 /** Vertical tool strip; the ToolHost handles the single-key shortcuts. */
 export function ToolBar(): JSX.Element {
   const active = useToolStore((s) => s.active);
   const setActive = useToolStore((s) => s.setActive);
-  const tools = usePlugins().tools();
+  const tools = useTools();
   return (
     <nav className="toolbar" aria-label="Tools">
       {tools.map(({ tool: t }) => (

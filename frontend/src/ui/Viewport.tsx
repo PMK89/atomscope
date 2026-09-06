@@ -5,7 +5,7 @@ import { useSelectionStore } from '../state/selectionStore';
 import { useStructureStore } from '../state/structureStore';
 import { useTrajectoryStore } from '../state/trajectoryStore';
 import { frameCell, framePositions, isTrajectoryCompatible } from '../model/trajectory';
-import { installExtraLayers, syncExtraLayers } from './viewportLayers';
+import { installLayer, syncExtraLayers } from './viewportLayers';
 import { backgroundHex, useViewStore } from '../state/viewStore';
 import { atomColorArray } from '../renderer/atomColors';
 import { partialCharges } from '../renderer/labels';
@@ -15,13 +15,16 @@ import { useRendererStore } from '../state/rendererStore';
 import { useIsosurfaceLayers } from './useIsosurfaceLayers';
 import { ViewportOverlay } from './ViewportOverlay';
 import { usePlugins } from '../plugins/context';
+import { enabledLayers, enabledTools, useDisabled } from '../plugins/enabled';
 
 /** Owns one Renderer for its lifetime, feeds it store snapshots and routes input to the tools. */
 export function Viewport(): JSX.Element {
   const registry = usePlugins();
+  const disabledPlugins = useDisabled();
   const ref = useRef<HTMLDivElement>(null);
   const rendererRef = useRef<Renderer | null>(null);
-  const [mounted, setMounted] = useState<{ renderer: Renderer; host: ToolHost } | null>(null);
+  const [renderer, setRenderer] = useState<Renderer | null>(null);
+  const [host, setHost] = useState<ToolHost | null>(null);
   const doc = useStructureStore((s) => s.doc);
   const revision = useStructureStore((s) => s.revision);
   const selected = useSelectionStore((s) => s.atoms);
@@ -84,25 +87,49 @@ export function Viewport(): JSX.Element {
   const lastFitRequest = useRef(0);
   const lastCenterRequest = useRef(0);
   // renderer readiness as state, so surfaces already in the store mount into a new renderer
-  useIsosurfaceLayers(mounted?.renderer ?? null);
+  useIsosurfaceLayers(renderer);
 
+  // the renderer lives as long as the viewport: switching a plugin off rebuilds the tool host and
+  // moves layers in and out (below), as Avogadro's reload did, rather than the whole GL widget
   useEffect(() => {
     if (!ref.current) return;
     const renderer = new Renderer(ref.current);
-    installExtraLayers(renderer, registry);
     rendererRef.current = renderer;
-    const tools = registry.tools().map((c) => c.tool);
-    const host = new ToolHost(renderer, tools, renderer.gl.domElement);
-    setMounted({ renderer, host });
+    setRenderer(renderer);
     useRendererStore.getState().setRenderer(renderer);
     return () => {
-      host.dispose();
       renderer.dispose();
       rendererRef.current = null;
       useRendererStore.getState().setRenderer(null);
-      setMounted(null);
+      setRenderer(null);
     };
-  }, [registry]);
+  }, []);
+
+  // the layers a renderer carries are the contributed ones that are switched on, and a switch
+  // moves one in or out of the running renderer rather than waiting for the next start
+  useEffect(() => {
+    if (!renderer) return;
+    const wanted = enabledLayers(registry, disabledPlugins);
+    for (const contribution of registry.layers()) {
+      const present = renderer.getLayer(contribution.id);
+      const on = wanted.includes(contribution);
+      if (on && !present) installLayer(renderer, contribution);
+      else if (!on && present) renderer.removeLayer(present)?.dispose();
+    }
+    renderer.invalidate();
+  }, [renderer, registry, disabledPlugins]);
+
+  // the host is given the tools that are switched on, so a disabled tool leaves its shortcut too
+  useEffect(() => {
+    if (!renderer) return;
+    const tools = enabledTools(registry, disabledPlugins).map((c) => c.tool);
+    const next = new ToolHost(renderer, tools, renderer.gl.domElement);
+    setHost(next);
+    return () => {
+      next.dispose();
+      setHost(null);
+    };
+  }, [renderer, registry, disabledPlugins]);
 
   useEffect(() => {
     const r = rendererRef.current;
@@ -167,7 +194,7 @@ export function Viewport(): JSX.Element {
 
   return (
     <div ref={ref} className="viewport-canvas" data-testid="viewport">
-      {mounted && <ViewportOverlay renderer={mounted.renderer} host={mounted.host} />}
+      {renderer && host && <ViewportOverlay renderer={renderer} host={host} />}
     </div>
   );
 }

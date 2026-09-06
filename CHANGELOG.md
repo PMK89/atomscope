@@ -9,7 +9,14 @@
   into it through the same calls a plugin would use. An extension contributes a
   menu entry by naming the menu it belongs under — one that is there, or one of
   its own — and edits the document through the same undo history as everything
-  else, so its command appears in Undo under the name it gave. A tool brings its own settings panel, says whether it
+  else, so its command appears in Undo under the name it gave. Colour schemes
+  are contributed too, and **Settings > Plugin manager** lists everything that
+  is registered, by kind, with a switch and a description each — switching one
+  off takes the tool off the toolbar, the layer out of the running view, the
+  panel's tab off the dock, the menu entry out of its menu or the scheme out of
+  the `Colour by` list, at once rather than at the next start. Two cannot be
+  switched off, because they are what the others fall back to: the navigate tool
+  and the element colour scheme. A tool brings its own settings panel, says whether it
   leaves the camera its drags and what cursor it wants, and its id is any string
   rather than one of eight; a panel brings its own tab. Avogadro's plugins were shared libraries loaded at
   start-up; a browser bundle has no such loader, so a plugin here is a module and

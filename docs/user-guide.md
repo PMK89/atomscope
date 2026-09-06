@@ -150,6 +150,15 @@ projection, background — the white/grey/black presets, or `Custom…` for a
 colour well that takes any colour, which depth cueing then fades towards — and
 the list of calculation backends with what each one found on this machine. They are stored **with the open project**, not globally,
 and a backend is enabled by installing it, not from the dialog.
+`Settings ▸ Plugin manager…` lists everything the application registers —
+display types, tools, extensions, colours and panels — with a switch and a
+description each. Switching one off takes effect at once: the tool leaves the
+toolbar (and its keyboard shortcut with it), the display type leaves the view,
+the extension leaves its menu, the colour scheme leaves the `Colour by` list and
+the panel loses its dock tab, whichever tab was open falling back to the first.
+Two cannot be switched off, because everything else falls back to them: the
+navigate tool and the element colour scheme. Which are off is remembered in this
+browser, like the tool settings.
 `Edit` holds undo/redo, cut/copy/paste/clear and the Cartesian editor; `Select`
 holds the selection commands (all, none, invert, by element, by residue, solvent,
 by SMARTS); `Help`

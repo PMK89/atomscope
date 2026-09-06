@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { readLocal, writeLocal } from '../state/localSettings';
-import { usePlugins } from '../plugins/context';
+import { usePanels } from '../plugins/enabled';
 
 const DOCK_TAB_KEY = 'dock.tab';
 
@@ -12,7 +12,7 @@ const panelId = (id: string): string => `dock-panel-${id}`;
  * and which panels there are is the plugin registry's to say (plugins/registry.ts).
  */
 export function RightDock({ onError }: { onError: (m: string) => void }): JSX.Element {
-  const panels = usePlugins().panels();
+  const panels = usePanels();
   const first = panels[0]?.id ?? '';
   // which tab was open is this browser's, like the tool settings (state/localSettings.ts); an id
   // from a build with another set of panels falls back to the first
@@ -20,6 +20,8 @@ export function RightDock({ onError }: { onError: (m: string) => void }): JSX.El
     const stored = readLocal<string>(DOCK_TAB_KEY, first);
     return panels.some((p) => p.id === stored) ? stored : first;
   });
+  // the open panel may have been switched off since; the first tab is always there
+  const open = panels.some((p) => p.id === tab) ? tab : first;
   const setTab = (next: string): void => {
     setTabState(next);
     writeLocal(DOCK_TAB_KEY, next);
@@ -32,8 +34,8 @@ export function RightDock({ onError }: { onError: (m: string) => void }): JSX.El
             key={p.id}
             role="tab"
             id={tabId(p.id)}
-            className={tab === p.id ? 'tab active' : 'tab'}
-            aria-selected={tab === p.id}
+            className={open === p.id ? 'tab active' : 'tab'}
+            aria-selected={open === p.id}
             aria-controls={panelId(p.id)}
             onClick={() => setTab(p.id)}
           >
@@ -47,7 +49,7 @@ export function RightDock({ onError }: { onError: (m: string) => void }): JSX.El
           role="tabpanel"
           id={panelId(id)}
           aria-labelledby={tabId(id)}
-          hidden={tab !== id}
+          hidden={open !== id}
         >
           <Panel onError={onError} />
         </div>

@@ -1,8 +1,8 @@
 # Project state (resume here)
 
-Branch: main; this file is updated in the commit that checkpoints the work, so `git log -1 -- docs/STATE.md` is the last checkpoint. Phases 0-1 done; Phase 2 (editor tools), 3 (volumetric, trajectories, vectors), 4-5 (CP-PAW setup/execution/forces), 6 (CP-PAW analysis: DOS, bands, orbitals), crystallography, molecular mechanics and wavefunction surfaces are merged and working. Parity matrix: 219 IMPLEMENTED, 19 PARTIAL, 73 NOT STARTED, 1 BLOCKED of 312 rows.
+Branch: main; this file is updated in the commit that checkpoints the work, so `git log -1 -- docs/STATE.md` is the last checkpoint. Phases 0-1 done; Phase 2 (editor tools), 3 (volumetric, trajectories, vectors), 4-5 (CP-PAW setup/execution/forces), 6 (CP-PAW analysis: DOS, bands, orbitals), crystallography, molecular mechanics and wavefunction surfaces are merged and working. Parity matrix: 220 IMPLEMENTED, 18 PARTIAL, 73 NOT STARTED, 1 BLOCKED of 312 rows.
 
-Tests: `pytest -q -m "not cppaw"` -> 475 passed, 1 skipped; `pytest -q -m cppaw` -> 7 passed (~90 s, needs the local CP-PAW install); `pnpm vitest run` -> 508 passed; `pnpm exec playwright test` -> 38 passed in 57 s at `08cb256`+ (against private servers, see below; `make test-e2e` points at the user's 5173, which is stale). **`source env.sh` before Playwright**: without `PLAYWRIGHT_BROWSERS_PATH` it looks in `~/.cache/ms-playwright`, finds nothing, and every test fails at `browserType.launch`. `ruff check`, `mypy` and `pnpm typecheck` are clean. No known failing tests. **Type-check the frontend with `pnpm typecheck` (`tsc -b --noEmit`), never with `pnpm exec tsc --noEmit`:** the root `tsconfig.json` is a solution file with `files: []`, so a bare `tsc --noEmit` checks nothing and exits 0.
+Tests: `pytest -q -m "not cppaw"` -> 475 passed, 1 skipped; `pytest -q -m cppaw` -> 7 passed (~90 s, needs the local CP-PAW install); `pnpm vitest run` -> 508 passed; `pnpm exec playwright test` -> 38 passed in 56 s at `2db2f07`+ (against private servers, see below; `make test-e2e` points at the user's 5173, which is stale). **`source env.sh` before Playwright**: without `PLAYWRIGHT_BROWSERS_PATH` it looks in `~/.cache/ms-playwright`, finds nothing, and every test fails at `browserType.launch`. `ruff check`, `mypy` and `pnpm typecheck` are clean. No known failing tests. **Type-check the frontend with `pnpm typecheck` (`tsc -b --noEmit`), never with `pnpm exec tsc --noEmit`:** the root `tsconfig.json` is a solution file with `files: []`, so a bare `tsc --noEmit` checks nothing and exits 0.
 
 ## Resume commands
 
@@ -239,12 +239,29 @@ run against current code -- Playwright above all -- use the private-server recip
      docs/avogadro1-feature-parity.md
    ```
 
-   Today that prints **2 rows, both PARTIAL** -- no CRITICAL or HIGH row is NOT STARTED, which is
+   Today that prints **1 row, PARTIAL** -- no CRITICAL or HIGH row is NOT STARTED, which is
    not the same claim and an earlier version of this file got it wrong. AV-QM-003, the GAMESS-US dialog, closed at `77ac8c9` with all twelve of its
    tabs ported (`backends/qc_inputs/gamess.py`, one `Section` per tab in `qc_inputs/plugin.py`);
    the row's note records every departure from Avogadro's writers and why, with line numbers,
    which is where to start if a deck ever looks wrong.
 
+   - **AV-SURF-006** -- the OpenQube reader family. fchk, Molden, GAMESS-US, ORCA output and
+     Molpro output are read: every reader the Avogadro corpus can validate. MOPAC's `.aux` is
+     Slater-type and needs a second `basis_values` in `gto.py` -- that one is a subsystem, and
+     the row cannot reach IMPLEMENTED without it.
+   - **AV-PLUG-001 and AV-PLUG-002 are done** and are here only because the next reader will
+     look for them. The frontend has a contribution registry (`src/plugins/`) with five contracts
+     -- tools, display layers, dock panels, menu items and colour schemes -- provided at the top
+     of `App` and injectable, with the built-ins as its first contributors, and a Plugin Manager
+     under Settings that lists them per kind with a switch and details each. Switching one off
+     takes effect at once, as Avogadro's did. What is switched off is in
+     `state/pluginStore.ts`; `plugins/enabled.ts` is what every consumer filters through, and the
+     registry itself stays the full list because the manager has to see what is off. The one
+     difference from Avogadro that cannot close: its plugins were run-time `.so` loads, ours are
+     compile-time modules, so a third-party plugin means a rebuild -- there is no runtime
+     `import()` of arbitrary code out of a Vite bundle without a manifest and a second bundle.
+     `plugins/registry.test.tsx` is a test-only plugin contributing one of each of the five, and
+     asserts the application's own registry carries none of them.
    - **AV-SURF-006** -- the OpenQube reader family. fchk, Molden, GAMESS-US, ORCA output and
      Molpro output are read: every reader the Avogadro corpus can validate. MOPAC's `.aux` is
      Slater-type and needs a second `basis_values` in `gto.py` -- that one is a subsystem, and

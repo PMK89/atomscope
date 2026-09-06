@@ -36,6 +36,8 @@ export interface ToolState extends ToolSettings {
   setConstraintsDialogOpen: (open: boolean) => void;
   settingsDialogOpen: boolean;
   setSettingsDialogOpen: (open: boolean) => void;
+  pluginManagerOpen: boolean;
+  setPluginManagerOpen: (open: boolean) => void;
 }
 
 export const useToolStore = create<ToolState>((set) => ({
@@ -64,4 +66,6 @@ export const useToolStore = create<ToolState>((set) => ({
   setCartesianEditorOpen: (cartesianEditorOpen) => set({ cartesianEditorOpen }),
   setConstraintsDialogOpen: (constraintsDialogOpen) => set({ constraintsDialogOpen }),
   setSettingsDialogOpen: (settingsDialogOpen) => set({ settingsDialogOpen }),
+  pluginManagerOpen: false,
+  setPluginManagerOpen: (pluginManagerOpen) => set({ pluginManagerOpen }),
 }));

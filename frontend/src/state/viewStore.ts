@@ -2,7 +2,6 @@ import { create } from 'zustand';
 import {
   NO_ATOM_COLORS,
   type AtomColorAssignment,
-  type ColorScheme,
   type ResiduePalette,
 } from '../renderer/atomColors';
 import { NO_STYLES, type StyleAssignment } from '../renderer/atomStyles';
@@ -16,8 +15,9 @@ import { DEFAULT_HBOND_SETTINGS } from '../model/hbonds';
 export interface ViewState {
   style: StructureStyle;
   /** What decides an atom's colour: its element, or what it is part of. */
-  colorScheme: ColorScheme;
-  setColorScheme: (scheme: ColorScheme) => void;
+  /** A registered colour scheme's id (plugins/registry.ts), not one of a fixed set. */
+  colorScheme: string;
+  setColorScheme: (scheme: string) => void;
   /** Which residue table the `residue` scheme paints with (Avogadro's Residue Color settings). */
   residuePalette: ResiduePalette;
   setResiduePalette: (palette: ResiduePalette) => void;

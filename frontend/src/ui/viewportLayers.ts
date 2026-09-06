@@ -6,7 +6,8 @@ import { RibbonLayer, type SecondaryStructureData } from '../renderer/layers/Rib
 import { UnitCellLayer } from '../renderer/layers/UnitCellLayer';
 import { VectorLayer } from '../renderer/layers/VectorLayer';
 import { DipoleLayer } from '../renderer/layers/DipoleLayer';
-import type { PluginRegistry } from '../plugins/registry';
+import { enabledLayers } from '../plugins/enabled';
+import type { LayerContribution, PluginRegistry } from '../plugins/registry';
 import type { ViewState } from '../state/viewStore';
 
 /**
@@ -15,14 +16,22 @@ import type { ViewState } from '../state/viewStore';
  * builds a layer of another name would register and then never be found again: it is refused
  * here rather than going quiet.
  */
-export function installExtraLayers(renderer: Renderer, registry: PluginRegistry): void {
-  for (const contribution of registry.layers()) {
-    const layer = contribution.create();
-    if (layer.id !== contribution.id) {
-      throw new Error(`layer ${contribution.id} builds a layer that calls itself ${layer.id}`);
-    }
-    renderer.addLayer(layer);
+export function installLayer(renderer: Renderer, contribution: LayerContribution): void {
+  const layer = contribution.create();
+  if (layer.id !== contribution.id) {
+    throw new Error(`layer ${contribution.id} builds a layer that calls itself ${layer.id}`);
   }
+  renderer.addLayer(layer);
+}
+
+/** Every contributed layer that is switched on, in registration order. */
+export function installExtraLayers(
+  renderer: Renderer,
+  registry: PluginRegistry,
+  disabled: ReadonlySet<string> = new Set(),
+): void {
+  for (const contribution of enabledLayers(registry, disabled))
+    installLayer(renderer, contribution);
 }
 
 export function syncExtraLayers(

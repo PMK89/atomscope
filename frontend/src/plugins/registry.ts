@@ -19,6 +19,19 @@ import type { StructureDoc } from '../model/structure';
 
 export type ErrorSink = (message: string) => void;
 
+/** Avogadro's plugin types, less `Other`, which nothing of ours is (`libavogadro/plugin.h:58`). */
+export type PluginKind = 'tool' | 'layer' | 'panel' | 'menu' | 'color';
+
+/** One row of the Plugin Manager: what every contribution can say about itself. */
+export interface PluginItem {
+  kind: PluginKind;
+  id: string;
+  name: string;
+  description: string;
+  /** False for the two that everything else falls back to: they cannot be turned off. */
+  removable: boolean;
+}
+
 export interface ToolContribution {
   /**
    * The tool itself, one instance for the registry's life. Tools carry gesture state and no
@@ -33,6 +46,9 @@ export interface ToolContribution {
 
 export interface LayerContribution {
   id: string;
+  /** What the Plugin Manager shows for it. */
+  name: string;
+  description: string;
   /**
    * A factory, not an instance: a layer owns Three.js objects that belong to one renderer and
    * are disposed with it, so a second Viewport needs layers of its own. (A tool, which owns only
@@ -45,6 +61,7 @@ export interface PanelContribution {
   /** Stable: it is what the open tab is remembered under in this browser. */
   id: string;
   label: string;
+  description: string;
   /**
    * The panel's body, rendered as a component (`<Panel onError={...} />`), so it may use hooks.
    * Panels stay mounted while another tab is open, which is what keeps their form state.
@@ -67,11 +84,15 @@ export interface ColorContext {
 export interface ColorContribution {
   id: string;
   label: string;
+  description: string;
   /** Three floats per atom, or null to leave the atoms the colours of their elements. */
   colors: (ctx: ColorContext) => Float32Array | null;
 }
 
 export interface MenuContribution extends MenuItem {
+  /** Its own, so the Plugin Manager can name it: a label is not a key. */
+  id: string;
+  description: string;
   /**
    * The menu the item belongs under: one level, a top menu's title. A path naming a menu that is
    * there (`File`, `Extensions`, ...) appends to it, below everything built in; any other name
@@ -86,6 +107,9 @@ export interface MenuContribution extends MenuItem {
    */
   shortcut?: string;
 }
+
+export const FALLBACK_TOOL = 'navigate';
+export const FALLBACK_COLOR_SCHEME = 'element';
 
 export class PluginRegistry {
   private readonly toolList: ToolContribution[] = [];
@@ -160,12 +184,62 @@ export class PluginRegistry {
     if (contribution.menuPath.includes('/')) {
       throw new Error(`menu path ${contribution.menuPath} has more than one level`);
     }
+    if (this.menuList.some((c) => c.id === contribution.id)) {
+      throw new Error(`menu item ${contribution.id} is already registered`);
+    }
     this.menuList.push(contribution);
   }
 
   /** Contributed items of one menu, in registration order. */
   menuItems(menuPath: string): readonly MenuContribution[] {
     return this.menuList.filter((c) => c.menuPath === menuPath);
+  }
+
+  /**
+   * Every contribution as a row of the Plugin Manager, in kind order and then registration order
+   * (Avogadro's list is per type too, `pluginsettings.cpp`). Nothing here is filtered by whether
+   * it is switched on: the manager is what switches them, so it needs to see them all.
+   */
+  items(): PluginItem[] {
+    return [
+      ...this.toolList.map(({ tool }) => ({
+        kind: 'tool' as const,
+        id: tool.id,
+        name: tool.label,
+        description: tool.description,
+        // the tool every unknown id falls back to; without it the toolbar has nothing to select
+        removable: tool.id !== FALLBACK_TOOL,
+      })),
+      ...this.layerList.map((c) => ({
+        kind: 'layer' as const,
+        id: c.id,
+        name: c.name,
+        description: c.description,
+        removable: true,
+      })),
+      ...this.panelList.map((c) => ({
+        kind: 'panel' as const,
+        id: c.id,
+        name: c.label,
+        description: c.description,
+        removable: true,
+      })),
+      ...this.menuList.map((c) => ({
+        kind: 'menu' as const,
+        id: c.id,
+        name: `${c.menuPath}: ${c.label}`,
+        description: c.description,
+        removable: true,
+      })),
+      ...this.colorList.map((c) => ({
+        kind: 'color' as const,
+        id: c.id,
+        name: c.label,
+        description: c.description,
+        // what every other scheme falls back to when it has nothing to colour by
+        removable: c.id !== FALLBACK_COLOR_SCHEME,
+      })),
+    ];
   }
 
   /** Menus contributed items ask for that are not in `existing`, in registration order. */

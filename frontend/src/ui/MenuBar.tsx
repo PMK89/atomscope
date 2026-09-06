@@ -23,6 +23,7 @@ import { NamedSelectionsDialog } from './NamedSelectionsDialog';
 import { useRecentStore } from '../state/recentStore';
 import { addNamed, resolveNamed } from '../editor/namedSelections';
 import { SettingsDialog } from './SettingsDialog';
+import { PluginManagerDialog } from './PluginManagerDialog';
 import { BuildDialogs } from './BuildDialogs';
 import { CrystalDialogs } from './CrystalDialogs';
 import { useBuildStore } from '../state/buildStore';
@@ -57,6 +58,7 @@ import { isFlat, offerGeometry } from './buildGeometry';
 import { confirmReplace } from './replaceDocument';
 import { Menu, type MenuItem } from './Menu';
 import { usePlugins } from '../plugins/context';
+import { enabledMenuItems, useDisabled } from '../plugins/enabled';
 import type { StructureStyle } from '../renderer/layers/StructureLayer';
 
 const BUILT_IN_MENUS = [
@@ -87,6 +89,7 @@ export function MenuBar({ onError }: { onError: (msg: string) => void }): JSX.El
   const openCartesian = useToolStore((s) => s.setCartesianEditorOpen);
   const openConstraints = useToolStore((s) => s.setConstraintsDialogOpen);
   const openSettings = useToolStore((s) => s.setSettingsDialogOpen);
+  const openPluginManager = useToolStore((s) => s.setPluginManagerOpen);
   const openCrystalDialog = useCrystalStore((s) => s.openDialog);
   const openBuildDialog = useBuildStore((s) => s.openDialog);
   const trajectoryInput = useRef<HTMLInputElement>(null);
@@ -211,7 +214,8 @@ export function MenuBar({ onError }: { onError: (msg: string) => void }): JSX.El
   const registry = usePlugins();
   // the eight below, named once: a contributed path that is none of them makes a menu of its own
   const builtInMenus = BUILT_IN_MENUS;
-  const contributed = (menu: string): MenuItem[] => [...registry.menuItems(menu)];
+  const disabled = useDisabled();
+  const contributed = (menu: string): MenuItem[] => [...enabledMenuItems(registry, disabled, menu)];
   const styleItem = (label: string, style: StructureStyle): MenuItem => ({
     label,
     checked: view.style === style,
@@ -444,6 +448,7 @@ export function MenuBar({ onError }: { onError: (msg: string) => void }): JSX.El
         title="Settings"
         items={[
           { label: 'Preferences…', action: () => openSettings(true) },
+          { label: 'Plugin manager…', action: () => openPluginManager(true) },
           ...contributed('Settings'),
         ]}
       />
@@ -495,9 +500,14 @@ export function MenuBar({ onError }: { onError: (msg: string) => void }): JSX.El
           ...contributed('Help'),
         ]}
       />
-      {registry.extraMenus(builtInMenus).map((menu) => (
-        <Menu key={menu} title={menu} items={contributed(menu)} />
-      ))}
+      {registry
+        .extraMenus(builtInMenus)
+        .map((menu) => ({ menu, items: contributed(menu) }))
+        // a menu of its own whose every item has been switched off goes with them
+        .filter(({ items }) => items.length > 0)
+        .map(({ menu, items }) => (
+          <Menu key={menu} title={menu} items={items} />
+        ))}
       <ImportDialog open={importOpen} onClose={() => setImportOpen(false)} onError={onError} />
       <ExportDialog open={exportOpen} onClose={() => setExportOpen(false)} onError={onError} />
       <ExportImageDialog
@@ -511,6 +521,7 @@ export function MenuBar({ onError }: { onError: (msg: string) => void }): JSX.El
       <SpeciesDialog onError={onError} />
       <NamedSelectionsDialog open={namedOpen} onClose={() => setNamedOpen(false)} />
       <SettingsDialog />
+      <PluginManagerDialog />
       <CrystalDialogs onError={onError} />
       <BuildDialogs onError={onError} />
       <input

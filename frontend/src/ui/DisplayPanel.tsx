@@ -9,7 +9,7 @@
  */
 import { useState } from 'react';
 import { dipoleFromCharges } from '../model/dipole';
-import { usePlugins } from '../plugins/context';
+import { useColorSchemes } from '../plugins/enabled';
 import type { RibbonStyle } from '../model/ribbon';
 import { ATOM_LABEL_OPTIONS, BOND_LABEL_OPTIONS } from '../renderer/labels';
 import {
@@ -17,7 +17,6 @@ import {
   assignedColorCount,
   NO_ATOM_COLORS,
   PALETTE_LABELS,
-  type ColorScheme,
   type ResiduePalette,
 } from '../renderer/atomColors';
 import { partialCharges } from '../renderer/labels';
@@ -57,7 +56,7 @@ function PaletteRow({ id }: { id: string }): JSX.Element {
 }
 
 /** The schemes that have nothing to say about a molecule without residues. */
-const RESIDUE_SCHEMES = new Set<ColorScheme>(['residue', 'chain', 'secondary']);
+const RESIDUE_SCHEMES: ReadonlySet<string> = new Set(['residue', 'chain', 'secondary']);
 
 const STYLES: { id: StructureStyle; label: string }[] = [
   { id: 'ball-and-stick', label: 'Ball and stick' },
@@ -196,7 +195,11 @@ function DisplayScope(): JSX.Element {
 
 export function DisplayPanel(): JSX.Element {
   const view = useViewStore();
-  const schemes = usePlugins().colorSchemes();
+  const schemes = useColorSchemes();
+  // the scheme the view holds is a registered id; a scheme that is no longer registered leaves
+  // the atoms their element colours, and the list below would show nothing selected, so the
+  // panel says which one it is rather than looking blank
+  const unknownScheme = !schemes.some((s) => s.id === view.colorScheme);
   const doc = useStructureStore((s) => s.doc);
   const vectorFields = Object.keys(doc.atomic_vectors ?? {});
   const dipole = dipoleFromCharges(doc);
@@ -226,8 +229,11 @@ export function DisplayPanel(): JSX.Element {
         <select
           id="display-color-scheme"
           value={view.colorScheme}
-          onChange={(e) => view.setColorScheme(e.target.value as ColorScheme)}
+          onChange={(e) => view.setColorScheme(e.target.value)}
         >
+          {unknownScheme && (
+            <option value={view.colorScheme}>{view.colorScheme} (not available)</option>
+          )}
           {schemes.map((c) => (
             <option key={c.id} value={c.id}>
               {c.label}

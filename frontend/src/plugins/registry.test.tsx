@@ -39,10 +39,16 @@ function withPlugin(): PluginRegistry {
     tool: new WireCutters(),
     settings: () => <p>snips</p>,
   });
-  registry.registerPanel({ id: 'wires', label: 'Wires', component: () => <p>one wire</p> });
+  registry.registerPanel({
+    id: 'wires',
+    label: 'Wires',
+    description: 'Wires and where they run.',
+    component: () => <p>one wire</p>,
+  });
   registry.registerColorScheme({
     id: 'wire',
     label: 'Wire',
+    description: 'Every atom the colour of a live wire.',
     colors: ({ atomCount }) => {
       const out = new Float32Array(atomCount * 3);
       for (let i = 0; i < atomCount; i++) out[i * 3] = 1;
@@ -50,8 +56,10 @@ function withPlugin(): PluginRegistry {
     },
   });
   registry.registerMenuItem({
+    id: 'cut-wires',
     menuPath: 'Extensions',
     label: 'Cut wires',
+    description: 'Removes every bond.',
     action: () => {
       const doc = useStructureStore.getState().doc;
       useStructureStore.getState().commit('Cut wires', { ...doc, bonds: [] });
@@ -141,6 +149,8 @@ test('a contributed layer is added to a renderer, one instance per renderer', ()
   const built: WireLayer[] = [];
   registry.registerLayer({
     id: 'wires',
+    name: 'Wires',
+    description: 'Draws the wires.',
     create: () => {
       const layer = new WireLayer();
       built.push(layer);
@@ -186,7 +196,13 @@ test('a contributed menu item lands under the menu it names, and undoes like any
 
 test('a menu nothing built in provides is made for the item that asks for it', () => {
   const registry = withPlugin();
-  registry.registerMenuItem({ menuPath: 'Wires', label: 'Coil', action: () => {} });
+  registry.registerMenuItem({
+    id: 'coil',
+    menuPath: 'Wires',
+    label: 'Coil',
+    description: 'Coils them.',
+    action: () => {},
+  });
   render(
     <PluginProvider registry={registry}>
       <MenuBar onError={() => {}} />
@@ -198,7 +214,13 @@ test('a menu nothing built in provides is made for the item that asks for it', (
 
 test('a menu path with more than one level is refused', () => {
   expect(() =>
-    defaultRegistry().registerMenuItem({ menuPath: 'a/b', label: 'x', action: () => {} }),
+    defaultRegistry().registerMenuItem({
+      id: 'x',
+      menuPath: 'a/b',
+      label: 'x',
+      description: '',
+      action: () => {},
+    }),
   ).toThrow('more than one level');
 });
 
@@ -222,7 +244,12 @@ test('a contributed colour scheme reaches the list and paints the atoms', () => 
 test('a layer whose factory builds another layer is refused rather than lost', () => {
   // a registry of its own: building the application's layers wants a canvas jsdom has not got
   const registry = new PluginRegistry();
-  registry.registerLayer({ id: 'wires', create: () => new WireLayer('cables') });
+  registry.registerLayer({
+    id: 'wires',
+    name: 'Wires',
+    description: 'Draws the wires.',
+    create: () => new WireLayer('cables'),
+  });
   expect(() => installExtraLayers(new FakeRenderer() as never, registry)).toThrow('calls itself');
 });
 
@@ -240,7 +267,12 @@ test('registering the same id twice is refused, and so is taking a shortcut twic
   const registry = withPlugin();
   expect(() => registry.registerTool({ tool: new WireCutters() })).toThrow('already registered');
   expect(() =>
-    registry.registerPanel({ id: 'wires', label: 'Wires again', component: () => <p /> }),
+    registry.registerPanel({
+      id: 'wires',
+      label: 'Wires again',
+      description: '',
+      component: () => <p />,
+    }),
   ).toThrow('already registered');
   const pliers: Tool = { ...new WireCutters(), id: 'pliers', label: 'Pliers' };
   expect(() => registry.registerTool({ tool: pliers })).toThrow('shortcut');
