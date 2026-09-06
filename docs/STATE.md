@@ -2,7 +2,7 @@
 
 Branch: main; this file is updated in the commit that checkpoints the work, so `git log -1 -- docs/STATE.md` is the last checkpoint. Phases 0-1 done; Phase 2 (editor tools), 3 (volumetric, trajectories, vectors), 4-5 (CP-PAW setup/execution/forces), 6 (CP-PAW analysis: DOS, bands, orbitals), crystallography, molecular mechanics and wavefunction surfaces are merged and working. Parity matrix: 217 IMPLEMENTED, 21 PARTIAL, 73 NOT STARTED, 1 BLOCKED of 312 rows.
 
-Tests: `pytest -q -m "not cppaw"` -> 466 passed, 1 skipped; `pytest -q -m cppaw` -> 7 passed (~90 s, needs the local CP-PAW install); `pnpm vitest run` -> 496 passed; `pnpm exec playwright test` -> 38 passed in 50 s at `1eb26c7` (against private servers, see below; `make test-e2e` points at the user's 5173, which is stale). **`source env.sh` before Playwright**: without `PLAYWRIGHT_BROWSERS_PATH` it looks in `~/.cache/ms-playwright`, finds nothing, and every test fails at `browserType.launch`. `ruff check`, `mypy` and `pnpm typecheck` are clean. No known failing tests. **Type-check the frontend with `pnpm typecheck` (`tsc -b --noEmit`), never with `pnpm exec tsc --noEmit`:** the root `tsconfig.json` is a solution file with `files: []`, so a bare `tsc --noEmit` checks nothing and exits 0.
+Tests: `pytest -q -m "not cppaw"` -> 471 passed, 1 skipped; `pytest -q -m cppaw` -> 7 passed (~90 s, needs the local CP-PAW install); `pnpm vitest run` -> 496 passed; `pnpm exec playwright test` -> 38 passed in 54 s at `ee4149c` (against private servers, see below; `make test-e2e` points at the user's 5173, which is stale). **`source env.sh` before Playwright**: without `PLAYWRIGHT_BROWSERS_PATH` it looks in `~/.cache/ms-playwright`, finds nothing, and every test fails at `browserType.launch`. `ruff check`, `mypy` and `pnpm typecheck` are clean. No known failing tests. **Type-check the frontend with `pnpm typecheck` (`tsc -b --noEmit`), never with `pnpm exec tsc --noEmit`:** the root `tsconfig.json` is a solution file with `files: []`, so a bare `tsc --noEmit` checks nothing and exits 0.
 
 ## Resume commands
 
@@ -186,7 +186,7 @@ run against current code -- Playwright above all -- use the private-server recip
   three runs that each took 1.9 minutes, all started in the same shell command as the dev server
   and a few seconds after it. Every time it has failed on the *second* Save click, the one that
   should raise `exists already`, and every time the same test has passed on its own straight
-  afterwards and in the immediately following full run (50 s). The full suite takes ~50 s otherwise, and it passes there -- including
+  afterwards and in the immediately following full run (50 s); giving the servers twenty seconds before starting is the first thing to have avoided it rather than survived it. The full suite takes ~50 s otherwise, and it passes there -- including
   a deliberate cold run with `node_modules/.vite` deleted, which finished in 53 s with all 37
   green, so it is machine load rather than a cold cache. Give the servers time to settle before
   running the suite; if it fails in a *fast* run, that is new and its timeouts are the place to
