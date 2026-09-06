@@ -9,19 +9,11 @@ import type { useSelectionStore } from '../state/selectionStore';
 import type { useStructureStore } from '../state/structureStore';
 import type { useToolStore } from './toolStore';
 
-/** Every tool id, as values: a stored active tool has to be checked against something. */
-export const TOOL_IDS = [
-  'navigate',
-  'select',
-  'draw',
-  'manipulate',
-  'bond-centric',
-  'measure',
-  'auto-rotate',
-  'auto-optimize',
-] as const;
-
-export type ToolId = (typeof TOOL_IDS)[number];
+/**
+ * A tool's id. Any string: the set of tools is whatever the plugin registry was given, so an id
+ * is checked against the registry rather than against a literal union (plugins/registry.ts).
+ */
+export type ToolId = string;
 
 export interface PointerLike {
   clientX: number;
@@ -96,6 +88,10 @@ export interface Tool {
   /** Single-key shortcut (no modifier). */
   readonly shortcut: string;
   readonly description: string;
+  /** True for a tool that leaves the camera controller its drags (navigate, auto-rotate). */
+  readonly camera?: boolean;
+  /** Cursor while the tool is active; crosshair when it says nothing. */
+  readonly cursor?: string;
   activate?(ctx: ToolContext): void;
   deactivate?(ctx: ToolContext): void;
   /** Abandon an in-progress gesture without committing (tool switch, undo/redo). */

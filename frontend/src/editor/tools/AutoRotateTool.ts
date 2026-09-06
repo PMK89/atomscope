@@ -8,6 +8,7 @@ export class AutoRotateTool implements Tool {
   readonly shortcut = 'a';
   readonly description =
     'Spins the view at the configured speeds (degrees per second). Click in the view to stop.';
+  readonly camera = true;
   private frame: number | null = null;
   private lastTime = 0;
   private unsubscribe: (() => void) | null = null;

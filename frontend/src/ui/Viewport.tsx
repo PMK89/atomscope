@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { ToolHost } from '../editor/ToolHost';
-import { createTools } from '../editor/tools';
 import { Renderer } from '../renderer/Renderer';
 import { useSelectionStore } from '../state/selectionStore';
 import { useStructureStore } from '../state/structureStore';
@@ -15,6 +14,7 @@ import { useBioStore } from '../state/bioStore';
 import { useRendererStore } from '../state/rendererStore';
 import { useIsosurfaceLayers } from './useIsosurfaceLayers';
 import { ViewportOverlay } from './ViewportOverlay';
+import { usePlugins } from '../plugins/context';
 
 /** Owns one Renderer for its lifetime, feeds it store snapshots and routes input to the tools. */
 export function Viewport(): JSX.Element {
@@ -79,6 +79,7 @@ export function Viewport(): JSX.Element {
   const lastFitted = useRef<string | null>(null);
   const lastFitRequest = useRef(0);
   const lastCenterRequest = useRef(0);
+  const registry = usePlugins();
   // renderer readiness as state, so surfaces already in the store mount into a new renderer
   useIsosurfaceLayers(mounted?.renderer ?? null);
 
@@ -87,7 +88,8 @@ export function Viewport(): JSX.Element {
     const renderer = new Renderer(ref.current);
     installExtraLayers(renderer);
     rendererRef.current = renderer;
-    const host = new ToolHost(renderer, createTools(), renderer.gl.domElement);
+    const tools = registry.tools().map((c) => c.tool);
+    const host = new ToolHost(renderer, tools, renderer.gl.domElement);
     setMounted({ renderer, host });
     useRendererStore.getState().setRenderer(renderer);
     return () => {
@@ -97,7 +99,7 @@ export function Viewport(): JSX.Element {
       useRendererStore.getState().setRenderer(null);
       setMounted(null);
     };
-  }, []);
+  }, [registry]);
 
   useEffect(() => {
     const r = rendererRef.current;

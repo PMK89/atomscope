@@ -5,14 +5,32 @@ import { formula, makeAtom, makeBond, normalizeStructure } from '../model/struct
 import { useSelectionStore } from '../state/selectionStore';
 import { useStructureStore } from '../state/structureStore';
 import type { PickResult } from '../renderer/Renderer';
-import type { PointerLike, ToolCamera, ToolRenderer } from './Tool';
+import type { PointerLike, Tool, ToolCamera, ToolRenderer } from './Tool';
 import { ToolHost } from './ToolHost';
 import { useToolStore } from './toolStore';
 import { api } from '../api/client';
 import { undoEdit } from '../ui/historyActions';
 import { AutoOptimizeTool } from './tools/AutoOptimizeTool';
 import { AutoRotateTool } from './tools/AutoRotateTool';
-import { createTools } from './tools';
+import { BondCentricTool } from './tools/BondCentricTool';
+import { DrawTool } from './tools/DrawTool';
+import { ManipulateTool } from './tools/ManipulateTool';
+import { MeasureTool } from './tools/MeasureTool';
+import { NavigateTool } from './tools/NavigateTool';
+import { SelectTool } from './tools/SelectTool';
+
+/** The built-in tools, in toolbar order. Built here rather than taken from the plugin registry,
+ * which would pull every settings panel and with it React into a test of the editor alone. */
+const builtinTools = (): Tool[] => [
+  new NavigateTool(),
+  new SelectTool(),
+  new DrawTool(),
+  new ManipulateTool(),
+  new BondCentricTool(),
+  new MeasureTool(),
+  new AutoOptimizeTool(),
+  new AutoRotateTool(),
+];
 
 /** Orthographic fake: 100 px per Å, origin at (400, 300), looking down -z. */
 class FakeCamera implements ToolCamera {
@@ -156,7 +174,7 @@ beforeEach(() => {
   vi.stubGlobal('cancelAnimationFrame', () => undefined);
   loadSkeleton();
   renderer = new FakeRenderer();
-  host = new ToolHost(renderer, createTools());
+  host = new ToolHost(renderer, builtinTools());
 });
 afterEach(() => {
   host.dispose();
@@ -178,6 +196,19 @@ describe('host', () => {
     expect(
       host.keyDown({ key: 'z', shiftKey: false, ctrlKey: true, altKey: false, metaKey: false }),
     ).toBe(false);
+  });
+  test('an id no tool answers to is put right in the store, not just in the host', () => {
+    // a stored tool from a build with another set of them: the toolbar, the status bar and the
+    // settings box all read the store, so leaving the id there would show a tool that is not on
+    host.dispose();
+    useToolStore.getState().setActive('wire-cutters');
+    host = new ToolHost(renderer, builtinTools());
+    expect(host.activeTool.id).toBe('navigate');
+    expect(useToolStore.getState().active).toBe('navigate');
+    // and the same on a host that is already running, which is how the stored settings arrive
+    useToolStore.getState().setActive('wire-cutters');
+    expect(host.activeTool.id).toBe('navigate');
+    expect(useToolStore.getState().active).toBe('navigate');
   });
   test('hover updates the selection store for every tool, once per frame', () => {
     host.pointerMove(ev(...at(1.5, 0)));

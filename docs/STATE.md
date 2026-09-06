@@ -2,7 +2,7 @@
 
 Branch: main; this file is updated in the commit that checkpoints the work, so `git log -1 -- docs/STATE.md` is the last checkpoint. Phases 0-1 done; Phase 2 (editor tools), 3 (volumetric, trajectories, vectors), 4-5 (CP-PAW setup/execution/forces), 6 (CP-PAW analysis: DOS, bands, orbitals), crystallography, molecular mechanics and wavefunction surfaces are merged and working. Parity matrix: 218 IMPLEMENTED, 20 PARTIAL, 73 NOT STARTED, 1 BLOCKED of 312 rows.
 
-Tests: `pytest -q -m "not cppaw"` -> 475 passed, 1 skipped; `pytest -q -m cppaw` -> 7 passed (~90 s, needs the local CP-PAW install); `pnpm vitest run` -> 496 passed; `pnpm exec playwright test` -> 38 passed in 54 s at `5305864` (against private servers, see below; `make test-e2e` points at the user's 5173, which is stale). **`source env.sh` before Playwright**: without `PLAYWRIGHT_BROWSERS_PATH` it looks in `~/.cache/ms-playwright`, finds nothing, and every test fails at `browserType.launch`. `ruff check`, `mypy` and `pnpm typecheck` are clean. No known failing tests. **Type-check the frontend with `pnpm typecheck` (`tsc -b --noEmit`), never with `pnpm exec tsc --noEmit`:** the root `tsconfig.json` is a solution file with `files: []`, so a bare `tsc --noEmit` checks nothing and exits 0.
+Tests: `pytest -q -m "not cppaw"` -> 475 passed, 1 skipped; `pytest -q -m cppaw` -> 7 passed (~90 s, needs the local CP-PAW install); `pnpm vitest run` -> 502 passed; `pnpm exec playwright test` -> 38 passed in 54 s at `5305864` (against private servers, see below; `make test-e2e` points at the user's 5173, which is stale). **`source env.sh` before Playwright**: without `PLAYWRIGHT_BROWSERS_PATH` it looks in `~/.cache/ms-playwright`, finds nothing, and every test fails at `browserType.launch`. `ruff check`, `mypy` and `pnpm typecheck` are clean. No known failing tests. **Type-check the frontend with `pnpm typecheck` (`tsc -b --noEmit`), never with `pnpm exec tsc --noEmit`:** the root `tsconfig.json` is a solution file with `files: []`, so a bare `tsc --noEmit` checks nothing and exits 0.
 
 ## Resume commands
 
@@ -250,9 +250,20 @@ run against current code -- Playwright above all -- use the private-server recip
      Molpro output are read: every reader the Avogadro corpus can validate. MOPAC's `.aux` is
      Slater-type and needs a second `basis_values` in `gto.py` -- that one is a subsystem, and
      the row cannot reach IMPLEMENTED without it.
-   - **AV-PLUG-001 / AV-PLUG-002** -- frontend plugin registration. The backend has a plugin
-     contract and a registry; the frontend does not, and giving it one touches the renderer, the
-     tool host and the dock. The biggest of the four, and the one to plan before starting.
+   - **AV-PLUG-001 / AV-PLUG-002** -- frontend contribution registry. **Started:**
+     `src/plugins/registry.ts` is a `PluginRegistry` class with a React context beside it
+     (`context.tsx`), provided at the top of `App` and required -- a component rendered without
+     a provider throws rather than showing an empty toolbar -- so a test can hand its subject a
+     registry of its own. `builtins.tsx` registers everything the application ships through the
+     same calls a plugin would use. **Tools are migrated**; layers (`Renderer`), dock panels
+     (`RightDock`) and menu items (`MenuBar`) are still hand-enumerated, and go in that order:
+     layers own Three objects and so must be contributed as factories rather than instances,
+     `MenuBar` is 400 lines of literal arrays and is migrated last and additively. The one
+     difference from Avogadro that cannot be closed: its plugins were run-time `.so` loads, ours
+     are compile-time modules, so a third-party plugin means a rebuild -- there is no runtime
+     `import()` of arbitrary code out of a Vite bundle without a manifest and a second bundle.
+     What closes the rows is the test-only plugin in `plugins/registry.test.tsx` growing a layer,
+     a dock panel and a menu item beside its tool.
 
    **The reader family is finished as far as the corpus can take it.** Molpro was the last file
    in it; GAMESS-UK and MOPAC have none, so neither could be validated the way the other five

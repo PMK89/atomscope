@@ -9,6 +9,8 @@ export class NavigateTool implements Tool {
   readonly shortcut = 'n';
   readonly description =
     'Left-drag rotates, right/middle-drag pans, wheel zooms. Double-click an atom to center on it.';
+  readonly camera = true;
+  readonly cursor = 'grab';
 
   onDoubleClick(e: PointerLike, ctx: ToolContext): void {
     const hit = ctx.renderer.pick(e.clientX, e.clientY);

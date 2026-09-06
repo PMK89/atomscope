@@ -11,6 +11,8 @@ vi.mock('../api/client', async (original) => {
 });
 
 import { ToolSettings } from './ToolSettings';
+import { PluginProvider } from '../plugins/context';
+import { plugins } from '../plugins/builtins';
 
 beforeEach(() => {
   useStructureStore
@@ -21,7 +23,11 @@ beforeEach(() => {
 
 test('a remembered selection mode stays in its own box, even without residues to select', () => {
   useToolStore.setState({ active: 'select', select: { mode: 'residues', rect: null } });
-  render(<ToolSettings />);
+  render(
+    <PluginProvider registry={plugins()}>
+      <ToolSettings />
+    </PluginProvider>,
+  );
   const box = screen.getByLabelText('Selection mode');
   expect(box).toHaveValue('residues');
   expect(screen.getByRole('option', { name: 'Residues' })).toBeInTheDocument();
@@ -35,7 +41,11 @@ test('a force field this Open Babel does not have falls back to one it does', as
       forceField: 'Ghemical', // remembered from a build that had it
     },
   });
-  render(<ToolSettings />);
+  render(
+    <PluginProvider registry={plugins()}>
+      <ToolSettings />
+    </PluginProvider>,
+  );
   await waitFor(() => expect(useToolStore.getState().autoOptimize.forceField).toBe('MMFF94'));
   expect(screen.getByLabelText('Force field')).toHaveValue('MMFF94');
 });
@@ -45,7 +55,11 @@ test('a force field the backend does offer is left alone', async () => {
     active: 'auto-optimize',
     autoOptimize: { ...useToolStore.getState().autoOptimize, forceField: 'UFF' },
   });
-  render(<ToolSettings />);
+  render(
+    <PluginProvider registry={plugins()}>
+      <ToolSettings />
+    </PluginProvider>,
+  );
   await waitFor(() => expect(screen.getByLabelText('Force field')).toHaveValue('UFF'));
   expect(useToolStore.getState().autoOptimize.forceField).toBe('UFF');
 });

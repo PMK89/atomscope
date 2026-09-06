@@ -8,7 +8,7 @@
  * are not there.
  */
 import { useToolStore, type ToolSettings, type ToolState } from '../editor/toolStore';
-import { TOOL_IDS, type ToolId } from '../editor/Tool';
+import type { ToolId } from '../editor/Tool';
 import { readLocal, writeLocal } from './localSettings';
 
 const KEY = 'tools';
@@ -41,12 +41,9 @@ export function pickToolSettings(state: ToolState): StoredToolSettings {
 /** Apply what was stored, keeping the current value wherever the stored one is not of its shape. */
 export function applyToolSettings(stored: StoredToolSettings): void {
   const current = useToolStore.getState();
-  if (
-    typeof stored.active === 'string' &&
-    (TOOL_IDS as readonly string[]).includes(stored.active)
-  ) {
-    useToolStore.getState().setActive(stored.active);
-  }
+  // the id is not checked against a list here: which tools exist is the registry's to say, and
+  // ToolHost falls back to the first one for an id it does not know (ToolHost.toolById)
+  if (typeof stored.active === 'string') useToolStore.getState().setActive(stored.active);
   for (const [tool, fields] of Object.entries(KEPT)) {
     const group = stored[tool];
     if (!group || typeof group !== 'object') continue;

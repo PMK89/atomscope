@@ -3,7 +3,7 @@ import { useSelectionStore } from '../state/selectionStore';
 import { useStructureStore } from '../state/structureStore';
 import { useToolStore } from '../editor/toolStore';
 import { formatMeasurement, measure } from '../editor/measure';
-import { TOOL_INFO } from '../editor/tools';
+import { usePlugins } from '../plugins/context';
 
 export function StatusBar({ message }: { message: string | null }): JSX.Element {
   const doc = useStructureStore((s) => s.doc);
@@ -15,6 +15,7 @@ export function StatusBar({ message }: { message: string | null }): JSX.Element 
   const autoOptimize = useToolStore((s) => s.autoOptimize.message);
   const picks = useToolStore((s) => s.measure.atoms);
   const measurement = tool === 'measure' ? formatMeasurement(measure(doc, picks)) : '';
+  const toolLabel = usePlugins().tool(tool)?.tool.label;
   const modified = useStructureStore((s) => s.doc !== s.savedDoc);
   return (
     <footer className="app-statusbar">
@@ -35,7 +36,7 @@ export function StatusBar({ message }: { message: string | null }): JSX.Element 
         {selectedBonds.size > 0 &&
           `, ${selectedBonds.size} bond${selectedBonds.size > 1 ? 's' : ''}`}
       </span>
-      <span className="muted">{TOOL_INFO.find((t) => t.id === tool)?.label}</span>
+      <span className="muted">{toolLabel}</span>
       {measurement && <span data-testid="measurement">{measurement}</span>}
       {hoveredAtom && (
         <span>

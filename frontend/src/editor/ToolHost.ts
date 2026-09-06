@@ -16,7 +16,6 @@ import type {
 } from './Tool';
 import { useToolStore } from './toolStore';
 
-const CAMERA_TOOLS: ReadonlySet<ToolId> = new Set(['navigate', 'auto-rotate']);
 /** Pointer travel below this (CSS pixels) does not trigger another hover pick. */
 const HOVER_MIN_MOVE_PX = 2;
 
@@ -46,7 +45,7 @@ export class ToolHost {
         if (element) element.style.cursor = c;
       },
     };
-    this.active = this.toolById(useToolStore.getState().active);
+    this.active = this.resolve(useToolStore.getState().active);
     this.enter(this.active);
     this.unsubscribe.push(
       useToolStore.subscribe((s, prev) => {
@@ -75,9 +74,20 @@ export class ToolHost {
     return this.tools.find((t) => t.id === id) ?? this.tools[0]!;
   }
 
+  /**
+   * The tool an id names, and the store put right when it names none -- a stored id from a build
+   * that had another set of tools, say. Without the write-back the toolbar, the status bar and
+   * the settings box would all be showing an id that nothing here answers to.
+   */
+  private resolve(id: ToolId): Tool {
+    const tool = this.toolById(id);
+    if (tool.id !== id) useToolStore.getState().setActive(tool.id);
+    return tool;
+  }
+
   private enter(tool: Tool): void {
-    this.ctx.renderer.controller.enabled = CAMERA_TOOLS.has(tool.id);
-    this.ctx.setCursor(tool.id === 'navigate' ? 'grab' : 'crosshair');
+    this.ctx.renderer.controller.enabled = Boolean(tool.camera);
+    this.ctx.setCursor(tool.cursor ?? 'crosshair');
     tool.activate?.(this.ctx);
   }
 
@@ -88,7 +98,7 @@ export class ToolHost {
     this.active.cancelGesture?.(this.ctx);
     this.dragging = false;
     useToolStore.getState().update('select', { rect: null });
-    this.active = this.toolById(id);
+    this.active = this.resolve(id);
     this.enter(this.active);
   }
 

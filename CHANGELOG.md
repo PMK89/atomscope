@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+- The **editor tools are plugins now**. Nothing enumerates them any more: the
+  toolbar, the status bar, the settings box and the input host all ask a
+  registry, and the eight built-in tools register into it through the same calls
+  a plugin would use. A tool brings its own settings panel, says whether it
+  leaves the camera its drags and what cursor it wants, and its id is any string
+  rather than one of eight. Avogadro's plugins were shared libraries loaded at
+  start-up; a browser bundle has no such loader, so a plugin here is a module and
+  adding one means a rebuild.
+
 - The **GAMESS-US input generator** gained the Basic Setup tab of Avogadro's
   dialog: the theory list (AM1 and PM3 are Hamiltonians there and replace the
   basis set), the nine-entry basis list with the keywords each entry stands

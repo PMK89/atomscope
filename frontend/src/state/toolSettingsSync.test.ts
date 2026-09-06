@@ -63,14 +63,16 @@ test('what is restored is applied; a run is never restored as running', () => {
   expect(s.autoOptimize.running).toBe(false);
 });
 
-test('a stored value of the wrong type or an unknown tool is left alone', () => {
+test('a stored value of the wrong type is left alone, and an unknown tool is not judged here', () => {
   applyToolSettings({
     active: 'wire-cutters',
     draw: { element: 42, bondOrder: 2 },
     autoRotate: 'fast',
   } as never);
   const s = useToolStore.getState();
-  expect(s.active).toBe('navigate'); // not a tool: the current one stays
+  // which ids exist is the plugin registry's to say, and it may not be built yet when the
+  // settings load; ToolHost is what puts an unknown id right, in the store as well as in itself
+  expect(s.active).toBe('wire-cutters');
   expect(s.draw.element).toBe('C'); // a number is not an element symbol
   expect(s.draw.bondOrder).toBe(2); // the field beside it is still taken
   expect(s.autoRotate.y).toBe(20);

@@ -11,6 +11,8 @@ import { JobConsole } from './JobConsole';
 import { MenuBar } from './MenuBar';
 import { ProjectPanel } from './ProjectPanel';
 import { StatusBar } from './StatusBar';
+import { PluginProvider } from '../plugins/context';
+import { plugins } from '../plugins/builtins';
 import { TrajectoryPlayer } from './TrajectoryPlayer';
 import { Viewport } from './Viewport';
 
@@ -95,39 +97,41 @@ export function App(): JSX.Element {
   };
 
   return (
-    <div
-      className="app-shell"
-      onDragEnter={onDragEnter}
-      onDragLeave={onDragLeave}
-      onDragOver={onDragOver}
-      onDrop={onDrop}
-    >
-      {dragging && (
-        <div className="app-dropzone" role="presentation">
-          <p>Drop a file to open it</p>
-        </div>
-      )}
-      <MenuBar onError={setError} />
-      <main className="app-main">
-        <aside className="app-dock app-dock-left">
-          <ProjectPanel onError={setError} />
-        </aside>
-        <section className="app-center">
-          <div className="app-editor">
-            <ToolBar />
-            <div className="app-viewport">
-              <Viewport />
-              <ToolSettings />
-            </div>
+    <PluginProvider registry={plugins()}>
+      <div
+        className="app-shell"
+        onDragEnter={onDragEnter}
+        onDragLeave={onDragLeave}
+        onDragOver={onDragOver}
+        onDrop={onDrop}
+      >
+        {dragging && (
+          <div className="app-dropzone" role="presentation">
+            <p>Drop a file to open it</p>
           </div>
-          <TrajectoryPlayer onError={setError} />
-          <JobConsole />
-        </section>
-        <aside className="app-dock app-dock-right">
-          <RightDock onError={setError} />
-        </aside>
-      </main>
-      <StatusBar message={error} />
-    </div>
+        )}
+        <MenuBar onError={setError} />
+        <main className="app-main">
+          <aside className="app-dock app-dock-left">
+            <ProjectPanel onError={setError} />
+          </aside>
+          <section className="app-center">
+            <div className="app-editor">
+              <ToolBar />
+              <div className="app-viewport">
+                <Viewport />
+                <ToolSettings />
+              </div>
+            </div>
+            <TrajectoryPlayer onError={setError} />
+            <JobConsole />
+          </section>
+          <aside className="app-dock app-dock-right">
+            <RightDock onError={setError} />
+          </aside>
+        </main>
+        <StatusBar message={error} />
+      </div>
+    </PluginProvider>
   );
 }
