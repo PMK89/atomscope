@@ -186,3 +186,68 @@ test('shows backend validation errors next to fields', () => {
   );
   expect(screen.getByText('must be > 0')).toBeInTheDocument();
 });
+
+const gateSchema: ParameterSchema = {
+  id: 'g',
+  backend: 'g',
+  version: 1,
+  title: 'G',
+  sections: [
+    {
+      id: 's',
+      label: 'Section',
+      help: '',
+      advanced: false,
+      parameters: [
+        {
+          key: 'detail',
+          label: 'Set it in detail',
+          type: 'boolean',
+          default: false,
+          required: false,
+          advanced: false,
+          help: '',
+          exclusive_minimum: false,
+          integer_vector: false,
+          visible_when: [],
+        },
+        {
+          key: 'quick',
+          label: 'Quick list',
+          type: 'string',
+          default: '',
+          required: false,
+          advanced: false,
+          help: '',
+          exclusive_minimum: false,
+          integer_vector: false,
+          visible_when: [{ key: 'detail', op: 'falsy', value: null }],
+        },
+        {
+          key: 'exact',
+          label: 'Exact value',
+          type: 'string',
+          default: '',
+          required: false,
+          advanced: false,
+          help: '',
+          exclusive_minimum: false,
+          integer_vector: false,
+          visible_when: [{ key: 'detail', op: 'truthy', value: null }],
+        },
+      ],
+    },
+  ],
+};
+
+test('a boolean can show one field and hide another', () => {
+  // the shape the GAMESS basis boxes use: a shorthand list, or the controls it stands for
+  const { rerender } = render(
+    <SchemaForm schema={gateSchema} values={{ detail: false }} onChange={() => {}} />,
+  );
+  expect(screen.getByLabelText('Quick list')).toBeInTheDocument();
+  expect(screen.queryByLabelText('Exact value')).toBeNull();
+  rerender(<SchemaForm schema={gateSchema} values={{ detail: true }} onChange={() => {}} />);
+  expect(screen.queryByLabelText('Quick list')).toBeNull();
+  expect(screen.getByLabelText('Exact value')).toBeInTheDocument();
+});

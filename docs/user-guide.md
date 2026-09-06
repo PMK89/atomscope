@@ -916,7 +916,11 @@ GAMESS-US has the ones from the Basic Setup tab of its Avogadro dialog: a
 theory list where AM1 and PM3 replace the basis set rather than sitting beside
 it, a basis list whose entries stand for the `NGAUSS`/`NDFUNC`/`NPFUNC` and
 diffuse-function keywords GAMESS wants, `Core Potential`, and water as a PCM
-solvent. `Transition state` is a calculation type only GAMESS writes so far
+solvent. Under `Show advanced options`, `Set the basis in detail` swaps that
+list for the dialog's Advanced Basis tab: the long basis list, the numbers of
+D, F and P polarization functions and which set their exponents come from, the
+diffuse shells, and the effective core potential. `Transition state` is a
+calculation type only GAMESS writes so far
 (`RUNTYP=SADPOINT`); the other generators say so rather than writing something
 that is not a saddle-point search.
 Gaussian has the ones its Avogadro dialog had: `Format` writes the geometry as

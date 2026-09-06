@@ -244,8 +244,8 @@ def gamess_deck(
         # written for every optimize and saddle-point run, values and all: they are GAMESS's own
         # defaults, and Avogadro punched them "just to remind the user"
         # (gamessinputdata.cpp:2481-2489). Nothing else of the group is set from the Basic tab --
-        # its Frequencies entry asks for HESS=CALC, which GAMESS only reads for the two run types
-        # this group is written for, so it never appears
+        # its Frequencies entry asks for HESS=CALC, but Avogadro's writer punches the group for
+        # OPTIMIZE and SADPOINT only, so that keyword never reached a deck there either
         lines.append(" $STATPT OPTTOL=0.0001 NSTEP=20 $END")
     if extra.strip():
         lines.append(extra.strip())

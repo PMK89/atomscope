@@ -518,6 +518,22 @@ class QcInputsPlugin:
                     severity="warning",
                 )
             )
+        detailed = _gamess_detailed(merged)
+        if detailed is not None and GAMESS_GBASIS_CHOICES[detailed.gbasis].gbasis in (
+            "MNDO",
+            "AM1",
+            "PM3",
+        ):
+            if merged.get("gamess_theory") not in ("rhf", None):
+                report.issues.append(
+                    ValidationIssue(
+                        key="gamess_gbasis",
+                        message=(
+                            "a semi-empirical basis set has no DFT, MP2 or coupled-cluster"
+                            " theory to go with it"
+                        ),
+                    )
+                )
         if merged.get("task") == "transition_state" and program != "gamess":
             report.issues.append(
                 ValidationIssue(

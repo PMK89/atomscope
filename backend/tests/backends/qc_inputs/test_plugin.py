@@ -343,3 +343,12 @@ def test_the_basic_and_detailed_gamess_basis_boxes_agree_where_they_overlap() ->
             water, {**values, "gamess_detail": True, **detail}, "case"
         )
         assert from_basic.files[0].text == from_detail.files[0].text, basic
+
+
+def test_a_semi_empirical_gamess_basis_takes_no_correlated_theory() -> None:
+    """MNDO, AM1 and PM3 are basis sets in the detailed list, and DFT on top of one is nonsense."""
+    water = from_atoms(molecule("H2O"), name="water")
+    values = {"program": "gamess", "task": "energy", "gamess_detail": True, "gamess_gbasis": "am1"}
+    assert plugin.validate(water, values).issues == []
+    report = plugin.validate(water, {**values, "gamess_theory": "b3lyp"})
+    assert any("semi-empirical basis set" in i.message for i in report.issues)
