@@ -131,6 +131,69 @@ RUN_TYPES = {
     "frequencies": "HESSIAN",
 }
 
+"""The Control tab's run-type list, in its order: the combo index is the enum value less one
+(`gamessinputdialog.cpp:1941`), and the keywords are `gamessinputdata.cpp:501`. Four of them are
+what the shared calculation type already says; the rest are GAMESS's alone."""
+GAMESS_RUN_TYPES: dict[str, tuple[str, str]] = {
+    "energy": ("ENERGY", "Energy"),
+    "gradient": ("GRADIENT", "Gradient"),
+    "hessian": ("HESSIAN", "Hessian"),
+    "optimize": ("OPTIMIZE", "Optimization"),
+    "trudge": ("TRUDGE", "Trudge"),
+    "sadpoint": ("SADPOINT", "Saddle point"),
+    "irc": ("IRC", "IRC"),
+    "gradextr": ("GRADEXTR", "Gradient extremal"),
+    "drc": ("DRC", "DRC"),
+    "surface": ("SURFACE", "Energy surface"),
+    "prop": ("PROP", "Properties"),
+    "morokuma": ("MOROKUMA", "Morokuma"),
+    "transitn": ("TRANSITN", "Radiative transition moment"),
+    "spinorbt": ("SPINORBT", "Spin orbit"),
+    "ffield": ("FFIELD", "Finite electric field"),
+    "tdhf": ("TDHF", "TDHF"),
+    "globop": ("GLOBOP", "Global optimization"),
+    "vscf": ("VSCF", "VSCF"),
+    "optfmo": ("OPTFMO", "FMO optimization"),
+    "raman": ("RAMAN", "Raman intensities"),
+    "nmr": ("NMR", "NMR"),
+    "makefp": ("MAKEFP", "Make EFP"),
+}
+
+"""The rest of the Control tab, keyword by keyword (`gamessinputdata.cpp:415,653,702`)."""
+SCF_TYPES = {"rhf": "RHF", "uhf": "UHF", "rohf": "ROHF", "gvb": "GVB", "mcscf": "MCSCF"}
+"""...and the entry the dialog labels `None (CI)`, which is an SCF type and a reason for CITYP."""
+NO_SCF = "none"
+LOCALIZATIONS = {"none": "", "boys": "BOYS", "ruednbrg": "RUEDNBRG", "pop": "POP"}
+CI_TYPES = {
+    "none": "",
+    "guga": "GUGA",
+    "aldet": "ALDET",
+    "ormas": "ORMAS",
+    "cis": "CIS",
+    "fsoci": "FSOCI",
+    "genci": "GENCI",
+}
+EXEC_TYPES = {"run": "", "check": "CHECK", "debug": "DEBUG"}
+
+"""The run types GAMESS searches for a stationary point in, and so writes $STATPT for
+(`gamessinputdata.cpp:2481`)."""
+STATIONARY_POINT_RUNS = ("OPTIMIZE", "SADPOINT")
+
+
+@dataclass(frozen=True)
+class ControlOptions:
+    """The Advanced Control tab, as far as $CONTRL carries it."""
+
+    runtyp: str = ""
+    """empty means the calculation type says it, which is what the Basic tab's Calculate box did"""
+    scftyp: str = ""
+    """empty means RHF, or ROHF when the electrons cannot pair up"""
+    localization: str = "none"
+    max_iterations: int = 0
+    exec_type: str = "run"
+    ci: str = "none"
+
+
 MEGAWORD_MB = 8
 """A GAMESS word is 8 bytes, so MWORDS is megabytes over eight."""
 
@@ -173,23 +236,55 @@ def _basis_group(theory: str, basis: str, detailed: DetailedBasis | None) -> tup
     return " $BASIS " + " ".join(words) + " $END", ecp
 
 
+def run_type(task: str, control: ControlOptions | None) -> str:
+    """The RUNTYP keyword: the Control tab's choice when there is one, else the Calculate box."""
+    if control is not None and control.runtyp:
+        return GAMESS_RUN_TYPES[control.runtyp][0]
+    return RUN_TYPES[task]
+
+
+def _scf_type(control: ControlOptions | None, multiplicity: int, electrons: int) -> str:
+    if control is not None and control.scftyp:
+        return "NONE" if control.scftyp == NO_SCF else SCF_TYPES[control.scftyp]
+    # what Avogadro punched when nothing had been chosen: pairs of electrons, or ROHF
+    return "ROHF" if multiplicity > 1 or electrons % 2 else "RHF"
+
+
 def _control_group(
-    *, theory: str, ecp: str, task: str, charge: int, multiplicity: int, electrons: int
+    *,
+    theory: str,
+    ecp: str,
+    task: str,
+    charge: int,
+    multiplicity: int,
+    electrons: int,
+    control: ControlOptions | None,
 ) -> str:
-    words = ["SCFTYP=" + ("ROHF" if multiplicity > 1 or electrons % 2 else "RHF")]
-    words.append(f"RUNTYP={RUN_TYPES[task]}")
+    """$CONTRL, keyword by keyword in the order Avogadro punched them (gamessinputdata.cpp:821)."""
+    control = control or ControlOptions()
+    words = [f"SCFTYP={_scf_type(control, multiplicity, electrons)}"]
+    words.append(f"RUNTYP={run_type(task, control)}")
+    if EXEC_TYPES[control.exec_type]:
+        words.append(f"EXETYP={EXEC_TYPES[control.exec_type]}")
     if theory == "mp2":
         words.append("MPLEVL=2")
-    elif theory == "ccsd_t":
+    # a run with no SCF is a CI run, and says which kind even when the box says None
+    if CI_TYPES[control.ci] or control.scftyp == NO_SCF:
+        words.append(f"CITYP={CI_TYPES[control.ci] or 'NONE'}")
+    if theory == "ccsd_t":
         words.append("CCTYP=CCSD(T)")
-    elif theory == "b3lyp":
+    if theory == "b3lyp":
         words.append("DFTTYP=B3LYP")
+    if control.max_iterations:
+        words.append(f"MAXIT={control.max_iterations}")
     if charge:
         words.append(f"ICHARG={charge}")
     if multiplicity > 1:
         words.append(f"MULT={multiplicity}")
     elif electrons % 2:
         words.append("MULT=2")  # an odd number of electrons is not a singlet
+    if LOCALIZATIONS[control.localization]:
+        words.append(f"LOCAL={LOCALIZATIONS[control.localization]}")
     if ecp:
         words.append(f"ECP={ecp}")
     return " $CONTRL " + " ".join(words) + " $END"
@@ -202,6 +297,7 @@ def gamess_deck(
     theory: str = "rhf",
     basis: str = "n31d",
     detailed: DetailedBasis | None = None,
+    control: ControlOptions | None = None,
     task: str = "energy",
     charge: int = 0,
     multiplicity: int = 1,
@@ -222,6 +318,9 @@ def gamess_deck(
     if task not in RUN_TYPES:
         msg = f"GAMESS deck: no run type for {task!r}"
         raise ValueError(msg)
+    if control is not None and control.runtyp and control.runtyp not in GAMESS_RUN_TYPES:
+        msg = f"unknown GAMESS run type {control.runtyp!r}"
+        raise ValueError(msg)
     electrons = sum(atomic_numbers[a.element] for a in structure.atoms) - charge
 
     basis_group, ecp = _basis_group(theory, basis, detailed)
@@ -236,11 +335,12 @@ def gamess_deck(
             charge=charge,
             multiplicity=multiplicity,
             electrons=electrons,
+            control=control,
         )
     )
     if memory_mb:
         lines.append(f" $SYSTEM MWORDS={max(1, memory_mb // MEGAWORD_MB)} $END")
-    if task in ("optimize", "transition_state"):
+    if run_type(task, control) in STATIONARY_POINT_RUNS:
         # written for every optimize and saddle-point run, values and all: they are GAMESS's own
         # defaults, and Avogadro punched them "just to remind the user"
         # (gamessinputdata.cpp:2481-2489). Nothing else of the group is set from the Basic tab --

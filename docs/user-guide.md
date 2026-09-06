@@ -919,7 +919,11 @@ diffuse-function keywords GAMESS wants, `Core Potential`, and water as a PCM
 solvent. Under `Show advanced options`, `Set the basis in detail` swaps that
 list for the dialog's Advanced Basis tab: the long basis list, the numbers of
 D, F and P polarization functions and which set their exponents come from, the
-diffuse shells, and the effective core potential. `Transition state` is a
+diffuse shells, and the effective core potential. Beside it are the Control
+tab's boxes: GAMESS's own run-type list (which wins over `Calculation type`,
+and the form says so when the two disagree), the SCF type — UHF, GVB, MCSCF or
+`None (CI)` — the CI method, the localization methods, the SCF iteration limit
+and `Check` or `Debug` instead of a real run. `Transition state` is a
 calculation type only GAMESS writes so far
 (`RUNTYP=SADPOINT`); the other generators say so rather than writing something
 that is not a saddle-point search.

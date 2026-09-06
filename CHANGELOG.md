@@ -10,7 +10,10 @@
   pass through as a line of their own. `Set the basis in detail`, under advanced
   options, is that dialog's Advanced Basis tab: the long basis list, #D/#F/#P
   polarization functions and where their exponents come from, the diffuse
-  shells, and the effective core potential. **The free-text `Method` and `Basis set`
+  shells, and the effective core potential. The Control tab is there too:
+  GAMESS's own run-type list (IRC, Raman, NMR, energy surfaces and the rest),
+  UHF/GVB/MCSCF, CI, the localization methods, the SCF iteration limit and
+  `Check`/`Debug` runs. **The free-text `Method` and `Basis set`
   boxes no longer apply to GAMESS**: it has its own lists, so a stored GAMESS
   calculation that carried, say, `basis: N311` regenerates from the new boxes
   and their defaults (RHF/6-31G(d)) unless you set them. Every other program is

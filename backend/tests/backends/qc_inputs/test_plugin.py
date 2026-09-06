@@ -352,3 +352,49 @@ def test_a_semi_empirical_gamess_basis_takes_no_correlated_theory() -> None:
     assert plugin.validate(water, values).issues == []
     report = plugin.validate(water, {**values, "gamess_theory": "b3lyp"})
     assert any("semi-empirical basis set" in i.message for i in report.issues)
+
+
+def test_the_gamess_control_tab_reaches_every_keyword_it_owns() -> None:
+    """$CONTRL keyword by keyword, in the order Avogadro punched them."""
+    water = from_atoms(molecule("H2O"), name="water")
+    gen = plugin.generate_inputs(
+        water,
+        {
+            "program": "gamess",
+            "task": "optimize",
+            "gamess_scftyp": "uhf",
+            "gamess_runtyp": "irc",
+            "gamess_exec": "check",
+            "gamess_ci": "guga",
+            "gamess_maxit": 50,
+            "gamess_localization": "boys",
+        },
+        "case",
+    )
+    text = gen.files[0].text
+    assert text.split("\n")[1] == (
+        " $CONTRL SCFTYP=UHF RUNTYP=IRC EXETYP=CHECK CITYP=GUGA MAXIT=50 LOCAL=BOYS $END"
+    )
+    # $STATPT belongs to a search for a stationary point, and an IRC is not one
+    assert "$STATPT" not in text
+
+
+def test_the_gamess_run_type_wins_over_the_calculation_type_and_says_so() -> None:
+    """Two boxes can ask for different runs; the deck can only say one, and it is the specific."""
+    water = from_atoms(molecule("H2O"), name="water")
+    values = {"program": "gamess", "task": "optimize", "gamess_runtyp": "raman"}
+    assert "RUNTYP=RAMAN" in plugin.generate_inputs(water, values, "case").files[0].text
+    warning = [i for i in plugin.validate(water, values).issues if i.key == "gamess_runtyp"]
+    assert warning and warning[0].severity == "warning"
+    # the same run under both names is no surprise and says nothing
+    agreeing = {**values, "gamess_runtyp": "optimize"}
+    assert not [i for i in plugin.validate(water, agreeing).issues if i.key == "gamess_runtyp"]
+
+
+def test_a_gamess_run_with_no_scf_says_which_ci_it_is() -> None:
+    """`None (CI)` is an SCF type, and GAMESS then needs CITYP even when no kind was picked."""
+    water = from_atoms(molecule("H2O"), name="water")
+    gen = plugin.generate_inputs(
+        water, {"program": "gamess", "task": "energy", "gamess_scftyp": "none"}, "case"
+    )
+    assert gen.files[0].text.split("\n")[1] == " $CONTRL SCFTYP=NONE RUNTYP=ENERGY CITYP=NONE $END"

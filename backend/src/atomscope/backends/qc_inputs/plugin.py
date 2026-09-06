@@ -28,9 +28,15 @@ from atomscope.backends.base import (
     Values,
 )
 from atomscope.backends.qc_inputs.gamess import BASIS_CHOICES as GAMESS_BASIS_CHOICES
+from atomscope.backends.qc_inputs.gamess import (
+    GAMESS_RUN_TYPES,
+    RUN_TYPES,
+    ControlOptions,
+    DetailedBasis,
+    gamess_deck,
+)
 from atomscope.backends.qc_inputs.gamess import GBASIS_CHOICES as GAMESS_GBASIS_CHOICES
 from atomscope.backends.qc_inputs.gamess import THEORY_CHOICES as GAMESS_THEORIES
-from atomscope.backends.qc_inputs.gamess import DetailedBasis, gamess_deck
 from atomscope.backends.qc_inputs.gaussian import gaussian_deck
 from atomscope.jobs.models import RunSpec
 from atomscope.model import Structure
@@ -272,6 +278,93 @@ SCHEMA = ParameterSchema(
                     visible_when=_GAMESS_DETAIL,
                 ),
                 ParameterSpec(
+                    key="gamess_runtyp",
+                    label="Run type",
+                    type="enum",
+                    default="",
+                    advanced=True,
+                    choices=[
+                        Choice(value="", label="From the calculation type"),
+                        *(
+                            Choice(value=key, label=label)
+                            for key, (_, label) in GAMESS_RUN_TYPES.items()
+                        ),
+                    ],
+                    help="GAMESS's own RUNTYP list; anything but the first wins over the box above",
+                    visible_when=[VisibleWhen(key="program", value="gamess")],
+                ),
+                ParameterSpec(
+                    key="gamess_scftyp",
+                    label="SCF type",
+                    type="enum",
+                    default="",
+                    advanced=True,
+                    choices=[
+                        Choice(value="", label="From the multiplicity (RHF or ROHF)"),
+                        Choice(value="rhf", label="RHF"),
+                        Choice(value="uhf", label="UHF"),
+                        Choice(value="rohf", label="ROHF"),
+                        Choice(value="gvb", label="GVB"),
+                        Choice(value="mcscf", label="MCSCF"),
+                        Choice(value="none", label="None (CI)"),
+                    ],
+                    visible_when=[VisibleWhen(key="program", value="gamess")],
+                ),
+                ParameterSpec(
+                    key="gamess_ci",
+                    label="CI",
+                    type="enum",
+                    default="none",
+                    advanced=True,
+                    choices=[
+                        Choice(value="none", label="None"),
+                        Choice(value="guga", label="GUGA"),
+                        Choice(value="aldet", label="Ames Lab. determinant"),
+                        Choice(value="ormas", label="Occupation restricted multiple active space"),
+                        Choice(value="cis", label="CI singles"),
+                        Choice(value="fsoci", label="Full second-order CI"),
+                        Choice(value="genci", label="General CI"),
+                    ],
+                    visible_when=[VisibleWhen(key="program", value="gamess")],
+                ),
+                ParameterSpec(
+                    key="gamess_localization",
+                    label="Localization method",
+                    type="enum",
+                    default="none",
+                    advanced=True,
+                    choices=[
+                        Choice(value="none", label="None"),
+                        Choice(value="boys", label="Foster-Boys"),
+                        Choice(value="ruednbrg", label="Edmiston-Ruedenberg"),
+                        Choice(value="pop", label="Pipek-Mezey"),
+                    ],
+                    visible_when=[VisibleWhen(key="program", value="gamess")],
+                ),
+                ParameterSpec(
+                    key="gamess_maxit",
+                    label="Max SCF iterations",
+                    type="integer",
+                    default=0,
+                    minimum=0,
+                    advanced=True,
+                    help="0 leaves GAMESS its own default",
+                    visible_when=[VisibleWhen(key="program", value="gamess")],
+                ),
+                ParameterSpec(
+                    key="gamess_exec",
+                    label="Exec type",
+                    type="enum",
+                    default="run",
+                    advanced=True,
+                    choices=[
+                        Choice(value="run", label="Normal run"),
+                        Choice(value="check", label="Check"),
+                        Choice(value="debug", label="Debug"),
+                    ],
+                    visible_when=[VisibleWhen(key="program", value="gamess")],
+                ),
+                ParameterSpec(
                     key="gamess_solvent",
                     label="Solvent",
                     type="enum",
@@ -457,6 +550,18 @@ def _mopac_deck(
     return "\n".join(lines) + "\n"
 
 
+def _gamess_control(values: Values) -> ControlOptions:
+    """The Advanced Control tab's values."""
+    return ControlOptions(
+        runtyp=str(values.get("gamess_runtyp", "")),
+        scftyp=str(values.get("gamess_scftyp", "")),
+        localization=str(values.get("gamess_localization", "none")),
+        max_iterations=_count(values.get("gamess_maxit")),
+        exec_type=str(values.get("gamess_exec", "run")),
+        ci=str(values.get("gamess_ci", "none")),
+    )
+
+
 def _count(value: object) -> int:
     """A number of polarization functions, whatever the form put in the values."""
     return int(value) if isinstance(value, int | float) else 0
@@ -534,6 +639,22 @@ class QcInputsPlugin:
                         ),
                     )
                 )
+        chosen_run = str(merged.get("gamess_runtyp", ""))
+        if (
+            program == "gamess"
+            and chosen_run
+            and GAMESS_RUN_TYPES[chosen_run][0] != RUN_TYPES.get(str(merged.get("task")))
+        ):
+            report.issues.append(
+                ValidationIssue(
+                    key="gamess_runtyp",
+                    message=(
+                        f"the deck will say RUNTYP={GAMESS_RUN_TYPES[chosen_run][0]}, not what the"
+                        " calculation type asks for"
+                    ),
+                    severity="warning",
+                )
+            )
         if merged.get("task") == "transition_state" and program != "gamess":
             report.issues.append(
                 ValidationIssue(
@@ -634,6 +755,7 @@ class QcInputsPlugin:
                     theory=str(merged.get("gamess_theory", "rhf")),
                     basis=str(merged.get("gamess_basis", "n31d")),
                     detailed=_gamess_detailed(merged),
+                    control=_gamess_control(merged),
                     task=task,
                     charge=charge,
                     multiplicity=mult,
