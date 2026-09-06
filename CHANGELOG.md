@@ -14,7 +14,10 @@
   GAMESS's own run-type list (IRC, Raman, NMR, energy surfaces and the rest),
   UHF/GVB/MCSCF, CI and coupled cluster, the localization methods, the SCF
   iteration limit and `Check`/`Debug` runs. So are the DFT tab (both of
-  GAMESS's functional lists, grid or grid-free), the Stat Point tab (the
+  GAMESS's functional lists, grid or grid-free), the SCF tab (a direct SCF,
+  Fock differencing, UHF natural orbitals and a convergence criterion), the MP2
+  tab (the frozen core, memory, the integral cutoff, localized orbitals, MP2
+  properties and where the AO integrals live), the Stat Point tab (the
   optimization method, its step sizes, the initial Hessian and how often to
   recompute it) and the System tab (a time limit, distributed memory, the
   diagonalization and the load balance). **The free-text `Method` and `Basis set`

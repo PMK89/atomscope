@@ -927,7 +927,13 @@ and `Check` or `Debug` instead of a real run. A DFT functional can be picked
 from either of GAMESS's two lists — the form says when one belongs to the
 method you did not choose — and the optimizer's own settings (method, step
 sizes, initial Hessian) and the run's limits (time, distributed memory,
-diagonalization) are there as well. `Transition state` is a
+diagonalization) are there as well. So are the SCF tab's — a direct SCF, Fock
+differencing, UHF natural orbitals and how far the density has to converge —
+and, when the theory is MP2, that tab's: the frozen core, memory, the integral
+cutoff, localized orbitals, MP2 properties, the transformation method and
+whether the AO integrals are duplicated on each node or spread over all of
+them. Each tab is a section of its own, and a section with nothing to show for
+the program you picked does not appear. `Transition state` is a
 calculation type only GAMESS writes so far
 (`RUNTYP=SADPOINT`); the other generators say so rather than writing something
 that is not a saddle-point search.

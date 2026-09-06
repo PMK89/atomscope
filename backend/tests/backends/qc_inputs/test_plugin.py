@@ -533,3 +533,112 @@ def test_the_gamess_defaults_still_write_the_two_reminder_keywords() -> None:
         "case",
     )
     assert trimmed.files[0].text.split("\n")[3] == " $STATPT OPTTOL=0.0001 NSTEP=20 Method=NR $END"
+
+
+def test_the_gamess_scf_and_mp2_tabs_reach_their_groups() -> None:
+    """$SCF and $MP2, in the order and under the conditions of their writers."""
+    water = from_atoms(molecule("H2O"), name="water")
+    gen = plugin.generate_inputs(
+        water,
+        {
+            "program": "gamess",
+            "task": "energy",
+            "gamess_theory": "mp2",
+            "gamess_scftyp": "uhf",
+            "gamess_direct_scf": True,
+            "gamess_fock_diff": False,
+            "gamess_uhf_no": True,
+            "gamess_nconv": 8,
+            "gamess_mp2_core": 2,
+            "gamess_mp2_memory": 1000000,
+            "gamess_mp2_cutoff": 1e-10,
+            "gamess_mp2_properties": True,
+            "gamess_mp2_transformation": "two_phase",
+            "gamess_mp2_ao_storage": "duplicated",
+        },
+        "case",
+    )
+    lines = gen.files[0].text.split("\n")
+    # $SYSTEM comes first, then the wave function's own two groups, in the writers' order
+    assert lines[2].startswith(" $SYSTEM ")
+    assert lines[3] == " $SCF DIRSCF=.TRUE. FDIFF=.FALSE. NCONV=8 UHFNOS=.TRUE. $END"
+    # NBCORE rides with NACORE for a UHF run, and the deck says the transformation only when it
+    # is not GAMESS's own; the cutoff keeps the writer's two significant figures
+    assert lines[4] == (
+        " $MP2 NACORE=2 NBCORE=2 MP2PRP=.TRUE. NWORD=1000000 CUTOFF=1.00e-10 METHOD=3"
+        " AOINTS=DUP $END"
+    )
+
+
+def test_neither_gamess_wave_function_group_is_written_by_default() -> None:
+    """Both are empty until a box is ticked; an MP2 run is what the second one needs at all."""
+    water = from_atoms(molecule("H2O"), name="water")
+    plain = plugin.generate_inputs(water, {"program": "gamess"}, "case").files[0].text
+    assert " $SCF" not in plain
+    assert " $MP2" not in plain
+    mp2 = plugin.generate_inputs(
+        water, {"program": "gamess", "gamess_theory": "mp2", "gamess_mp2_core": 2}, "case"
+    )
+    assert " $MP2 NACORE=2 $END" in mp2.files[0].text
+    # ...and the same box with any other theory says nothing, as Avogadro's MPLEVL test did
+    rhf = plugin.generate_inputs(water, {"program": "gamess", "gamess_mp2_core": 2}, "case")
+    assert " $MP2" not in rhf.files[0].text
+
+
+def test_the_two_boxes_avogadros_writers_forgot_reach_the_deck_here() -> None:
+    """UHFNOS and MP2PRP are not in Avogadro's punch tests, so on their own they wrote nothing."""
+    water = from_atoms(molecule("H2O"), name="water")
+    alone = plugin.generate_inputs(
+        water, {"program": "gamess", "gamess_scftyp": "uhf", "gamess_uhf_no": True}, "case"
+    )
+    assert " $SCF UHFNOS=.TRUE. $END" in alone.files[0].text
+    mp2 = plugin.generate_inputs(
+        water,
+        {"program": "gamess", "gamess_theory": "mp2", "gamess_mp2_properties": True},
+        "case",
+    )
+    assert " $MP2 MP2PRP=.TRUE. $END" in mp2.files[0].text
+
+
+def test_the_gamess_scf_group_belongs_to_four_wave_functions() -> None:
+    """Avogadro punches nothing above GVB, and Fock differencing nothing above ROHF."""
+    water = from_atoms(molecule("H2O"), name="water")
+    base = {"program": "gamess", "gamess_direct_scf": True, "gamess_fock_diff": False}
+    for scftyp, expected in (
+        ("rhf", " $SCF DIRSCF=.TRUE. FDIFF=.FALSE. $END"),
+        ("gvb", " $SCF DIRSCF=.TRUE. $END"),
+        ("mcscf", ""),
+    ):
+        text = (
+            plugin.generate_inputs(water, {**base, "gamess_scftyp": scftyp}, "case").files[0].text
+        )
+        if expected:
+            assert expected in text, scftyp
+        else:
+            assert " $SCF" not in text, scftyp
+    # and the box that cannot reach a deck says so rather than going quiet
+    report = plugin.validate(water, {**base, "gamess_scftyp": "mcscf"})
+    assert any("does not apply to MCSCF" in i.message for i in report.issues)
+
+
+def test_the_wave_function_boxes_avogadro_greyed_out_are_reported_here() -> None:
+    """Its dialog enabled these for one SCF type each; stored values can carry them anywhere."""
+    water = from_atoms(molecule("H2O"), name="water")
+    natural = plugin.validate(water, {"program": "gamess", "gamess_uhf_no": True})
+    assert any(i.key == "gamess_uhf_no" for i in natural.issues)
+    assert (
+        plugin.validate(
+            water, {"program": "gamess", "gamess_scftyp": "uhf", "gamess_uhf_no": True}
+        ).issues
+        == []
+    )
+    localized = plugin.validate(
+        water,
+        {
+            "program": "gamess",
+            "gamess_theory": "mp2",
+            "gamess_scftyp": "rohf",
+            "gamess_mp2_localized": True,
+        },
+    )
+    assert any("closed-shell" in i.message for i in localized.issues)

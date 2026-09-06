@@ -34,6 +34,8 @@ from atomscope.backends.qc_inputs.gamess import (
     RUN_TYPES,
     ControlOptions,
     DetailedBasis,
+    MP2Options,
+    SCFOptions,
     StatPointOptions,
     SystemOptions,
     gamess_deck,
@@ -83,6 +85,11 @@ _GAMESS_DETAIL = [
     VisibleWhen(key="gamess_theory", op="not_in", value=["am1", "pm3"]),
     VisibleWhen(key="gamess_detail", op="truthy"),
 ]
+_GAMESS_MP2 = [
+    VisibleWhen(key="program", value="gamess"),
+    VisibleWhen(key="gamess_theory", value="mp2"),
+]
+"""$MP2 is Avogadro's MPLEVL=2 condition, so the tab has nothing to say about another run."""
 
 SCHEMA = ParameterSchema(
     id="qc_inputs",
@@ -517,6 +524,138 @@ SCHEMA = ParameterSchema(
             ],
         ),
         Section(
+            id="gamess_scf",
+            label="GAMESS: SCF",
+            help="the SCF tab: how the SCF is converged ($SCF)",
+            advanced=True,
+            parameters=[
+                ParameterSpec(
+                    key="gamess_direct_scf",
+                    label="Direct SCF",
+                    type="boolean",
+                    default=False,
+                    advanced=True,
+                    help="recompute the two-electron integrals instead of storing them",
+                    visible_when=[VisibleWhen(key="program", value="gamess")],
+                ),
+                ParameterSpec(
+                    key="gamess_fock_diff",
+                    label="Compute only what changed in the Fock matrix",
+                    type="boolean",
+                    default=True,
+                    advanced=True,
+                    help="GAMESS's default under a direct SCF; unchecking it writes FDIFF=.FALSE.",
+                    visible_when=[
+                        VisibleWhen(key="program", value="gamess"),
+                        VisibleWhen(key="gamess_direct_scf", op="truthy"),
+                    ],
+                ),
+                ParameterSpec(
+                    key="gamess_uhf_no",
+                    label="Generate UHF natural orbitals",
+                    type="boolean",
+                    default=False,
+                    advanced=True,
+                    visible_when=[VisibleWhen(key="program", value="gamess")],
+                ),
+                ParameterSpec(
+                    key="gamess_nconv",
+                    label="Density convergence (decimal places)",
+                    type="integer",
+                    default=0,
+                    minimum=0,
+                    maximum=12,
+                    advanced=True,
+                    help="0 leaves it to GAMESS; Avogadro's writer had NCONV, its dialog no box",
+                    visible_when=[VisibleWhen(key="program", value="gamess")],
+                ),
+            ],
+        ),
+        Section(
+            id="gamess_mp2",
+            label="GAMESS: MP2",
+            help="the MP2 tab: how the correction is computed ($MP2)",
+            advanced=True,
+            parameters=[
+                ParameterSpec(
+                    key="gamess_mp2_core",
+                    label="Frozen core electrons",
+                    type="integer",
+                    default=-1,
+                    minimum=-1,
+                    advanced=True,
+                    help="-1 leaves the frozen core to GAMESS; a UHF run gets NBCORE as well",
+                    visible_when=_GAMESS_MP2,
+                ),
+                ParameterSpec(
+                    key="gamess_mp2_memory",
+                    label="Memory (words)",
+                    type="integer",
+                    default=0,
+                    minimum=0,
+                    advanced=True,
+                    help="NWORD, in GAMESS words of eight bytes; 0 leaves it to GAMESS",
+                    visible_when=_GAMESS_MP2,
+                ),
+                ParameterSpec(
+                    key="gamess_mp2_cutoff",
+                    label="Integral retention cutoff",
+                    type="number",
+                    default=0.0,
+                    minimum=0.0,
+                    advanced=True,
+                    help="0 leaves it to GAMESS, whose own default is 1e-9",
+                    visible_when=_GAMESS_MP2,
+                ),
+                ParameterSpec(
+                    key="gamess_mp2_localized",
+                    label="Use localized orbitals",
+                    type="boolean",
+                    default=False,
+                    advanced=True,
+                    help="LMOMP2, which GAMESS has for a closed-shell run only",
+                    visible_when=_GAMESS_MP2,
+                ),
+                ParameterSpec(
+                    key="gamess_mp2_properties",
+                    label="Compute MP2 properties",
+                    type="boolean",
+                    default=False,
+                    advanced=True,
+                    help="MP2PRP, written for an energy run and ignored by GAMESS in any other",
+                    visible_when=_GAMESS_MP2,
+                ),
+                ParameterSpec(
+                    key="gamess_mp2_transformation",
+                    label="Transformation method",
+                    type="enum",
+                    default="segmented",
+                    advanced=True,
+                    choices=[
+                        Choice(value="segmented", label="Segmented transformation"),
+                        Choice(value="two_phase", label="Two-phase bin sort"),
+                    ],
+                    visible_when=[
+                        *_GAMESS_MP2,
+                        VisibleWhen(key="gamess_mp2_localized", op="falsy"),
+                    ],
+                ),
+                ParameterSpec(
+                    key="gamess_mp2_ao_storage",
+                    label="AO integral storage",
+                    type="enum",
+                    default="default",
+                    advanced=True,
+                    choices=[
+                        Choice(value="default", label="Leave to GAMESS"),
+                        Choice(value="duplicated", label="Duplicated on each node"),
+                        Choice(value="distributed", label="Distributed across all nodes"),
+                    ],
+                    visible_when=_GAMESS_MP2,
+                ),
+            ],
+        ),
+        Section(
             id="gamess_statpt",
             label="GAMESS: Stat Point",
             help="the Stat Point tab: how a stationary point is searched for ($STATPT)",
@@ -892,13 +1031,73 @@ def _gamess_system(values: Values) -> SystemOptions:
     )
 
 
+def _gamess_scf(values: Values) -> SCFOptions:
+    """The SCF tab's values."""
+    return SCFOptions(
+        direct=bool(values.get("gamess_direct_scf")),
+        fock_differencing=bool(values.get("gamess_fock_diff", True)),
+        uhf_natural_orbitals=bool(values.get("gamess_uhf_no")),
+        convergence=_count(values.get("gamess_nconv")),
+    )
+
+
+def _gamess_mp2(values: Values) -> MP2Options:
+    """The MP2 tab's values."""
+    return MP2Options(
+        core_electrons=_count(values.get("gamess_mp2_core"), -1),
+        memory_words=_count(values.get("gamess_mp2_memory")),
+        cutoff=_number(values.get("gamess_mp2_cutoff"), 0.0),
+        localized=bool(values.get("gamess_mp2_localized")),
+        properties=bool(values.get("gamess_mp2_properties")),
+        transformation=str(values.get("gamess_mp2_transformation", "segmented")),
+        ao_storage=str(values.get("gamess_mp2_ao_storage", "default")),
+    )
+
+
+def _gamess_wave_function_issues(merged: Values) -> list[ValidationIssue]:
+    """What Avogadro's SCF and MP2 tabs said by greying out a box rather than in the deck.
+
+    Its dialog enables `Generate UHF Natural Orbitals` for a UHF run and `Use Localized Orbitals`
+    for a closed-shell one (gamessinputdialog.cpp:771,802), so neither could be set anywhere else.
+    A stored set of values can carry them anywhere, so they are said here instead.
+    """
+    issues: list[ValidationIssue] = []
+    scftyp = str(merged.get("gamess_scftyp", ""))
+    if merged.get("gamess_uhf_no") and scftyp != "uhf":
+        issues.append(
+            ValidationIssue(
+                key="gamess_uhf_no",
+                message="natural orbitals are a UHF run's; GAMESS ignores UHFNOS in any other",
+                severity="warning",
+            )
+        )
+    if merged.get("gamess_mp2_localized") and scftyp not in ("", "rhf"):
+        issues.append(
+            ValidationIssue(
+                key="gamess_mp2_localized",
+                message="GAMESS has localized MP2 for a closed-shell run only",
+            )
+        )
+    if scftyp in ("mcscf", "none") and (
+        merged.get("gamess_direct_scf") or _count(merged.get("gamess_nconv"))
+    ):
+        issues.append(
+            ValidationIssue(
+                key="gamess_direct_scf",
+                message=f"the $SCF group does not apply to {scftyp.upper()}; it is left out",
+                severity="warning",
+            )
+        )
+    return issues
+
+
 def _number(value: object, fallback: float) -> float:
     return float(value) if isinstance(value, int | float) else fallback
 
 
-def _count(value: object) -> int:
+def _count(value: object, fallback: int = 0) -> int:
     """A number of polarization functions, whatever the form put in the values."""
-    return int(value) if isinstance(value, int | float) else 0
+    return int(value) if isinstance(value, int | float) else fallback
 
 
 def _gamess_detailed(values: Values) -> DetailedBasis | None:
@@ -958,21 +1157,21 @@ class QcInputsPlugin:
                 )
             )
         detailed = _gamess_detailed(merged)
-        if detailed is not None and GAMESS_GBASIS_CHOICES[detailed.gbasis].gbasis in (
-            "MNDO",
-            "AM1",
-            "PM3",
-        ):
+        semi_empirical = merged.get("gamess_theory") in ("am1", "pm3") or (
+            detailed is not None
+            and GAMESS_GBASIS_CHOICES[detailed.gbasis].gbasis in ("MNDO", "AM1", "PM3")
+        )
+        if program == "gamess" and semi_empirical:
             # the Advanced boxes reach $CONTRL on their own, whatever the theory box says
             correlated = (
-                merged.get("gamess_theory") not in ("rhf", None)
+                merged.get("gamess_theory") not in ("rhf", "am1", "pm3", None)
                 or merged.get("gamess_functional") not in ("", None)
                 or merged.get("gamess_cc") not in ("", "none", None)
             )
             if correlated:
                 report.issues.append(
                     ValidationIssue(
-                        key="gamess_gbasis",
+                        key="gamess_gbasis" if detailed is not None else "gamess_theory",
                         message=(
                             "a semi-empirical basis set has no DFT, MP2 or coupled-cluster"
                             " theory to go with it"
@@ -1011,6 +1210,8 @@ class QcInputsPlugin:
                         ),
                     )
                 )
+        if program == "gamess":
+            report.issues += _gamess_wave_function_issues(merged)
         if merged.get("task") == "transition_state" and program != "gamess":
             report.issues.append(
                 ValidationIssue(
@@ -1112,6 +1313,8 @@ class QcInputsPlugin:
                     basis=str(merged.get("gamess_basis", "n31d")),
                     detailed=_gamess_detailed(merged),
                     control=_gamess_control(merged),
+                    scf=_gamess_scf(merged),
+                    mp2=_gamess_mp2(merged),
                     stat_point=_gamess_stat_point(merged),
                     system=_gamess_system(merged),
                     task=task,

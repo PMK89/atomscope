@@ -283,6 +283,43 @@ class StatPointOptions:
     print_orbitals: bool = False
 
 
+SCF_GROUP_TYPES = ("RHF", "UHF", "ROHF", "GVB")
+"""The wave functions $SCF applies to: Avogadro punches nothing above GVB (`:2095`)."""
+FDIFF_TYPES = ("RHF", "UHF", "ROHF")
+"""...and Fock differencing stops one earlier (`:2107`)."""
+MP2_TRANSFORMATIONS = {"segmented": 0, "two_phase": 3}
+"""METHOD, where GAMESS's own default -- the segmented transformation -- is written as nothing."""
+MP2_AO_STORAGE = {"default": "", "duplicated": "DUP", "distributed": "DIST"}
+
+
+@dataclass(frozen=True)
+class SCFOptions:
+    """The SCF tab: how the SCF is converged ($SCF)."""
+
+    direct: bool = False
+    """Avogadro's comment says it defaults this to true, but its `InitData` sets false
+    (gamessinputdata.cpp:2061-2064); the code is what it did, so false is what we do."""
+    fock_differencing: bool = True
+    uhf_natural_orbitals: bool = False
+    convergence: int = 0
+    """NCONV, the density's decimal places. Avogadro's dialog has no box for it; its writer
+    does, and the group's punch condition turns on it, so it is offered here."""
+
+
+@dataclass(frozen=True)
+class MP2Options:
+    """The MP2 tab: how the correction is computed ($MP2)."""
+
+    core_electrons: int = -1
+    """-1 leaves the frozen core to GAMESS, which is what an untouched spin box meant."""
+    memory_words: int = 0
+    cutoff: float = 0.0
+    localized: bool = False
+    properties: bool = False
+    transformation: str = "segmented"
+    ao_storage: str = "default"
+
+
 @dataclass(frozen=True)
 class SystemOptions:
     """The System tab: what the run is allowed to use ($SYSTEM)."""
@@ -448,6 +485,56 @@ def _system_group(memory_mb: int, system: SystemOptions | None) -> str:
     return " $SYSTEM " + " ".join(words) + " $END" if words else ""
 
 
+def _scf_group(options: SCFOptions, scftyp: str) -> str:
+    """$SCF (`gamessinputdata.cpp:2089-2122`), empty when there is nothing to say.
+
+    One departure: Avogadro punches the group only for a direct SCF or a convergence criterion,
+    so its own `Generate UHF Natural Orbitals` box writes nothing at all (`:2095-2099` -- UHFNOS
+    is not in the test). Here it counts, like everything else that has a keyword.
+    """
+    if scftyp not in SCF_GROUP_TYPES:
+        return ""
+    words = []
+    if options.direct:
+        words.append("DIRSCF=.TRUE.")
+        # differencing needs a direct SCF, and GVB cannot do it
+        if not options.fock_differencing and scftyp in FDIFF_TYPES:
+            words.append("FDIFF=.FALSE.")
+    if options.convergence > 0:
+        words.append(f"NCONV={options.convergence}")
+    if options.uhf_natural_orbitals:
+        words.append("UHFNOS=.TRUE.")
+    return " $SCF " + " ".join(words) + " $END" if words else ""
+
+
+def _mp2_group(options: MP2Options, scftyp: str, runtyp: str) -> str:
+    """$MP2 (`gamessinputdata.cpp:2189-2243`), for an MP2 run and empty when there is nothing.
+
+    The same departure as $SCF: `Compute MP2 Properties` is not in Avogadro's punch test either
+    (`:2196-2200`), so on its own it writes nothing there. Here it counts.
+    """
+    words = []
+    if options.core_electrons >= 0:
+        words.append(f"NACORE={options.core_electrons}")
+        if scftyp == "UHF":
+            words.append(f"NBCORE={options.core_electrons}")
+    if options.properties and runtyp == "ENERGY":
+        words.append("MP2PRP=.TRUE.")
+    if options.localized:
+        words.append("LMOMP2=.TRUE.")
+    if options.memory_words:
+        words.append(f"NWORD={options.memory_words}")
+    if options.cutoff > 0.0:
+        words.append(f"CUTOFF={options.cutoff:.2e}")
+    # the transformation is the localized run's own, so the box has nothing to say there
+    method = MP2_TRANSFORMATIONS[options.transformation]
+    if method and not options.localized:
+        words.append(f"METHOD={method}")
+    if MP2_AO_STORAGE[options.ao_storage]:
+        words.append(f"AOINTS={MP2_AO_STORAGE[options.ao_storage]}")
+    return " $MP2 " + " ".join(words) + " $END" if words else ""
+
+
 def _stat_point_group(options: StatPointOptions, runtyp: str) -> str:
     """$STATPT, in the order and under the conditions of `gamessinputdata.cpp:2475-2560`."""
     # the convergence and the step count are always written, to remind the user of them
@@ -478,24 +565,14 @@ def _stat_point_group(options: StatPointOptions, runtyp: str) -> str:
     return " $STATPT " + " ".join(words) + " $END"
 
 
-def gamess_deck(
-    structure: Structure,
-    *,
-    title: str,
-    theory: str = "rhf",
-    basis: str = "n31d",
-    detailed: DetailedBasis | None = None,
-    control: ControlOptions | None = None,
-    stat_point: StatPointOptions | None = None,
-    system: SystemOptions | None = None,
-    task: str = "energy",
-    charge: int = 0,
-    multiplicity: int = 1,
-    solvent: str = "gas",
-    memory_mb: int = 0,
-    extra: str = "",
-) -> str:
-    """One GAMESS-US deck from the Basic Setup options."""
+def _check_choices(
+    theory: str,
+    basis: str,
+    detailed: DetailedBasis | None,
+    task: str,
+    control: ControlOptions | None,
+) -> None:
+    """Every choice the deck makes from a table, refused here rather than written wrong."""
     if theory not in THEORY_CHOICES:
         msg = f"unknown GAMESS theory {theory!r}"
         raise ValueError(msg)
@@ -511,6 +588,29 @@ def gamess_deck(
     if control is not None and control.runtyp and control.runtyp not in GAMESS_RUN_TYPES:
         msg = f"unknown GAMESS run type {control.runtyp!r}"
         raise ValueError(msg)
+
+
+def gamess_deck(
+    structure: Structure,
+    *,
+    title: str,
+    theory: str = "rhf",
+    basis: str = "n31d",
+    detailed: DetailedBasis | None = None,
+    control: ControlOptions | None = None,
+    scf: SCFOptions | None = None,
+    mp2: MP2Options | None = None,
+    stat_point: StatPointOptions | None = None,
+    system: SystemOptions | None = None,
+    task: str = "energy",
+    charge: int = 0,
+    multiplicity: int = 1,
+    solvent: str = "gas",
+    memory_mb: int = 0,
+    extra: str = "",
+) -> str:
+    """One GAMESS-US deck from the Basic Setup options."""
+    _check_choices(theory, basis, detailed, task, control)
     electrons = sum(atomic_numbers[a.element] for a in structure.atoms) - charge
 
     basis_group, ecp = _basis_group(theory, basis, detailed)
@@ -534,6 +634,14 @@ def gamess_deck(
     system_group = _system_group(memory_mb, system)
     if system_group:
         lines.append(system_group)
+    scftyp = _scf_type(control, multiplicity, electrons)
+    scf_group = _scf_group(scf or SCFOptions(), scftyp)
+    if scf_group:
+        lines.append(scf_group)
+    # no MP2 run, nothing to say about one: Avogadro's MPLEVL=2 condition
+    mp2_group = _mp2_group(mp2 or MP2Options(), scftyp, run_type(task, control))
+    if theory == "mp2" and mp2_group:
+        lines.append(mp2_group)
     if run_type(task, control) in STATIONARY_POINT_RUNS:
         # written for every optimize and saddle-point run, values and all: they are GAMESS's own
         # defaults, and Avogadro punched them "just to remind the user"
