@@ -13,6 +13,9 @@
 import type { Tool } from '../editor/Tool';
 import type { DisplayLayer } from '../renderer/layers/Layer';
 import type { MenuItem } from '../ui/Menu';
+import type { SecondaryStructureData } from '../renderer/layers/RibbonLayer';
+import type { ResiduePalette } from '../renderer/atomColors';
+import type { StructureDoc } from '../model/structure';
 
 export type ErrorSink = (message: string) => void;
 
@@ -49,6 +52,25 @@ export interface PanelContribution {
   component: (props: { onError: ErrorSink }) => JSX.Element;
 }
 
+/** Everything a colour scheme is given; the same arguments `atomColors` has always taken. */
+export interface ColorContext {
+  residues: StructureDoc['residues'];
+  atomCount: number;
+  secondary: SecondaryStructureData | null;
+  atoms: StructureDoc['atoms'] | null;
+  charges: readonly number[] | null;
+  /** the colour of the `custom` scheme, as `#rrggbb` */
+  custom: string;
+  palette: ResiduePalette;
+}
+
+export interface ColorContribution {
+  id: string;
+  label: string;
+  /** Three floats per atom, or null to leave the atoms the colours of their elements. */
+  colors: (ctx: ColorContext) => Float32Array | null;
+}
+
 export interface MenuContribution extends MenuItem {
   /**
    * The menu the item belongs under: one level, a top menu's title. A path naming a menu that is
@@ -70,6 +92,7 @@ export class PluginRegistry {
   private readonly layerList: LayerContribution[] = [];
   private readonly panelList: PanelContribution[] = [];
   private readonly menuList: MenuContribution[] = [];
+  private readonly colorList: ColorContribution[] = [];
 
   registerTool(contribution: ToolContribution): void {
     if (this.toolList.some((c) => c.tool.id === contribution.tool.id)) {
@@ -115,6 +138,22 @@ export class PluginRegistry {
   /** Contributed dock panels in registration order, which is tab order. */
   panels(): readonly PanelContribution[] {
     return this.panelList;
+  }
+
+  registerColorScheme(contribution: ColorContribution): void {
+    if (this.colorList.some((c) => c.id === contribution.id)) {
+      throw new Error(`colour scheme ${contribution.id} is already registered`);
+    }
+    this.colorList.push(contribution);
+  }
+
+  /** Contributed colour schemes in registration order, which is the order the list shows. */
+  colorSchemes(): readonly ColorContribution[] {
+    return this.colorList;
+  }
+
+  colorScheme(id: string): ColorContribution | undefined {
+    return this.colorList.find((c) => c.id === id);
   }
 
   registerMenuItem(contribution: MenuContribution): void {

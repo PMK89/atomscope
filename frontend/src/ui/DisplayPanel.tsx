@@ -9,12 +9,12 @@
  */
 import { useState } from 'react';
 import { dipoleFromCharges } from '../model/dipole';
+import { usePlugins } from '../plugins/context';
 import type { RibbonStyle } from '../model/ribbon';
 import { ATOM_LABEL_OPTIONS, BOND_LABEL_OPTIONS } from '../renderer/labels';
 import {
   assignAtomColor,
   assignedColorCount,
-  COLOR_SCHEMES,
   NO_ATOM_COLORS,
   PALETTE_LABELS,
   type ColorScheme,
@@ -196,6 +196,7 @@ function DisplayScope(): JSX.Element {
 
 export function DisplayPanel(): JSX.Element {
   const view = useViewStore();
+  const schemes = usePlugins().colorSchemes();
   const doc = useStructureStore((s) => s.doc);
   const vectorFields = Object.keys(doc.atomic_vectors ?? {});
   const dipole = dipoleFromCharges(doc);
@@ -227,7 +228,7 @@ export function DisplayPanel(): JSX.Element {
           value={view.colorScheme}
           onChange={(e) => view.setColorScheme(e.target.value as ColorScheme)}
         >
-          {COLOR_SCHEMES.map((c) => (
+          {schemes.map((c) => (
             <option key={c.id} value={c.id}>
               {c.label}
             </option>

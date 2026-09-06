@@ -34,7 +34,8 @@ import { LabelLayer } from '../renderer/layers/LabelLayer';
 import { RibbonLayer } from '../renderer/layers/RibbonLayer';
 import { UnitCellLayer } from '../renderer/layers/UnitCellLayer';
 import { VectorLayer } from '../renderer/layers/VectorLayer';
-import { PluginRegistry } from './registry';
+import { atomColors, COLOR_SCHEMES } from '../renderer/atomColors';
+import { PluginRegistry, type ColorContext } from './registry';
 
 let application: PluginRegistry | null = null;
 
@@ -63,6 +64,22 @@ export function defaultRegistry(): PluginRegistry {
   registry.registerLayer({ id: 'labels', create: () => new LabelLayer() });
   registry.registerLayer({ id: 'ribbon', create: () => new RibbonLayer() });
   registry.registerLayer({ id: 'hbonds', create: () => new HBondLayer() });
+  // the built-in schemes share one implementation (`renderer/atomColors.ts`), which is what the
+  // dispatch inside it is; what the registry owns is the list, so a contributed scheme needs no
+  // entry there and no branch of that function
+  for (const scheme of COLOR_SCHEMES) {
+    registry.registerColorScheme({
+      id: scheme.id,
+      label: scheme.label,
+      colors: (ctx: ColorContext) =>
+        atomColors(ctx.residues, ctx.atomCount, scheme.id, ctx.secondary, {
+          atoms: ctx.atoms,
+          charges: ctx.charges,
+          custom: ctx.custom,
+          palette: ctx.palette,
+        }),
+    });
+  }
   registry.registerPanel({ id: 'calculation', label: 'Calculation', component: CalculationPanel });
   registry.registerPanel({ id: 'analysis', label: 'Analysis', component: AnalysisPanel });
   registry.registerPanel({ id: 'spectra', label: 'Spectra', component: SpectrumPanel });

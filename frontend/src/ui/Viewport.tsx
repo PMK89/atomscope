@@ -7,7 +7,7 @@ import { useTrajectoryStore } from '../state/trajectoryStore';
 import { frameCell, framePositions, isTrajectoryCompatible } from '../model/trajectory';
 import { installExtraLayers, syncExtraLayers } from './viewportLayers';
 import { backgroundHex, useViewStore } from '../state/viewStore';
-import { atomColorArray, atomColors } from '../renderer/atomColors';
+import { atomColorArray } from '../renderer/atomColors';
 import { partialCharges } from '../renderer/labels';
 import { hiddenAtoms, styleArray } from '../renderer/atomStyles';
 import { useBioStore } from '../state/bioStore';
@@ -18,6 +18,7 @@ import { usePlugins } from '../plugins/context';
 
 /** Owns one Renderer for its lifetime, feeds it store snapshots and routes input to the tools. */
 export function Viewport(): JSX.Element {
+  const registry = usePlugins();
   const ref = useRef<HTMLDivElement>(null);
   const rendererRef = useRef<Renderer | null>(null);
   const [mounted, setMounted] = useState<{ renderer: Renderer; host: ToolHost } | null>(null);
@@ -56,13 +57,16 @@ export function Viewport(): JSX.Element {
   const palette = view.residuePalette;
   const schemeColors = useMemo(
     () =>
-      atomColors(residues, atomCount, scheme, secondary, {
+      registry.colorScheme(scheme)?.colors({
+        residues,
+        atomCount,
+        secondary,
         atoms: colorAtoms,
         charges: colorCharges,
         custom,
         palette,
-      }),
-    [residues, atomCount, scheme, secondary, colorAtoms, colorCharges, custom, palette],
+      }) ?? null,
+    [registry, residues, atomCount, scheme, secondary, colorAtoms, colorCharges, custom, palette],
   );
   // per-atom colours are painted over the scheme, and give the array back untouched when there
   // are none -- so an unassigned document keeps the identity the structure layer compares
@@ -79,7 +83,6 @@ export function Viewport(): JSX.Element {
   const lastFitted = useRef<string | null>(null);
   const lastFitRequest = useRef(0);
   const lastCenterRequest = useRef(0);
-  const registry = usePlugins();
   // renderer readiness as state, so surfaces already in the store mount into a new renderer
   useIsosurfaceLayers(mounted?.renderer ?? null);
 

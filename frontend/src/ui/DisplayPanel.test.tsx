@@ -7,6 +7,8 @@ import { useSelectionStore } from '../state/selectionStore';
 import { useStructureStore } from '../state/structureStore';
 import { useViewStore } from '../state/viewStore';
 import { DisplayPanel } from './DisplayPanel';
+import { PluginProvider } from '../plugins/context';
+import { plugins } from '../plugins/builtins';
 
 beforeEach(() => {
   useViewStore.setState({
@@ -30,7 +32,11 @@ beforeEach(() => {
 });
 
 test('the panel drives the display settings the renderer reads', () => {
-  render(<DisplayPanel />);
+  render(
+    <PluginProvider registry={plugins()}>
+      <DisplayPanel />
+    </PluginProvider>,
+  );
 
   fireEvent.change(screen.getByLabelText('Display type'), { target: { value: 'vdw' } });
   expect(useViewStore.getState().style).toBe('vdw');
@@ -46,7 +52,11 @@ test('the panel drives the display settings the renderer reads', () => {
 });
 
 test('the selection can be given its own display type', () => {
-  render(<DisplayPanel />);
+  render(
+    <PluginProvider registry={plugins()}>
+      <DisplayPanel />
+    </PluginProvider>,
+  );
   expect(useViewStore.getState().selectionStyle).toBeNull();
 
   fireEvent.change(screen.getByLabelText('Selected atoms'), { target: { value: 'vdw' } });
@@ -57,7 +67,11 @@ test('the selection can be given its own display type', () => {
 });
 
 test('choosing a label content switches the label layer on', () => {
-  render(<DisplayPanel />);
+  render(
+    <PluginProvider registry={plugins()}>
+      <DisplayPanel />
+    </PluginProvider>,
+  );
   expect(useViewStore.getState().showLabels).toBe(false);
 
   fireEvent.change(screen.getByLabelText('Atoms'), { target: { value: 'partial_charge' } });
@@ -68,7 +82,11 @@ test('choosing a label content switches the label layer on', () => {
 });
 
 test('label style controls are per-axis and independent', () => {
-  render(<DisplayPanel />);
+  render(
+    <PluginProvider registry={plugins()}>
+      <DisplayPanel />
+    </PluginProvider>,
+  );
   fireEvent.change(screen.getByLabelText('Size'), { target: { value: '1.2' } });
   fireEvent.change(screen.getByLabelText('Label shift y'), { target: { value: '0.5' } });
   fireEvent.change(screen.getByLabelText('Colour'), { target: { value: '#ff0000' } });
@@ -80,7 +98,11 @@ test('label style controls are per-axis and independent', () => {
 });
 
 test('hydrogen bonds have their own cut-offs', () => {
-  render(<DisplayPanel />);
+  render(
+    <PluginProvider registry={plugins()}>
+      <DisplayPanel />
+    </PluginProvider>,
+  );
   fireEvent.click(screen.getByLabelText('Enabled', { selector: '#display-hbonds' }));
   expect(useViewStore.getState().showHBonds).toBe(true);
 
@@ -92,7 +114,11 @@ test('hydrogen bonds have their own cut-offs', () => {
 });
 
 test('ribbons can be switched on and given a rendering', () => {
-  render(<DisplayPanel />);
+  render(
+    <PluginProvider registry={plugins()}>
+      <DisplayPanel />
+    </PluginProvider>,
+  );
   fireEvent.click(screen.getByLabelText('Enabled', { selector: '#display-ribbon' }));
   expect(useViewStore.getState().showRibbon).toBe(true);
 
@@ -103,7 +129,11 @@ test('ribbons can be switched on and given a rendering', () => {
 });
 
 test('the panel says when a setting has nothing to act on', () => {
-  render(<DisplayPanel />);
+  render(
+    <PluginProvider registry={plugins()}>
+      <DisplayPanel />
+    </PluginProvider>,
+  );
   expect(screen.getByText(/carries no vector field/)).toBeInTheDocument();
   expect(screen.getByText('This structure has no unit cell.')).toBeInTheDocument();
 });
@@ -115,7 +145,11 @@ test('display scope assigns a display type to the selection and hides the rest',
   } as never);
   useStructureStore.getState().load(doc);
   useViewStore.setState({ atomStyles: NO_STYLES });
-  render(<DisplayPanel />);
+  render(
+    <PluginProvider registry={plugins()}>
+      <DisplayPanel />
+    </PluginProvider>,
+  );
 
   // with nothing selected there is nothing to scope, and no way to hide the whole structure
   expect(screen.getByRole('button', { name: 'Assign to selection' })).toBeDisabled();
@@ -144,7 +178,11 @@ test('display scope gives the selection a colour of its own, over the scheme', (
   useStructureStore.getState().load(doc);
   useViewStore.setState({ atomColorOverrides: NO_ATOM_COLORS, colorScheme: 'element' });
   useSelectionStore.getState().clear();
-  render(<DisplayPanel />);
+  render(
+    <PluginProvider registry={plugins()}>
+      <DisplayPanel />
+    </PluginProvider>,
+  );
 
   expect(screen.getByRole('button', { name: 'Colour selection' })).toBeDisabled();
   expect(screen.getByRole('button', { name: 'Clear colours' })).toBeDisabled();
@@ -164,7 +202,11 @@ test('display scope gives the selection a colour of its own, over the scheme', (
 
 test('the colour schemes that need data say so, and one colour is chosen in the panel', () => {
   useViewStore.setState({ colorScheme: 'element', customColor: '#4aa3ff' });
-  render(<DisplayPanel />);
+  render(
+    <PluginProvider registry={plugins()}>
+      <DisplayPanel />
+    </PluginProvider>,
+  );
 
   // a plain molecule: no residues and no charges, and each scheme says what it is missing
   fireEvent.change(screen.getByLabelText('Colour by', { selector: '#display-color-scheme' }), {
@@ -198,7 +240,11 @@ test('the residue palette is reachable from whichever engine is coloured by resi
     ribbonColorScheme: 'secondary',
     showRibbon: true,
   });
-  render(<DisplayPanel />);
+  render(
+    <PluginProvider registry={plugins()}>
+      <DisplayPanel />
+    </PluginProvider>,
+  );
   // neither engine is on residues: nothing to choose
   expect(screen.queryByLabelText('Residue colours')).toBeNull();
 

@@ -11,13 +11,14 @@ import type { Tool } from '../editor/Tool';
 import { Object3D } from 'three';
 import type { DisplayLayer } from '../renderer/layers/Layer';
 import { installExtraLayers } from '../ui/viewportLayers';
+import { DisplayPanel } from '../ui/DisplayPanel';
 import { MenuBar } from '../ui/MenuBar';
 import { RightDock } from '../ui/RightDock';
 import { ToolBar } from '../ui/ToolBar';
 import { ToolSettings } from '../ui/ToolSettings';
 import { PluginProvider } from './context';
 import { defaultRegistry } from './builtins';
-import { PluginRegistry } from './registry';
+import { PluginRegistry, type ColorContext } from './registry';
 
 beforeEach(() => {
   useStructureStore.getState().load(normalizeStructure({ name: 'empty', charge: 0 }));
@@ -39,6 +40,15 @@ function withPlugin(): PluginRegistry {
     settings: () => <p>snips</p>,
   });
   registry.registerPanel({ id: 'wires', label: 'Wires', component: () => <p>one wire</p> });
+  registry.registerColorScheme({
+    id: 'wire',
+    label: 'Wire',
+    colors: ({ atomCount }) => {
+      const out = new Float32Array(atomCount * 3);
+      for (let i = 0; i < atomCount; i++) out[i * 3] = 1;
+      return out;
+    },
+  });
   registry.registerMenuItem({
     menuPath: 'Extensions',
     label: 'Cut wires',
@@ -49,6 +59,16 @@ function withPlugin(): PluginRegistry {
   });
   return registry;
 }
+
+const emptyColorContext: ColorContext = {
+  residues: [],
+  atomCount: 0,
+  secondary: null,
+  atoms: null,
+  charges: null,
+  custom: '#ffffff',
+  palette: 'amino',
+};
 
 class WireLayer implements DisplayLayer {
   readonly object = new Object3D();
@@ -182,6 +202,23 @@ test('a menu path with more than one level is refused', () => {
   ).toThrow('more than one level');
 });
 
+test('a contributed colour scheme reaches the list and paints the atoms', () => {
+  const registry = withPlugin();
+  render(
+    <PluginProvider registry={registry}>
+      <DisplayPanel />
+    </PluginProvider>,
+  );
+  // the panel has a second "Colour by" for the display scope, so the list is taken by its id
+  const select = document.getElementById('display-color-scheme') as HTMLSelectElement;
+  expect([...select.options].map((o) => o.value)).toContain('wire');
+  fireEvent.change(select, { target: { value: 'wire' } });
+  expect(select.value).toBe('wire');
+  // the scheme itself is a function of the context, not a branch of atomColors
+  const scheme = registry.colorScheme('wire')!;
+  expect([...scheme.colors({ ...emptyColorContext, atomCount: 2 })!]).toEqual([1, 0, 0, 1, 0, 0]);
+});
+
 test('a layer whose factory builds another layer is refused rather than lost', () => {
   // a registry of its own: building the application's layers wants a canvas jsdom has not got
   const registry = new PluginRegistry();
@@ -196,6 +233,7 @@ test('the application registry does not carry a test plugin', () => {
   expect(registry.panels().map((p) => p.id)).not.toContain('wires');
   expect(registry.layers().map((l) => l.id)).not.toContain('wires');
   expect(registry.menuItems('Extensions')).toHaveLength(0);
+  expect(registry.colorScheme('wire')).toBeUndefined();
 });
 
 test('registering the same id twice is refused, and so is taking a shortcut twice', () => {
