@@ -194,7 +194,23 @@ run against current code -- Playwright above all -- use the private-server recip
   extension), which disables Save. Under load the request is slow enough for the fill to win the
   race. A path already in the box now survives the answer and picks the writer from its own
   extension. `ExportDialog.test.tsx` pins it with a promise the test resolves by hand, and it
-  fails without the fix. If a *timing* failure appears here again, it is a different one.
+  fails without the fix.
+
+  **That was one of two races on this test, and the second one is worth recognising by sight.**
+  The dialog is hidden rather than unmounted, so the *second* Export opens with the last path
+  still in the box; the defaults, applied a tick after the reopen, cleared it, and the `typed`
+  ref could not notice -- a controlled input handed the value it already holds fires no change
+  event, so entering that same path again told the dialog nothing. Signature: **Save disabled,
+  path box empty, format back at the default**. Fixed by remembering the writers in a ref and
+  applying the defaults synchronously on a reopen, pinned by
+  `reopening the dialog does not wipe the path a moment after it is entered`, which also fails
+  without the fix.
+
+  **Playwright passing is not evidence that either race is fixed.** With the old component the
+  second Export passes whenever `/api/io/formats` answers *before* Playwright's fill, which is
+  most of the time -- that is why the same code gave 39 passed at `86da76e` and 38 at HEAD a day
+  later. The vitest tests are the proof; the e2e is the detector. `--repeat-each 10` on
+  `-g "Export writes a file"` is the cheap confirmation.
 
 - Playwright's smoke spec is order-coupled: `Save as writes a second structure` needs a project,
   and the project is created by a test in *another* spec file. The full suite passes; running
@@ -230,7 +246,7 @@ run against current code -- Playwright above all -- use the private-server recip
   directory pytest is started from, though `backend/` is still the habit the Makefile keeps.
 - The dev servers on 127.0.0.1:8765/5173 are not ours and do not reload, so they serve whatever
   routes existed when they were started. E2E tests that need a new route want private servers:
-  `ATOMSCOPE_DATA_DIR=/tmp/atomscope-e2e python -m atomscope.api.server --host 127.0.0.1 --port 8791`,
+  `ATOMSCOPE_DATA_DIR=../.scratch/e2e-data python -m atomscope.api.server --host 127.0.0.1 --port 8791`,
   `ATOMSCOPE_API_URL=http://127.0.0.1:8791 pnpm dev --host 127.0.0.1 --port 5191`,
   then `PLAYWRIGHT_BASE_URL=http://127.0.0.1:5191 pnpm exec playwright test`.
   Give the private backend a data directory of its own: `env.sh` points `ATOMSCOPE_DATA_DIR` at
