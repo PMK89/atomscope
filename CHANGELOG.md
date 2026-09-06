@@ -33,8 +33,8 @@
   boxes no longer apply to GAMESS**: it has its own lists, so a stored GAMESS
   calculation that carried, say, `basis: N311` regenerates from the new boxes
   and their defaults (RHF/6-31G(d)) unless you set them. Every other program is
-  unaffected. The GAMESS controls sit in five boxes of their own, one per
-  Avogadro tab, rather than in one column of thirty-odd fields; a box with
+  unaffected. The GAMESS controls sit in a box per Avogadro tab
+  rather than in one column of sixty-odd fields; a box with
   nothing to show does not appear at all, so every other program's form is the
   length it was.
 

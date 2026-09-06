@@ -1387,11 +1387,14 @@ def _gamess_mp2(values: Values) -> MP2Options:
 
 
 def _gamess_wave_function_issues(merged: Values) -> list[ValidationIssue]:
-    """What Avogadro's SCF and MP2 tabs said by greying out a box rather than in the deck.
+    """What the GAMESS tabs cannot say in a deck: a box that reaches no keyword, or one whose
+    keyword needs something the deck does not carry.
 
-    Its dialog enables `Generate UHF Natural Orbitals` for a UHF run and `Use Localized Orbitals`
-    for a closed-shell one (gamessinputdialog.cpp:771,802), so neither could be set anywhere else.
-    A stored set of values can carry them anywhere, so they are said here instead.
+    Avogadro's dialog enables `Generate UHF Natural Orbitals` for a UHF run and `Use Localized
+    Orbitals` for a closed-shell one (gamessinputdialog.cpp:771,802), so neither could be set
+    anywhere else; a stored set of values can carry them anywhere, so they are said here. The
+    rest are groups nothing here writes -- $VEC for a MOREAD guess, $ZMAT for NZVAR -- and the
+    atom list a point group other than C1 asks for.
     """
     issues: list[ValidationIssue] = []
     scftyp = str(merged.get("gamess_scftyp", ""))
@@ -1424,6 +1427,14 @@ def _gamess_wave_function_issues(merged: Values) -> list[ValidationIssue]:
             ValidationIssue(
                 key="gamess_guess_mix",
                 message="mixing the orbitals is a singlet UHF run's; MIX is left out otherwise",
+                severity="warning",
+            )
+        )
+    if _count(merged.get("gamess_nzvar")):
+        issues.append(
+            ValidationIssue(
+                key="gamess_nzvar",
+                message="NZVAR needs a $ZMAT group, which has to be added to the deck",
                 severity="warning",
             )
         )

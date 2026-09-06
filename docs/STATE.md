@@ -241,21 +241,11 @@ run against current code -- Playwright above all -- use the private-server recip
 
    Today that prints **3 rows, all PARTIAL** -- no CRITICAL or HIGH row is NOT STARTED, which is
    not the same claim and an earlier version of this file got it wrong. They are two pieces of
-   work, not three:
+   work, not three. AV-QM-003, the GAMESS-US dialog, closed at `77ac8c9` with all twelve of its
+   tabs ported (`backends/qc_inputs/gamess.py`, one `Section` per tab in `qc_inputs/plugin.py`);
+   the row's note records every departure from Avogadro's writers and why, with line numbers,
+   which is where to start if a deck ever looks wrong.
 
-   - **AV-QM-003 is done** and no longer in this list -- it is here only because the next
-     reader will look for it. All twelve tabs of the GAMESS-US dialog are ported
-     (`backends/qc_inputs/gamess.py`), each read out of the group writer it feeds rather than
-     out of the dialog, and each a `Section` of its own in `qc_inputs/plugin.py`
-     (`gamess_basis_detail`, `gamess_control`, `gamess_data`, `gamess_dft`, `gamess_misc`,
-     `gamess_guess`, `gamess_scf`, `gamess_mp2`, `gamess_statpt`, `gamess_hessian`,
-     `gamess_system`), which is what keeps the form readable and what keeps GAMESS's boxes out
-     of the other programs' forms: `SchemaForm.tsx` draws no heading for a section whose
-     parameters are all hidden, pinned by a vitest case. What is left is the geometry formats
-     Avogadro's own code does not write either -- a GAMESS Z-matrix and Hilderbrant internals,
-     both commented out in gamessinputdata.cpp:1761-1768. The row's note lists every departure
-     from Avogadro and why; roughly a dozen of its writers drop a box on the floor, and the note
-     names each one with a line number.
    - **AV-SURF-006** -- the OpenQube reader family. fchk, Molden, GAMESS-US, ORCA output and
      Molpro output are read: every reader the Avogadro corpus can validate. MOPAC's `.aux` is
      Slater-type and needs a second `basis_values` in `gto.py` -- that one is a subsystem, and

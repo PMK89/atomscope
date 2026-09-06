@@ -844,6 +844,14 @@ def test_the_gamess_data_tab_shapes_the_data_block_and_four_control_keywords() -
     assert lines[8].startswith("O     8.0")
     report = plugin.validate(water, {"program": "gamess", "gamess_point_group": "cnv"})
     assert any("symmetry-unique atoms" in i.message for i in report.issues)
+    # ...and COORD=CART is the way out of it, which is why the message names it
+    with_cart = plugin.validate(
+        water,
+        {"program": "gamess", "gamess_point_group": "cnv", "gamess_coord_type": "cartesian"},
+    )
+    assert with_cart.issues == []
+    zmat = plugin.validate(water, {"program": "gamess", "gamess_nzvar": 3})
+    assert any("$ZMAT group" in i.message for i in zmat.issues)
 
 
 def test_a_gamess_deck_in_bohr_carries_bohr_coordinates() -> None:
