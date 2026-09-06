@@ -36,8 +36,13 @@ const open = (kind: string): void => {
   fireEvent.change(screen.getByLabelText('Kind'), { target: { value: kind } });
 };
 
+const withRegistry = (node: JSX.Element): void => {
+  render(<PluginProvider registry={registry}>{node}</PluginProvider>);
+};
+
+/** The switch of one row of the manager, which is scoped: the thing it names is often on screen. */
 const switchOff = (name: string): void => {
-  const row = screen.getByLabelText(name);
+  const row = within(screen.getByRole('dialog')).getByLabelText(name);
   expect(row).toBeChecked();
   fireEvent.click(row);
 };
@@ -56,23 +61,18 @@ test('the details of a plugin are its name, its identifier, its kind and what it
 test('a tool that is switched off leaves the toolbar', () => {
   open('tool');
   switchOff('Measure');
-  render(
-    <PluginProvider registry={registry}>
-      <ToolBar />
-    </PluginProvider>,
-  );
+  withRegistry(<ToolBar />);
   expect(screen.queryByRole('button', { name: 'Measure' })).toBeNull();
   expect(screen.getByRole('button', { name: 'Draw' })).toBeInTheDocument();
 });
 
-test('a dock panel that is switched off loses its tab, and an open one falls back', () => {
+test('a dock panel that is switched off loses its tab, and the open one falls back', () => {
+  // the dock is open on the panel that is about to go, which is what the fallback is for
+  withRegistry(<RightDock onError={() => {}} />);
+  fireEvent.click(screen.getByRole('tab', { name: 'Spectra' }));
+  expect(screen.getByRole('tab', { name: 'Spectra' })).toHaveAttribute('aria-selected', 'true');
   open('panel');
   switchOff('Spectra');
-  render(
-    <PluginProvider registry={registry}>
-      <RightDock onError={() => {}} />
-    </PluginProvider>,
-  );
   expect(screen.queryByRole('tab', { name: 'Spectra' })).toBeNull();
   expect(screen.getByRole('tab', { name: 'Calculation' })).toHaveAttribute('aria-selected', 'true');
 });
@@ -86,9 +86,10 @@ test('a colour scheme that is switched off takes the view back to element colour
 
 test('the two everything else falls back to cannot be switched off', () => {
   open('tool');
-  expect(screen.getByLabelText('Navigate')).toBeDisabled();
+  const dialog = within(screen.getByRole('dialog'));
+  expect(dialog.getByLabelText('Navigate')).toBeDisabled();
   fireEvent.change(screen.getByLabelText('Kind'), { target: { value: 'color' } });
-  expect(screen.getByLabelText('Element')).toBeDisabled();
+  expect(dialog.getByLabelText('Element')).toBeDisabled();
 });
 
 test('a layer that is switched off is one the renderer is not given', () => {
@@ -110,11 +111,7 @@ test('an extension that is switched off leaves its menu', () => {
   open('menu');
   switchOff('Extensions: Cut wires');
   expect([...usePluginStore.getState().disabled]).toEqual(['menu:cut-wires']);
-  render(
-    <PluginProvider registry={registry}>
-      <MenuBar onError={() => {}} />
-    </PluginProvider>,
-  );
+  withRegistry(<MenuBar onError={() => {}} />);
   fireEvent.click(screen.getByRole('button', { name: 'Extensions' }));
   expect(screen.queryByRole('menuitem', { name: /Cut wires/ })).toBeNull();
   expect(screen.getByRole('menuitem', { name: 'Perceive bonds' })).toBeInTheDocument();

@@ -2,7 +2,7 @@
 
 Branch: main; this file is updated in the commit that checkpoints the work, so `git log -1 -- docs/STATE.md` is the last checkpoint. Phases 0-1 done; Phase 2 (editor tools), 3 (volumetric, trajectories, vectors), 4-5 (CP-PAW setup/execution/forces), 6 (CP-PAW analysis: DOS, bands, orbitals), crystallography, molecular mechanics and wavefunction surfaces are merged and working. Parity matrix: 220 IMPLEMENTED, 18 PARTIAL, 73 NOT STARTED, 1 BLOCKED of 312 rows.
 
-Tests: `pytest -q -m "not cppaw"` -> 475 passed, 1 skipped; `pytest -q -m cppaw` -> 7 passed (~90 s, needs the local CP-PAW install); `pnpm vitest run` -> 508 passed; `pnpm exec playwright test` -> 38 passed in 56 s at `2db2f07`+ (against private servers, see below; `make test-e2e` points at the user's 5173, which is stale). **`source env.sh` before Playwright**: without `PLAYWRIGHT_BROWSERS_PATH` it looks in `~/.cache/ms-playwright`, finds nothing, and every test fails at `browserType.launch`. `ruff check`, `mypy` and `pnpm typecheck` are clean. No known failing tests. **Type-check the frontend with `pnpm typecheck` (`tsc -b --noEmit`), never with `pnpm exec tsc --noEmit`:** the root `tsconfig.json` is a solution file with `files: []`, so a bare `tsc --noEmit` checks nothing and exits 0.
+Tests: `pytest -q -m "not cppaw"` -> 475 passed, 1 skipped; `pytest -q -m cppaw` -> 7 passed (~90 s, needs the local CP-PAW install); `pnpm vitest run` -> 508 passed; `pnpm exec playwright test` -> 39 passed in 57 s at `b745bb3`+ (against private servers, see below; `make test-e2e` points at the user's 5173, which is stale). **`source env.sh` before Playwright**: without `PLAYWRIGHT_BROWSERS_PATH` it looks in `~/.cache/ms-playwright`, finds nothing, and every test fails at `browserType.launch`. `ruff check`, `mypy` and `pnpm typecheck` are clean. No known failing tests. **Type-check the frontend with `pnpm typecheck` (`tsc -b --noEmit`), never with `pnpm exec tsc --noEmit`:** the root `tsconfig.json` is a solution file with `files: []`, so a bare `tsc --noEmit` checks nothing and exits 0.
 
 ## Resume commands
 
@@ -261,7 +261,13 @@ run against current code -- Playwright above all -- use the private-server recip
      compile-time modules, so a third-party plugin means a rebuild -- there is no runtime
      `import()` of arbitrary code out of a Vite bundle without a manifest and a second bundle.
      `plugins/registry.test.tsx` is a test-only plugin contributing one of each of the five, and
-     asserts the application's own registry carries none of them.
+     asserts the application's own registry carries none of them; `ui/PluginManagerDialog.test.tsx`
+     is what "switched off" means for each of the five, and a Playwright test
+     (`e2e/view.spec.ts`) is the one of those that only a real renderer can show -- a layer
+     leaving and rejoining a running one. Two things noted rather than fixed: a re-enabled layer
+     is appended after the others rather than back in its registration place, which matters only
+     if transparency ordering ever does; and any switch rebuilds the tool host, `disabled` being
+     a fresh set each time, which costs a dispose and a construct behind a modal.
    - **AV-SURF-006** -- the OpenQube reader family. fchk, Molden, GAMESS-US, ORCA output and
      Molpro output are read: every reader the Avogadro corpus can validate. MOPAC's `.aux` is
      Slater-type and needs a second `basis_values` in `gto.py` -- that one is a subsystem, and

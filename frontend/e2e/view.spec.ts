@@ -79,3 +79,30 @@ test('a bond can be selected on its own', async ({ page }) => {
   await expect(page.locator('.app-statusbar')).toContainText('0 selected, 1 bond');
   await page.screenshot({ path: '../.scratch/dev/bond-selection.png' });
 });
+
+/** Whether the running renderer carries a layer, which is where a plugin switch has to reach. */
+const hasLayer = (page: import('@playwright/test').Page, id: string): Promise<boolean> =>
+  page.evaluate((layerId) => {
+    const renderer = (window as unknown as { __atomscopeRenderer?: unknown })
+      .__atomscopeRenderer as { getLayer(id: string): unknown } | undefined;
+    return renderer !== undefined && renderer.getLayer(layerId) !== undefined;
+  }, id);
+
+test('switching a display type off takes it out of the running renderer', async ({ page }) => {
+  await page.goto('/');
+  await expect(page.locator('.app-statusbar')).toContainText('H2O');
+  expect(await hasLayer(page, 'axes')).toBe(true);
+
+  await page.getByRole('button', { name: 'Settings' }).click();
+  await page.getByRole('menuitem', { name: 'Plugin manager…' }).click();
+  const dialog = page.getByRole('dialog', { name: 'Plugin manager' });
+  await expect(dialog).toBeVisible();
+  await dialog.getByLabel('Kind').selectOption('layer');
+
+  // Avogadro's own switch reloaded the engines rather than waiting for the next start
+  await dialog.getByLabel('Axes').uncheck();
+  await expect.poll(() => hasLayer(page, 'axes')).toBe(false);
+  await dialog.getByLabel('Axes').check();
+  await expect.poll(() => hasLayer(page, 'axes')).toBe(true);
+  await dialog.getByRole('button', { name: 'Close' }).click();
+});

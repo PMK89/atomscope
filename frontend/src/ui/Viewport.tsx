@@ -15,7 +15,7 @@ import { useRendererStore } from '../state/rendererStore';
 import { useIsosurfaceLayers } from './useIsosurfaceLayers';
 import { ViewportOverlay } from './ViewportOverlay';
 import { usePlugins } from '../plugins/context';
-import { enabledLayers, enabledTools, useDisabled } from '../plugins/enabled';
+import { enabledColorSchemes, enabledLayers, enabledTools, useDisabled } from '../plugins/enabled';
 
 /** Owns one Renderer for its lifetime, feeds it store snapshots and routes input to the tools. */
 export function Viewport(): JSX.Element {
@@ -60,16 +60,29 @@ export function Viewport(): JSX.Element {
   const palette = view.residuePalette;
   const schemeColors = useMemo(
     () =>
-      registry.colorScheme(scheme)?.colors({
-        residues,
-        atomCount,
-        secondary,
-        atoms: colorAtoms,
-        charges: colorCharges,
-        custom,
-        palette,
-      }) ?? null,
-    [registry, residues, atomCount, scheme, secondary, colorAtoms, colorCharges, custom, palette],
+      enabledColorSchemes(registry, disabledPlugins)
+        .find((c) => c.id === scheme)
+        ?.colors({
+          residues,
+          atomCount,
+          secondary,
+          atoms: colorAtoms,
+          charges: colorCharges,
+          custom,
+          palette,
+        }) ?? null,
+    [
+      registry,
+      disabledPlugins,
+      residues,
+      atomCount,
+      scheme,
+      secondary,
+      colorAtoms,
+      colorCharges,
+      custom,
+      palette,
+    ],
   );
   // per-atom colours are painted over the scheme, and give the array back untouched when there
   // are none -- so an unassigned document keeps the identity the structure layer compares
@@ -119,7 +132,9 @@ export function Viewport(): JSX.Element {
     renderer.invalidate();
   }, [renderer, registry, disabledPlugins]);
 
-  // the host is given the tools that are switched on, so a disabled tool leaves its shortcut too
+  // The host is given the tools that are switched on, so a disabled tool leaves its shortcut too.
+  // Any switch rebuilds it, `disabledPlugins` being a fresh set each time -- which costs a
+  // dispose and a construct behind a modal dialog, and is not worth narrowing into a bug.
   useEffect(() => {
     if (!renderer) return;
     const tools = enabledTools(registry, disabledPlugins).map((c) => c.tool);
