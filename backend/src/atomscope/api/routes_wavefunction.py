@@ -64,6 +64,11 @@ class WavefunctionInfo(StrictModel):
     homo_index: int | None
     source: str
     format: str
+    coefficient_convention: str | None = Field(
+        default=None,
+        description="which convention the reader measured the basis coefficients to be in,"
+        " when it had to measure (Molden files); null when it did not",
+    )
 
 
 class LoadRequest(StrictModel):
@@ -130,6 +135,7 @@ def load(body: LoadRequest, request: Request) -> WavefunctionInfo:
         homo_index=homo,
         source=wavefunction.source,
         format=wavefunction.metadata.get("format", "unknown"),
+        coefficient_convention=wavefunction.metadata.get("coefficient_convention"),
     )
 
 

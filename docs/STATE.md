@@ -158,9 +158,17 @@ run against current code -- Playwright above all -- use the private-server recip
   own normalization in (a single-primitive s shell comes out as 0.36 where the specification says
   1). Read as the specification says, the shells are the wrong shape and each is still normalized
   afterwards, so nothing looks wrong until the orbitals are integrated: they came back at 0.82.
-  `molden._with_normalized_primitives` tells the two apart by measuring -- every spec-conforming
-  shell has a self-overlap of exactly 1.000, and the ORCA file's run from 0.11 to 7.35 -- and
-  divides the normalization back out. Ruled out on the way, so nobody repeats it: it is not
+  `molden._with_normalized_primitives` tells the two apart by measuring, two ways that have to
+  agree before anything is divided out: every conforming shell's self-overlap is 1.000 (the ORCA
+  file's run from 0.11 to 7.35), and an uncontracted s or p shell is written as 1 under the
+  specification and as N(alpha) by ORCA. The self-overlap test alone has a false positive -- a
+  conforming file whose *contractions* are not normalized, i.e. coefficients copied out of a
+  basis-set library, which Molden itself renormalizes on read -- and the second test is what
+  keeps that file from being mangled the way ORCA's were. No such file is in the corpus (there
+  are only two Molden files in it, and they are the two fixtures), so that case is tested from a
+  handmade file. The measured convention rides in `wavefunction.metadata` and reaches the
+  surfaces panel, so a reader that transforms the numbers it was given says that it did. Ruled
+  out on the way, so nobody repeats it: it is not
   quadrature (converged over spacing 0.18 to 0.08 and padding 5 to 12 A), not the primitive
   normalization on its own (dropping `contraction_norm` gives 6.3), and not a dropped or
   misparsed coefficient (all 246 per orbital are read, and match the file).

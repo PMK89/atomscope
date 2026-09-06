@@ -4995,6 +4995,11 @@ export interface components {
      * @description What a loaded wavefunction offers; the structure is saved into the project.
      */
     WavefunctionInfo: {
+      /**
+       * Coefficient Convention
+       * @description which convention the reader measured the basis coefficients to be in, when it had to measure (Molden files); null when it did not
+       */
+      coefficient_convention?: string | null;
       /** Format */
       format: string;
       /** Homo Index */

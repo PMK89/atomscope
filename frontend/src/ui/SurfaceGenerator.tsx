@@ -154,6 +154,9 @@ export function SurfaceGenerator({
           <p className="muted" data-testid="wf-summary">
             {info.format} &middot; {info.n_electrons} electrons &middot; {info.n_basis} basis
             functions &middot; {info.orbitals.length} orbitals
+            {info.coefficient_convention && (
+              <> &middot; coefficients read as {info.coefficient_convention}</>
+            )}
           </p>
           <div className="form-row">
             <label htmlFor="wf-kind">Surface type</label>

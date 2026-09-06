@@ -6381,6 +6381,18 @@
         "additionalProperties": false,
         "description": "What a loaded wavefunction offers; the structure is saved into the project.",
         "properties": {
+          "coefficient_convention": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "which convention the reader measured the basis coefficients to be in, when it had to measure (Molden files); null when it did not",
+            "title": "Coefficient Convention"
+          },
           "format": {
             "title": "Format",
             "type": "string"

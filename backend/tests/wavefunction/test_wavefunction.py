@@ -330,6 +330,7 @@ def test_an_orca_molden_file_is_read_in_its_own_coefficient_convention() -> None
     primitive normalization back out, which is what this test is checking.
     """
     wf = read_wavefunction(FIX / "caffeine_orca.molden.gz")
+    assert wf.metadata["coefficient_convention"] == "unnormalized primitives"
     assert wf.structure.formula() == "C8H10N4O2"
     assert wf.n_basis == 246 and wf.n_electrons == 102 and wf.homo_index() == 50
     box = bounding_box(wf.structure, padding=4.0, spacing=0.2)
@@ -343,5 +344,61 @@ def test_a_molden_file_that_follows_the_specification_is_left_alone() -> None:
     from atomscope.wavefunction.gto import contraction_norm  # noqa: PLC0415
 
     wf = read_wavefunction(FIX / "benzene.molden.gz")
+    assert wf.metadata["coefficient_convention"] == "normalized primitives"
     factors = [contraction_norm(shell) for shell in wf.shells]
     assert max(abs(f - 1.0) for f in factors) < 1e-9
+
+
+def _molden(gto: str, n_basis: int) -> str:
+    """A one-atom Molden file with `gto` as its ``[GTO]`` body and one occupied orbital."""
+    coefficients = "\n".join(f"   {i + 1}  {1.0 if i == 0 else 0.0}" for i in range(n_basis))
+    return (
+        "[Molden Format]\n[Atoms] AU\nH     1    1    0.0 0.0 0.0\n"
+        f"[GTO]\n  1 0\n{gto}\n\n"
+        f"[MO]\n Sym= 1a\n Ene= -0.5\n Spin= Alpha\n Occup= 2.0\n{coefficients}\n"
+    )
+
+
+def test_a_conforming_file_with_unnormalized_contractions_is_left_alone(tmp_path: Path) -> None:
+    """The self-overlap test alone has a false positive; the second test catches it.
+
+    Coefficients taken straight out of a basis-set library are for normalized primitives but do
+    not normalize the contraction, and Molden itself renormalizes them on read. Such a file has
+    shell self-overlaps well away from 1 -- 1.70 for this cc-pVDZ hydrogen -- and would be
+    "corrected" by that test alone, mangling the shapes the same way ORCA's files are mangled
+    without the fix. Its uncontracted shell still says 1, so the two tests disagree and the
+    reader leaves the coefficients exactly as written.
+    """
+    path = tmp_path / "library.molden"
+    path.write_text(
+        _molden(
+            " s   3 1.00\n   13.0100000  0.0196850\n    1.9620000  0.1379770\n"
+            "    0.4446000  0.4781480\n s   1 1.00\n    0.1220000  1.0000000",
+            2,
+        )
+    )
+    wf = read_molden(path)
+    convention = wf.metadata["coefficient_convention"]
+    assert convention == "normalized primitives, unnormalized contractions"
+    assert wf.shells[0].coefficients[0] == pytest.approx(0.019685)
+    assert wf.shells[1].coefficients[0] == pytest.approx(1.0)
+
+
+def test_a_file_with_no_uncontracted_s_or_p_shell_falls_back_to_the_self_overlaps(
+    tmp_path: Path,
+) -> None:
+    """Nothing to ask the second test, so the first decides on its own and the note says so."""
+    from atomscope.wavefunction.gto import contraction_norm  # noqa: PLC0415
+    from atomscope.wavefunction.model import Shell  # noqa: PLC0415
+
+    exponents = np.array([1.2, 0.3])
+    conforming = np.array([0.4, 0.7])
+    conforming = conforming / contraction_norm(Shell(0, 2, False, exponents, conforming))
+    written = conforming * np.array([primitive_norm(float(e), (2, 0, 0)) for e in exponents])
+
+    path = tmp_path / "d-only.molden"
+    primitives = "\n".join(f"   {e}  {c}" for e, c in zip(exponents, written, strict=True))
+    path.write_text(_molden(f" d   2 1.00\n{primitives}", 6))
+    wf = read_molden(path)
+    assert wf.metadata["coefficient_convention"] == "unnormalized primitives (self-overlaps only)"
+    assert wf.shells[0].coefficients == pytest.approx(conforming)

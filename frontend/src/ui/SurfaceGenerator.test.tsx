@@ -150,3 +150,22 @@ test('a failed evaluation is reported once, from the task rather than the reques
   await waitFor(() => expect(errors).toEqual(['the basis went missing']));
   expect(screen.getByText('Calculate')).toBeEnabled();
 });
+
+test('the summary says so when the reader had to measure the coefficient convention', async () => {
+  // a Molden file from ORCA is read in a different convention than the format specifies, and a
+  // reader that silently transforms the numbers it was given should say that it did
+  vi.spyOn(api.wavefunction, 'load').mockResolvedValue({
+    ...INFO,
+    format: 'molden',
+    coefficient_convention: 'unnormalized primitives',
+  } as never);
+
+  render(<SurfaceGenerator onError={() => {}} onCreated={() => {}} />);
+  fireEvent.change(screen.getByLabelText('Wavefunction'), { target: { value: '/data/o.molden' } });
+  fireEvent.click(screen.getByText('Load'));
+
+  await screen.findByTestId('wf-summary');
+  expect(screen.getByTestId('wf-summary').textContent).toContain(
+    'coefficients read as unnormalized primitives',
+  );
+});
