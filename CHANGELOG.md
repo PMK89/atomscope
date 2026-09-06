@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- The **GAMESS-US input generator** gained the Basic Setup tab of Avogadro's
+  dialog: the theory list (AM1 and PM3 are Hamiltonians there and replace the
+  basis set), the nine-entry basis list with the keywords each entry stands
+  for, water as a PCM solvent, and a transition-state search. Its deck is
+  written here now, so `Memory` reaches `$SYSTEM MWORDS` and extra keywords
+  pass through as a line of their own.
+
 - The **Gaussian input generator** gained the options Avogadro's dialog had:
   processors and memory, a checkpoint file named after the deck, the Output box
   (Molden and Molekel add the keywords that make the log readable as a

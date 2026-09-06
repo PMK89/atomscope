@@ -20,7 +20,8 @@ def test_registered_and_non_executing() -> None:
         ("orca", ".inp", ["! B3LYP def2-SVP Opt", "%pal nprocs 4", "*xyz -1 2", "O "]),
         ("gaussian", ".gjf", ["b3lyp", "def2-SVP".lower(), "-1 2", "opt"]),
         ("nwchem", ".nw", ["charge -1", "xc B3LYP".lower(), "mult 2", "task dft optimize"]),
-        ("gamess", ".inp", ["runtyp=optimize", "icharg=-1", "mult=2", "dfttyp=b3lyp"]),
+        # GAMESS has boxes of its own; RHF/6-31G(d) is what they default to
+        ("gamess", ".inp", ["runtyp=optimize", "icharg=-1", "mult=2", "gbasis=n31 ngauss=6"]),
         ("mopac", ".mop", ["pm7", "charge=-1", "doublet uhf", "\n o "]),
     ],
 )
@@ -180,3 +181,76 @@ def test_a_gaussian_deck_can_carry_a_z_matrix() -> None:
         str(rows[1].a + 1),
         f"{rows[1].distance:.5f}",
     ]
+
+
+def test_gamess_deck_layout() -> None:
+    """A GAMESS deck is groups of keywords; Avogadro wrote them in this order.
+
+    The keywords each Basic Setup box stands for are the ones its own source spells out in the
+    comments beside them (`gamessinputdialog.cpp:1714-1795`).
+    """
+    water = from_atoms(molecule("H2O"), name="water")
+    gen = plugin.generate_inputs(
+        water,
+        {
+            "program": "gamess",
+            "task": "optimize",
+            "gamess_theory": "b3lyp",
+            "gamess_basis": "n31dp",
+            "gamess_solvent": "water",
+            "memory_mb": 2000,
+        },
+        "case",
+    )
+    lines = gen.files[0].text.split("\n")
+    assert lines[0] == " $BASIS GBASIS=N31 NGAUSS=6 NDFUNC=1 NPFUNC=1 $END"
+    assert lines[1] == " $PCM SOLVNT=WATER $END"
+    assert lines[2] == " $CONTRL SCFTYP=RHF RUNTYP=OPTIMIZE DFTTYP=B3LYP $END"
+    # a GAMESS word is eight bytes, so MWORDS is the megabytes over eight
+    assert lines[3] == " $SYSTEM MWORDS=250 $END"
+    assert lines[4] == "" and lines[5] == " $DATA" and lines[6] == "water" and lines[7] == "C1"
+    # every atom carries its nuclear charge, which is what $DATA holds beside the coordinates
+    assert lines[8].split() == ["O", "8.0", "0.00000", "0.00000", "0.11926"]
+    assert lines[11] == " $END"
+
+
+def test_a_semi_empirical_gamess_theory_is_a_basis_set() -> None:
+    """AM1 and PM3 are what GAMESS calls a GBASIS, and they take none of the basis options."""
+    water = from_atoms(molecule("H2O"), name="water")
+    gen = plugin.generate_inputs(
+        water,
+        {"program": "gamess", "task": "energy", "gamess_theory": "am1", "gamess_basis": "n311_2dp"},
+        "case",
+    )
+    assert gen.files[0].text.split("\n")[0] == " $BASIS GBASIS=AM1 $END"
+
+
+def test_a_gamess_core_potential_reaches_both_groups() -> None:
+    """SBKJC is a basis and an effective core potential, and $CONTRL has to say the second."""
+    water = from_atoms(molecule("H2O"), name="water")
+    gen = plugin.generate_inputs(
+        water,
+        {"program": "gamess", "task": "energy", "gamess_basis": "core_potential"},
+        "case",
+    )
+    lines = gen.files[0].text.split("\n")
+    assert lines[0] == " $BASIS GBASIS=SBKJC NDFUNC=1 $END"
+    assert lines[1] == " $CONTRL SCFTYP=RHF RUNTYP=ENERGY ECP=SBKJC $END"
+
+
+def test_an_odd_number_of_electrons_is_not_a_singlet() -> None:
+    """Avogadro forced ROHF and a doublet when the electron count said the choice was impossible."""
+    radical = from_atoms(molecule("OH"), name="hydroxyl")
+    gen = plugin.generate_inputs(radical, {"program": "gamess", "task": "energy"}, "case")
+    assert " SCFTYP=ROHF RUNTYP=ENERGY MULT=2 " in gen.files[0].text
+
+
+def test_only_gamess_writes_a_transition_state_deck() -> None:
+    """The other generators have no saddle-point keyword here, and say so rather than guessing."""
+    water = from_atoms(molecule("H2O"), name="water")
+    gen = plugin.generate_inputs(water, {"program": "gamess", "task": "transition_state"}, "case")
+    assert "RUNTYP=SADPOINT" in gen.files[0].text
+    report = plugin.validate(water, {"program": "orca", "task": "transition_state"})
+    assert any("transition-state" in i.message for i in report.issues)
+    with pytest.raises(ValueError, match="no transition-state deck"):
+        plugin.generate_inputs(water, {"program": "orca", "task": "transition_state"}, "case")

@@ -232,12 +232,15 @@ run against current code -- Playwright above all -- use the private-server recip
    not the same claim and an earlier version of this file got it wrong. They are three pieces of
    work, not four:
 
-   - **AV-QM-003** -- the GAMESS-US option dialog, the largest of Avogadro's generators (a port
-     of the MacMolPlt input builder: Basis, Control, SCF, DFT, MP2, CI/CC, Data, System, Stat
-     Point, Hessian and Misc tabs). AV-QM-002, the Gaussian one, is done, and its shape is the
-     one to follow: the deck is written in `backends/qc_inputs/gaussian.py` rather than through
-     ASE, because ASE's writer cannot say what the dialog offers, and the program's own boxes
-     are schema parameters made visible by `program == gaussian`.
+   - **AV-QM-003** -- the GAMESS-US option dialog, the largest of Avogadro's generators (3035
+     lines of `.ui` over a 2688-line input-data class, a port of the MacMolPlt input builder).
+     Its **Basic Setup tab is done** (`backends/qc_inputs/gamess.py`); what is left is the eleven
+     Advanced tabs -- Basis, Control, SCF, DFT, MP2, Hessian, Stat Point, Data, System, MO Guess,
+     Misc -- which are a tab's worth of keywords each and can land one at a time. Read the row's
+     note first: it lists them and says where each one's keywords live in Avogadro's source.
+     AV-QM-002, the Gaussian one, is done. Both follow the same shape: the deck is written here
+     rather than through ASE, because ASE's writers cannot say what the dialogs offer, and each
+     program's own boxes are schema parameters made visible by `program == <name>`.
    - **AV-SURF-006** -- the OpenQube reader family. fchk, Molden, GAMESS-US, ORCA output and
      Molpro output are read: every reader the Avogadro corpus can validate. MOPAC's `.aux` is
      Slater-type and needs a second `basis_values` in `gto.py` -- that one is a subsystem, and
@@ -261,8 +264,8 @@ run against current code -- Playwright above all -- use the private-server recip
    `methane.mpo` is 1s/2px/2py/2pz throughout, and so that path is ordered by the names Molpro
    prints with its phase convention untested.
 
-   So: **the GAMESS-US dialog is next**, and then plan the plugin rows deliberately rather than
-   starting them late in a session. MOPAC's Slater basis is what keeps AV-SURF-006 PARTIAL
+   So: **the GAMESS-US Advanced tabs are next** if you want that row finished, and then plan the
+   plugin rows deliberately rather than starting them late in a session. MOPAC's Slater basis is what keeps AV-SURF-006 PARTIAL
    either way.
 
    `chem/zmatrix.py` arrived with the Gaussian deck and is not Gaussian's: any generator that

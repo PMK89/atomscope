@@ -27,6 +27,9 @@ from atomscope.backends.base import (
     ResultBundle,
     Values,
 )
+from atomscope.backends.qc_inputs.gamess import BASIS_CHOICES as GAMESS_BASIS_CHOICES
+from atomscope.backends.qc_inputs.gamess import THEORY_CHOICES as GAMESS_THEORIES
+from atomscope.backends.qc_inputs.gamess import gamess_deck
 from atomscope.backends.qc_inputs.gaussian import gaussian_deck
 from atomscope.jobs.models import RunSpec
 from atomscope.model import Structure
@@ -61,6 +64,8 @@ MOPAC_MULTIPLICITY = {
 }
 """Programs with a method and a basis set to choose; MOPAC has a Hamiltonian instead."""
 _AB_INITIO = ("orca", "gaussian", "nwchem", "gamess")
+"""...of which GAMESS-US has lists of its own, from the dialog Avogadro ported from MacMolPlt."""
+_FREE_METHOD = ("orca", "gaussian", "nwchem")
 PERIODIC = ("espresso", "abinit")
 
 SCHEMA = ParameterSchema(
@@ -95,6 +100,7 @@ SCHEMA = ParameterSchema(
                     choices=[
                         Choice(value="energy", label="Single point energy"),
                         Choice(value="optimize", label="Geometry optimization"),
+                        Choice(value="transition_state", label="Transition state"),
                         Choice(value="frequencies", label="Frequencies"),
                     ],
                 ),
@@ -104,7 +110,7 @@ SCHEMA = ParameterSchema(
                     type="string",
                     default="B3LYP",
                     help="e.g. HF, B3LYP, PBE, MP2, CCSD(T); AM1 and PM3 take no basis set",
-                    visible_when=[VisibleWhen(key="program", op="in", value=list(_AB_INITIO))],
+                    visible_when=[VisibleWhen(key="program", op="in", value=list(_FREE_METHOD))],
                 ),
                 ParameterSpec(
                     key="basis",
@@ -112,7 +118,7 @@ SCHEMA = ParameterSchema(
                     type="string",
                     default="def2-SVP",
                     help="e.g. def2-SVP, 6-31G(d), 6-31G(d,p), STO-3G, 3-21G, LANL2DZ, cc-pVTZ",
-                    visible_when=[VisibleWhen(key="program", op="in", value=list(_AB_INITIO))],
+                    visible_when=[VisibleWhen(key="program", op="in", value=list(_FREE_METHOD))],
                 ),
                 ParameterSpec(
                     key="mopac_method",
@@ -126,6 +132,42 @@ SCHEMA = ParameterSchema(
                     ],
                     help="MOPAC's semi-empirical Hamiltonian; there is no basis set to choose.",
                     visible_when=[VisibleWhen(key="program", value="mopac")],
+                ),
+                ParameterSpec(
+                    key="gamess_theory",
+                    label="Theory",
+                    type="enum",
+                    default="rhf",
+                    choices=[
+                        Choice(value=key, label=label) for key, label in GAMESS_THEORIES.items()
+                    ],
+                    help="AM1 and PM3 are Hamiltonians and replace the basis set",
+                    visible_when=[VisibleWhen(key="program", value="gamess")],
+                ),
+                ParameterSpec(
+                    key="gamess_basis",
+                    label="Basis set",
+                    type="enum",
+                    default="n31d",
+                    choices=[
+                        Choice(value=key, label=choice.label)
+                        for key, choice in GAMESS_BASIS_CHOICES.items()
+                    ],
+                    visible_when=[
+                        VisibleWhen(key="program", value="gamess"),
+                        VisibleWhen(key="gamess_theory", op="not_in", value=["am1", "pm3"]),
+                    ],
+                ),
+                ParameterSpec(
+                    key="gamess_solvent",
+                    label="Solvent",
+                    type="enum",
+                    default="gas",
+                    choices=[
+                        Choice(value="gas", label="Gas"),
+                        Choice(value="water", label="Water (PCM)"),
+                    ],
+                    visible_when=[VisibleWhen(key="program", value="gamess")],
                 ),
                 ParameterSpec(
                     key="coordinates",
@@ -342,6 +384,13 @@ class QcInputsPlugin:
                     severity="warning",
                 )
             )
+        if merged.get("task") == "transition_state" and program != "gamess":
+            report.issues.append(
+                ValidationIssue(
+                    key="task",
+                    message="only the GAMESS-US generator writes a transition-state deck so far",
+                )
+            )
         if program in MOLECULAR and structure.is_periodic():
             report.issues.append(
                 ValidationIssue(
@@ -357,6 +406,12 @@ class QcInputsPlugin:
     ) -> GeneratedInputs:
         merged = merge_values(SCHEMA, values)
         program = str(merged["program"])
+        if merged["task"] == "transition_state" and program != "gamess":
+            msg = (
+                f"the {program} generator has no transition-state deck yet;"
+                " GAMESS-US is the one that writes RUNTYP=SADPOINT"
+            )
+            raise ValueError(msg)
         atoms = to_atoms(structure)
         atoms.info = {}
         mult = _multiplicity(structure, merged)
@@ -421,12 +476,21 @@ class QcInputsPlugin:
             _write(buf, atoms, "nwchem-in", **kwargs)
             name = f"{root_name}.nw"
         elif program == "gamess":
-            runtyp = {"energy": "energy", "optimize": "optimize", "frequencies": "hessian"}[task]
-            contrl = {"runtyp": runtyp, "icharg": charge, "mult": mult}
-            if method.upper() not in ("HF", "RHF", "UHF"):
-                contrl["dfttyp"] = method
-            _write(buf, atoms, "gamess-us-in", contrl=contrl, basis={"gbasis": basis})
             name = f"{root_name}.inp"
+            buf.write(
+                gamess_deck(
+                    structure,
+                    title=structure.name or root_name,
+                    theory=str(merged.get("gamess_theory", "rhf")),
+                    basis=str(merged.get("gamess_basis", "n31d")),
+                    task=task,
+                    charge=charge,
+                    multiplicity=mult,
+                    solvent=str(merged.get("gamess_solvent", "gas")),
+                    memory_mb=memory_mb,
+                    extra=extra,
+                )
+            )
         elif program == "mopac":
             hamiltonian = str(merged.get("mopac_method", "PM7"))
             # 1SCF is a single point; an optimization is MOPAC's default; FORCE is the Hessian

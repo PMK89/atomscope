@@ -912,6 +912,13 @@ which shows each file in full with its role, and offers `Save input files…`.
 Generation is deterministic: the same values always give byte-identical files.
 
 Some programs have boxes of their own, which appear when you pick them.
+GAMESS-US has the ones from the Basic Setup tab of its Avogadro dialog: a
+theory list where AM1 and PM3 replace the basis set rather than sitting beside
+it, a basis list whose entries stand for the `NGAUSS`/`NDFUNC`/`NPFUNC` and
+diffuse-function keywords GAMESS wants, `Core Potential`, and water as a PCM
+solvent. `Transition state` is a calculation type only GAMESS writes so far
+(`RUNTYP=SADPOINT`); the other generators say so rather than writing something
+that is not a saddle-point search.
 Gaussian has the ones its Avogadro dialog had: `Format` writes the geometry as
 Cartesian coordinates or as a Z-matrix (with the values in a `Variables`
 section, or in line), `Output` adds the keywords that make the log readable
