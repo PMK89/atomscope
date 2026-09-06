@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- A file that was drawn rather than computed -- a molfile from a sketcher, a
+  2D database record -- is offered a rough 3D geometry when it is opened, built
+  from the bonds and cleaned up with a force field. It is one undo step, and
+  `Build ▸ Generate 3D coordinates` builds one whenever you ask.
+
 - A wavefunction surface is computed beside the request rather than inside it:
   the panel shows how far it has got and can stop it, and a cancelled
   evaluation really ends the arithmetic instead of only ending the wait. Every

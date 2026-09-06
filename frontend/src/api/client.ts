@@ -286,6 +286,8 @@ export const api = {
       request<Structure>('/api/chem/remove-hydrogens', json(body)),
     perceiveBonds: (body: Body<'/api/chem/perceive-bonds', 'post'>) =>
       request<Structure>('/api/chem/perceive-bonds', json(body)),
+    generate3d: (body: Body<'/api/chem/generate-3d', 'post'>) =>
+      request<Structure>('/api/chem/generate-3d', json(body)),
     partialCharges: (body: Body<'/api/chem/partial-charges', 'post'>) =>
       request<ChargesResult>('/api/chem/partial-charges', json(body)),
     atomTypes: (body: Body<'/api/chem/atom-types', 'post'>) =>

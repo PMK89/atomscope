@@ -108,6 +108,26 @@ def test_partial_charges_sum_to_total_charge(client: TestClient, ethanol: Struct
     assert out["dipole"]["magnitude"]["unit"] in ("debye", "e*angstrom")
 
 
+def test_generate_3d_builds_a_geometry_and_refuses_a_point_cloud(client: TestClient) -> None:
+    drawing = from_smiles("c1ccccc1O")
+    flat = drawing.model_copy(
+        update={
+            "atoms": [
+                a.model_copy(update={"position": (a.position[0], a.position[1], 0.0)})
+                for a in drawing.atoms
+            ]
+        }
+    )
+    r = client.post("/api/chem/generate-3d", json={"structure": js(flat)})
+    assert r.status_code == 200, r.text
+    built = r.json()
+    assert len({round(a["position"][2], 6) for a in built["atoms"]}) > 1
+    assert [a["element"] for a in built["atoms"]][: flat.n_atoms] == flat.symbols()
+
+    cloud = js(flat.model_copy(update={"bonds": []}))
+    assert client.post("/api/chem/generate-3d", json={"structure": cloud}).status_code == 400
+
+
 def test_perceive_bonds_and_aromaticity(client: TestClient) -> None:
     benzene = from_smiles("c1ccccc1")
     bare = benzene.model_copy(update={"bonds": []})

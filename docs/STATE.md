@@ -1,6 +1,6 @@
 # Project state (resume here)
 
-Branch: main; this file is updated in the commit that checkpoints the work, so `git log -1 -- docs/STATE.md` is the last checkpoint. Phases 0-1 done; Phase 2 (editor tools), 3 (volumetric, trajectories, vectors), 4-5 (CP-PAW setup/execution/forces), 6 (CP-PAW analysis: DOS, bands, orbitals), crystallography, molecular mechanics and wavefunction surfaces are merged and working. Parity matrix: 211 IMPLEMENTED, 27 PARTIAL, 73 NOT STARTED, 1 BLOCKED of 312 rows.
+Branch: main; this file is updated in the commit that checkpoints the work, so `git log -1 -- docs/STATE.md` is the last checkpoint. Phases 0-1 done; Phase 2 (editor tools), 3 (volumetric, trajectories, vectors), 4-5 (CP-PAW setup/execution/forces), 6 (CP-PAW analysis: DOS, bands, orbitals), crystallography, molecular mechanics and wavefunction surfaces are merged and working. Parity matrix: 212 IMPLEMENTED, 26 PARTIAL, 73 NOT STARTED, 1 BLOCKED of 312 rows.
 
 Tests: `pytest -q -m "not cppaw"` -> 403 passed, 1 skipped; `pytest -q -m cppaw` -> 7 passed (~90 s, needs the local CP-PAW install); `pnpm vitest run` -> 472 passed; `pnpm exec playwright test` -> 36 passed (against private servers, see below; `make test-e2e` points at the user's 5173, which is stale). **`source env.sh` before Playwright**: without `PLAYWRIGHT_BROWSERS_PATH` it looks in `~/.cache/ms-playwright`, finds nothing, and every test fails at `browserType.launch`. `ruff check`, `mypy` and `pnpm typecheck` are clean. No known failing tests. **Type-check the frontend with `pnpm typecheck` (`tsc -b --noEmit`), never with `pnpm exec tsc --noEmit`:** the root `tsconfig.json` is a solution file with `files: []`, so a bare `tsc --noEmit` checks nothing and exits 0.
 
@@ -47,6 +47,18 @@ run against current code -- Playwright above all -- use the private-server recip
   derived per `${doc.id}:${revision}` and never stored. Typing a charge by hand drops
   `properties.dipole_moment`, which was the sum over the charges (editor/edits.ts).
   The IUPAC name is a PubChem lookup on a locally computed InChIKey, on a button.
+- A file drawn in two dimensions is offered a rough geometry on import (AV-MM-013): the offer
+  is made in `frontend/src/ui/buildGeometry.ts`, on the one path File > Open, Open Recent and a
+  dropped file share, and `POST /api/chem/generate-3d` builds it exactly as the reference did
+  (OBBuilder, AddHydrogens, MMFF94 with a UFF fallback, 250 conjugate-gradient steps).
+  Flatness is decided from the coordinates, in the frontend only -- the backend deliberately has
+  no second copy of the predicate to drift from it. The build is one undo step and
+  Build > Generate 3D coordinates repeats it while the document is still flat (the builder
+  discards the coordinates it is given, so offering it on a geometry would replace one).
+  `ob.StereoFrom2D` runs before the build, without which every double bond comes out trans.
+  Not covered: a molfile pasted with Ctrl+V, which is a fragment insertion, not a document open. RDKit cannot serve this
+  path: `structure_to_mol` sets `NoImplicit`, so `AddHs` adds nothing to a structure that came
+  through it.
 - Long field evaluations are tasks (AV-UI-022): `POST /api/wavefunction/surface` returns a
   token and computes in a worker thread, `GET`/`cancel` follow and stop it, and
   `EvaluationHooks` (wavefunction/cubes.py) is checked once per chunk of grid points so a
@@ -160,10 +172,13 @@ run against current code -- Playwright above all -- use the private-server recip
      docs/avogadro1-feature-parity.md
    ```
 
-   Today that prints **8 rows, all PARTIAL** -- no CRITICAL or HIGH row is NOT STARTED, which is
-   not the same claim and an earlier version of this file got it wrong. Each of the 8 has a note
-   saying which part is missing; they are the honest remaining HIGH work (Set Spacegroup, the Gaussian and GAMESS option dialogs, the wavefunction readers past
-   fchk/Molden, frontend plugin registration, modal progress dialogs).
+   Today that prints **7 rows, all PARTIAL** -- no CRITICAL or HIGH row is NOT STARTED, which is
+   not the same claim and an earlier version of this file got it wrong. Each of the 7 has a note
+   saying which part is missing; they are the honest remaining HIGH work (the sort box in the
+   selection tool, Set Spacegroup, the Gaussian and GAMESS option dialogs, the wavefunction
+   readers past fchk/Molden, frontend plugin registration). AV-MM-013 left the list in this
+   checkpoint: an imported drawing is offered a rough geometry and Build > Generate 3D
+   coordinates builds one on demand.
    Run the same awk with `MEDIUM` for what is next: today it lists 41 rows, of which the ones with
    a real workflow behind them are the conformer table (AV-MM-009), per-engine opacity
    (AV-VIS-007/011) and the dipole arrow (AV-ANAL-013, moved back to PARTIAL in this checkpoint:

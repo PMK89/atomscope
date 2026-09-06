@@ -505,6 +505,31 @@ document open at a time, so a drop carrying several files opens the first and
 says in the status bar that the others were left alone — Avogadro opened each
 in a window of its own, which there is no equivalent of here.
 
+**A file drawn in two dimensions is offered a geometry.** A molfile from a
+sketcher, or a database's 2D record, carries a connection table and flat
+coordinates: nothing can be measured, optimized or run on it. When every atom
+of an imported structure lies in one plane, Atomscope asks whether to build a
+rough geometry, and builds it the way Avogadro did — Open Babel's builder
+places the atoms from the bonds, hydrogens are added, and MMFF94 (UFF if the
+molecule has no MMFF types) cleans it up for 250 conjugate-gradient steps.
+
+Two differences from Avogadro. It read the dimension the file declared;
+Atomscope reads it off the coordinates, because its readers do not agree on how
+to report one — a genuinely three-dimensional file that happens to be perfectly
+flat costs you one question. And answering *Cancel* is not final: `Build ▸
+Generate 3D coordinates` runs the same build later, and either way it is one
+undo step, so Ctrl+Z brings the drawing back. The menu item is offered only
+while the document is flat: the builder throws away the coordinates it is
+given, so on a real geometry it would replace one.
+
+The build is a function of the bonds and the positions. Cis and trans survive,
+because a drawing carries them — the two ends of a cis double bond are drawn on
+the same side. Wedge and hash marks are not carried by the data model, so a
+drawing of one enantiomer may build the other. Fetches and `Build from SMILES…`
+are not asked about — they are already three-dimensional, and neither is a
+molfile *pasted* into the open document with Ctrl+V, which is inserted as a
+fragment beside what is already there rather than opened as a document.
+
 **Replacing the open document asks first** when it has unsaved work. `New`,
 `Open…`, a recent file, a fetch, `Build from SMILES…`, a trajectory import and
 a dropped file all put a new document in place of the old one, and loading

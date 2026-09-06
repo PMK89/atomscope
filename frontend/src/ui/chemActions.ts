@@ -61,6 +61,13 @@ export const removeHydrogens = (onError: (m: string) => void): Promise<boolean> 
     onError,
   );
 
+export const generate3d = (onError: (m: string) => void): Promise<boolean> =>
+  commitChemOp(
+    'Build 3D geometry',
+    (structure) => api.chem.generate3d({ structure, add_hydrogens: true }),
+    onError,
+  );
+
 export const perceiveBonds = (onError: (m: string) => void): Promise<boolean> =>
   commitChemOp(
     'Perceive bonds',

@@ -1,6 +1,6 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { expect, test, vi } from 'vitest';
-import { makeAtom } from '../model/structure';
+import { makeAtom, makeBond, normalizeStructure } from '../model/structure';
 import { useStructureStore } from '../state/structureStore';
 import { droppedFile, hasFiles } from './fileDrop';
 
@@ -97,5 +97,28 @@ test('a drop over unsaved work asks first, and Cancel keeps the document', async
   await waitFor(() => expect(confirm).toHaveBeenCalled());
   expect(importUpload).not.toHaveBeenCalled();
   expect(useStructureStore.getState().doc.name).toBe('work in progress');
+  confirm.mockRestore();
+});
+
+test('a dropped drawing is offered a geometry, on the same path File ▸ Open takes', async () => {
+  const flat = {
+    name: 'sketch',
+    charge: 0,
+    atoms: [makeAtom('C', [0, 0, 0]), makeAtom('C', [1.4, 0, 0]), makeAtom('O', [2.1, 1.2, 0])],
+    bonds: [makeBond(0, 1), makeBond(1, 2)],
+  };
+  // the previous test left unsaved work in the shared store; this one is about the second question
+  useStructureStore.getState().load(normalizeStructure({ ...flat, name: 'saved' } as never));
+  importUpload.mockClear();
+  importUpload.mockResolvedValue(flat);
+  const confirm = vi.spyOn(window, 'confirm').mockReturnValue(false);
+  render(<App />);
+  const shell = screen.getByTestId('viewport').closest('.app-shell')!;
+
+  fireEvent.drop(shell, { dataTransfer: transfer(file('sketch.mol')) });
+  await waitFor(() => expect(useStructureStore.getState().doc.name).toBe('sketch'));
+  // the document with no unsaved work is replaced without a question, so this one is the offer
+  await waitFor(() => expect(confirm).toHaveBeenCalledTimes(1));
+  expect(confirm.mock.calls[0]![0]).toMatch(/no 3D coordinates/);
   confirm.mockRestore();
 });

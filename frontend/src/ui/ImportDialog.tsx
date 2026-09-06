@@ -11,6 +11,7 @@ import { api, type FormatDescription } from '../api/client';
 import { normalizeStructure } from '../model/structure';
 import { useRecentStore } from '../state/recentStore';
 import { useStructureStore } from '../state/structureStore';
+import { offerGeometry } from './buildGeometry';
 import { openUploadedFile } from './openFile';
 import { confirmReplace } from './replaceDocument';
 
@@ -63,6 +64,7 @@ export function ImportDialog({
     setBusy(true);
     try {
       finish(await api.io.importPath({ path: path.trim(), ...(format ? { format } : {}) }));
+      await offerGeometry(onError);
       // the backend recorded it; the menu's copy of the list is now one behind
       void useRecentStore.getState().refresh();
     } catch (e) {
@@ -76,7 +78,7 @@ export function ImportDialog({
     setBusy(true);
     try {
       // the same path a dropped file takes, so the two agree on detection and on the document swap
-      if (await openUploadedFile(file, format || undefined)) onClose();
+      if (await openUploadedFile(file, onError, format || undefined)) onClose();
     } catch (e) {
       onError(`Open failed: ${(e as Error).message}`);
     } finally {

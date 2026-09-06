@@ -2180,6 +2180,23 @@
         "title": "Frame",
         "type": "object"
       },
+      "Generate3DRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "add_hydrogens": {
+            "default": true,
+            "description": "saturate the built molecule, as the reference program did",
+            "title": "Add Hydrogens",
+            "type": "boolean"
+          },
+          "structure": {
+            "$ref": "#/components/schemas/Structure"
+          }
+        },
+        "required": ["structure"],
+        "title": "Generate3DRequest",
+        "type": "object"
+      },
       "GeneratedFile": {
         "additionalProperties": false,
         "properties": {
@@ -7807,6 +7824,46 @@
           }
         },
         "summary": "Force Fields",
+        "tags": ["chem"]
+      }
+    },
+    "/api/chem/generate-3d": {
+      "post": {
+        "description": "Build a rough 3D geometry for a structure that was drawn in two dimensions.\n\nThe atoms keep their indices, so a selection still means what it meant; hydrogens are\nappended after them, as Avogadro's did.",
+        "operationId": "generate_3d_api_chem_generate_3d_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Generate3DRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Structure"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Generate 3D",
         "tags": ["chem"]
       }
     },

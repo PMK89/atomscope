@@ -32,6 +32,7 @@ import {
   addHydrogens,
   assignPartialCharges,
   copyIdentifier,
+  generate3d,
   hydrogenToMethyl,
   invertChirality,
   optimizeGeometry,
@@ -52,6 +53,7 @@ import { ExportImageDialog } from './ExportImageDialog';
 import { HelpDialog, type HelpTopic } from './HelpDialog';
 import { ExportDialog } from './ExportDialog';
 import { ImportDialog } from './ImportDialog';
+import { isFlat, offerGeometry } from './buildGeometry';
 import { confirmReplace } from './replaceDocument';
 import { Menu, type MenuItem } from './Menu';
 import type { StructureStyle } from '../renderer/layers/StructureLayer';
@@ -123,6 +125,7 @@ export function MenuBar({ onError }: { onError: (msg: string) => void }): JSX.El
     if (!confirmReplace()) return;
     try {
       store.load(normalizeStructure(await api.io.importPath({ path })));
+      await offerGeometry(onError);
       void refreshRecent();
     } catch (e) {
       onError(`Open failed: ${(e as Error).message}`);
@@ -365,6 +368,14 @@ export function MenuBar({ onError }: { onError: (msg: string) => void }): JSX.El
           { label: 'Insert peptide…', action: () => openBuildDialog('peptide') },
           { label: 'Insert nucleic acid…', action: () => openBuildDialog('nucleic') },
           { label: 'Insert nanotube or graphene…', action: () => openBuildDialog('nanotube') },
+          {
+            // Avogadro only offered this on load; here a No is not final. Only while the
+            // document is flat: the builder discards the coordinates it is given, so on a real
+            // geometry this would replace it with a rough one.
+            label: 'Generate 3D coordinates',
+            disabled: !isFlat(store.doc),
+            action: () => void generate3d(onError),
+          },
           {
             label: store.doc.cell ? 'Remove unit cell' : 'Add unit cell',
             action: () => void toggleCell(onError),

@@ -8,6 +8,7 @@ from fastapi import APIRouter, HTTPException, status
 from pydantic import Field
 
 from atomscope.chem import (
+    build3d,
     edits,
     forcefield,
     hydrogens,
@@ -87,6 +88,13 @@ class AtomsRequest(StrictModel):
 
 class AddHydrogensRequest(AtomsRequest):
     ph: float | None = Field(default=None, ge=0, le=14)
+
+
+class Generate3DRequest(StrictModel):
+    structure: Structure
+    add_hydrogens: bool = Field(
+        default=True, description="saturate the built molecule, as the reference program did"
+    )
 
 
 class PerceiveRequest(StrictModel):
@@ -190,6 +198,19 @@ def add_hydrogens(body: AddHydrogensRequest) -> Structure:
 @router.post("/remove-hydrogens", response_model=Structure)
 def remove_hydrogens(body: AtomsRequest) -> Structure:
     return hydrogens.remove_hydrogens(body.structure, _indices(body))
+
+
+@router.post("/generate-3d", response_model=Structure)
+def generate_3d(body: Generate3DRequest) -> Structure:
+    """Build a rough 3D geometry for a structure that was drawn in two dimensions.
+
+    The atoms keep their indices, so a selection still means what it meant; hydrogens are
+    appended after them, as Avogadro's did.
+    """
+    try:
+        return build3d.generate_3d(body.structure, add_hydrogens=body.add_hydrogens)
+    except (ValueError, ForceFieldError) as exc:
+        raise _bad(exc) from exc
 
 
 @router.post("/perceive-bonds", response_model=Structure)

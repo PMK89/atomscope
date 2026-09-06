@@ -629,6 +629,29 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/chem/generate-3d': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Generate 3D
+     * @description Build a rough 3D geometry for a structure that was drawn in two dimensions.
+     *
+     *     The atoms keep their indices, so a selection still means what it meant; hydrogens are
+     *     appended after them, as Avogadro's did.
+     */
+    post: operations['generate_3d_api_chem_generate_3d_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/chem/h-to-methyl': {
     parameters: {
       query?: never;
@@ -2998,6 +3021,16 @@ export interface components {
        * @description fs
        */
       time?: number | null;
+    };
+    /** Generate3DRequest */
+    Generate3DRequest: {
+      /**
+       * Add Hydrogens
+       * @description saturate the built molecule, as the reference program did
+       * @default true
+       */
+      add_hydrogens: boolean;
+      structure: components['schemas']['Structure'];
     };
     /** GeneratedFile */
     GeneratedFile: {
@@ -6069,6 +6102,39 @@ export interface operations {
         };
         content: {
           'application/json': components['schemas']['ForceFieldInfo'];
+        };
+      };
+    };
+  };
+  generate_3d_api_chem_generate_3d_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['Generate3DRequest'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['Structure'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
         };
       };
     };
