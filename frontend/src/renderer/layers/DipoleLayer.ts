@@ -23,6 +23,7 @@ import {
   Vector3,
 } from 'three';
 import { dipoleFromCharges } from '../../model/dipole';
+import type { StructureDoc } from '../../model/structure';
 import { arrowMatrices } from '../arrow';
 import type { DisplayLayer, LayerContext } from './Layer';
 
@@ -54,6 +55,8 @@ export class DipoleLayer implements DisplayLayer {
   private readonly head: Mesh;
   private readonly material = new MeshStandardMaterial({ roughness: 0.6, metalness: 0.0 });
   private lastKey = '';
+  private lastStructure: StructureDoc | null = null;
+  private lastOverride: Float32Array | null | undefined;
 
   constructor(settings: Partial<DipoleLayerSettings> = {}) {
     this.settings = { ...DEFAULT_DIPOLE_SETTINGS, ...settings };
@@ -78,11 +81,23 @@ export class DipoleLayer implements DisplayLayer {
 
   update(ctx: LayerContext): void {
     const key = JSON.stringify(this.settings) + ctx.revision;
-    if (key === this.lastKey) return;
+    const override = ctx.positionsOverride ?? null;
+    if (
+      key === this.lastKey &&
+      ctx.structure === this.lastStructure &&
+      override === this.lastOverride
+    )
+      return;
     this.lastKey = key;
+    this.lastStructure = ctx.structure;
+    this.lastOverride = override;
     this.material.color = new Color(this.settings.color);
 
-    const dipole = dipoleFromCharges(ctx.structure);
+    // the frame's geometry when one is playing, so this arrow and the per-atom ones agree about
+    // where the atoms are. Hidden atoms are summed over all the same: scoping the picture does
+    // not change the molecule's dipole, where a per-atom arrow on a hidden atom has nothing to
+    // point from.
+    const dipole = dipoleFromCharges(ctx.structure, override);
     if (!dipole || dipole.magnitude === 0) {
       this.shaft.visible = false;
       this.head.visible = false;

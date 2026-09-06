@@ -49,3 +49,17 @@ test('moving an atom changes the dipole, because it is never stored', () => {
   const second = dipoleFromCharges(stretched)!;
   expect(second.magnitude).not.toBeCloseTo(first.magnitude, 6);
 });
+
+test("given a frame it sums over that geometry, with the structure's charges", () => {
+  const doc = water([-0.68, 0.34, 0.34]);
+  const frame = new Float32Array([0, 0, 0.1173, 0, 1.5, 0.9, 0, -0.7572, -0.4692]);
+  const moved = dipoleFromCharges(doc, frame)!;
+  expect(moved.magnitude).not.toBeCloseTo(dipoleFromCharges(doc)!.magnitude, 6);
+  // and the arrow starts at the centre of the frame, not of the document (float32, so 6 places)
+  expect(moved.origin[1]).toBeCloseTo((1.5 - 0.7572) / 3, 6);
+  // a frame that does not fit the atoms is not a frame
+  expect(dipoleFromCharges(doc, new Float32Array([0, 0, 0]))!.magnitude).toBeCloseTo(
+    dipoleFromCharges(doc)!.magnitude,
+    9,
+  );
+});

@@ -20,11 +20,16 @@ const water = (charges?: number[]) => ({
     : {}),
 });
 
-const ctx = (structure: ReturnType<typeof water>, revision = 1): LayerContext => ({
+const ctx = (
+  structure: ReturnType<typeof water>,
+  revision = 1,
+  positionsOverride: Float32Array | null = null,
+): LayerContext => ({
   structure,
   revision,
   selectedAtoms: new Set<number>(),
   hoveredAtom: null,
+  positionsOverride,
 });
 
 test('one arrow when the structure carries charges, none when it does not', () => {
@@ -59,5 +64,19 @@ test('the scale is Angstrom per Debye, so a bigger scale is a longer arrow', () 
   layer.setSettings({ scale: 6 });
   layer.update(ctx(water([-0.68, 0.34, 0.34]), 2));
   expect(length()).toBeGreaterThan(short);
+  layer.dispose();
+});
+
+test('a played frame moves the arrow, so it agrees with the atoms being drawn', () => {
+  const layer = new DipoleLayer();
+  const doc = water([-0.68, 0.34, 0.34]);
+  const head = (): Vector3 => new Vector3().setFromMatrixPosition(layer.object.children[1]!.matrix);
+
+  layer.update(ctx(doc));
+  const still = head().clone();
+  // the same molecule, one hydrogen swung out: the dipole is not what it was
+  const frame = new Float32Array([0, 0, 0.1173, 0, 1.5, 0.9, 0, -0.7572, -0.4692]);
+  layer.update(ctx(doc, 1, frame));
+  expect(head().distanceTo(still)).toBeGreaterThan(0.05);
   layer.dispose();
 });

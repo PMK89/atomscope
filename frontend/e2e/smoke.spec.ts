@@ -780,7 +780,7 @@ test('the Properties tab shows the weight, the backend atom type and an editable
   await expect(page.getByText('dipole moment', { exact: true })).toHaveCount(0);
 });
 
-test('the dipole moment is drawn as an arrow once the charges are there', async ({ page }) => {
+test('the dipole panel says what it needs, then what the charges imply', async ({ page }) => {
   await page.goto('/');
   await expect(page.locator('.app-statusbar')).toContainText('H2O');
   await page.getByRole('tab', { name: 'Display' }).click();
