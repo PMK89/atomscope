@@ -195,9 +195,14 @@ def test_spacegroup_table_and_fill_by_setting(client: TestClient) -> None:
     assert len(table) == 530
     assert table[0]["hall_number"] == 1 and table[0]["number"] == 1
     assert table[-1]["number"] == 230
-    assert {"hall_number", "number", "international", "international_full", "hall", "choice"} == set(
-        table[0]
-    )
+    assert {
+        "hall_number",
+        "number",
+        "international",
+        "international_full",
+        "hall",
+        "choice",
+    } == set(table[0])
 
     asym = _post(client, "asymmetric-unit", {"structure": _json(NACL)})
     filled = _post(client, "fill", {"structure": _json(asym), "hall_number": 523})

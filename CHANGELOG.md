@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Surfaces can be generated from a **GAMESS-US log**, beside Gaussian
+  checkpoints and Molden files: the geometry, the basis and the orbitals are
+  read from the log itself.
+
 - The dipole moment is drawn: one red arrow through the molecule, summed from
   the partial charges every time the picture is rebuilt, so it follows an atom
   you drag. `View ▸ Show dipole moment`, or the Display tab, which also shows

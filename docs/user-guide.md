@@ -798,8 +798,13 @@ other).
 
 **Create surfaces from a wavefunction** (Avogadro's `Extensions ▸ Create
 Surfaces…`). Give the `Wavefunction` field the path to a Gaussian formatted
-checkpoint (`.fchk`, gzipped or not) or a Molden file and press `Load`: the
-panel lists the orbitals with their energies and marks the HOMO. Choose a
+checkpoint (`.fchk`), a Molden file or a GAMESS-US log (`.gamess`, or any file
+whose first lines carry the GAMESS banner) — gzipped or not — and press `Load`:
+the panel lists the orbitals with their energies and marks the HOMO. Of the
+seven readers Avogadro had, these three are here; MOPAC's `.aux`, GAMESS-UK,
+ORCA and Molpro are not read yet. A GAMESS log is read over the Cartesian
+basis its orbitals are printed in, whatever `ISPHER` was set to, which is what
+Avogadro did as well. Choose a
 surface type — a molecular orbital, the electron density, the spin density, the
 electrostatic potential or the van der Waals volume — a resolution and a
 padding, and press `Calculate`. The estimated number of grid points is shown

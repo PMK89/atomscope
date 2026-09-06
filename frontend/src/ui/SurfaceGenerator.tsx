@@ -1,6 +1,6 @@
 /**
  * "Create Surfaces" (Avogadro 1: Extensions > Create Surfaces...): load a wavefunction file
- * (Gaussian fchk, Molden) and evaluate an orbital, the density, the spin density, the
+ * (Gaussian fchk, Molden, GAMESS-US log) and evaluate an orbital, the density, the spin density, the
  * electrostatic potential or the van der Waals volume on a grid.
  *
  * The point count is estimated here from the loaded geometry so the cost of a request is visible

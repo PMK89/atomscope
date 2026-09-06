@@ -129,6 +129,8 @@ def test_pure_d_shell_is_orthonormal() -> None:
         ("d-only.fchk", 10, 0.12),
         ("benzene.fchk.gz", 42, 0.12),
         ("benzene.molden.gz", 42, 0.12),
+        ("d-only.gamess.gz", 10, 0.12),
+        ("f-only.gamess.gz", 10, 0.12),
     ],
 )
 def test_orbitals_are_orthonormal_and_density_integrates(
@@ -268,3 +270,50 @@ def test_every_field_can_be_stopped_while_it_walks_the_grid() -> None:
     ):
         with pytest.raises(EvaluationCancelledError):
             field()
+
+
+def test_gamess_log_reads_geometry_basis_and_orbitals() -> None:
+    """The parts of a GAMESS-US log, read as themselves rather than through the physics test."""
+    wf = read_wavefunction(FIX / "d-only.gamess.gz")
+    assert wf.metadata["format"] == "gamess"
+    assert wf.structure.formula() == "CH4" and wf.n_electrons == 10
+    assert wf.structure.provenance is not None
+    assert wf.structure.provenance.software == "GAMESS-US"
+    # coordinates are printed in Bohr; the C-H distance is 1.09 A
+    positions = wf.structure.positions()
+    assert float(np.linalg.norm(positions[1] - positions[0])) == pytest.approx(1.0897, abs=1e-3)
+    # 21 all-d shells, printed over the 126 Cartesian functions even though ISPHER=1 restricted
+    # the variation space (which is why only 105 orbitals come back, not 126)
+    assert len(wf.shells) == 21 and {s.angular_momentum for s in wf.shells} == {2}
+    assert all(not s.pure for s in wf.shells)
+    assert wf.n_basis == 126 and len(wf.orbitals) == 105
+    assert wf.homo_index() == 4  # ten electrons in five doubly occupied orbitals
+    assert wf.orbitals[0].energy == pytest.approx(-2.3155) and wf.orbitals[0].label == "A"
+    assert wf.orbitals[5].occupation == 0.0
+
+
+def test_gamess_f_shells_are_reordered_into_the_evaluators_convention() -> None:
+    """GAMESS writes f components in its own order, and the orbitals mean nothing without it.
+
+    Without the permutation the orbitals are not normalized -- the physics test above would fail
+    for `f-only.gamess.gz` -- so this checks the permutation itself, which says why.
+    """
+    from atomscope.wavefunction.gamess import _gamess_to_internal  # noqa: PLC0415
+
+    assert _gamess_to_internal(0) == [0]
+    assert _gamess_to_internal(1) == [0, 1, 2]
+    assert _gamess_to_internal(2) == [0, 1, 2, 3, 4, 5]  # d agrees with Gaussian
+    # f does not: internal XYY is GAMESS's YYX (index 5), internal XXY is its XXY (index 3), ...
+    assert _gamess_to_internal(3) == [0, 1, 2, 5, 3, 4, 7, 8, 6, 9]
+    wf = read_wavefunction(FIX / "f-only.gamess.gz")
+    assert {s.angular_momentum for s in wf.shells} == {3}
+    assert wf.n_basis == 210
+
+
+def test_a_log_that_is_not_a_wavefunction_says_so(tmp_path: Path) -> None:
+    from atomscope.wavefunction.gamess import read_gamess  # noqa: PLC0415
+
+    empty = tmp_path / "empty.gamess"
+    empty.write_text("GAMESS VERSION = 1 MAY 2013\nnothing else here\n")
+    with pytest.raises(ValueError, match="no atom coordinates"):
+        read_gamess(empty)
