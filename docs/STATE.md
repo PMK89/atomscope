@@ -358,8 +358,10 @@ run against current code -- Playwright above all -- use the private-server recip
 4. **The input generators are the thread being pulled through the MEDIUM stratum.** Q-Chem
    (AV-QM-010), Psi4 (AV-QM-012), GAMESS-UK (AV-QM-006) and Molpro (AV-QM-008) are done; the one
    still open is Dalton (AV-QM-011, 1644 lines of cpp / 1667 of ui, three times the next
-   largest); NWChem (AV-QM-009) and ORCA (AV-QM-016) are PARTIAL. Every one of the four read so
-   far had a label or a keyword that disagreed with what the deck asks for, so
+   largest); NWChem (AV-QM-009) was PARTIAL through ASE's writer and is now its dialog's own
+   deck, and ORCA (AV-QM-016) is still PARTIAL -- its dialog is not in `quantuminput/`, so find
+   it before sizing it. Every one of the five read so far had a label or a keyword that
+   disagreed with what the deck asks for, so
    **read the combo items, the enum, the `get*Type` switch, the constructor and `resetClicked`
    before writing a line** -- GAMESS-UK's two polarized basis labels wrote unpolarized keywords,
    and both Q-Chem's and Psi4's Reset restores something the dialog never opened with. Each follows the

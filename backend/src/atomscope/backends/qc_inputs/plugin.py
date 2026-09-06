@@ -57,6 +57,9 @@ from atomscope.backends.qc_inputs.molpro import BASIS_LABELS as MOLPRO_BASIS_LAB
 from atomscope.backends.qc_inputs.molpro import THEORY_LABELS as MOLPRO_THEORY_LABELS
 from atomscope.backends.qc_inputs.molpro import VERSIONS as MOLPRO_VERSIONS
 from atomscope.backends.qc_inputs.molpro import molpro_deck
+from atomscope.backends.qc_inputs.nwchem import BASIS_LABELS as NWCHEM_BASIS_LABELS
+from atomscope.backends.qc_inputs.nwchem import THEORY_LABELS as NWCHEM_THEORY_LABELS
+from atomscope.backends.qc_inputs.nwchem import nwchem_deck
 from atomscope.backends.qc_inputs.psi4 import BASIS_LABELS as PSI4_BASIS_LABELS
 from atomscope.backends.qc_inputs.psi4 import SAPT_THEORIES as PSI4_SAPT
 from atomscope.backends.qc_inputs.psi4 import THEORY_LABELS as PSI4_THEORY_LABELS
@@ -117,9 +120,11 @@ MOPAC_MULTIPLICITY = {
 }
 """Programs whose method and basis set are typed in. MOPAC has a Hamiltonian instead, and
 GAMESS-US has lists of its own, from the dialog Avogadro ported from MacMolPlt."""
-_FREE_METHOD = ("orca", "gaussian", "nwchem")
+_FREE_METHOD = ("orca", "gaussian")
+"""The two whose method and basis are still free text. Every generator written from its own
+Avogadro dialog has that dialog's lists instead, in a section of its own."""
 
-_COORDINATE_BOX = ("gaussian", "qchem", "gamessuk", "molpro")
+_COORDINATE_BOX = ("gaussian", "qchem", "gamessuk", "molpro", "nwchem")
 """The dialogs with a Format box. GAMESS-UK's offers two of the three layouts (there is no
 compact Z-matrix there), and `validate` says so when the third is chosen."""
 PERIODIC = ("espresso", "abinit")
@@ -319,7 +324,7 @@ SCHEMA = ParameterSchema(
                     type="string",
                     default="",
                     advanced=True,
-                    help="appended to the route or keyword line; a line of its own for GAMESS, lines inside $rem for Q-Chem, and directives of their own before Psi4's molecule, Molpro's basis and GAMESS-UK's `enter`",
+                    help="appended to the route or keyword line; a line of its own for GAMESS, lines inside $rem for Q-Chem, and directives of their own before Psi4's molecule, Molpro's basis, NWChem's task and GAMESS-UK's `enter`",
                 ),
             ],
         ),
@@ -376,6 +381,35 @@ SCHEMA = ParameterSchema(
                         Choice(value=key, label=label) for key, label in PSI4_BASIS_LABELS.items()
                     ],
                     visible_when=[VisibleWhen(key="program", value="psi4")],
+                ),
+            ],
+        ),
+        Section(
+            id="nwchem",
+            label="NWChem",
+            help="the theory and basis lists of Avogadro's NWChem dialog",
+            parameters=[
+                ParameterSpec(
+                    key="nwchem_theory",
+                    label="Theory",
+                    type="enum",
+                    default="b3lyp",
+                    choices=[
+                        Choice(value=key, label=label)
+                        for key, label in NWCHEM_THEORY_LABELS.items()
+                    ],
+                    visible_when=[VisibleWhen(key="program", value="nwchem")],
+                ),
+                ParameterSpec(
+                    key="nwchem_basis",
+                    label="Basis set",
+                    type="enum",
+                    default="b631gd",
+                    choices=[
+                        Choice(value=key, label=label) for key, label in NWCHEM_BASIS_LABELS.items()
+                    ],
+                    help="the combo's spelling; the deck asks for the same sets as 6-31G* and so on",
+                    visible_when=[VisibleWhen(key="program", value="nwchem")],
                 ),
             ],
         ),
@@ -1978,26 +2012,20 @@ class QcInputsPlugin:
                 )
             )
         elif program == "nwchem":
-            theory = (
-                "scf"
-                if method.upper() in ("HF", "RHF", "UHF")
-                else ("mp2" if method.upper() == "MP2" else "dft")
-            )
-            task_kw = {"energy": "energy", "optimize": "optimize", "frequencies": "freq"}[task]
-            kwargs: dict[str, object] = {
-                "theory": theory,
-                "basis": basis,
-                "charge": charge,
-                "task": task_kw,
-                "label": root_name,
-            }
-            if theory == "dft":
-                kwargs["xc"] = method
-                kwargs["dft"] = {"mult": mult}
-            elif mult != 1:
-                kwargs["scf"] = {"nopen": mult - 1}
-            _write(buf, atoms, "nwchem-in", **kwargs)
             name = f"{root_name}.nw"
+            buf.write(
+                nwchem_deck(
+                    structure,
+                    title=structure.name or root_name,
+                    theory=str(merged.get("nwchem_theory", "b3lyp")),
+                    basis=str(merged.get("nwchem_basis", "b631gd")),
+                    task=task,
+                    charge=charge,
+                    multiplicity=mult,
+                    coordinates=str(merged.get("coordinates", "cartesian")),
+                    extra=extra,
+                )
+            )
         elif program == "qchem":
             name = f"{root_name}.qcin"
             buf.write(

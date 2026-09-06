@@ -967,6 +967,11 @@ after the basis it really requests. That dialog's theory box has no UHF or
 GVB entry, so the deck asks for `scftype rhf` whatever the multiplicity; above
 a singlet the form says so, and the extra keywords are where another
 wavefunction goes.
+NWChem has the four theories and nine basis sets its dialog offered and all
+three coordinate layouts. MP2 and CCSD freeze the core, Dunning's basis sets
+add `spherical`, and an open-shell structure reaches a keyword under every
+theory -- Avogadro's deck wrote the multiplicity into its DFT block alone, so a
+radical under Hartree-Fock ran as a closed shell without saying so.
 Molpro has its five theories, ten basis sets and all three coordinate layouts,
 and a `Molpro version` box: before 2009.1 a Cartesian geometry is written as an
 embedded xyz file and a Z-matrix names its symmetry inside the block, and from

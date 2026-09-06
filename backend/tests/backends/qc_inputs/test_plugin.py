@@ -920,6 +920,107 @@ def test_the_qchem_geometry_can_be_either_z_matrix() -> None:
     assert "r3" not in compact
 
 
+def test_the_default_nwchem_deck_is_pinned_byte_for_byte() -> None:
+    """`nwcheminputdialog.cpp:generateInputDeck` in its order: `echo`, `start molecule`, the
+    title, the charge, the geometry, the basis, the theory's block and the `task` line."""
+    water = from_atoms(molecule("H2O"), name="water")
+    file = plugin.generate_inputs(water, {"program": "nwchem"}, "case").files[0]
+    assert file.name == "case.nw"
+    assert file.text == (
+        "echo\n"
+        "\n"
+        "start molecule\n"
+        "\n"
+        'title "water"\n'
+        "charge 0\n"
+        "\n"
+        "geometry units angstroms print xyz autosym\n"
+        "   O        0.00000        0.00000        0.11926\n"
+        "   H        0.00000        0.76324       -0.47705\n"
+        "   H        0.00000       -0.76324       -0.47705\n"
+        "end\n"
+        "\n"
+        # the combo says 6-31G(d); the deck asks for the same set by its other name
+        "basis\n"
+        "  * library 6-31G*\n"
+        "end\n"
+        "\n"
+        "dft\n"
+        "  xc b3lyp\n"
+        "  mult 1\n"
+        "end\n"
+        "\n"
+        "task dft energy\n"
+    )
+
+
+def test_an_nwchem_open_shell_reaches_a_keyword_under_every_theory() -> None:
+    """`mult` was written inside the `dft` block and nowhere else (`:420-439`), so a doublet
+    asked for under HF, MP2 or CCSD reached no keyword at all. `nopen` says it to the SCF."""
+    methyl = from_atoms(molecule("CH3"), name="methyl")
+    for theory, block in (
+        ("rhf", "scf\n  nopen 1\nend\n"),
+        ("mp2", "scf\n  nopen 1\nend\n"),
+        ("ccsd", "scf\n  nopen 1\nend\n"),
+        ("b3lyp", "dft\n  xc b3lyp\n  mult 2\nend\n"),
+    ):
+        text = (
+            plugin.generate_inputs(methyl, {"program": "nwchem", "nwchem_theory": theory}, "c")
+            .files[0]
+            .text
+        )
+        assert block in text, (theory, text)
+    # a closed shell writes no scf block at all, as the dialog did not
+    water = from_atoms(molecule("H2O"), name="water")
+    closed = (
+        plugin.generate_inputs(water, {"program": "nwchem", "nwchem_theory": "rhf"}, "c")
+        .files[0]
+        .text
+    )
+    assert "\nscf\n" not in closed and "nopen" not in closed
+    assert closed.endswith("task scf energy\n")
+
+
+def test_an_nwchem_z_matrix_is_a_block_that_opens_and_closes() -> None:
+    """The compact branch named `zmatrix` on the geometry line (`:352`) and never closed the
+    block it opened; both layouts now open and close one the same way."""
+    water = from_atoms(molecule("H2O"), name="water")
+
+    def deck(layout: str) -> str:
+        return (
+            plugin.generate_inputs(water, {"program": "nwchem", "coordinates": layout}, "c")
+            .files[0]
+            .text
+        )
+
+    for layout in ("zmatrix", "zmatrix_compact"):
+        text = deck(layout)
+        assert "geometry units angstroms print\n zmatrix\n" in text
+        assert "\n end\nend\n" in text
+    assert "   a3      103.99988\n" in deck("zmatrix")
+    # the compact layout names the atoms rather than the variables
+    assert "  H3    O1        0.96857    H2      103.99988\n" in deck("zmatrix_compact")
+    assert "variables" not in deck("zmatrix_compact")
+
+
+def test_nwchem_frozen_cores_and_the_spherical_bases() -> None:
+    """MP2 and CCSD freeze the core, with the dialog's own comment; Dunning's sets are spherical
+    and the `basis` line says so."""
+    water = from_atoms(molecule("H2O"), name="water")
+
+    def deck(**values: object) -> str:
+        return plugin.generate_inputs(water, {"program": "nwchem", **values}, "c").files[0].text
+
+    assert "mp2\n  # Exclude core electrons from MP2 treatment\n  freeze atomic\nend" in deck(
+        nwchem_theory="mp2"
+    )
+    assert "freeze atomic" not in deck(nwchem_theory="rhf")
+    assert "\nbasis spherical\n" in deck(nwchem_basis="ccpvdz")
+    assert "\nbasis\n" in deck(nwchem_basis="sto3g")
+    # the effective core potential rides along in the library line, as the dialog wrote it
+    assert "  * library LANL2DZ ECP\n" in deck(nwchem_basis="lanl2dz")
+
+
 def test_the_default_molpro_deck_is_pinned_byte_for_byte() -> None:
     """`molproinputdialog.cpp:generateInputDeck` in its order, in the dialect the dialog opens
     on: before 2009.1 a Cartesian geometry is an embedded xyz file, count and comment line

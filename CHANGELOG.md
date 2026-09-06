@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+- **NWChem writes its own dialog's deck now**, not ASE's, with the four
+  theories and nine basis sets Avogadro offered, all three coordinate layouts,
+  the frozen cores MP2 and CCSD ask for and the `spherical` keyword Dunning's
+  sets need. Three things are repaired: the multiplicity used to reach only the
+  DFT block, so a doublet under HF, MP2 or CCSD was written into a deck that
+  said nothing about spin -- an open shell now writes `scf` / `nopen`; and a
+  compact Z-matrix both named itself on the wrong line and never closed the
+  block it opened. Its method and basis are the dialog's lists rather than free
+  text, as they are for every other generator written from its dialog.
+
 - A **Molpro input generator**: the deck Avogadro's dialog wrote, with its five
   theories, ten basis sets, three coordinate layouts and the version box that
   chooses between the pre-2009.1 dialect and 2009.1. A reference block is
