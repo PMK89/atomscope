@@ -152,6 +152,22 @@ run against current code -- Playwright above all -- use the private-server recip
   Playwright context is fresh per test, so e2e never sees them; a developer's own browser on 5173
   does. Avogadro's equivalent reset was `--erase-config` (AV-FILE-011, NOT STARTED).
 
+- **An ORCA-written Molden file parses but its orbitals do not normalize.** `read_wavefunction`
+  accepts `testfiles/koffein_orca.molden` (orca_2mkl output, caffeine, def2-SVP, 246 functions,
+  102 electrons, `[5D]`) and gets the geometry, the shells and the occupations right, but the
+  orbitals integrate to the wrong norm: the HOMO converges to **0.82** over spacings 0.18 down
+  to 0.08 and paddings 5 to 12 A, so it is not quadrature, and the occupied norms scatter from
+  0.59 to 2.57 (the high ones are under-sampled cores). Ruled out already: each basis function
+  self-normalizes to 1.000 on a local grid, exactly as benzene.molden.gz does, and dropping
+  `gto.contraction_norm` makes it far worse (6.3), so it is neither the contraction convention
+  nor the primitive normalization. Off-diagonal overlaps stay below 0.09, so the orbitals are
+  roughly orthogonal but wrongly scaled. Next step, which is also the cheapest route to the ORCA
+  half of AV-SURF-006: build the overlap matrix numerically on a grid (chunked
+  `S += (chi @ chi.T) * dv`), compute `C S C^T`, and test whether reordering the shells within an
+  atom -- or a per-shell factor -- restores the identity. Until that is settled, ORCA files are
+  not advertised as readable; a Molden file from Molden or Gaussian is (benzene.molden.gz passes
+  the physics test).
+
 - One flaky Playwright test, seen twice: `Export writes a file on this machine` failed in two
   runs that each took 1.9 minutes, both started in the same shell command as the dev server and
   a few seconds after it. The full suite takes ~50 s otherwise, and it passes there -- including
@@ -222,10 +238,13 @@ run against current code -- Playwright above all -- use the private-server recip
      contract and a registry; the frontend does not, and giving it one touches the renderer, the
      tool host and the dock. The biggest of the four, and the one to plan before starting.
 
-   **Start with ORCA under AV-SURF-006** unless something else has come up: the shape is proved,
-   the fixture is already in the corpus (`testfiles/koffein_orca.out`, 2.8 MB, so trim or gzip),
-   and the physics test that validates it is written. Then GAMESS-UK, then the two option
-   dialogs, and plan the plugin rows deliberately rather than starting them late in a session.
+   **Start with ORCA under AV-SURF-006** unless something else has come up -- but start with the
+   Molden route, not a new reader: `orca_2mkl` writes a Molden file, `read_wavefunction` already
+   accepts it, and its orbitals come back with the wrong norms (see Known problems above, which
+   records what has already been ruled out and the next experiment). Settling that gives ORCA
+   support for the price of a bug fix; a reader for ORCA's own `.out` is only worth writing
+   afterwards. Then GAMESS-UK, then the two option dialogs, and plan the plugin rows
+   deliberately rather than starting them late in a session.
 
    Run the same awk with `MEDIUM` for what is next there: today it lists 40 rows, 11 of them
    PARTIAL. The ones with a real workflow behind them are the conformer table (AV-MM-009), the
