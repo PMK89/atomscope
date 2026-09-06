@@ -35,7 +35,7 @@ we do not have · `TODO` not started.
 | 1 | Preparation | shell, build, defaults | — | — | how to run the code at all | not applicable — we drive the binaries | n/a |
 | 2.7 | Water structure | optimize the wave functions | H₂O in a 12 Å fcc cell, isolated | wave-function optimization, `START=T` | protocol file, convergence of the total energy | CP-PAW setup form, job console, convergence plot | RUNS |
 | 2.7.4 | Water structure | follow progress graphically | H₂O | — | energy and gap against iteration | convergence plot | TODO |
-| 2.8 | Water structure | relax the atomic positions | H₂O | atomic relaxation | final geometry, bond length and angle | relaxation run, geometry table, trajectory | TODO |
+| 2.8 | Water structure | relax the atomic positions | H₂O | atomic relaxation | final geometry, bond length and angle | relaxation run, geometry table, trajectory | RUNS |
 | 2.8.4 | Water structure | analyse with `paw_strc` | H₂O | — | bond lengths and angles from the tool | properties panel (bond/angle/torsion tables) | TODO |
 | 2.8.5 | Water structure | analyse in Avogadro | H₂O | — | the point of the whole application | our own viewer | TODO |
 | 3.3 | Water wave functions | extract and plot orbitals | H₂O | one-shot with orbital export | isosurfaces of the occupied and empty orbitals | orbital browser, isosurface engine | TODO |
@@ -80,6 +80,15 @@ we do not have · `TODO` not started.
   against the installed `paw_fast.x`, also gives 5.3843 eV — so the difference is the code or the
   setup files this machine has, not anything about our input. Worth knowing before comparing any
   other number in the course against a run here.
+- **The atomic friction schedule was pinned so that "automatic" did nothing on the way down.**
+  `!RDYN!AUTO` was written with `FACT(-)=1.0`, so the friction never decayed while the structure
+  was going downhill and a relaxation ran at whatever friction it started with. The course uses
+  0.9. The three `FRIC(-)`/`FACT(-)`/`FRIC(+)` values are schema parameters now, defaulting to the
+  course's.
+- **Chapter 2 reproduces the course's published numbers.** Relaxed water comes out at 0.9815 Å and
+  105.07°, against the 0.981 Å and 105.2° the course reports (experiment: 0.9572 Å, 104.474°).
+  That is the whole chain — our schema, our deck, the real binaries, our parsing — agreeing with a
+  published result.
 - `!OCCUPATIONS!STATE` **is** implemented (`strc.py`, `parse_occupation_states`), contrary to what
   ROADMAP Phase 4 still says; whether it covers what the NiO exercise needs is checked in ch. 7.
 

@@ -346,6 +346,51 @@ SCHEMA = ParameterSchema(
                     default=True,
                     backend_path="CONTROL/RDYN/AUTO",
                     visible_when=[VisibleWhen(key="task", value="relax")],
+                    help="Let the friction follow the energy: lower it while the structure is"
+                    " going downhill, raise it when it overshoots.",
+                ),
+                ParameterSpec(
+                    key="atom_auto_fric_minus",
+                    label="Atomic friction while the energy falls",
+                    type="number",
+                    default=0.0,
+                    minimum=0,
+                    backend_path="CONTROL/RDYN/AUTO/FRIC(-)",
+                    visible_when=[
+                        VisibleWhen(key="task", value="relax"),
+                        VisibleWhen(key="atom_auto", op="truthy"),
+                    ],
+                    advanced=True,
+                ),
+                ParameterSpec(
+                    key="atom_auto_fact_minus",
+                    label="Atomic friction factor while the energy falls",
+                    type="number",
+                    default=0.9,
+                    minimum=0,
+                    maximum=1,
+                    backend_path="CONTROL/RDYN/AUTO/FACT(-)",
+                    visible_when=[
+                        VisibleWhen(key="task", value="relax"),
+                        VisibleWhen(key="atom_auto", op="truthy"),
+                    ],
+                    advanced=True,
+                    help="Below 1 the friction decays step by step while the structure keeps"
+                    " going downhill, which is what makes the relaxation accelerate. At exactly 1"
+                    " the friction never falls and 'automatic' does nothing on the way down.",
+                ),
+                ParameterSpec(
+                    key="atom_auto_fric_plus",
+                    label="Atomic friction after an uphill step",
+                    type="number",
+                    default=0.01,
+                    minimum=0,
+                    backend_path="CONTROL/RDYN/AUTO/FRIC(+)",
+                    visible_when=[
+                        VisibleWhen(key="task", value="relax"),
+                        VisibleWhen(key="atom_auto", op="truthy"),
+                    ],
+                    advanced=True,
                 ),
                 ParameterSpec(
                     key="temperature",

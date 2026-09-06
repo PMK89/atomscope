@@ -40,6 +40,16 @@ async def run(exercise: Exercise, work_root: Path, *, fresh: bool) -> dict[str, 
     inp.mkdir(parents=True, exist_ok=True)
     work.mkdir(parents=True, exist_ok=True)
 
+    if exercise.continues:
+        # the course carries on in the same directory: the restart file is the whole point of
+        # START=F, and copying it is what "continue where you left off" means here
+        previous = work_root.parent / exercise.continues / "work"
+        restart = previous / f"{exercise.continues}.rstrt"
+        if not restart.exists():
+            msg = f"{exercise.id} continues {exercise.continues}, which has not been run"
+            raise SystemExit(msg)
+        shutil.copy(restart, work / f"{exercise.id}.rstrt")
+
     report = plugin.validate(exercise.structure, exercise.values)
     generated = plugin.generate_inputs(exercise.structure, exercise.values, exercise.id)
     (inp / "structure.json").write_text(exercise.structure.model_dump_json())

@@ -135,10 +135,13 @@ def build_cntl(root_name: str, v: Values) -> Block:  # noqa: PLR0912, PLR0915
         elif task == "relax":
             rdyn.set("FRIC", _f(v, "atom_friction", 0.1))
             if _b(v, "atom_auto", True):
+                # FACT(-) is what makes this automatic: below 1 the friction decays while the
+                # structure keeps going downhill. It used to be pinned at 1, which left the
+                # relaxation running at whatever friction it started with.
                 auto = rdyn.ensure_child("AUTO")
-                auto.set("FRIC(-)", 0.0)
-                auto.set("FACT(-)", 1.0)
-                auto.set("FRIC(+)", 0.01)
+                auto.set("FRIC(-)", _f(v, "atom_auto_fric_minus", 0.0))
+                auto.set("FACT(-)", _f(v, "atom_auto_fact_minus", 0.9))
+                auto.set("FRIC(+)", _f(v, "atom_auto_fric_plus", 0.01))
                 auto.set("FACT(+)", 1.0)
         else:
             rdyn.set("FRIC", 0.0)

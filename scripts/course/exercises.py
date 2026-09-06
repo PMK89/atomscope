@@ -32,6 +32,8 @@ class Exercise:
     """Schema values that differ from the plugin's defaults, or that the course states outright."""
     shows: str
     """What the course asks you to look at, and therefore what the example has to visualize."""
+    continues: str | None = None
+    """An exercise whose restart file this one carries on from, as the course's chapters do."""
     notes: tuple[str, ...] = field(default_factory=tuple)
     """Where our deck departs from the course's, and why."""
 
@@ -103,6 +105,49 @@ EXERCISES: tuple[Exercise, ...] = (
         ),
     ),
 )
+
+
+def _water_relaxation() -> Exercise:
+    """Chapter 2.8: relax the geometry once the wave functions are converged.
+
+    The course continues from the restart file the previous run left, with lower wave-function
+    friction and a friction on the atoms that decays while the energy keeps falling.
+    """
+    return Exercise(
+        id="water-relax",
+        chapter="2.8",
+        title="Relax the atomic positions of water",
+        structure=_water(),
+        values={
+            **COURSE_WAVEFUNCTION,
+            "task": "relax",
+            "start": "restart",
+            "nstep": 2000,
+            "empty_bands": 5,
+            "psi_auto_fric_minus": 0.05,
+            "psi_auto_fric_plus": 0.2,
+            "atom_friction": 0.0,
+            "atom_auto": True,
+            "atom_auto_fric_minus": 0.0,
+            "atom_auto_fact_minus": 0.9,
+            "atom_auto_fric_plus": 0.01,
+        },
+        shows="the O-H bond length and the H-O-H angle the relaxation settles on",
+        continues="water-wavefunction",
+        notes=(
+            (
+                "The course starts this from the restart file the ch. 2.7 run left behind, so the"
+                " example does too: it is the same working directory, with START=F."
+            ),
+            (
+                "Result: 0.9815 A and 105.07 degrees, against the 0.981 A and 105.2 degrees the"
+                " course reports for the same calculation. Experiment is 0.9572 A and 104.474."
+            ),
+        ),
+    )
+
+
+EXERCISES = (*EXERCISES, _water_relaxation())
 
 
 def by_id(exercise_id: str) -> Exercise:
