@@ -36,11 +36,19 @@ export function ExportDialog({
   const [conflict, setConflict] = useState<string | null>(null);
   const first = useRef<HTMLInputElement>(null);
   const dialog = useRef<HTMLDivElement>(null);
+  /**
+   * The path as last typed, readable from the format list's own callback. That list is fetched
+   * when the dialog opens, and until it arrives the format box has nothing in it -- so a path
+   * typed in the meantime has no writer yet, and the defaults the callback then applies would
+   * throw the path away. It picks the writer from what was typed instead.
+   */
+  const typed = useRef('');
 
   // `onError` is the App's setState, which never changes identity: this effect sets the format and
   // the path, so it must not re-run while the dialog is open or it would overwrite what is typed.
   useEffect(() => {
     if (!open) return;
+    typed.current = '';
     const previous = document.activeElement as HTMLElement | null;
     first.current?.focus();
     api.io
@@ -51,6 +59,11 @@ export function ExportDialog({
         const source = doc.provenance?.source ?? '';
         const from = extensionOf(source) ? formatForPath(list, source) : null;
         const chosen = defaultFormat(list, from);
+        if (typed.current) {
+          // typed before the writers were known: the path chooses one, as it does afterwards
+          setFormat(formatForPath(list, typed.current, chosen) ?? chosen);
+          return;
+        }
         setFormat(chosen);
         setPath(extensionOf(source) ? pathForFormat(list, source, chosen) : '');
       })
@@ -60,6 +73,7 @@ export function ExportDialog({
   if (!open) return null;
 
   const onPath = (next: string): void => {
+    typed.current = next;
     setPath(next);
     setConflict(null);
     // an extension nothing claims leaves the format alone: it is the format that decides the writer

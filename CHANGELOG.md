@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- **File > Export no longer loses a path typed while it is still loading.** The
+  dialog fetches the list of formats when it opens, and the defaults it applied
+  when that list arrived overwrote whatever had been typed in the meantime,
+  leaving the path empty and Save greyed out. A path that is already in the box
+  now survives, and chooses the writer by its extension exactly as it does once
+  the list is there. This was also the e2e suite's one intermittent failure.
+
 - A **Psi4 input generator**: the psithon script Avogadro's dialog writes -- a
   `set basis` line, a `molecule {}` block and the call that runs the job -- with
   its nine theories and five basis sets. Three things there are repaired rather

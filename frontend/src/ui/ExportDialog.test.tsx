@@ -120,3 +120,26 @@ test('anything else is reported and the dialog stays open', async () => {
   expect(onClose).not.toHaveBeenCalled();
   expect(screen.queryByRole('button', { name: 'Overwrite' })).toBeNull();
 });
+
+test('a path typed before the format list arrives survives it, and chooses the writer', async () => {
+  // the list is fetched when the dialog opens; until it answers there is no format to choose, so
+  // a path typed in the meantime used to be wiped by the defaults the answer applied
+  let deliver = (): void => {};
+  vi.spyOn(api.io, 'formats').mockReturnValue(
+    new Promise((resolve) => {
+      deliver = () => resolve(FORMATS as never);
+    }) as never,
+  );
+  show();
+  const path = screen.getByLabelText('Path on this machine');
+  fireEvent.change(path, { target: { value: '/tmp/water.pdb' } });
+  // nothing to choose from yet: the box has no options at all
+  expect(screen.queryAllByRole('option')).toHaveLength(0);
+
+  deliver();
+  await screen.findByRole('option', { name: /Chemical Markup/ });
+  expect(path).toHaveValue('/tmp/water.pdb');
+  // and the extension picks the writer, exactly as it does once the list is there
+  expect(screen.getByLabelText('Format')).toHaveValue('pdb');
+  expect(screen.getByRole('button', { name: 'Save' })).toBeEnabled();
+});

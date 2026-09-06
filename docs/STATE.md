@@ -182,15 +182,16 @@ run against current code -- Playwright above all -- use the private-server recip
   normalization on its own (dropping `contraction_norm` gives 6.3), and not a dropped or
   misparsed coefficient (all 246 per orbital are read, and match the file).
 
-- One flaky Playwright test, seen three times: `Export writes a file on this machine` failed in
-  three runs that each took 1.9 minutes, all started in the same shell command as the dev server
-  and a few seconds after it. Every time it has failed on the *second* Save click, the one that
-  should raise `exists already`, and every time the same test has passed on its own straight
-  afterwards and in the immediately following full run (50 s); giving the servers twenty seconds before starting is the first thing to have avoided it rather than survived it. The full suite takes ~50 s otherwise, and it passes there -- including
-  a deliberate cold run with `node_modules/.vite` deleted, which finished in 53 s with all 37
-  green, so it is machine load rather than a cold cache. Give the servers time to settle before
-  running the suite; if it fails in a *fast* run, that is new and its timeouts are the place to
-  look.
+- **The `Export writes a file on this machine` flake was a real bug, and is fixed.** It failed
+  four times, always on the *second* Save click and always in a run that took 1.9 minutes rather
+  than the usual 50 s, and always passed on its own straight afterwards -- so it was read as
+  machine load and a settle was prescribed. It was not. `ExportDialog` fetches the format list
+  when it opens and applies its defaults when the list arrives; Playwright fills the path in
+  between, and the arriving defaults set the path back to `''` (the document's provenance has no
+  extension), which disables Save. Under load the request is slow enough for the fill to win the
+  race. A path already in the box now survives the answer and picks the writer from its own
+  extension. `ExportDialog.test.tsx` pins it with a promise the test resolves by hand, and it
+  fails without the fix. If a *timing* failure appears here again, it is a different one.
 
 - Playwright's smoke spec is order-coupled: `Save as writes a second structure` needs a project,
   and the project is created by a test in *another* spec file. The full suite passes; running
