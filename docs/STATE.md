@@ -235,27 +235,30 @@ run against current code -- Playwright above all -- use the private-server recip
    - **AV-QM-002 / AV-QM-003** -- the Gaussian and GAMESS input dialogs. The decks are generated
      (the `qc_inputs` plugin), so what is missing is each program's option form. One dialog
      apiece, no new science.
-   - **AV-SURF-006** -- the OpenQube reader family. fchk, Molden, GAMESS-US and ORCA output are
-     read. MOPAC's `.aux` is Slater-type and needs a second `basis_values` in `gto.py` -- that
-     one is a subsystem, and the row cannot reach IMPLEMENTED without it.
+   - **AV-SURF-006** -- the OpenQube reader family. fchk, Molden, GAMESS-US, ORCA output and
+     Molpro output are read: every reader the Avogadro corpus can validate. MOPAC's `.aux` is
+     Slater-type and needs a second `basis_values` in `gto.py` -- that one is a subsystem, and
+     the row cannot reach IMPLEMENTED without it.
    - **AV-PLUG-001 / AV-PLUG-002** -- frontend plugin registration. The backend has a plugin
      contract and a registry; the frontend does not, and giving it one touches the renderer, the
      tool host and the dock. The biggest of the four, and the one to plan before starting.
 
-   **Do not start GAMESS-UK or MOPAC next**, whatever an earlier version of this file said: the
-   Avogadro corpus has no file for either, so neither reader could be validated the way the other
-   four were. What it does have, checked file by file: `koffein_orca.{out,molden}` (both read,
-   and read against each other), `benzene.{fchk,mold}`, `{d,f}-only.{fchk,gamess,g09}`,
-   `c60.fchk.gz`, `CO-cc-6Z.fchk.gz`, `NH3.fchk`, `methane.FChk`, three AIM `.wfn` files that no
-   OpenQube reader ever read -- and `methane.mpo`, which is
-   **Molpro**, not MOPAC, despite sitting in the row's Test column next to a MOPAC reader. Molpro
-   is therefore the one reader left that the corpus can validate: 25 kB, 6-31G methane with its
-   basis and orbitals printed (`gprint,basis` / `gprint,orbitals`), read by Avogadro in 347 lines
-   (`extensions/surfaces/molpro.cpp`), which reorders Molpro's d5 components -- a reordering the
-   fixture cannot exercise: its `BASIS DATA` block is 1s/2px/2py/2pz throughout, so write that
-   permutation only against a file that has d shells, or not at all. The two option dialogs are the other
-   near thing; plan the plugin rows deliberately rather than starting them late in a session.
-   MOPAC's Slater basis is what keeps AV-SURF-006 PARTIAL either way.
+   **The reader family is finished as far as the corpus can take it.** Molpro was the last file
+   in it; GAMESS-UK and MOPAC have none, so neither could be validated the way the other five
+   were, and writing an unvalidatable reader is how a silently wrong permutation gets shipped.
+   The whole wavefunction inventory, checked file by file: `koffein_orca.{out,molden}` (both
+   read, and read against each other), `benzene.{fchk,mold}`, `{d,f}-only.{fchk,gamess,g09}`,
+   `c60.fchk.gz`, `CO-cc-6Z.fchk.gz`, `NH3.fchk`, `methane.FChk`, `methane.mpo` (**Molpro**, not
+   MOPAC, despite sitting in the row's Test column next to a MOPAC reader) and three AIM `.wfn`
+   files that no OpenQube reader ever read. To go further someone has to bring a file: a MOPAC
+   `.aux`, a GAMESS-UK output, a generally contracted Molpro output (cc-pVDZ, which the reader
+   refuses today), or any Molpro output with a d shell -- `molpro.cpp:296` reorders d5 components,
+   `methane.mpo` is 1s/2px/2py/2pz throughout, and so that path is ordered by the names Molpro
+   prints with its phase convention untested.
+
+   So: **the two option dialogs are next**, and then plan the plugin rows deliberately rather
+   than starting them late in a session. MOPAC's Slater basis is what keeps AV-SURF-006 PARTIAL
+   either way.
 
    Run the same awk with `MEDIUM` for what is next there: today it lists 40 rows, 11 of them
    PARTIAL. The ones with a real workflow behind them are the conformer table (AV-MM-009), the

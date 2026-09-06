@@ -497,3 +497,88 @@ def test_a_cartesian_orca_output_is_refused_rather_than_read_as_solid_harmonics(
     )
     with pytest.raises(ValueError, match="not the .* this reader knows"):
         read_orca(path)
+
+
+def test_a_molpro_output_is_read() -> None:
+    """`methane.mpo` is RHF/6-31G methane with its basis and orbitals printed."""
+    wf = read_wavefunction(FIX / "methane.mpo.gz")
+    assert wf.metadata["format"] == "molpro"
+    assert wf.structure.formula() == "CH4"
+    # 6-31G: 3s + 2p on carbon, 2s on each hydrogen -- 13 shells over 17 basis functions
+    assert len(wf.shells) == 13
+    assert wf.n_basis == 17 and len(wf.orbitals) == 17
+    assert wf.n_electrons == 10 and wf.charge == 0.0 and wf.multiplicity == 1
+    assert wf.homo_index() == 4
+    assert wf.orbitals[0].energy == pytest.approx(-11.2312)
+    assert wf.orbitals[4].energy == pytest.approx(-0.5281)
+    assert [o.occupation for o in wf.orbitals[:6]] == [2, 2, 2, 2, 2, 0]
+
+
+def test_methanes_four_bonds_carry_the_same_density_in_a_molpro_wavefunction() -> None:
+    """The check that a permuted basis would fail, which orthonormality would not.
+
+    Every component of a solid-harmonic shell is normalized and they are orthogonal to each
+    other, so putting the coefficients on the wrong ones leaves every orbital norm at 1 and the
+    whole set orthonormal: the physics tests that caught the GAMESS f ordering cannot catch a p
+    ordering. What does catch it is the molecule. Methane's four bonds are equivalent, so the
+    density at their midpoints has to be the same number four times, and it is only the same
+    number if the coefficients sit on the axes the geometry is written in.
+    """
+    from atomscope.wavefunction.gto import basis_values  # noqa: PLC0415
+
+    wf = read_wavefunction(FIX / "methane.mpo.gz")
+    centres = np.array([a.position for a in wf.structure.atoms]) / Bohr
+    midpoints = (centres[0] + centres[1:]) / 2
+    chi = basis_values(wf.shells, centres, midpoints)
+    occupations = np.array([o.occupation for o in wf.orbitals])
+
+    def density(coefficients: np.ndarray) -> np.ndarray:
+        return (occupations[:, None] * (coefficients @ chi) ** 2).sum(axis=0)
+
+    read = density(np.array([o.coefficients for o in wf.orbitals]))
+    assert read.std() / read.mean() < 0.005
+
+    # the negative control: swap px and py, which leaves every norm and overlap exactly as it was
+    swapped = np.array([o.coefficients for o in wf.orbitals])
+    offset = 0
+    for shell in wf.shells:
+        if shell.angular_momentum == 1:
+            swapped[:, [offset, offset + 1]] = swapped[:, [offset + 1, offset]]
+        offset += shell.size
+    scattered = density(swapped)
+    assert scattered.std() / scattered.mean() > 0.1
+
+
+def test_a_generally_contracted_molpro_basis_is_refused_rather_than_misread(
+    tmp_path: Path,
+) -> None:
+    """Several basis functions to one exponent list, a column of coefficients each.
+
+    The block below is the one quoted in Avogadro's own `molpro.cpp` (a cc-pVDZ carbon), which is
+    the only example of the layout anywhere to hand -- no file in the corpus is generally
+    contracted, so the reader says so instead of taking a guess at which column is which.
+    """
+    from atomscope.wavefunction.molpro import read_molpro  # noqa: PLC0415
+
+    path = tmp_path / "general.mpo"
+    path.write_text(
+        " NR  ATOM    CHARGE       X              Y              Z\n\n"
+        "   1  C       6.00    0.000000000    0.000000000    0.000000000\n\n"
+        " BASIS DATA\n\n"
+        "   Nr Sym  Nuc  Type         Exponents   Contraction coefficients\n\n"
+        "   1.1 A     1  1s         6665.000000     0.000692   -0.000146    0.000000\n"
+        "   2.1 A                   1000.000000     0.005329   -0.001154    0.000000\n"
+        "   3.1 A                    228.000000     0.027077   -0.005725    0.000000\n"
+    )
+    with pytest.raises(ValueError, match="generally contracted"):
+        read_molpro(path)
+
+
+def test_an_unrestricted_molpro_output_is_refused_rather_than_half_read(tmp_path: Path) -> None:
+    """As for ORCA: half a density read as a whole one is worse than no read at all."""
+    from atomscope.wavefunction.molpro import read_molpro  # noqa: PLC0415
+
+    path = tmp_path / "uhf.mpo"
+    path.write_text(" PROGRAM SYSTEM MOLPRO\n ELECTRON ORBITALS FOR NEGATIVE SPIN\n")
+    with pytest.raises(ValueError, match="unrestricted"):
+        read_molpro(path)

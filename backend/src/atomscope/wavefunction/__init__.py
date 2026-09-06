@@ -16,6 +16,7 @@ from atomscope.wavefunction.fchk import read_fchk
 from atomscope.wavefunction.gamess import read_gamess
 from atomscope.wavefunction.model import MolecularOrbital, Shell, Wavefunction
 from atomscope.wavefunction.molden import read_molden
+from atomscope.wavefunction.molpro import read_molpro
 from atomscope.wavefunction.orca import read_orca
 
 __all__ = [
@@ -33,6 +34,7 @@ __all__ = [
     "read_fchk",
     "read_gamess",
     "read_molden",
+    "read_molpro",
     "read_orca",
     "read_wavefunction",
     "spin_density_values",
@@ -52,9 +54,11 @@ _BY_SUFFIX = {
     ".gamess": read_gamess,
     ".gamout": read_gamess,
     ".orcaout": read_orca,
+    ".mpo": read_molpro,
 }
 _BY_BANNER = (
     ("O   R   C   A", read_orca),
+    ("PROGRAM SYSTEM MOLPRO", read_molpro),
     ("[Molden Format]", read_molden),
     ("[Atoms]", read_molden),
     ("GAMESS VERSION", read_gamess),

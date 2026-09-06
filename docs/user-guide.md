@@ -799,11 +799,15 @@ other).
 **Create surfaces from a wavefunction** (Avogadro's `Extensions ▸ Create
 Surfaces…`). Give the `Wavefunction` field the path to a Gaussian formatted
 checkpoint (`.fchk`), a Molden file, a GAMESS-US log (`.gamess`, or any file
-whose first lines carry the GAMESS banner) or an ORCA output (`.orcaout`, or
-any file that opens with the ORCA banner) — gzipped or not — and press `Load`:
+whose first lines carry the GAMESS banner), an ORCA output (`.orcaout`, or any
+file that opens with the ORCA banner) or a Molpro output (`.mpo`, or the MOLPRO
+banner) — gzipped or not — and press `Load`:
 the panel lists the orbitals with their energies and marks the HOMO. Of the
-seven readers Avogadro had, these four are here; MOPAC's `.aux`, GAMESS-UK
-and Molpro are not read yet. An ORCA output needs the orbitals printed in it
+seven readers Avogadro had, these five are here; MOPAC's `.aux` and GAMESS-UK
+are not read yet. A Molpro output needs `gprint,basis` and `gprint,orbitals`,
+and one written for a generally contracted basis (cc-pVDZ, say) is refused
+rather than read the wrong way round — no file was to hand to check that layout
+against. An ORCA output needs the orbitals printed in it
 (`! LargePrint`, or `%output print[p_mos] 1 end`); `orca_2mkl`'s Molden file
 works as well, and is read in the coefficient convention ORCA uses, which is not
 the one the Molden specification describes. Which convention a file is in is
