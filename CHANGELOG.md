@@ -7,7 +7,10 @@
   basis set), the nine-entry basis list with the keywords each entry stands
   for, water as a PCM solvent, and a transition-state search. Its deck is
   written here now, so `Memory` reaches `$SYSTEM MWORDS` and extra keywords
-  pass through as a line of their own. **The free-text `Method` and `Basis set`
+  pass through as a line of their own. `Set the basis in detail`, under advanced
+  options, is that dialog's Advanced Basis tab: the long basis list, #D/#F/#P
+  polarization functions and where their exponents come from, the diffuse
+  shells, and the effective core potential. **The free-text `Method` and `Basis set`
   boxes no longer apply to GAMESS**: it has its own lists, so a stored GAMESS
   calculation that carried, say, `basis: N311` regenerates from the new boxes
   and their defaults (RHF/6-31G(d)) unless you set them. Every other program is

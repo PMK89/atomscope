@@ -243,9 +243,9 @@ run against current code -- Playwright above all -- use the private-server recip
 
    - **AV-QM-003** -- the GAMESS-US option dialog, the largest of Avogadro's generators (3035
      lines of `.ui` over a 2688-line input-data class, a port of the MacMolPlt input builder).
-     Its **Basic Setup tab is done** (`backends/qc_inputs/gamess.py`); what is left is the eleven
-     Advanced tabs -- Basis, Control, SCF, DFT, MP2, Hessian, Stat Point, Data, System, MO Guess,
-     Misc -- which are a tab's worth of keywords each and can land one at a time. Read the row's
+     Its **Basic Setup and Advanced Basis tabs are done** (`backends/qc_inputs/gamess.py`); what
+     is left is ten Advanced tabs -- Control, SCF, DFT, MP2, Hessian, Stat Point, Data, System,
+     MO Guess, Misc -- which are a tab's worth of keywords each and can land one at a time. Read the row's
      note first: it lists them and says where each one's keywords live in Avogadro's source.
      AV-QM-002, the Gaussian one, is done. Both follow the same shape: the deck is written here
      rather than through ASE, because ASE's writers cannot say what the dialogs offer, and each

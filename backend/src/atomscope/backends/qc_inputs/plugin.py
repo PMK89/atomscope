@@ -28,8 +28,9 @@ from atomscope.backends.base import (
     Values,
 )
 from atomscope.backends.qc_inputs.gamess import BASIS_CHOICES as GAMESS_BASIS_CHOICES
+from atomscope.backends.qc_inputs.gamess import GBASIS_CHOICES as GAMESS_GBASIS_CHOICES
 from atomscope.backends.qc_inputs.gamess import THEORY_CHOICES as GAMESS_THEORIES
-from atomscope.backends.qc_inputs.gamess import gamess_deck
+from atomscope.backends.qc_inputs.gamess import DetailedBasis, gamess_deck
 from atomscope.backends.qc_inputs.gaussian import gaussian_deck
 from atomscope.jobs.models import RunSpec
 from atomscope.model import Structure
@@ -66,6 +67,13 @@ MOPAC_MULTIPLICITY = {
 GAMESS-US has lists of its own, from the dialog Avogadro ported from MacMolPlt."""
 _FREE_METHOD = ("orca", "gaussian", "nwchem")
 PERIODIC = ("espresso", "abinit")
+
+"""The Advanced Basis tab is one control per keyword, and replaces the Basic tab's list."""
+_GAMESS_DETAIL = [
+    VisibleWhen(key="program", value="gamess"),
+    VisibleWhen(key="gamess_theory", op="not_in", value=["am1", "pm3"]),
+    VisibleWhen(key="gamess_detail", op="truthy"),
+]
 
 SCHEMA = ParameterSchema(
     id="qc_inputs",
@@ -155,7 +163,113 @@ SCHEMA = ParameterSchema(
                     visible_when=[
                         VisibleWhen(key="program", value="gamess"),
                         VisibleWhen(key="gamess_theory", op="not_in", value=["am1", "pm3"]),
+                        VisibleWhen(key="gamess_detail", op="falsy"),
                     ],
+                ),
+                ParameterSpec(
+                    key="gamess_detail",
+                    label="Set the basis in detail",
+                    type="boolean",
+                    default=False,
+                    advanced=True,
+                    help=(
+                        "Avogadro's Advanced Basis tab: the basis set and the functions added to"
+                        " it, one control each, instead of the list above"
+                    ),
+                    visible_when=[
+                        VisibleWhen(key="program", value="gamess"),
+                        VisibleWhen(key="gamess_theory", op="not_in", value=["am1", "pm3"]),
+                    ],
+                ),
+                ParameterSpec(
+                    key="gamess_gbasis",
+                    label="Basis set (detailed)",
+                    type="enum",
+                    default="n31_6",
+                    advanced=True,
+                    choices=[
+                        Choice(value=key, label=choice.label)
+                        for key, choice in GAMESS_GBASIS_CHOICES.items()
+                    ],
+                    visible_when=_GAMESS_DETAIL,
+                ),
+                ParameterSpec(
+                    key="gamess_ndfunc",
+                    label="#D heavy-atom polarization functions",
+                    type="integer",
+                    default=0,
+                    minimum=0,
+                    maximum=3,
+                    advanced=True,
+                    visible_when=_GAMESS_DETAIL,
+                ),
+                ParameterSpec(
+                    key="gamess_nffunc",
+                    label="#F heavy-atom polarization functions",
+                    type="integer",
+                    default=0,
+                    minimum=0,
+                    maximum=3,
+                    advanced=True,
+                    visible_when=_GAMESS_DETAIL,
+                ),
+                ParameterSpec(
+                    key="gamess_npfunc",
+                    label="#P light-atom polarization functions",
+                    type="integer",
+                    default=0,
+                    minimum=0,
+                    maximum=3,
+                    advanced=True,
+                    visible_when=_GAMESS_DETAIL,
+                ),
+                ParameterSpec(
+                    key="gamess_polarization",
+                    label="Polarization functions from",
+                    type="enum",
+                    default="default",
+                    advanced=True,
+                    choices=[
+                        Choice(value="default", label="Default"),
+                        Choice(value="pople", label="Pople"),
+                        Choice(value="popn311", label="Pople N311"),
+                        Choice(value="dunning", label="Dunning"),
+                        Choice(value="huzinaga", label="Huzinaga"),
+                        Choice(value="hondo7", label="Hondo7"),
+                    ],
+                    help="which set the exponents come from; ignored without any of them",
+                    visible_when=_GAMESS_DETAIL,
+                ),
+                ParameterSpec(
+                    key="gamess_ecp",
+                    label="Effective core potential",
+                    type="enum",
+                    default="none",
+                    advanced=True,
+                    choices=[
+                        Choice(value="none", label="None"),
+                        Choice(value="read", label="Read from the deck"),
+                        Choice(value="sbkjc", label="SBKJC"),
+                        Choice(value="hay_wadt", label="Hay-Wadt"),
+                    ],
+                    help="SBKJC and Hay/Wadt basis sets bring their own unless another is chosen",
+                    visible_when=_GAMESS_DETAIL,
+                ),
+                ParameterSpec(
+                    key="gamess_diffuse_sp",
+                    label="Diffuse L-shell on heavy atoms",
+                    type="boolean",
+                    default=False,
+                    advanced=True,
+                    visible_when=_GAMESS_DETAIL,
+                ),
+                ParameterSpec(
+                    key="gamess_diffuse_s",
+                    label="Diffuse S-shell on heavy atoms",
+                    type="boolean",
+                    default=False,
+                    advanced=True,
+                    visible_when=_GAMESS_DETAIL,
                 ),
                 ParameterSpec(
                     key="gamess_solvent",
@@ -343,6 +457,27 @@ def _mopac_deck(
     return "\n".join(lines) + "\n"
 
 
+def _count(value: object) -> int:
+    """A number of polarization functions, whatever the form put in the values."""
+    return int(value) if isinstance(value, int | float) else 0
+
+
+def _gamess_detailed(values: Values) -> DetailedBasis | None:
+    """The Advanced Basis tab's values, or None when the Basic tab's list is the one in use."""
+    if not values.get("gamess_detail"):
+        return None
+    return DetailedBasis(
+        gbasis=str(values.get("gamess_gbasis", "n31_6")),
+        ndfunc=_count(values.get("gamess_ndfunc")),
+        nffunc=_count(values.get("gamess_nffunc")),
+        npfunc=_count(values.get("gamess_npfunc")),
+        polarization=str(values.get("gamess_polarization", "default")),
+        ecp=str(values.get("gamess_ecp", "none")),
+        diffuse_s=bool(values.get("gamess_diffuse_s")),
+        diffuse_sp=bool(values.get("gamess_diffuse_sp")),
+    )
+
+
 def _multiplicity(structure: Structure, values: Values) -> int:
     raw = values.get("multiplicity", 0)
     m = int(raw) if isinstance(raw, int | float) else 0
@@ -482,6 +617,7 @@ class QcInputsPlugin:
                     title=structure.name or root_name,
                     theory=str(merged.get("gamess_theory", "rhf")),
                     basis=str(merged.get("gamess_basis", "n31d")),
+                    detailed=_gamess_detailed(merged),
                     task=task,
                     charge=charge,
                     multiplicity=mult,

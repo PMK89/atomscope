@@ -263,3 +263,83 @@ def test_only_gamess_writes_a_transition_state_deck() -> None:
     assert any("transition-state" in i.message for i in report.issues)
     with pytest.raises(ValueError, match="no transition-state deck"):
         plugin.generate_inputs(water, {"program": "orca", "task": "transition_state"}, "case")
+
+
+def test_the_gamess_advanced_basis_tab_is_one_control_per_keyword() -> None:
+    """Avogadro's Advanced Basis tab: the basis set, then the functions added to it."""
+    water = from_atoms(molecule("H2O"), name="water")
+    detailed = {
+        "program": "gamess",
+        "task": "energy",
+        "gamess_detail": True,
+        "gamess_gbasis": "n311_6",
+        "gamess_ndfunc": 2,
+        "gamess_nffunc": 1,
+        "gamess_npfunc": 1,
+        "gamess_polarization": "popn311",
+        "gamess_diffuse_s": True,
+        "gamess_diffuse_sp": True,
+    }
+    text = plugin.generate_inputs(water, detailed, "case").files[0].text
+    assert text.split("\n")[0] == (
+        " $BASIS GBASIS=N311 NGAUSS=6 NDFUNC=2 NFFUNC=1 NPFUNC=1 POLAR=POPN311"
+        " DIFFSP=.TRUE. DIFFS=.TRUE. $END"
+    )
+    # POLAR names which set the exponents come from, so it says nothing without any of them
+    plain = plugin.generate_inputs(
+        water, {**detailed, "gamess_ndfunc": 0, "gamess_nffunc": 0, "gamess_npfunc": 0}, "case"
+    )
+    assert "POLAR" not in plain.files[0].text
+
+
+def test_a_gamess_basis_that_carries_a_core_potential_keeps_it() -> None:
+    """SBKJC and Hay/Wadt imply their own ECP; another can still be chosen over it."""
+    water = from_atoms(molecule("H2O"), name="water")
+    values = {"program": "gamess", "task": "energy", "gamess_detail": True}
+    implied = plugin.generate_inputs(water, {**values, "gamess_gbasis": "sbkjc"}, "case")
+    assert " $CONTRL SCFTYP=RHF RUNTYP=ENERGY ECP=SBKJC $END" in implied.files[0].text
+    chosen = plugin.generate_inputs(
+        water, {**values, "gamess_gbasis": "hw", "gamess_ecp": "read"}, "case"
+    )
+    assert " $CONTRL SCFTYP=RHF RUNTYP=ENERGY ECP=READ $END" in chosen.files[0].text
+    # and a basis that implies none says nothing about it
+    plain = plugin.generate_inputs(water, {**values, "gamess_gbasis": "n31_6"}, "case")
+    assert "ECP=" not in plain.files[0].text
+
+
+def test_the_basic_and_detailed_gamess_basis_boxes_agree_where_they_overlap() -> None:
+    """The Basic tab's entries are shorthand for the Advanced tab's controls, and have to match."""
+    water = from_atoms(molecule("H2O"), name="water")
+    for basic, detail in (
+        ("sto3g", {"gamess_gbasis": "sto3g"}),
+        ("mini", {"gamess_gbasis": "mini"}),
+        ("n21", {"gamess_gbasis": "n21_3"}),
+        ("n31d", {"gamess_gbasis": "n31_6", "gamess_ndfunc": 1}),
+        ("n31dp", {"gamess_gbasis": "n31_6", "gamess_ndfunc": 1, "gamess_npfunc": 1}),
+        (
+            "n31plus_dp",
+            {
+                "gamess_gbasis": "n31_6",
+                "gamess_ndfunc": 1,
+                "gamess_npfunc": 1,
+                "gamess_diffuse_sp": True,
+            },
+        ),
+        (
+            "n311_2dp",
+            {
+                "gamess_gbasis": "n311_6",
+                "gamess_ndfunc": 1,
+                "gamess_npfunc": 1,
+                "gamess_diffuse_sp": True,
+                "gamess_diffuse_s": True,
+            },
+        ),
+        ("core_potential", {"gamess_gbasis": "sbkjc", "gamess_ndfunc": 1}),
+    ):
+        values = {"program": "gamess", "task": "energy"}
+        from_basic = plugin.generate_inputs(water, {**values, "gamess_basis": basic}, "case")
+        from_detail = plugin.generate_inputs(
+            water, {**values, "gamess_detail": True, **detail}, "case"
+        )
+        assert from_basic.files[0].text == from_detail.files[0].text, basic

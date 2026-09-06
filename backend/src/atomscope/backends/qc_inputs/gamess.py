@@ -52,6 +52,67 @@ BASIS_CHOICES: dict[str, BasisChoice] = {
     "core_potential": BasisChoice("Core Potential", "SBKJC", ndfunc=1, ecp="SBKJC"),
 }
 
+"""The Advanced Basis tab's list, which is the Basic one broken into its parts: a GBASIS and a
+number of Gaussians, with the polarization, diffuse and ECP options beside it rather than folded
+in. `gamessinputdialog.cpp:1865-1900` maps each entry of the combo to the pair, and the keyword
+spellings are `gamessinputdata.cpp:1266`.
+"""
+GBASIS_CHOICES: dict[str, BasisChoice] = {
+    "mini": BasisChoice("MINI", "MINI"),
+    "midi": BasisChoice("MIDI", "MIDI"),
+    "sto2g": BasisChoice("STO-2G", "STO", ngauss=2),
+    "sto3g": BasisChoice("STO-3G", "STO", ngauss=3),
+    "sto4g": BasisChoice("STO-4G", "STO", ngauss=4),
+    "sto5g": BasisChoice("STO-5G", "STO", ngauss=5),
+    "sto6g": BasisChoice("STO-6G", "STO", ngauss=6),
+    "n21_3": BasisChoice("3-21G", "N21", ngauss=3),
+    "n21_6": BasisChoice("6-21G", "N21", ngauss=6),
+    "n31_4": BasisChoice("4-31G", "N31", ngauss=4),
+    "n31_5": BasisChoice("5-31G", "N31", ngauss=5),
+    "n31_6": BasisChoice("6-31G", "N31", ngauss=6),
+    "n311_6": BasisChoice("6-311G", "N311", ngauss=6),
+    "dzv": BasisChoice("Double Zeta Valence", "DZV"),
+    "dh": BasisChoice("Dunning/Hay DZ", "DH"),
+    "bc": BasisChoice("Binning/Curtiss DZ", "BC"),
+    "tzv": BasisChoice("Triple Zeta Valence", "TZV"),
+    "mc": BasisChoice("McLean/Chandler", "MC"),
+    # Avogadro's enum spells these SBK and HW; its own comment and its combo label say SBKJC,
+    # which is the spelling GAMESS documents, and is what the Basic tab's Core Potential wrote
+    "sbkjc": BasisChoice("SBKJC Valence", "SBKJC", ecp="SBKJC"),
+    "hw": BasisChoice("Hay/Wadt Valence", "HW", ecp="HW"),
+    "mndo": BasisChoice("MNDO", "MNDO"),
+    "am1": BasisChoice("AM1", "AM1"),
+    "pm3": BasisChoice("PM3", "PM3"),
+}
+
+"""The Advanced tab's polarization-function set (`gamessinputdata.cpp:1419`)."""
+POLARIZATIONS = {
+    "default": "",
+    "pople": "POPLE",
+    "popn311": "POPN311",
+    "dunning": "DUNNING",
+    "huzinaga": "HUZINAGA",
+    "hondo7": "HONDO7",
+}
+
+"""Effective core potentials, which live in $CONTRL rather than $BASIS."""
+ECPS = {"none": "", "read": "READ", "sbkjc": "SBKJC", "hay_wadt": "HW"}
+
+
+@dataclass(frozen=True)
+class DetailedBasis:
+    """The Advanced Basis tab: a basis set and the functions added to it, set one at a time."""
+
+    gbasis: str = "n31_6"
+    ndfunc: int = 0
+    nffunc: int = 0
+    npfunc: int = 0
+    polarization: str = "default"
+    ecp: str = "none"
+    diffuse_s: bool = False
+    diffuse_sp: bool = False
+
+
 """The Basic tab's theory list. A semi-empirical Hamiltonian is a *basis* to GAMESS."""
 THEORY_CHOICES = {
     "am1": "AM1",
@@ -74,28 +135,46 @@ MEGAWORD_MB = 8
 """A GAMESS word is 8 bytes, so MWORDS is megabytes over eight."""
 
 
-def _basis_group(theory: str, basis: str) -> str:
-    if theory in SEMI_EMPIRICAL:
-        # the Hamiltonian replaces the basis set, and takes none of its options
-        return f" $BASIS GBASIS={THEORY_CHOICES[theory]} $END"
-    choice = BASIS_CHOICES[basis]
+def _basis_words(basis: str, detailed: DetailedBasis | None) -> tuple[list[str], str]:
+    """The ``$BASIS`` keywords and the effective core potential, from either tab's controls."""
+    if detailed is None:
+        choice = BASIS_CHOICES[basis]
+        counts = (choice.ndfunc, 0, choice.npfunc)
+        polarization = ""
+        diffuse_s, diffuse_sp = choice.diffuse_s, choice.diffuse_sp
+        ecp = choice.ecp
+    else:
+        choice = GBASIS_CHOICES[detailed.gbasis]
+        counts = (detailed.ndfunc, detailed.nffunc, detailed.npfunc)
+        polarization = POLARIZATIONS[detailed.polarization]
+        diffuse_s, diffuse_sp = detailed.diffuse_s, detailed.diffuse_sp
+        # a basis that carries its own core potential keeps it unless another is chosen
+        ecp = ECPS[detailed.ecp] or choice.ecp
     words = [f"GBASIS={choice.gbasis}"]
-    for keyword, value in (
-        ("NGAUSS", choice.ngauss),
-        ("NDFUNC", choice.ndfunc),
-        ("NPFUNC", choice.npfunc),
-    ):
+    keywords = ("NGAUSS", "NDFUNC", "NFFUNC", "NPFUNC")
+    for keyword, value in zip(keywords, (choice.ngauss, *counts), strict=True):
         if value:
             words.append(f"{keyword}={value}")
-    if choice.diffuse_sp:
+    # POLAR names which set of polarization exponents to take, so it says nothing without them
+    if polarization and any(counts):
+        words.append(f"POLAR={polarization}")
+    if diffuse_sp:
         words.append("DIFFSP=.TRUE.")
-    if choice.diffuse_s:
+    if diffuse_s:
         words.append("DIFFS=.TRUE.")
-    return " $BASIS " + " ".join(words) + " $END"
+    return words, ecp
+
+
+def _basis_group(theory: str, basis: str, detailed: DetailedBasis | None) -> tuple[str, str]:
+    if theory in SEMI_EMPIRICAL:
+        # the Hamiltonian replaces the basis set, and takes none of its options
+        return f" $BASIS GBASIS={THEORY_CHOICES[theory]} $END", ""
+    words, ecp = _basis_words(basis, detailed)
+    return " $BASIS " + " ".join(words) + " $END", ecp
 
 
 def _control_group(
-    *, theory: str, basis: str, task: str, charge: int, multiplicity: int, electrons: int
+    *, theory: str, ecp: str, task: str, charge: int, multiplicity: int, electrons: int
 ) -> str:
     words = ["SCFTYP=" + ("ROHF" if multiplicity > 1 or electrons % 2 else "RHF")]
     words.append(f"RUNTYP={RUN_TYPES[task]}")
@@ -111,8 +190,8 @@ def _control_group(
         words.append(f"MULT={multiplicity}")
     elif electrons % 2:
         words.append("MULT=2")  # an odd number of electrons is not a singlet
-    if theory not in SEMI_EMPIRICAL and BASIS_CHOICES[basis].ecp:
-        words.append(f"ECP={BASIS_CHOICES[basis].ecp}")
+    if ecp:
+        words.append(f"ECP={ecp}")
     return " $CONTRL " + " ".join(words) + " $END"
 
 
@@ -122,6 +201,7 @@ def gamess_deck(
     title: str,
     theory: str = "rhf",
     basis: str = "n31d",
+    detailed: DetailedBasis | None = None,
     task: str = "energy",
     charge: int = 0,
     multiplicity: int = 1,
@@ -133,21 +213,25 @@ def gamess_deck(
     if theory not in THEORY_CHOICES:
         msg = f"unknown GAMESS theory {theory!r}"
         raise ValueError(msg)
-    if theory not in SEMI_EMPIRICAL and basis not in BASIS_CHOICES:
+    if theory not in SEMI_EMPIRICAL and detailed is None and basis not in BASIS_CHOICES:
         msg = f"unknown GAMESS basis {basis!r}"
+        raise ValueError(msg)
+    if detailed is not None and detailed.gbasis not in GBASIS_CHOICES:
+        msg = f"unknown GAMESS basis set {detailed.gbasis!r}"
         raise ValueError(msg)
     if task not in RUN_TYPES:
         msg = f"GAMESS deck: no run type for {task!r}"
         raise ValueError(msg)
     electrons = sum(atomic_numbers[a.element] for a in structure.atoms) - charge
 
-    lines = [_basis_group(theory, basis)]
+    basis_group, ecp = _basis_group(theory, basis, detailed)
+    lines = [basis_group]
     if solvent == "water":
         lines.append(" $PCM SOLVNT=WATER $END")
     lines.append(
         _control_group(
             theory=theory,
-            basis=basis,
+            ecp=ecp,
             task=task,
             charge=charge,
             multiplicity=multiplicity,
