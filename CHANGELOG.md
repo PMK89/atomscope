@@ -12,7 +12,9 @@
   had no case for and which therefore wrote aug-cc-pCVDZ. `Nosymm` is written
   only for the excitation run that asks for it, rather than leaking out of the
   property box into a plain wave-function run. That dialog has no geometry
-  optimization at all, and the form says so instead of writing one.
+  optimization at all, and the form says so instead of writing one -- and no
+  charge or multiplicity box either, so an anion or a radical raises a warning
+  naming what the deck could not carry rather than being written as neutral.
 
 - **ORCA has both modes of its dialog now**, not a simple-input line through
   ASE. Basic mode is its four methods and four basis sets; Advanced mode adds

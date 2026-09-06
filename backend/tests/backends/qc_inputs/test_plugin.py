@@ -1009,6 +1009,16 @@ def test_dalton_switches_symmetry_off_only_for_the_run_that_asks() -> None:
     assert "Angstrom\n" in molecule_file()
 
 
+def test_the_dalton_basis_lists_refuse_a_value_they_do_not_hold() -> None:
+    """`basis_name` returns whatever the Basis tab holds, so a stored value that is not on any of
+    the eleven lists would otherwise reach the file."""
+    water = from_atoms(molecule("H2O"), name="water")
+    with pytest.raises(ValueError, match="unknown Dalton basis set"):
+        plugin.generate_inputs(water, {"program": "dalton", "dalton_sto": "STO-9G"}, "c")
+    with pytest.raises(ValueError, match="unknown Dalton basis family"):
+        plugin.generate_inputs(water, {"program": "dalton", "dalton_family": "slater"}, "c")
+
+
 def test_dalton_has_no_geometry_optimization_and_says_so() -> None:
     """Its calculation combo is a wave function and a property run; there is no third entry."""
     water = from_atoms(molecule("H2O"), name="water")
@@ -1444,6 +1454,14 @@ def test_a_radical_is_never_written_as_a_singlet() -> None:
     ):
         text = plugin.generate_inputs(methyl, {"program": program}, "case").files[0].text
         assert token in text, (program, text)
+
+    # Dalton is the one that cannot: its dialog has no charge or multiplicity box at all, so the
+    # deck names neither and the form says which values it could not carry
+    dalton = plugin.generate_inputs(methyl, {"program": "dalton"}, "case").files
+    assert "mult" not in dalton[0].text.lower() and "Charge=" in dalton[1].text
+    said = plugin.validate(methyl, {"program": "dalton"}).issues
+    assert [i.key for i in said] == ["program"]
+    assert "multiplicity of 2" in said[0].message and said[0].severity == "warning"
 
     # what the structure says still wins, and so does what the form says
     quartet = from_atoms(molecule("CH3"), name="methyl")

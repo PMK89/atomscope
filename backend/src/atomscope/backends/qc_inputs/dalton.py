@@ -21,6 +21,13 @@ Four departures.
   handles three, so the last fell through to the default. Written as its own name.
 * The second title line named Avogadro's plugin, and the file ended without a newline.
 
+And one gap said rather than inherited: **the dialog has no charge box and no multiplicity box**
+-- neither appears anywhere in `daltoninputdialog.cpp`, and `resetClicked` resets neither -- so an
+anion or a radical got a deck that says nothing about either, at whatever the molecule file's
+defaults are. Which keywords say them is a question for Dalton's manual rather than for this
+source, so `plugin.py` raises a warning naming the charge and the multiplicity it could not write
+instead of inventing the syntax; the extra keywords are where they go until it is settled.
+
 The dialog groups atoms into runs of equal atomic number rather than gathering each element
 once, so a structure written O, H, O, H comes out as four `Charge=` blocks. That is legal Dalton
 -- a repeated atom type is how one basis set is given to some atoms of an element and another to
@@ -132,6 +139,38 @@ def _dunning_basis(choice: BasisChoice) -> str:
     return AUGMENTATIONS[choice.augmentation] + augmented
 
 
+_BASIS_LISTS: dict[str, tuple[str, ...]] = {
+    "STO-nG": STO_BASES,
+    "Pople": POPLE_BASES,
+    "Pople (diffuse)": POPLE_DIFFUSE_BASES,
+    "Pople (polarized)": POPLE_POLARIZED_BASES,
+    "Pople (diffuse, polarized)": POPLE_DIFFUSE_POLARIZED_BASES,
+    "Jensen": PC_BASES,
+    "Jensen (diffuse)": APC_BASES,
+    "Dunning": CC_BASES,
+    "Dunning (core-valence)": CC_CORE_BASES,
+    "Dunning (augmented)": AUG_CC_BASES,
+    "Dunning (augmented core-valence)": AUG_CC_CORE_BASES,
+}
+"""Every list by the name of the switch combination that reaches it, for the check below."""
+
+
+def _check_basis(choice: BasisChoice) -> None:
+    """The entry that will be written, against the list it was chosen from."""
+    if choice.family not in BASIS_FAMILIES:
+        msg = f"unknown Dalton basis family {choice.family!r}"
+        raise ValueError(msg)
+    if choice.augmentation not in AUGMENTATIONS:
+        msg = f"unknown Dalton augmentation {choice.augmentation!r}"
+        raise ValueError(msg)
+    name = basis_name(choice)
+    prefix = AUGMENTATIONS[choice.augmentation]
+    bare = name[len(prefix) :] if prefix and name.startswith(prefix) else name
+    if not any(bare in names for names in _BASIS_LISTS.values()):
+        msg = f"unknown Dalton basis set {bare!r}"
+        raise ValueError(msg)
+
+
 def basis_name(choice: BasisChoice) -> str:
     """The one line under `BASIS`, chosen the way `generateInputDeck:355-401` chooses it."""
     if choice.family == "pople":
@@ -179,6 +218,7 @@ def dalton_molecule(structure: Structure, *, title: str, basis: BasisChoice, nos
     header = f"Atomtypes={_atom_type_count(structure)} Angstrom"
     if nosymm:
         header += " Nosymm"
+    _check_basis(basis)
     lines = [
         "BASIS",
         basis_name(basis),

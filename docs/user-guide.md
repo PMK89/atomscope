@@ -974,7 +974,10 @@ sets -- with polarization, diffuse and core-valence switches that choose which
 of eleven lists you pick from, and an augmentation prefix for the augmented
 Dunning sets. There is no geometry optimization on that form, only a wave
 function and a property run (polarizability or excitation energies), and the
-form says so if you ask for one.
+form says so if you ask for one. Nor is there a charge or a multiplicity box:
+Avogadro's dialog had neither, and rather than guess the keywords the deck
+names neither and the form tells you what it could not carry, so you can add
+it in the extra keywords.
 ORCA has the two modes its dialog had. `Basic` is a method, a basis set and a
 calculation type; `Advanced` opens the rest -- the functional and its grids,
 the auxiliary bases, chain-of-spheres exchange, the SCF accuracy and

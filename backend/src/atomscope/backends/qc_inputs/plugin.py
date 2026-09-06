@@ -360,7 +360,7 @@ SCHEMA = ParameterSchema(
                     type="string",
                     default="",
                     advanced=True,
-                    help="appended to the route or keyword line; a line of its own for GAMESS, lines inside $rem for Q-Chem, and directives of their own before Psi4's molecule, Molpro's basis, NWChem's task and GAMESS-UK's `enter`",
+                    help="appended to the route or keyword line; a line of its own for GAMESS, lines inside $rem for Q-Chem, and directives of their own before Psi4's molecule, Molpro's basis, NWChem's task, GAMESS-UK's `enter` and Dalton's end marker, or after ORCA's `%maxcore`",
                 ),
             ],
         ),
@@ -2314,6 +2314,36 @@ def _psi4_issues(structure: Structure, merged: Values) -> list[ValidationIssue]:
     ]
 
 
+def _dalton_issues(structure: Structure, merged: Values) -> list[ValidationIssue]:
+    """The two boxes Avogadro's Dalton dialog has not got at all.
+
+    Neither `m_charge` nor `m_multiplicity` appears anywhere in `daltoninputdialog.cpp`, and
+    `resetClicked` resets neither, so an anion or a radical got a deck that says nothing about
+    either. Which keywords say them is Dalton's manual's business rather than this source's, so
+    the deck names neither and this says which values it could not carry.
+    """
+    charge = int(round(structure.charge))
+    multiplicity = _multiplicity(structure, merged)
+    if not charge and multiplicity == 1:
+        return []
+    unsaid = []
+    if charge:
+        unsaid.append(f"a charge of {charge}")
+    if multiplicity != 1:
+        unsaid.append(f"a multiplicity of {multiplicity}")
+    return [
+        ValidationIssue(
+            key="program",
+            message=(
+                f"Avogadro's Dalton dialog has no charge or multiplicity box, so the deck names"
+                f" neither: {' and '.join(unsaid)} is not written. The extra keywords are where"
+                " it goes."
+            ),
+            severity="warning",
+        )
+    ]
+
+
 def _nwchem_issues(structure: Structure, merged: Values) -> list[ValidationIssue]:
     """NWChem's standalone coupled-cluster module takes one kind of reference.
 
@@ -2667,6 +2697,8 @@ class QcInputsPlugin:
             report.issues += _gamess_wave_function_issues(merged)
         if program == "psi4":
             report.issues += _psi4_issues(structure, merged)
+        if program == "dalton":
+            report.issues += _dalton_issues(structure, merged)
         if program == "nwchem":
             report.issues += _nwchem_issues(structure, merged)
         if program == "gamessuk":
