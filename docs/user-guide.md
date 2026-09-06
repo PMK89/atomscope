@@ -967,6 +967,14 @@ after the basis it really requests. That dialog's theory box has no UHF or
 GVB entry, so the deck asks for `scftype rhf` whatever the multiplicity; above
 a singlet the form says so, and the extra keywords are where another
 wavefunction goes.
+Dalton is the one generator that writes **two** files: the `.mol` holding the
+basis and the geometry, and the `.dal` holding the run. Its basis tab is a
+family -- STO-nG, Pople, Jensen's pc-n or Dunning's correlation-consistent
+sets -- with polarization, diffuse and core-valence switches that choose which
+of eleven lists you pick from, and an augmentation prefix for the augmented
+Dunning sets. There is no geometry optimization on that form, only a wave
+function and a property run (polarizability or excitation energies), and the
+form says so if you ask for one.
 ORCA has the two modes its dialog had. `Basic` is a method, a basis set and a
 calculation type; `Advanced` opens the rest -- the functional and its grids,
 the auxiliary bases, chain-of-spheres exchange, the SCF accuracy and

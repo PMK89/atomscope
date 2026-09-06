@@ -26,7 +26,14 @@ from atomscope.backends.base import (
     ResultBundle,
     Values,
 )
+from atomscope.backends.qc_inputs import dalton as dalton_module
 from atomscope.backends.qc_inputs import orca as orca_module
+from atomscope.backends.qc_inputs.dalton import (
+    BasisChoice,
+    DaltonOptions,
+    dalton_input,
+    dalton_molecule,
+)
 from atomscope.backends.qc_inputs.gamess import AXIS_ORDER_GROUPS as GAMESS_AXIS_GROUPS
 from atomscope.backends.qc_inputs.gamess import BASIS_CHOICES as GAMESS_BASIS_CHOICES
 from atomscope.backends.qc_inputs.gamess import DFT_FUNCTIONALS as GAMESS_FUNCTIONALS
@@ -92,6 +99,7 @@ MOLECULAR = (
     "gamess",
     "gamessuk",
     "molpro",
+    "dalton",
     "qchem",
     "psi4",
     "mopac",
@@ -130,6 +138,15 @@ _FREE_METHOD = ("gaussian",)
 dialog has that dialog's lists instead, in a section of its own."""
 
 _COORDINATE_BOX = ("gaussian", "qchem", "gamessuk", "molpro", "nwchem", "orca")
+
+_DALTON = [VisibleWhen(key="program", value="dalton")]
+"""Every box on the Dalton section asks for the program first."""
+
+
+def _dalton_list(names: tuple[str, ...]) -> list[Choice]:
+    """One of the eleven basis lists, whose keyword is also its name."""
+    return [Choice(value=name, label=name) for name in names]
+
 
 _ORCA_ADVANCED = [
     VisibleWhen(key="program", value="orca"),
@@ -180,6 +197,7 @@ SCHEMA = ParameterSchema(
                         Choice(value="gamess", label="GAMESS-US"),
                         Choice(value="gamessuk", label="GAMESS-UK"),
                         Choice(value="molpro", label="Molpro"),
+                        Choice(value="dalton", label="Dalton"),
                         Choice(value="qchem", label="Q-Chem"),
                         Choice(value="psi4", label="Psi4"),
                         Choice(value="mopac", label="MOPAC (semi-empirical)"),
@@ -399,6 +417,298 @@ SCHEMA = ParameterSchema(
                         Choice(value=key, label=label) for key, label in PSI4_BASIS_LABELS.items()
                     ],
                     visible_when=[VisibleWhen(key="program", value="psi4")],
+                ),
+            ],
+        ),
+        Section(
+            id="dalton",
+            label="Dalton",
+            help="the theory, functional, basis and property lists of Avogadro's Dalton dialog",
+            parameters=[
+                ParameterSpec(
+                    key="dalton_theory",
+                    label="Theory",
+                    type="enum",
+                    default="hf",
+                    choices=[
+                        Choice(value=key, label=label)
+                        for key, label in dalton_module.THEORY_LABELS.items()
+                    ],
+                    visible_when=_DALTON,
+                ),
+                ParameterSpec(
+                    key="dalton_functional",
+                    label="Functional",
+                    type="enum",
+                    default="B3LYP",
+                    choices=_dalton_list(dalton_module.FUNCTIONALS),
+                    visible_when=[*_DALTON, VisibleWhen(key="dalton_theory", value="dft")],
+                ),
+                ParameterSpec(
+                    key="dalton_grid",
+                    label="Integration grid",
+                    type="enum",
+                    default="normal",
+                    choices=[
+                        Choice(value=key, label=key.capitalize()) for key in dalton_module.GRIDS
+                    ],
+                    help="anything but the normal grid opens a `*DFT INPUT` section",
+                    visible_when=[*_DALTON, VisibleWhen(key="dalton_theory", value="dft")],
+                ),
+                ParameterSpec(
+                    key="dalton_property",
+                    label="Property",
+                    type="enum",
+                    default="none",
+                    choices=[
+                        Choice(value="none", label="None (wave function only)"),
+                        Choice(value="polarizability", label="Polarizability"),
+                        Choice(value="excitation", label="Excitation energies"),
+                    ],
+                    help="a property run writes `.RUN PROPERTIES` rather than the wave function",
+                    visible_when=_DALTON,
+                ),
+                ParameterSpec(
+                    key="dalton_excitations",
+                    label="Number of excitations",
+                    type="integer",
+                    default=1,
+                    minimum=1,
+                    visible_when=[
+                        *_DALTON,
+                        VisibleWhen(key="dalton_property", value="excitation"),
+                    ],
+                ),
+                ParameterSpec(
+                    key="dalton_direct",
+                    label="Direct (recompute the integrals)",
+                    type="boolean",
+                    default=False,
+                    visible_when=_DALTON,
+                ),
+                ParameterSpec(
+                    key="dalton_parallel",
+                    label="Parallel",
+                    type="boolean",
+                    default=False,
+                    visible_when=_DALTON,
+                ),
+            ],
+        ),
+        Section(
+            id="dalton_basis",
+            label="Dalton: Basis",
+            help="the Basis tab: a family, its switches, and one list for each combination",
+            advanced=True,
+            parameters=[
+                ParameterSpec(
+                    key="dalton_family",
+                    label="Basis family",
+                    type="enum",
+                    default="sto",
+                    choices=[
+                        Choice(value=key, label=label)
+                        for key, label in dalton_module.BASIS_FAMILIES.items()
+                    ],
+                    advanced=True,
+                    visible_when=_DALTON,
+                ),
+                ParameterSpec(
+                    key="dalton_polarized",
+                    label="Polarization functions",
+                    type="boolean",
+                    default=False,
+                    advanced=True,
+                    visible_when=[*_DALTON, VisibleWhen(key="dalton_family", value="pople")],
+                ),
+                ParameterSpec(
+                    key="dalton_diffuse",
+                    label="Diffuse functions",
+                    type="boolean",
+                    default=False,
+                    advanced=True,
+                    visible_when=[
+                        *_DALTON,
+                        VisibleWhen(
+                            key="dalton_family", op="in", value=["pople", "jensen", "dunning"]
+                        ),
+                    ],
+                ),
+                ParameterSpec(
+                    key="dalton_core",
+                    label="Core-valence functions",
+                    type="boolean",
+                    default=False,
+                    advanced=True,
+                    visible_when=[*_DALTON, VisibleWhen(key="dalton_family", value="dunning")],
+                ),
+                ParameterSpec(
+                    key="dalton_augmentation",
+                    label="Augmentation",
+                    type="enum",
+                    default="single",
+                    choices=[
+                        Choice(value=key, label=key.capitalize())
+                        for key in dalton_module.AUGMENTATIONS
+                    ],
+                    help="how many diffuse shells an augmented Dunning set carries",
+                    advanced=True,
+                    visible_when=[
+                        *_DALTON,
+                        VisibleWhen(key="dalton_family", value="dunning"),
+                        VisibleWhen(key="dalton_diffuse", op="truthy"),
+                    ],
+                ),
+                ParameterSpec(
+                    key="dalton_sto",
+                    label="STO-nG basis",
+                    type="enum",
+                    default="STO-2G",
+                    choices=_dalton_list(dalton_module.STO_BASES),
+                    advanced=True,
+                    visible_when=[*_DALTON, VisibleWhen(key="dalton_family", value="sto")],
+                ),
+                ParameterSpec(
+                    key="dalton_pople",
+                    label="Pople basis",
+                    type="enum",
+                    default="3-21G",
+                    choices=_dalton_list(dalton_module.POPLE_BASES),
+                    advanced=True,
+                    visible_when=[
+                        *_DALTON,
+                        VisibleWhen(key="dalton_family", value="pople"),
+                        VisibleWhen(key="dalton_polarized", op="falsy"),
+                        VisibleWhen(key="dalton_diffuse", op="falsy"),
+                    ],
+                ),
+                ParameterSpec(
+                    key="dalton_pople_diffuse",
+                    label="Pople basis (diffuse)",
+                    type="enum",
+                    default="3-21++G",
+                    choices=_dalton_list(dalton_module.POPLE_DIFFUSE_BASES),
+                    advanced=True,
+                    visible_when=[
+                        *_DALTON,
+                        VisibleWhen(key="dalton_family", value="pople"),
+                        VisibleWhen(key="dalton_polarized", op="falsy"),
+                        VisibleWhen(key="dalton_diffuse", op="truthy"),
+                    ],
+                ),
+                ParameterSpec(
+                    key="dalton_pople_polarized",
+                    label="Pople basis (polarized)",
+                    type="enum",
+                    default="3-21G*",
+                    choices=_dalton_list(dalton_module.POPLE_POLARIZED_BASES),
+                    advanced=True,
+                    visible_when=[
+                        *_DALTON,
+                        VisibleWhen(key="dalton_family", value="pople"),
+                        VisibleWhen(key="dalton_polarized", op="truthy"),
+                        VisibleWhen(key="dalton_diffuse", op="falsy"),
+                    ],
+                ),
+                ParameterSpec(
+                    key="dalton_pople_diffuse_polarized",
+                    label="Pople basis (diffuse and polarized)",
+                    type="enum",
+                    default="3-21++G*",
+                    choices=_dalton_list(dalton_module.POPLE_DIFFUSE_POLARIZED_BASES),
+                    advanced=True,
+                    visible_when=[
+                        *_DALTON,
+                        VisibleWhen(key="dalton_family", value="pople"),
+                        VisibleWhen(key="dalton_polarized", op="truthy"),
+                        VisibleWhen(key="dalton_diffuse", op="truthy"),
+                    ],
+                ),
+                ParameterSpec(
+                    key="dalton_pc",
+                    label="Jensen basis",
+                    type="enum",
+                    default="pc-0",
+                    choices=_dalton_list(dalton_module.PC_BASES),
+                    advanced=True,
+                    visible_when=[
+                        *_DALTON,
+                        VisibleWhen(key="dalton_family", value="jensen"),
+                        VisibleWhen(key="dalton_diffuse", op="falsy"),
+                    ],
+                ),
+                ParameterSpec(
+                    key="dalton_apc",
+                    label="Jensen basis (diffuse)",
+                    type="enum",
+                    default="apc-0",
+                    choices=_dalton_list(dalton_module.APC_BASES),
+                    advanced=True,
+                    visible_when=[
+                        *_DALTON,
+                        VisibleWhen(key="dalton_family", value="jensen"),
+                        VisibleWhen(key="dalton_diffuse", op="truthy"),
+                    ],
+                ),
+                ParameterSpec(
+                    key="dalton_cc",
+                    label="Dunning basis",
+                    type="enum",
+                    default="cc-pVDZ",
+                    choices=_dalton_list(dalton_module.CC_BASES),
+                    advanced=True,
+                    visible_when=[
+                        *_DALTON,
+                        VisibleWhen(key="dalton_family", value="dunning"),
+                        VisibleWhen(key="dalton_core", op="falsy"),
+                        VisibleWhen(key="dalton_diffuse", op="falsy"),
+                    ],
+                ),
+                ParameterSpec(
+                    key="dalton_cc_core",
+                    label="Dunning basis (core-valence)",
+                    type="enum",
+                    default="cc-pCVDZ",
+                    choices=_dalton_list(dalton_module.CC_CORE_BASES),
+                    advanced=True,
+                    visible_when=[
+                        *_DALTON,
+                        VisibleWhen(key="dalton_family", value="dunning"),
+                        VisibleWhen(key="dalton_core", op="truthy"),
+                        VisibleWhen(key="dalton_diffuse", op="falsy"),
+                    ],
+                ),
+                ParameterSpec(
+                    key="dalton_aug_cc",
+                    label="Dunning basis (augmented)",
+                    type="enum",
+                    default="aug-cc-pVDZ",
+                    choices=_dalton_list(dalton_module.AUG_CC_BASES),
+                    advanced=True,
+                    visible_when=[
+                        *_DALTON,
+                        VisibleWhen(key="dalton_family", value="dunning"),
+                        VisibleWhen(key="dalton_core", op="falsy"),
+                        VisibleWhen(key="dalton_diffuse", op="truthy"),
+                    ],
+                ),
+                ParameterSpec(
+                    key="dalton_aug_cc_core",
+                    label="Dunning basis (augmented core-valence)",
+                    type="enum",
+                    default="aug-cc-pCVDZ",
+                    choices=_dalton_list(dalton_module.AUG_CC_CORE_BASES),
+                    help=(
+                        "Avogadro's switch had no case for aug-cc-pCV5Z, so choosing it wrote"
+                        " aug-cc-pCVDZ; each entry here writes its own name"
+                    ),
+                    advanced=True,
+                    visible_when=[
+                        *_DALTON,
+                        VisibleWhen(key="dalton_family", value="dunning"),
+                        VisibleWhen(key="dalton_core", op="truthy"),
+                        VisibleWhen(key="dalton_diffuse", op="truthy"),
+                    ],
                 ),
             ],
         ),
@@ -2136,6 +2446,41 @@ def _count(value: object, fallback: int = 0) -> int:
     return int(value) if isinstance(value, int | float) else fallback
 
 
+def _dalton_basis(merged: Values) -> BasisChoice:
+    """The Basis tab's family, its three switches and one entry per list."""
+    return BasisChoice(
+        family=str(merged.get("dalton_family", "sto")),
+        polarized=bool(merged.get("dalton_polarized")),
+        diffuse=bool(merged.get("dalton_diffuse")),
+        core=bool(merged.get("dalton_core")),
+        augmentation=str(merged.get("dalton_augmentation", "single")),
+        sto=str(merged.get("dalton_sto", "STO-2G")),
+        pople=str(merged.get("dalton_pople", "3-21G")),
+        pople_diffuse=str(merged.get("dalton_pople_diffuse", "3-21++G")),
+        pople_polarized=str(merged.get("dalton_pople_polarized", "3-21G*")),
+        pople_diffuse_polarized=str(merged.get("dalton_pople_diffuse_polarized", "3-21++G*")),
+        pc=str(merged.get("dalton_pc", "pc-0")),
+        apc=str(merged.get("dalton_apc", "apc-0")),
+        cc=str(merged.get("dalton_cc", "cc-pVDZ")),
+        aug_cc=str(merged.get("dalton_aug_cc", "aug-cc-pVDZ")),
+        cc_core=str(merged.get("dalton_cc_core", "cc-pCVDZ")),
+        aug_cc_core=str(merged.get("dalton_aug_cc_core", "aug-cc-pCVDZ")),
+    )
+
+
+def _dalton_options(merged: Values) -> DaltonOptions:
+    """Everything outside the Basis tab."""
+    return DaltonOptions(
+        theory=str(merged.get("dalton_theory", "hf")),
+        functional=str(merged.get("dalton_functional", "B3LYP")),
+        grid=str(merged.get("dalton_grid", "normal")),
+        prop=str(merged.get("dalton_property", "none")),
+        excitations=_count(merged.get("dalton_excitations"), 1),
+        direct=bool(merged.get("dalton_direct")),
+        parallel=bool(merged.get("dalton_parallel")),
+    )
+
+
 def _orca_advanced(merged: Values) -> AdvancedOptions | None:
     """The Advanced tabs' answers, or None when the dialog's Basic mode is the one in use."""
     if str(merged.get("orca_mode", "basic")) != "advanced":
@@ -2328,6 +2673,16 @@ class QcInputsPlugin:
             report.issues += _gamessuk_issues(structure, merged)
         if program == "orca":
             report.issues += _orca_issues(merged)
+        if program == "dalton" and merged.get("task") != "energy":
+            report.issues.append(
+                ValidationIssue(
+                    key="task",
+                    message=(
+                        "Avogadro's Dalton dialog offers a wave function and a property run and"
+                        " nothing else; there is no geometry optimization to write"
+                    ),
+                )
+            )
         stale = [key for key in ("method", "basis") if key in values]
         if stale and program not in _FREE_METHOD and program in MOLECULAR:
             report.issues.append(
@@ -2402,6 +2757,13 @@ class QcInputsPlugin:
     ) -> GeneratedInputs:
         merged = merge_values(SCHEMA, values)
         program = str(merged["program"])
+        if program == "dalton" and merged["task"] != "energy":
+            msg = (
+                "Avogadro's Dalton dialog has no geometry optimization: its calculation types are"
+                " a wave function and a property run. Choose Single point energy, and a property"
+                " in the Dalton box if you want one."
+            )
+            raise ValueError(msg)
         if merged["task"] == "transition_state" and program not in TS_PROGRAMS:
             msg = (
                 f"the {program} generator has no transition-state deck yet;"
@@ -2421,6 +2783,8 @@ class QcInputsPlugin:
         mem_raw = merged.get("memory_mb", 2000)
         memory_mb = int(mem_raw) if isinstance(mem_raw, int | float) else 2000
         buf = io.StringIO()
+        # Dalton is the one program here that reads a pair of files rather than one
+        extra_files: list[GeneratedFile] = []
         if program == "orca":
             name = f"{root_name}.inp"
             buf.write(
@@ -2502,6 +2866,23 @@ class QcInputsPlugin:
                     extra=extra,
                 )
             )
+        elif program == "dalton":
+            options = _dalton_options(merged)
+            extra_files.append(
+                GeneratedFile(
+                    name=f"{root_name}.mol",
+                    text=dalton_molecule(
+                        structure,
+                        title=structure.name or root_name,
+                        basis=_dalton_basis(merged),
+                        # the geometry asks for no symmetry only when the run is an excitation one
+                        nosymm=options.prop == "excitation",
+                    ),
+                    role="structure",
+                )
+            )
+            name = f"{root_name}.dal"
+            buf.write(dalton_input(options, extra=extra))
         elif program == "molpro":
             name = f"{root_name}.inp"
             buf.write(
@@ -2630,7 +3011,7 @@ class QcInputsPlugin:
         if not text.endswith("\n"):
             text += "\n"
         return GeneratedInputs(
-            files=[GeneratedFile(name=name, text=text, role="input")],
+            files=[GeneratedFile(name=name, text=text, role="input"), *extra_files],
             root_name=root_name,
             summary=f"{program} {task} input for {structure.formula()}",
         )

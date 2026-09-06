@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+- A **Dalton input generator** -- and it writes the pair of files Dalton
+  actually reads. Avogadro built the molecule file and the input file in one
+  buffer and saved them concatenated under a single `.dal`, which Dalton
+  cannot open; here they are `<name>.mol` and `<name>.dal`. Three theories,
+  sixty-eight functionals, four grid qualities, both properties, the direct
+  and parallel switches, and all eleven basis lists the family and its three
+  switches choose between -- including aug-cc-pCV5Z, which Avogadro's switch
+  had no case for and which therefore wrote aug-cc-pCVDZ. `Nosymm` is written
+  only for the excitation run that asks for it, rather than leaking out of the
+  property box into a plain wave-function run. That dialog has no geometry
+  optimization at all, and the form says so instead of writing one.
+
 - **ORCA has both modes of its dialog now**, not a simple-input line through
   ASE. Basic mode is its four methods and four basis sets; Advanced mode adds
   the functional, the auxiliary bases, the grids, chain-of-spheres exchange,
