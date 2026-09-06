@@ -2,7 +2,7 @@
 
 Branch: main; this file is updated in the commit that checkpoints the work, so `git log -1 -- docs/STATE.md` is the last checkpoint. Phases 0-1 done; Phase 2 (editor tools), 3 (volumetric, trajectories, vectors), 4-5 (CP-PAW setup/execution/forces), 6 (CP-PAW analysis: DOS, bands, orbitals), crystallography, molecular mechanics and wavefunction surfaces are merged and working. Parity matrix: 222 IMPLEMENTED, 18 PARTIAL, 71 NOT STARTED, 1 BLOCKED of 312 rows.
 
-Tests: `pytest -q -m "not cppaw"` -> 510 passed, 1 skipped; `pytest -q -m cppaw` -> 7 passed (~90 s, needs the local CP-PAW install); `pnpm vitest run` -> 517 passed; `pnpm exec playwright test` -> 39 passed in 56 s at `86da76e` (against private servers, see below; `make test-e2e` points at the user's 5173, which is stale). **`source env.sh` before Playwright**: without `PLAYWRIGHT_BROWSERS_PATH` it looks in `~/.cache/ms-playwright`, finds nothing, and every test fails at `browserType.launch`. `ruff check`, `mypy` and `pnpm typecheck` are clean. No known failing tests. **Type-check the frontend with `pnpm typecheck` (`tsc -b --noEmit`), never with `pnpm exec tsc --noEmit`:** the root `tsconfig.json` is a solution file with `files: []`, so a bare `tsc --noEmit` checks nothing and exits 0.
+Tests: `pytest -q -m "not cppaw"` -> 519 passed, 1 skipped; `pytest -q -m cppaw` -> 7 passed (93 s, runs the real binaries -- **CP-PAW is found through `$PAWDIR`, which the user's own shell sets (`/home/pmk/cp-paw`), not `env.sh`**; `$ATOMSCOPE_CPPAW_DIR` overrides it); `pnpm vitest run` -> 517 passed; `pnpm exec playwright test` -> 39 passed in 56 s at `86da76e` (against private servers, see below; `make test-e2e` points at the user's 5173, which is stale). **`source env.sh` before Playwright**: without `PLAYWRIGHT_BROWSERS_PATH` it looks in `~/.cache/ms-playwright`, finds nothing, and every test fails at `browserType.launch`. `ruff check`, `mypy` and `pnpm typecheck` are clean. No known failing tests. **Type-check the frontend with `pnpm typecheck` (`tsc -b --noEmit`), never with `pnpm exec tsc --noEmit`:** the root `tsconfig.json` is a solution file with `files: []`, so a bare `tsc --noEmit` checks nothing and exits 0.
 
 ## Resume commands
 
@@ -10,7 +10,9 @@ Tests: `pytest -q -m "not cppaw"` -> 510 passed, 1 skipped; `pytest -q -m cppaw`
 cd /home/pmk/Projects/atomscope && source env.sh
 git status && git log --oneline | head -20
 cat docs/STATE.md ROADMAP.md
-make test          # backend pytest + frontend vitest
+make test          # backend pytest + frontend vitest -- note `test-backend` is a bare
+                   # `pytest -q`, so it includes the seven CP-PAW-marked tests: ~3.5 min, not 2.
+                   # `pytest -q -m "not cppaw"` is the fast loop.
 make lint typecheck
 make dev-backend   # 127.0.0.1:8765 ; make dev-frontend -> 127.0.0.1:5173
 ```
@@ -357,13 +359,15 @@ run against current code -- Playwright above all -- use the private-server recip
    004/007/008) are done.
 4. **The input generators are the thread being pulled through the MEDIUM stratum.** Q-Chem
    (AV-QM-010), Psi4 (AV-QM-012), GAMESS-UK (AV-QM-006) and Molpro (AV-QM-008) are done; the one
-   **the seven-generator cluster is finished**: Q-Chem, Psi4, GAMESS-UK, Molpro, NWChem, ORCA
-   and Dalton, each written from its own dialog. ORCA's lives in `extensions/orca/`, not in
+   **the generator cluster is finished**: Q-Chem, Psi4, GAMESS-UK, Molpro, NWChem, ORCA, Dalton
+   and TeraChem, each written from its own dialog. ORCA's lives in `extensions/orca/`, not in
    `quantuminput/`, with its tables in `orcadata.cpp` and its enums in `orcaextension.h`. What is
-   left with `input-generator` in the Kind column, derived: **AV-QM-013 TeraChem** (NOT STARTED),
-   **AV-QM-014 ABINIT** (PARTIAL, ours goes through ASE) and **AV-QM-004 GAMESS EFP/QM
-   selection** (NOT STARTED, a selection dialog rather than a deck writer). Every one of the
-   seven read had a label or a keyword that disagreed with what the deck asks for, so
+   left with `input-generator` in the Kind column, derived: **AV-QM-014 ABINIT** (PARTIAL, ours
+   goes through ASE's writer; `abinitinputdialog.cpp` is 1104 lines of cpp / 905 of ui, no tabs),
+   **AV-QM-015 LAMMPS** (NOT STARTED, 878/1010, no tabs) and **AV-QM-004 GAMESS EFP/QM
+   selection** (NOT STARTED, a selection dialog rather than a deck writer). ROADMAP.md's Phase 9
+   says the same and is kept in step with this paragraph. Every one of the eight read had a label
+   or a keyword that disagreed with what the deck asks for, so
    **read the combo items, the enum, the `get*Type` switch, the constructor and `resetClicked`
    before writing a line** -- GAMESS-UK's two polarized basis labels wrote unpolarized keywords,
    and both Q-Chem's and Psi4's Reset restores something the dialog never opened with. Each follows the
