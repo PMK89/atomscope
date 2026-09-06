@@ -7,7 +7,11 @@
   basis set), the nine-entry basis list with the keywords each entry stands
   for, water as a PCM solvent, and a transition-state search. Its deck is
   written here now, so `Memory` reaches `$SYSTEM MWORDS` and extra keywords
-  pass through as a line of their own.
+  pass through as a line of their own. **The free-text `Method` and `Basis set`
+  boxes no longer apply to GAMESS**: it has its own lists, so a stored GAMESS
+  calculation that carried, say, `basis: N311` regenerates from the new boxes
+  and their defaults (RHF/6-31G(d)) unless you set them. Every other program is
+  unaffected.
 
 - The **Gaussian input generator** gained the options Avogadro's dialog had:
   processors and memory, a checkpoint file named after the deck, the Output box

@@ -208,10 +208,13 @@ def test_gamess_deck_layout() -> None:
     assert lines[2] == " $CONTRL SCFTYP=RHF RUNTYP=OPTIMIZE DFTTYP=B3LYP $END"
     # a GAMESS word is eight bytes, so MWORDS is the megabytes over eight
     assert lines[3] == " $SYSTEM MWORDS=250 $END"
-    assert lines[4] == "" and lines[5] == " $DATA" and lines[6] == "water" and lines[7] == "C1"
+    # every optimization carries this group, values and all, as Avogadro's did: they are GAMESS's
+    # own defaults and it wrote them to remind the user of them
+    assert lines[4] == " $STATPT OPTTOL=0.0001 NSTEP=20 $END"
+    assert lines[5] == "" and lines[6] == " $DATA" and lines[7] == "water" and lines[8] == "C1"
     # every atom carries its nuclear charge, which is what $DATA holds beside the coordinates
-    assert lines[8].split() == ["O", "8.0", "0.00000", "0.00000", "0.11926"]
-    assert lines[11] == " $END"
+    assert lines[9].split() == ["O", "8.0", "0.00000", "0.00000", "0.11926"]
+    assert lines[12] == " $END"
 
 
 def test_a_semi_empirical_gamess_theory_is_a_basis_set() -> None:
@@ -249,7 +252,13 @@ def test_only_gamess_writes_a_transition_state_deck() -> None:
     """The other generators have no saddle-point keyword here, and say so rather than guessing."""
     water = from_atoms(molecule("H2O"), name="water")
     gen = plugin.generate_inputs(water, {"program": "gamess", "task": "transition_state"}, "case")
-    assert "RUNTYP=SADPOINT" in gen.files[0].text
+    text = gen.files[0].text
+    assert "RUNTYP=SADPOINT" in text
+    # a saddle-point run is a stationary-point search, and carries the group an optimization does
+    assert " $STATPT OPTTOL=0.0001 NSTEP=20 $END" in text
+    # a frequency run is not, and does not
+    energy = plugin.generate_inputs(water, {"program": "gamess", "task": "frequencies"}, "case")
+    assert "$STATPT" not in energy.files[0].text
     report = plugin.validate(water, {"program": "orca", "task": "transition_state"})
     assert any("transition-state" in i.message for i in report.issues)
     with pytest.raises(ValueError, match="no transition-state deck"):

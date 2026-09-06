@@ -8,7 +8,8 @@ keywords are taken from the source comments that spell each combo entry out
 
 A GAMESS deck is groups of keywords, each ``$NAME ... $END`` on a line starting with one space,
 in the order Avogadro wrote them: ``$BASIS``, ``$PCM`` for the solvent, ``$CONTRL``, ``$SYSTEM``,
-then ``$DATA`` -- the title, the point group, and one line per atom carrying its nuclear charge.
+``$STATPT``, then ``$DATA`` -- the title, the point group, and one line per atom carrying
+its nuclear charge.
 """
 
 from __future__ import annotations
@@ -155,6 +156,13 @@ def gamess_deck(
     )
     if memory_mb:
         lines.append(f" $SYSTEM MWORDS={max(1, memory_mb // MEGAWORD_MB)} $END")
+    if task in ("optimize", "transition_state"):
+        # written for every optimize and saddle-point run, values and all: they are GAMESS's own
+        # defaults, and Avogadro punched them "just to remind the user"
+        # (gamessinputdata.cpp:2481-2489). Nothing else of the group is set from the Basic tab --
+        # its Frequencies entry asks for HESS=CALC, which GAMESS only reads for the two run types
+        # this group is written for, so it never appears
+        lines.append(" $STATPT OPTTOL=0.0001 NSTEP=20 $END")
     if extra.strip():
         lines.append(extra.strip())
     lines += ["", " $DATA", title, "C1"]

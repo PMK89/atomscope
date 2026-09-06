@@ -62,9 +62,8 @@ MOPAC_MULTIPLICITY = {
     8: "OCTET",
     9: "NONET",
 }
-"""Programs with a method and a basis set to choose; MOPAC has a Hamiltonian instead."""
-_AB_INITIO = ("orca", "gaussian", "nwchem", "gamess")
-"""...of which GAMESS-US has lists of its own, from the dialog Avogadro ported from MacMolPlt."""
+"""Programs whose method and basis set are typed in. MOPAC has a Hamiltonian instead, and
+GAMESS-US has lists of its own, from the dialog Avogadro ported from MacMolPlt."""
 _FREE_METHOD = ("orca", "gaussian", "nwchem")
 PERIODIC = ("espresso", "abinit")
 
@@ -231,7 +230,7 @@ SCHEMA = ParameterSchema(
                     type="string",
                     default="",
                     advanced=True,
-                    help="appended to the route/keyword line",
+                    help="appended to the route or keyword line; a line of its own for GAMESS",
                 ),
             ],
         ),
