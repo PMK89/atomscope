@@ -197,7 +197,7 @@ test('the space-group table lists the settings, marks the perceived one and feed
   expect(screen.queryByText('F 4/m -3 2/m')).not.toBeInTheDocument();
 
   fireEvent.click(screen.getByLabelText('Set P 1 1 2 (Hall 4)'));
-  expect(useCrystalStore.getState().setting?.hall_number).toBe(4);
+  expect(useCrystalStore.getState().setting?.setting.hall_number).toBe(4);
   expect(useCrystalStore.getState().dialog).toBeNull();
 
   // the panel now fills by that setting rather than by a number ASE would settle itself
@@ -217,9 +217,30 @@ test('a typed number is used when no setting is chosen, and Clear goes back to o
   await waitFor(() => expect(fill).toHaveBeenCalled());
   expect(fill.mock.calls[0]![0]).toMatchObject({ spacegroup: 225 });
 
-  act(() => useCrystalStore.getState().setSetting(P2[0] as never));
+  act(() => useCrystalStore.getState().setSetting(P2[0] as never, nacl.id));
   expect(screen.getByLabelText('Fill cell (group)')).toBeDisabled();
   fireEvent.click(screen.getByText('Clear'));
   expect(useCrystalStore.getState().setting).toBeNull();
   expect(screen.getByLabelText('Fill cell (group)')).toBeEnabled();
+});
+
+test('a setting chosen for one structure is not used to fill another', async () => {
+  fill.mockResolvedValue(nacl);
+  render(<CrystalPanel onError={vi.fn()} />);
+  act(() => useCrystalStore.getState().setSetting(P2[1] as never, nacl.id));
+  expect(screen.getByText(/P 1 1 2/)).toBeInTheDocument();
+
+  // an operation on the same crystal keeps its id, so the choice survives it
+  act(() => {
+    const st = useStructureStore.getState();
+    st.commit('Wrap atoms', { ...st.doc });
+  });
+  expect(screen.getByText(/P 1 1 2/)).toBeInTheDocument();
+
+  // opening another structure does not
+  act(() => useStructureStore.getState().load(normalizeStructure({ ...nacl, id: 'other' })));
+  expect(screen.queryByText(/P 1 1 2/)).not.toBeInTheDocument();
+  fireEvent.click(screen.getByText('Fill'));
+  await waitFor(() => expect(fill).toHaveBeenCalled());
+  expect(fill.mock.calls[0]![0]).not.toHaveProperty('hall_number');
 });

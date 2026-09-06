@@ -15,9 +15,14 @@ export interface CrystalState {
    * perceived, and deliberately not stored on the document: the group of a filled cell is a
    * function of its atoms, and a second copy beside it would be a second truth to reconcile
    * after every operation that moves them.
+   *
+   * It is kept with the document it was chosen for, the way `symmetry` is kept with the
+   * revision it was perceived at. An operation on the same crystal keeps its id, so the choice
+   * survives Fill, Niggli and a supercell; opening another structure drops it, rather than
+   * quietly filling the new one by the old one's group.
    */
-  setting: SpacegroupSetting | null;
-  setSetting: (setting: SpacegroupSetting | null) => void;
+  setting: { setting: SpacegroupSetting; docId: string } | null;
+  setSetting: (setting: SpacegroupSetting | null, docId: string) => void;
 }
 
 export const useCrystalStore = create<CrystalState>((set) => ({
@@ -27,5 +32,5 @@ export const useCrystalStore = create<CrystalState>((set) => ({
   symmetry: null,
   setSymmetry: (info, revision) => set({ symmetry: { info, revision } }),
   setting: null,
-  setSetting: (setting) => set({ setting }),
+  setSetting: (setting, docId) => set({ setting: setting ? { setting, docId } : null }),
 }));

@@ -254,7 +254,12 @@ function SpacegroupDialog({ onClose, onError }: DialogProps): JSX.Element {
   const setSetting = useCrystalStore((s) => s.setSetting);
   const chosen = useCrystalStore((s) => s.setting);
   const symmetry = useCrystalStore((s) => s.symmetry);
-  const current = chosen?.hall_number ?? symmetry?.info.hall_number ?? null;
+  const doc = useStructureStore((s) => s.doc);
+  const revision = useStructureStore((s) => s.revision);
+  // neither a choice made for another document nor a group perceived before an edit is current
+  const mine = chosen && chosen.docId === doc.id ? chosen.setting : null;
+  const perceived = symmetry && symmetry.revision === revision ? symmetry.info.hall_number : null;
+  const current = mine?.hall_number ?? perceived;
 
   useEffect(() => {
     api.crystal
@@ -274,7 +279,7 @@ function SpacegroupDialog({ onClose, onError }: DialogProps): JSX.Element {
   );
 
   const choose = (setting: SpacegroupSetting): void => {
-    setSetting(setting);
+    setSetting(setting, doc.id);
     onClose();
   };
 
@@ -325,10 +330,10 @@ function SpacegroupDialog({ onClose, onError }: DialogProps): JSX.Element {
         </table>
       </div>
       <div className="button-row">
-        {chosen && (
+        {mine && (
           <button
             onClick={() => {
-              setSetting(null);
+              setSetting(null, doc.id);
               onClose();
             }}
           >

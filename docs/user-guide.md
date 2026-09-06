@@ -1028,9 +1028,10 @@ operation is a single undo step.
   The chosen setting belongs to the panel, not to the document: it is not
   saved with the structure, because the group of a filled cell is a function
   of its atoms and a second, asserted copy would be a second truth to
-  reconcile after every operation that moves them. The cost is that an
-  asymmetric unit saved before filling does not remember which group it was
-  waiting for.
+  reconcile after every operation that moves them. It follows the structure it
+  was chosen for: an operation on the same crystal keeps it, opening another
+  one drops it. The cost is that an asymmetric unit saved before filling does
+  not remember which group it was waiting for.
 * **Operations** — `Wrap atoms`, `Standard orientation`, `Supercell…`,
   `Slab…`, `Crystal library…`, `Remove unit cell`, and `Scale to volume`.
 * **Display** — the cell repeat counts described in [§6](#6-visualization).

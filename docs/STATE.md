@@ -53,7 +53,8 @@ run against current code -- Playwright above all -- use the private-server recip
   only origin/cell choices -- ITA 3's unique-axis settings cannot be said through it, and the
   test asserts the three fill differently. The chosen setting lives in `crystalStore`, not on the
   document (a filled cell's group is a function of its atoms; a stored assertion would be a
-  second truth). Avogadro's dialog is 530 rows, not the 230 the matrix's description claimed --
+  second truth), keyed by document id the way `symmetry` is keyed by revision -- asserted state
+  that outlives what it was asserted about is the same bug in another place. Avogadro's dialog is 530 rows, not the 230 the matrix's description claimed --
   corrected in the same commit.
 - A file drawn in two dimensions is offered a rough geometry on import (AV-MM-013): the offer
   is made in `frontend/src/ui/buildGeometry.ts`, on the one path File > Open, Open Recent and a

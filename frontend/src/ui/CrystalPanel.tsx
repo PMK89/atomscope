@@ -31,8 +31,10 @@ export function CrystalPanel({ onError }: { onError: (m: string) => void }): JSX
   const symmetry = useCrystalStore((s) => s.symmetry);
   const setSymmetry = useCrystalStore((s) => s.setSymmetry);
   const openDialog = useCrystalStore((s) => s.openDialog);
-  const setting = useCrystalStore((s) => s.setting);
+  const chosen = useCrystalStore((s) => s.setting);
   const setSetting = useCrystalStore((s) => s.setSetting);
+  // the choice belongs to the document it was made for; another structure fills by its own group
+  const setting = chosen && chosen.docId === doc.id ? chosen.setting : null;
   const cellRepeat = useViewStore((s) => s.cellRepeat);
   const setCellRepeat = useViewStore((s) => s.setCellRepeat);
 
@@ -227,7 +229,7 @@ export function CrystalPanel({ onError }: { onError: (m: string) => void }): JSX
             <p className="muted">
               {setting.international_full} (no. {setting.number}, Hall {setting.hall}
               {setting.choice ? `, setting ${setting.choice}` : ''}){' '}
-              <button className="tree-item" onClick={() => setSetting(null)}>
+              <button className="tree-item" onClick={() => setSetting(null, doc.id)}>
                 Clear
               </button>
             </p>
