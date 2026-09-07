@@ -2,34 +2,39 @@
 
 Branch: main; this file is updated in the commit that checkpoints the work, so `git log -1 -- docs/STATE.md` is the last checkpoint. Phases 0-1 done; Phase 2 (editor tools), 3 (volumetric, trajectories, vectors), 4-5 (CP-PAW setup/execution/forces), 6 (CP-PAW analysis: DOS, bands, orbitals), crystallography, molecular mechanics and wavefunction surfaces are merged and working. Parity matrix at `8c51b48`, derived (see ROADMAP for the command): 229 IMPLEMENTED, 16 PARTIAL, 66 NOT STARTED, 1 BLOCKED of 312 rows.
 
-Tests: `pytest -q -m "not cppaw"` -> 519 passed, 1 skipped; `pytest -q -m cppaw` -> 7 passed (93 s, runs the real binaries -- **CP-PAW is found through `$PAWDIR`, which the user's own shell sets (`/home/pmk/cp-paw`), not `env.sh`**; `$ATOMSCOPE_CPPAW_DIR` overrides it); `pnpm vitest run` -> 531 passed; `pnpm exec playwright test` -> 40 passed in 54 s at the commit that carries this line (the Export-reopen fix), against current code (against private servers, see below; `make test-e2e` points at the user's 5173, which is stale). **`source env.sh` before Playwright**: without `PLAYWRIGHT_BROWSERS_PATH` it looks in `~/.cache/ms-playwright`, finds nothing, and every test fails at `browserType.launch`. `ruff check`, `mypy` and `pnpm typecheck` are clean. No known failing tests. **Type-check the frontend with `pnpm typecheck` (`tsc -b --noEmit`), never with `pnpm exec tsc --noEmit`:** the root `tsconfig.json` is a solution file with `files: []`, so a bare `tsc --noEmit` checks nothing and exits 0.
+Tests: `pytest -q -m "not cppaw"` -> 538 passed, 1 skipped; `pytest -q -m cppaw` -> 7 passed (93 s, runs the real binaries -- **CP-PAW is found through `$PAWDIR`, which the user's own shell sets (`/home/pmk/cp-paw`), not `env.sh`**; `$ATOMSCOPE_CPPAW_DIR` overrides it); `pnpm vitest run` -> 544 passed; `pnpm exec playwright test` -> 40 passed in ~57 s (plus `ATOMSCOPE_COURSE=1` for the three course pictures) (against private servers, see below; `make test-e2e` points at the user's 5173, which is stale). **`source env.sh` before Playwright**: without `PLAYWRIGHT_BROWSERS_PATH` it looks in `~/.cache/ms-playwright`, finds nothing, and every test fails at `browserType.launch`. `ruff check`, `mypy` and `pnpm typecheck` are clean. No known failing tests. **Type-check the frontend with `pnpm typecheck` (`tsc -b --noEmit`), never with `pnpm exec tsc --noEmit`:** the root `tsconfig.json` is a solution file with `files: []`, so a bare `tsc --noEmit` checks nothing and exits 0.
 
 ## The CP-PAW hands-on course
 
-`docs/course/inventory.md` is the map: every exercise, what shows it, and what is missing.
-`scripts/course/exercises.py` holds the exercises as structures plus schema values;
-`scripts/course/run.py` runs one:
+`docs/course/inventory.md` is the map: every exercise, what shows it, what is missing, and every
+finding so far. `scripts/course/exercises.py` holds the exercises as structures plus schema
+values; two runners drive them, both through `CalculationService` so what they leave behind is a
+project the application opens:
 
 ```bash
-cd backend && PYTHONPATH=src:../scripts/course ../.venv/bin/python -m run water-wavefunction
-# then water-relax, then water-orbitals -- each continues the one before, via case.rstrt
+cd backend
+PYTHONPATH=src:../scripts/course ../.venv/bin/python -m run   water-wavefunction   # one run
+PYTHONPATH=src:../scripts/course ../.venv/bin/python -m sweep iron-cutoff          # a curve
 ```
 
-Runs land in `.scratch/course-runs/<id>/` (gitignored); the root is always `case`, because that is
-what the application uses and what `analysis_run_spec` assumes. Chapter 2 reproduces the course's
-published geometry (0.9815 Å / 105.07° against 0.981 / 105.2). Timings: water single point 15 s,
-relaxation 29 s, orbital export + DOS about 20 s more.
+Everything lands in **one** project, `.scratch/course-runs/course/` (gitignored). Exercises that
+continue from a restart file are forks, which is what the service already calls that; a sweep that
+continues from a reference uses `SweepSpec.restart_from`. `--rerun` forks and runs again;
+`sweep --recollect` re-reads finished points with the parser as it is now.
 
-**Next: COOP** (ch. 3.5 and 4.7.5) — the course's `.dcntl` syntax is `!COOP` with `!ORB1`/`!ORB2`
-naming an atom, an orbital type and a neighbour for the local z axis; `dos.py` already reads the
-`.dos` files and `LineChart` already handles negative y. Then chapters 4, 6 and 7, which mostly
-run with what exists, and writing 8.2/8.3/8.4/6.3.6 down as sweeps.
+Done: ch. 2 (reproduces the published geometry, 0.9815 Å / 105.07°), ch. 3 (orbitals, density,
+DOS, COOP, and the grid centring that made the pictures right), ch. 8.2 (iron cutoff, monotone,
+settled from 40 Ry), ch. 8.5 (cell size — see the finding, the curve measures the basis set at the
+course's cutoff, not the images). Ch. 8.3, 8.4/6.3.6 written and running.
 
-Done so far: ch. 2 (reproduces the published geometry), ch. 3 (orbitals, density, DOS, and the
-grid centring that made the pictures right), ch. 8.5 (the cell-size sweep, in the app).
-Sweeps live in `calculations/sweeps.py` with `/api/sweeps` and a Sweeps panel; run one with
-`PYTHONPATH=src:../scripts/course ../.venv/bin/python -m sweep water-cell-size`, and `--recollect`
-re-reads finished runs with the parser as it is now.
+Measured wall clock: water single point 15 s, water relaxation 29 s, orbital export + DOS ~20 s,
+iron reference (R=30, 500 steps) 2 m 25 s, the eight-point iron cutoff sweep 4 min from that
+reference, the six-point water cell-size sweep 5 m 30 s from scratch.
+
+**Next:** chapters 4 (malonaldehyde), 6 (silicon, aluminium) and 7 (iron, NiO), which mostly run
+with what exists. Then cell dynamics (6.3.5), empty atoms (6.3.3), `paw_tra` mode extraction
+(5.10), contour plots (3.4) and a Birch-Murnaghan fit for 6.3.7 — the course's own tool for that
+is `paw_murnaghan.x`, worth reading before writing a fit.
 
 ## Resume commands
 
