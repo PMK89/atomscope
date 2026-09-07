@@ -270,8 +270,10 @@ class CalculationService:
                 software=calc.backend_id,
                 parents=[calc.structure_id],
             )
-            if final.id == calc.structure_id:
-                final.id = f"{calc.id}-final"
+            # Deterministic, not whatever id the parser happened to mint: collecting a second
+            # time -- after a parser improvement, say -- must replace this structure rather than
+            # leave another copy of it in the project.
+            final.id = f"{calc.id}-final"
             self.project.save_structure(final)
             calc.result_structure_id = final.id
         calc.results = results

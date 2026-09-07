@@ -751,6 +751,17 @@
             "title": "Structure Id",
             "type": "string"
           },
+          "sweep": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SweepMembership"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "set when this calculation is one point of a sweep"
+          },
           "values": {
             "additionalProperties": true,
             "description": "full merged parameter values",
@@ -1058,6 +1069,22 @@
         },
         "required": ["path", "name"],
         "title": "CreateProjectRequest",
+        "type": "object"
+      },
+      "CreateSweepRequest": {
+        "additionalProperties": false,
+        "description": "``structure_id`` is the sweep's reference structure; a point may name another instead.",
+        "properties": {
+          "spec": {
+            "$ref": "#/components/schemas/SweepSpec"
+          },
+          "structure_id": {
+            "title": "Structure Id",
+            "type": "string"
+          }
+        },
+        "required": ["structure_id", "spec"],
+        "title": "CreateSweepRequest",
         "type": "object"
       },
       "Dipole": {
@@ -5289,6 +5316,303 @@
         },
         "required": ["id", "status", "progress"],
         "title": "SurfaceTaskStatus",
+        "type": "object"
+      },
+      "SweepCurve": {
+        "additionalProperties": false,
+        "description": "The curve plus the answer a convergence test is asking for.",
+        "properties": {
+          "converged_from": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "smallest x from which the energy holds within the tolerance",
+            "title": "Converged From"
+          },
+          "result": {
+            "$ref": "#/components/schemas/SweepResult"
+          },
+          "tolerance_ev": {
+            "default": 0.0272113838,
+            "title": "Tolerance Ev",
+            "type": "number"
+          }
+        },
+        "required": ["result"],
+        "title": "SweepCurve",
+        "type": "object"
+      },
+      "SweepMembership": {
+        "additionalProperties": false,
+        "description": "This calculation is one point of a sweep: several runs that differ in one way.\n\nA convergence test, an energy-against-volume curve, a scan -- the tutorial's whole chapter 8\nis this shape. Membership is recorded on the member rather than in an object of its own, so\nthe sweep is a view over the calculations a project already holds: everything with this\n``sweep_id``, in order of ``x``.\n\nWhat varies is either one schema value (``key``) or the structure itself (``key`` is None) --\na cell-size or volume sweep changes the lattice, which no schema value can express. Either\nway ``x`` is the number the result is plotted against, and ``label``/``unit`` say what that\nnumber is, because for a structure sweep there is no parameter to ask.",
+        "properties": {
+          "index": {
+            "title": "Index",
+            "type": "integer"
+          },
+          "key": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "schema key varied; None = the structure",
+            "title": "Key"
+          },
+          "label": {
+            "description": "axis label, e.g. 'Plane-wave cutoff'",
+            "title": "Label",
+            "type": "string"
+          },
+          "sweep_id": {
+            "title": "Sweep Id",
+            "type": "string"
+          },
+          "unit": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unit"
+          },
+          "x": {
+            "title": "X",
+            "type": "number"
+          }
+        },
+        "required": ["sweep_id", "label", "x", "index"],
+        "title": "SweepMembership",
+        "type": "object"
+      },
+      "SweepPoint": {
+        "additionalProperties": false,
+        "properties": {
+          "calculation_id": {
+            "title": "Calculation Id",
+            "type": "string"
+          },
+          "energy_ev": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Energy Ev"
+          },
+          "properties": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "description": "every scalar the run reported, so a sweep can be read against any of them",
+            "title": "Properties",
+            "type": "object"
+          },
+          "status": {
+            "enum": ["draft", "ready", "queued", "running", "completed", "failed", "cancelled"],
+            "title": "Status",
+            "type": "string"
+          },
+          "x": {
+            "title": "X",
+            "type": "number"
+          }
+        },
+        "required": ["x", "calculation_id", "status"],
+        "title": "SweepPoint",
+        "type": "object"
+      },
+      "SweepPointSpec": {
+        "additionalProperties": false,
+        "description": "One point: where it sits on the axis, and what makes it different.",
+        "properties": {
+          "structure": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Structure"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "a structure of its own; None uses the sweep's"
+          },
+          "values": {
+            "additionalProperties": true,
+            "description": "overrides on top of the sweep's base values",
+            "title": "Values",
+            "type": "object"
+          },
+          "x": {
+            "title": "X",
+            "type": "number"
+          }
+        },
+        "required": ["x"],
+        "title": "SweepPointSpec",
+        "type": "object"
+      },
+      "SweepResult": {
+        "additionalProperties": false,
+        "description": "A sweep as a curve: ready for a line chart, in the order the x axis wants.",
+        "properties": {
+          "key": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Key"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "points": {
+            "items": {
+              "$ref": "#/components/schemas/SweepPoint"
+            },
+            "title": "Points",
+            "type": "array"
+          },
+          "sweep_id": {
+            "title": "Sweep Id",
+            "type": "string"
+          },
+          "unit": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unit"
+          }
+        },
+        "required": ["sweep_id", "label", "unit", "key", "points"],
+        "title": "SweepResult",
+        "type": "object"
+      },
+      "SweepSpec": {
+        "additionalProperties": false,
+        "description": "What to build. ``key`` names the schema value being varied, when one is.",
+        "properties": {
+          "backend_id": {
+            "title": "Backend Id",
+            "type": "string"
+          },
+          "base_values": {
+            "additionalProperties": true,
+            "title": "Base Values",
+            "type": "object"
+          },
+          "key": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Key"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "points": {
+            "items": {
+              "$ref": "#/components/schemas/SweepPointSpec"
+            },
+            "minItems": 2,
+            "title": "Points",
+            "type": "array"
+          },
+          "unit": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unit"
+          }
+        },
+        "required": ["name", "backend_id", "label", "points"],
+        "title": "SweepSpec",
+        "type": "object"
+      },
+      "SweepSummary": {
+        "additionalProperties": false,
+        "description": "A sweep as a list entry: what it varies and how far it has got.",
+        "properties": {
+          "completed": {
+            "title": "Completed",
+            "type": "integer"
+          },
+          "key": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Key"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "points": {
+            "title": "Points",
+            "type": "integer"
+          },
+          "sweep_id": {
+            "title": "Sweep Id",
+            "type": "string"
+          },
+          "unit": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unit"
+          }
+        },
+        "required": ["sweep_id", "label", "unit", "key", "points", "completed"],
+        "title": "SweepSummary",
         "type": "object"
       },
       "SymmetryInfo": {
@@ -10777,6 +11101,171 @@
         },
         "summary": "Put Structure",
         "tags": ["structures"]
+      }
+    },
+    "/api/sweeps": {
+      "get": {
+        "operationId": "list_sweeps_api_sweeps_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/SweepSummary"
+                  },
+                  "title": "Response List Sweeps Api Sweeps Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List Sweeps",
+        "tags": ["sweeps"]
+      },
+      "post": {
+        "operationId": "create_api_sweeps_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateSweepRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/Calculation"
+                  },
+                  "title": "Response Create Api Sweeps Post",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create",
+        "tags": ["sweeps"]
+      }
+    },
+    "/api/sweeps/{sweep_id}": {
+      "get": {
+        "operationId": "get_sweep_api_sweeps__sweep_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "sweep_id",
+            "required": true,
+            "schema": {
+              "title": "Sweep Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "tolerance_ev",
+            "required": false,
+            "schema": {
+              "default": 0.0272113838,
+              "title": "Tolerance Ev",
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SweepCurve"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Sweep",
+        "tags": ["sweeps"]
+      }
+    },
+    "/api/sweeps/{sweep_id}/run": {
+      "post": {
+        "description": "Run every point that has not run, one after another. Real DFT runs on one workstation:\ntwo at once take longer than two in a row.",
+        "operationId": "run_api_sweeps__sweep_id__run_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "sweep_id",
+            "required": true,
+            "schema": {
+              "title": "Sweep Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "tolerance_ev",
+            "required": false,
+            "schema": {
+              "default": 0.0272113838,
+              "title": "Tolerance Ev",
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SweepCurve"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Run",
+        "tags": ["sweeps"]
       }
     },
     "/api/wavefunction/load": {

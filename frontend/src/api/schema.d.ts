@@ -1925,6 +1925,62 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/sweeps': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** List Sweeps */
+    get: operations['list_sweeps_api_sweeps_get'];
+    put?: never;
+    /** Create */
+    post: operations['create_api_sweeps_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/sweeps/{sweep_id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Get Sweep */
+    get: operations['get_sweep_api_sweeps__sweep_id__get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/sweeps/{sweep_id}/run': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Run
+     * @description Run every point that has not run, one after another. Real DFT runs on one workstation:
+     *     two at once take longer than two in a row.
+     */
+    post: operations['run_api_sweeps__sweep_id__run_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/wavefunction/load': {
     parameters: {
       query?: never;
@@ -2414,6 +2470,8 @@ export interface components {
        * @description input structure (a copy is stored with the calculation)
        */
       structure_id: string;
+      /** @description set when this calculation is one point of a sweep */
+      sweep?: components['schemas']['SweepMembership'] | null;
       /**
        * Values
        * @description full merged parameter values
@@ -2551,6 +2609,15 @@ export interface components {
        * @description absolute path of a new (empty or missing) directory
        */
       path: string;
+    };
+    /**
+     * CreateSweepRequest
+     * @description ``structure_id`` is the sweep's reference structure; a point may name another instead.
+     */
+    CreateSweepRequest: {
+      spec: components['schemas']['SweepSpec'];
+      /** Structure Id */
+      structure_id: string;
     };
     /** Dipole */
     Dipole: {
@@ -4555,6 +4622,151 @@ export interface components {
        * @enum {string}
        */
       status: 'running' | 'done' | 'failed' | 'cancelled';
+    };
+    /**
+     * SweepCurve
+     * @description The curve plus the answer a convergence test is asking for.
+     */
+    SweepCurve: {
+      /**
+       * Converged From
+       * @description smallest x from which the energy holds within the tolerance
+       */
+      converged_from?: number | null;
+      result: components['schemas']['SweepResult'];
+      /**
+       * Tolerance Ev
+       * @default 0.0272113838
+       */
+      tolerance_ev: number;
+    };
+    /**
+     * SweepMembership
+     * @description This calculation is one point of a sweep: several runs that differ in one way.
+     *
+     *     A convergence test, an energy-against-volume curve, a scan -- the tutorial's whole chapter 8
+     *     is this shape. Membership is recorded on the member rather than in an object of its own, so
+     *     the sweep is a view over the calculations a project already holds: everything with this
+     *     ``sweep_id``, in order of ``x``.
+     *
+     *     What varies is either one schema value (``key``) or the structure itself (``key`` is None) --
+     *     a cell-size or volume sweep changes the lattice, which no schema value can express. Either
+     *     way ``x`` is the number the result is plotted against, and ``label``/``unit`` say what that
+     *     number is, because for a structure sweep there is no parameter to ask.
+     */
+    SweepMembership: {
+      /** Index */
+      index: number;
+      /**
+       * Key
+       * @description schema key varied; None = the structure
+       */
+      key?: string | null;
+      /**
+       * Label
+       * @description axis label, e.g. 'Plane-wave cutoff'
+       */
+      label: string;
+      /** Sweep Id */
+      sweep_id: string;
+      /** Unit */
+      unit?: string | null;
+      /** X */
+      x: number;
+    };
+    /** SweepPoint */
+    SweepPoint: {
+      /** Calculation Id */
+      calculation_id: string;
+      /** Energy Ev */
+      energy_ev?: number | null;
+      /**
+       * Properties
+       * @description every scalar the run reported, so a sweep can be read against any of them
+       */
+      properties?: {
+        [key: string]: number;
+      };
+      /**
+       * Status
+       * @enum {string}
+       */
+      status: 'draft' | 'ready' | 'queued' | 'running' | 'completed' | 'failed' | 'cancelled';
+      /** X */
+      x: number;
+    };
+    /**
+     * SweepPointSpec
+     * @description One point: where it sits on the axis, and what makes it different.
+     */
+    SweepPointSpec: {
+      /** @description a structure of its own; None uses the sweep's */
+      structure?: components['schemas']['Structure'] | null;
+      /**
+       * Values
+       * @description overrides on top of the sweep's base values
+       */
+      values?: {
+        [key: string]: unknown;
+      };
+      /** X */
+      x: number;
+    };
+    /**
+     * SweepResult
+     * @description A sweep as a curve: ready for a line chart, in the order the x axis wants.
+     */
+    SweepResult: {
+      /** Key */
+      key: string | null;
+      /** Label */
+      label: string;
+      /** Points */
+      points: components['schemas']['SweepPoint'][];
+      /** Sweep Id */
+      sweep_id: string;
+      /** Unit */
+      unit: string | null;
+    };
+    /**
+     * SweepSpec
+     * @description What to build. ``key`` names the schema value being varied, when one is.
+     */
+    SweepSpec: {
+      /** Backend Id */
+      backend_id: string;
+      /** Base Values */
+      base_values?: {
+        [key: string]: unknown;
+      };
+      /** Key */
+      key?: string | null;
+      /** Label */
+      label: string;
+      /** Name */
+      name: string;
+      /** Points */
+      points: components['schemas']['SweepPointSpec'][];
+      /** Unit */
+      unit?: string | null;
+    };
+    /**
+     * SweepSummary
+     * @description A sweep as a list entry: what it varies and how far it has got.
+     */
+    SweepSummary: {
+      /** Completed */
+      completed: number;
+      /** Key */
+      key: string | null;
+      /** Label */
+      label: string;
+      /** Points */
+      points: number;
+      /** Sweep Id */
+      sweep_id: string;
+      /** Unit */
+      unit: string | null;
     };
     /**
      * SymmetryInfo
@@ -8538,6 +8750,125 @@ export interface operations {
           [name: string]: unknown;
         };
         content?: never;
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  list_sweeps_api_sweeps_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['SweepSummary'][];
+        };
+      };
+    };
+  };
+  create_api_sweeps_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['CreateSweepRequest'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['Calculation'][];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  get_sweep_api_sweeps__sweep_id__get: {
+    parameters: {
+      query?: {
+        tolerance_ev?: number;
+      };
+      header?: never;
+      path: {
+        sweep_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['SweepCurve'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  run_api_sweeps__sweep_id__run_post: {
+    parameters: {
+      query?: {
+        tolerance_ev?: number;
+      };
+      header?: never;
+      path: {
+        sweep_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['SweepCurve'];
+        };
       };
       /** @description Validation Error */
       422: {

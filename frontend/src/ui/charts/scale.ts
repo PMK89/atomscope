@@ -80,10 +80,17 @@ export function invertScale(domain: Domain, range: Domain, log = false): (p: num
 }
 
 /** Compact tick label: integers as is, otherwise up to 4 significant digits or exponent form. */
-export function formatTick(v: number): string {
-  if (v === 0) return '0';
+export function formatTick(v: number, step?: number): string {
   const a = Math.abs(v);
-  if (a >= 1e5 || a < 1e-3) return v.toExponential(1).replace('e+', 'e');
+  if (a >= 1e5 || (a > 0 && a < 1e-3)) return v.toExponential(1).replace('e+', 'e');
+  if (step !== undefined && step > 0 && Number.isFinite(step)) {
+    // The precision a tick needs comes from the spacing between ticks, not from the size of the
+    // value. Four significant digits turned a total energy of -471.05 eV and one of -471.10 into
+    // the same label, which is a chart with two identical numbers up its axis.
+    const decimals = Math.max(0, Math.min(12, -Math.floor(Math.log10(step) + 1e-9)));
+    return v.toFixed(decimals);
+  }
+  if (v === 0) return '0';
   if (Number.isInteger(v)) return String(v);
   return String(Number(v.toPrecision(4)));
 }

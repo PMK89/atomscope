@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, test } from 'vitest';
 import {
   extent,
   formatTick,
@@ -73,4 +73,31 @@ describe('scale helpers', () => {
   it('keeps only positive values for log plots', () => {
     expect(positiveOnly([0, 1, 2, 3], [0, 0.1, -1, 5])).toEqual({ x: [1, 3], y: [0.1, 5] });
   });
+});
+
+test('a tick label is precise enough to tell it from the tick beside it', () => {
+  // a narrow range at a large value: four significant digits made -471.05 and -471.10 both
+  // read "-471.1", which is a chart with the same number twice up its axis
+  const domain: [number, number] = [-471.15, -470.95];
+  const step = niceStep(domain[1] - domain[0]);
+  const labels = linearTicks(domain).map((v) => formatTick(v, step));
+  expect(new Set(labels).size).toBe(labels.length);
+  expect(labels).toContain('-471.10');
+  expect(labels).toContain('-471.05');
+});
+
+test('the step decides the decimals, so whole numbers stay whole', () => {
+  expect(formatTick(-471.05, 0.05)).toBe('-471.05');
+  expect(formatTick(8, 2)).toBe('8');
+  expect(formatTick(0.5, 0.5)).toBe('0.5');
+  expect(formatTick(0, 0.5)).toBe('0.0');
+  // very large and very small still go exponential, step or no step
+  expect(formatTick(1.2e6, 1e5)).toBe('1.2e6');
+  expect(formatTick(1e-5, 1e-6)).toBe('1.0e-5');
+});
+
+test('without a step it behaves as it did', () => {
+  expect(formatTick(0)).toBe('0');
+  expect(formatTick(8)).toBe('8');
+  expect(formatTick(1.23456)).toBe('1.235');
 });

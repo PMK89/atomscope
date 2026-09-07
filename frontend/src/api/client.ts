@@ -37,6 +37,9 @@ export type AnalysisJob = components['schemas']['AnalysisJob'];
 export type OrbitalEntry = components['schemas']['OrbitalEntry'];
 export type OrbitalList = components['schemas']['OrbitalList'];
 export type DosSpectrum = components['schemas']['DosSpectrum'];
+export type SweepSummary = components['schemas']['SweepSummary'];
+export type SweepCurve = components['schemas']['SweepCurve'];
+export type SweepPoint = components['schemas']['SweepPoint'];
 export type DosSeries = components['schemas']['DosSeries'];
 export type DosOptions = components['schemas']['DosOptions'];
 export type BandStructure = components['schemas']['BandStructure'];
@@ -370,6 +373,20 @@ export const api = {
     /** WebSocket URL for job events (relative to the page origin; Vite proxies /api). */
     eventsUrl: () =>
       `${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host}/api/calculations/ws`,
+  },
+  /** Sweeps: several calculations that differ in one way, read back as one curve. */
+  sweeps: {
+    list: () => request<SweepSummary[]>('/api/sweeps'),
+    create: (body: Body<'/api/sweeps', 'post'>) =>
+      request<Calculation[]>('/api/sweeps', json(body)),
+    get: (id: string, toleranceEv?: number) =>
+      request<SweepCurve>(
+        `/api/sweeps/${encodeURIComponent(id)}` +
+          (toleranceEv === undefined ? '' : `?tolerance_ev=${toleranceEv}`),
+      ),
+    /** Runs every point that has not run, one after another; resolves when the last one ends. */
+    run: (id: string) =>
+      request<SweepCurve>(`/api/sweeps/${encodeURIComponent(id)}/run`, { method: 'POST' }),
   },
   /** CP-PAW post-processing of a completed calculation (jobs run in its work directory). */
   cppaw: {

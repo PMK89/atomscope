@@ -6,6 +6,7 @@ import { useMemo, useRef, useState } from 'react';
 import {
   extent,
   formatTick,
+  niceStep,
   invertScale,
   linearTicks,
   logTicks,
@@ -112,7 +113,10 @@ export function LineChart({
   const xRange: Domain = xReversed ? [plot.x1, plot.x0] : [plot.x0, plot.x1];
   const sx = makeScale(xd, xRange);
   const sy = makeScale(yDom, [plot.y0, plot.y1], logY);
-  const xTickList = xTicks ?? linearTicks(xd).map((v) => ({ value: v, label: formatTick(v) }));
+  const xStep = niceStep(xd[1] - xd[0]);
+  const yStep = niceStep(yDom[1] - yDom[0]);
+  const xTickList =
+    xTicks ?? linearTicks(xd).map((v) => ({ value: v, label: formatTick(v, xStep) }));
   const yTickList = logY ? logTicks(yDom) : linearTicks(yDom);
 
   const dataX = (e: { clientX: number }): number | null => {
@@ -170,7 +174,7 @@ export function LineChart({
         <g key={`y${v}`}>
           <line x1={plot.x0} x2={plot.x1} y1={sy(v)} y2={sy(v)} className="chart-grid" />
           <text x={plot.x0 - 4} y={sy(v) + 3} textAnchor="end" className="chart-tick">
-            {formatTick(v)}
+            {logY ? formatTick(v) : formatTick(v, yStep)}
           </text>
         </g>
       ))}

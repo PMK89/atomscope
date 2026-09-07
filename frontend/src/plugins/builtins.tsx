@@ -21,6 +21,7 @@ import {
   SelectSettings,
 } from '../ui/toolPanels';
 import { AnalysisPanel } from '../ui/AnalysisPanel';
+import { SweepPanel } from '../ui/SweepPanel';
 import { CalculationPanel } from '../ui/CalculationPanel';
 import { CrystalPanel } from '../ui/CrystalPanel';
 import { DisplayPanel } from '../ui/DisplayPanel';
@@ -127,6 +128,13 @@ export function defaultRegistry(): PluginRegistry {
     label: 'Analysis',
     description: 'What a finished run produced: energies, geometries, densities of states.',
     component: AnalysisPanel,
+  });
+  registry.registerPanel({
+    id: 'sweeps',
+    label: 'Sweeps',
+    description:
+      'Several calculations that differ in one way — a cutoff, a cell size, a volume — read as one curve.',
+    component: SweepPanel,
   });
   registry.registerPanel({
     id: 'spectra',

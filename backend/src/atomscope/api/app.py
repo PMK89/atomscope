@@ -21,6 +21,7 @@ from atomscope.api import (
     routes_io,
     routes_project,
     routes_structures,
+    routes_sweeps,
     routes_trajectory,
     routes_wavefunction,
 )
@@ -53,6 +54,7 @@ def create_app(data_dir: Path | None = None) -> FastAPI:
     app.include_router(routes_calculations.router)
     app.include_router(routes_grids.router)
     app.include_router(routes_cppaw.router)
+    app.include_router(routes_sweeps.router)
     app.include_router(routes_trajectory.calc_router)
     app.include_router(routes_trajectory.io_router)
     app.include_router(routes_chem.router)

@@ -108,3 +108,19 @@ test('water: the HOMO is drawn on the molecule, not at the corners of the cell',
   const apart = Math.hypot(surface.x - molecule.x, surface.y - molecule.y);
   expect(apart).toBeLessThan(0.12 * Math.min(after.width, after.height));
 });
+
+test('water: the cell-size convergence curve, in the app', async ({ page, request }) => {
+  const base = process.env['PLAYWRIGHT_BASE_URL'] ?? 'http://127.0.0.1:5173';
+  const project = join(RUNS, 'water-cell-size', 'project');
+  test.skip(!existsSync(project), 'run scripts/course/sweep.py water-cell-size first');
+
+  await request.post(`${base}/api/project/close`);
+  expect((await request.post(`${base}/api/project/open`, { data: { path: project } })).ok()).toBeTruthy();
+
+  await page.goto('/');
+  await page.getByRole('tab', { name: 'Sweeps' }).click();
+  await expect(page.getByRole('combobox', { name: 'Sweep' })).toBeVisible();
+  await expect(page.getByRole('status')).toContainText(/Settled from|Not settled/);
+  await expect(page.locator('.panel-body svg')).toBeVisible();
+  await page.screenshot({ path: join(SHOTS, 'cell-size-convergence.png') });
+});

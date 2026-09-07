@@ -121,3 +121,26 @@ def test_restart_fork_sets_restart_start_for_cppaw(tmp_path: Path) -> None:
     gen = svc.generate(child.id)
     cntl = next(f.text for f in gen.files if f.name == "case.cntl")
     assert "START=F" in cntl
+
+
+async def test_collecting_results_twice_replaces_the_result_structure(tmp_path: Path) -> None:
+    """Re-collecting is what you do after the parser improves; it must not leave a second copy."""
+    project = ProjectStore.create(tmp_path / "p", "demo")
+    s = from_atoms(bulk("Cu", cubic=True), name="cu")
+    project.save_structure(s)
+    jm = JobManager()
+    svc = CalculationService(project, default_registry(), jm)
+    calc = svc.create(
+        name="cu", backend_id="ase_builtin", structure=s, values={"task": "relax", "max_steps": 2}
+    )
+    calc = svc.run(calc.id)
+    assert calc.job is not None
+    await jm.wait(calc.job.id)
+    svc.collect_results(calc.id)
+    after_one = list(project.manifest.structure_ids)
+    result_id = svc.get(calc.id).result_structure_id
+    assert result_id == f"{calc.id}-final"
+
+    svc.collect_results(calc.id)
+    assert list(project.manifest.structure_ids) == after_one
+    assert svc.get(calc.id).result_structure_id == result_id
