@@ -117,7 +117,16 @@ A row saying `SHOWS` is a claim until someone has looked at the picture. `fronte
 (`ATOMSCOPE_COURSE=1 pnpm exec playwright test`, see [`../testing.md`](../testing.md)) opens the
 course project in the running application, asserts what has to be on the chart and writes the
 picture to `.scratch/course-shots/`. Seven pass today, covering Figs 4.8, 5.1, 5.2, 6.4, 8.1, 8.2,
-8.5 and the DOS shape shared by 3.1/4.2/4.6/6.1/7.1/7.3. The remaining `SHOWS` rows — 2.1, 4.7,
+8.5 and the DOS shape shared by 3.1/4.2/4.6/6.1/7.1/7.3.
+
+Figs **7.1 and 7.3 are spin-polarized** stacks, and no polarized course run
+exists yet (`iron-ferromagnet` and `nio` are written but not run), so those two
+are verified on a synthetic two-spin fixture instead of a picture: the water
+DOS mirrored into an up and a down channel, asserting that each channel
+accumulates on its own side of zero and that the two halves of one projection
+share a colour. Colouring by position in the series list — which is what the
+plain-line mode did — would have given the majority-spin bands every other
+colour and painted the whole minority side one shade. The remaining `SHOWS` rows — 2.1, 4.7,
 6.5, 7.2, 8.3 — are the viewer and sweep surfaces the shared suite already covers, on systems the
 course chapters have not been run for yet (see [`inventory.md`](inventory.md)).
 

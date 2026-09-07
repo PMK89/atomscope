@@ -9,8 +9,11 @@ import type { ScalarSeries } from '../api/client';
  * of an eV axis and vanish, so they get their own charts -- the course plots them separately too
  * (Figs 5.1, 5.2, 5.3).
  *
- * Classification is by axis and unit rather than by name, so a series added to the backend later
- * lands on the right chart, or on none, instead of quietly on the wrong one.
+ * Classification is by axis and unit rather than by name, so a series added to a backend later
+ * lands on the right chart, or on none, instead of quietly on the wrong one. It is deliberately
+ * "the energies that are not against time" rather than "the ones against steps": the force-field
+ * backend indexes a conformer search by `conformer`, and a whitelist of x labels would have
+ * dropped its only series and left its Convergence tab empty.
  */
 export interface RunSeriesCharts {
   /** iteration-indexed, in eV: the convergence and total-energy charts */
@@ -23,7 +26,7 @@ export interface RunSeriesCharts {
 
 export function partitionRunSeries(series: readonly ScalarSeries[]): RunSeriesCharts {
   return {
-    convergence: series.filter((s) => s.x_label === 'step' && s.y_unit === 'eV'),
+    convergence: series.filter((s) => s.y_unit === 'eV' && s.x_label !== 'time'),
     temperature: series.find((s) => s.name === 'temperature'),
     friction: series.filter((s) => s.name.startsWith('friction_')),
   };

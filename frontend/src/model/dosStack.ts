@@ -34,8 +34,15 @@ export function stackedDosSeries(
     withChannels.has(s.group!) ? s.channel != null : s.channel == null,
   );
 
+  // Colour keys on the weight, not on position: a spin-polarized run has an up and a down series
+  // for every weight, and the two halves of one projection have to be the same colour for the
+  // mirrored figure to be readable. Indexing `chosen` would have given the up bands every other
+  // colour and painted each down band identically.
+  const order = [...new Set(chosen.map((s) => s.id))];
+
   const running = new Map<string, number[]>();
-  const stacked: ChartSeries[] = chosen.map((s, i) => {
+  const stacked: ChartSeries[] = chosen.map((s) => {
+    const i = order.indexOf(s.id);
     const base = running.get(s.spin) ?? new Array<number>(dos.energies.length).fill(0);
     const top = base.map((v, k) => v + (s.dos[k] ?? 0));
     running.set(s.spin, top);
@@ -55,16 +62,19 @@ export function stackedDosSeries(
   // them, so a line for it would put the same states on the chart twice -- the double-counting
   // the stack itself avoids, coming back in as an outline.
   const superseded = new Set(chosen.filter((s) => s.channel != null).map((s) => s.group!));
-  const outlines: ChartSeries[] = plottable
-    .filter((s) => !chosen.includes(s) && !(s.group != null && superseded.has(s.group)))
-    .map((s, i) => ({
-      id: `${s.id}-${s.spin}`,
-      label: s.spin === 'none' ? s.label : `${s.label} (${s.spin})`,
-      x: dos.energies,
-      y: s.dos,
-      color: colorFor(s, i),
-      dashed: s.spin === 'down',
-    }));
+  const rest = plottable.filter(
+    (s) => !chosen.includes(s) && !(s.group != null && superseded.has(s.group)),
+  );
+  const restOrder = [...new Set(rest.map((s) => s.id))];
+  const outlines: ChartSeries[] = rest.map((s) => ({
+    id: `${s.id}-${s.spin}`,
+    label: s.spin === 'none' ? s.label : `${s.label} (${s.spin})`,
+    x: dos.energies,
+    y: s.dos,
+    // past the stack's colours, so the total's outline never matches a band underneath it
+    color: colorFor(s, order.length + restOrder.indexOf(s.id)),
+    dashed: s.spin === 'down',
+  }));
 
   return { stacked, outlines };
 }

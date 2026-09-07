@@ -1106,11 +1106,24 @@ has four sections.
 
 ### 8.1 Convergence
 
-Three charts: `Convergence` (every series except energy and temperature, with
-`Logarithmic y axis` on by default), `Total energy` versus step, and
-`Temperature` versus time when the run had any. For CP-PAW these come from the
-`!>` rows of the protocol: total energy, conserved energy, wave-function
-kinetic energy and temperature.
+Four charts: `Convergence` (the energies other than the total, with
+`Logarithmic y axis` on by default), `Total energy` versus step, `Temperature`
+versus time when the run had any, and `Thermostat friction` versus time when
+the run had a thermostat. For CP-PAW these all come from the `!>` rows of the
+protocol: total energy, conserved energy, wave-function kinetic energy,
+temperature, and the friction each of the two thermostats is applying.
+
+Charts with more than one curve name them in a legend above the plot, and
+hovering anywhere on a chart reads out every curve's value at that x.
+
+The frictions are on a chart of their own because they are dimensionless and
+indexed by time, and the energies are in eV and indexed by iteration; together
+they would be a dot in the corner of the wrong axis. Which chart a series lands
+on is decided by its own axis and unit rather than by its name, so a series a
+backend adds later goes to the right chart or to none. The wave thermostat's
+friction says whether the wave functions are still following the atoms; the
+atom thermostat's says how hard it is pulling the atoms towards the target
+temperature, and is left out entirely when there is no atom dynamics.
 
 ### 8.2 Forces
 
@@ -1152,6 +1165,24 @@ marker at the Fermi level (or the HOMO if there is no Fermi level).
 Projections are further split into s/p/d/f channels where the element has them.
 Spin degeneracy is restored for non-spin-polarised runs, so integrating the
 occupied DOS gives the valence-electron count.
+
+`Stack the projections under the total` (on by default) draws it the way the
+literature and the CP-PAW course do: the total as a dark outline, and the
+projections filled and stacked underneath it, so they partition the area rather
+than overlapping as lines. States below the Fermi level are shaded solid and
+the empty ones above it faintly, with the boundary interpolated onto the level
+itself. Spin channels stack separately and mirror about zero, and the two
+halves of one projection share a colour.
+
+Only weights that genuinely partition the total are stacked: the finest
+decomposition that was asked for, which is the s/p/d/f channels when they were
+requested and the whole atoms or elements otherwise. A hand-built orbital
+weight overlaps whatever else was asked for, so it stays a plain line, and so
+does the total. The stack reaches the total only as far as the requested
+channels account for it — projections onto atomic spheres miss the diffuse
+empty states, which is why the total is drawn as an outline rather than as the
+top of the stack: the shortfall is visible instead of hidden. Untick the box
+for plain lines.
 
 **Overlap populations (COOP)** — select a bond in the viewport, tick
 `Overlap population for the selected bond`, then `Compute DOS`. The result is
@@ -1202,6 +1233,15 @@ every point from one converged reference calculation instead of starting each
 from scratch; that is faster, and it means every point begins from the same
 electronic state, so the curve shows the parameter rather than N independent
 convergences.
+
+Under the energy, a `Basis-set size` chart plots the number of plane waves for
+the wave functions and for the density at each point, when the runs recorded
+them. A cutoff convergence is only readable next to what it cost: the energy
+curve says where the answer stops moving, and this one says what you are paying
+for that, which is why the CP-PAW course's convergence tables list both counts
+beside every energy. It is left out when the counts were never collected — a
+run finished before the parser read them has to be re-collected
+(`scripts/course/sweep.py --recollect`).
 
 Sweeps are created over the API (`POST /api/sweeps`) or by
 `scripts/course/sweep.py`; the panel runs and reads them.

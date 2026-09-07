@@ -260,8 +260,12 @@ export function AnalysisPanel({ onError }: { onError: (m: string) => void }): JS
   /** The course's own DOS shape: the projections filled and stacked under the total's outline. */
   const stackedDos: ChartSeries[] = useMemo(() => {
     if (!dos) return [];
+    // One colour per weight, both spins: the two halves of a projection are told apart by which
+    // side of zero they are on, which is what CP-PAW's negative spin-down values already give us.
+    // The total is not one series among the others but the envelope they add up to, so it keeps a
+    // fixed dark colour -- the course's captions call it the black outline.
     const { stacked, outlines } = stackedDosSeries(dos, dosLevel, (s, i) =>
-      s.spin === 'down' ? SPIN_COLORS[1]! : seriesColor(i),
+      s.id === 'total' ? '#333' : seriesColor(i),
     );
     return [...stacked, ...outlines];
   }, [dos, dosLevel]);

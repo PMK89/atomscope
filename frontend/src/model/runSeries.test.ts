@@ -48,6 +48,13 @@ describe('partitionRunSeries', () => {
     expect(friction.map((s) => s.name)).toEqual(['friction_psi']);
   });
 
+  it('keeps an energy indexed by something other than steps', () => {
+    // the force-field backend indexes a conformer search by conformer, not by iteration; a
+    // whitelist of x labels would leave its Convergence tab empty
+    const conformers = [series('energy', 'conformer', 'eV')];
+    expect(partitionRunSeries(conformers).convergence.map((s) => s.name)).toEqual(['energy']);
+  });
+
   it('drops a series it does not know where to put', () => {
     const odd = [...WAVE_ONLY, series('pressure', 'time', 'GPa')];
     const { convergence, temperature, friction } = partitionRunSeries(odd);
