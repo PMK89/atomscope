@@ -22,6 +22,9 @@ project's catalogue of the same course, GPL-3.0, same author as this project). T
 systems the course does not cover — indole, a CH₃ClI NEB, the si2 regression fixture — which are
 not part of this inventory.
 
+A companion file, [`figures.md`](figures.md), maps the same course by *figure* rather than by
+exercise: all 35, with what draws each one today and what each gap would take.
+
 ## Status legend
 
 `DONE` the example runs end to end and its result is visualized · `RUNS` the calculation

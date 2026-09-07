@@ -2,12 +2,15 @@
 
 Branch: main; this file is updated in the commit that checkpoints the work, so `git log -1 -- docs/STATE.md` is the last checkpoint. Phases 0-1 done; Phase 2 (editor tools), 3 (volumetric, trajectories, vectors), 4-5 (CP-PAW setup/execution/forces), 6 (CP-PAW analysis: DOS, bands, orbitals), crystallography, molecular mechanics and wavefunction surfaces are merged and working. Parity matrix at `8c51b48`, derived (see ROADMAP for the command): 229 IMPLEMENTED, 16 PARTIAL, 66 NOT STARTED, 1 BLOCKED of 312 rows.
 
-Tests: `pytest -q -m "not cppaw"` -> 538 passed, 1 skipped; `pytest -q -m cppaw` -> 7 passed (93 s, runs the real binaries -- **CP-PAW is found through `$PAWDIR`, which the user's own shell sets (`/home/pmk/cp-paw`), not `env.sh`**; `$ATOMSCOPE_CPPAW_DIR` overrides it); `pnpm vitest run` -> 544 passed; `pnpm exec playwright test` -> 40 passed in ~57 s (plus `ATOMSCOPE_COURSE=1` for the three course pictures) (against private servers, see below; `make test-e2e` points at the user's 5173, which is stale). **`source env.sh` before Playwright**: without `PLAYWRIGHT_BROWSERS_PATH` it looks in `~/.cache/ms-playwright`, finds nothing, and every test fails at `browserType.launch`. `ruff check`, `mypy` and `pnpm typecheck` are clean. No known failing tests. **Type-check the frontend with `pnpm typecheck` (`tsc -b --noEmit`), never with `pnpm exec tsc --noEmit`:** the root `tsconfig.json` is a solution file with `files: []`, so a bare `tsc --noEmit` checks nothing and exits 0.
+Tests: `pytest -q -m "not cppaw"` -> 542 passed, 1 skipped; `pytest -q -m cppaw` -> 7 passed (93 s, runs the real binaries -- **CP-PAW is found through `$PAWDIR`, which the user's own shell sets (`/home/pmk/cp-paw`), not `env.sh`**; `$ATOMSCOPE_CPPAW_DIR` overrides it); `pnpm vitest run` -> 563 passed; `pnpm exec playwright test` -> 40 passed in ~57 s (plus `ATOMSCOPE_COURSE=1` for the seven course pictures, ~25 s) (against private servers, see below; `make test-e2e` points at the user's 5173, which is stale). **`source env.sh` before Playwright**: without `PLAYWRIGHT_BROWSERS_PATH` it looks in `~/.cache/ms-playwright`, finds nothing, and every test fails at `browserType.launch`. `ruff check`, `mypy` and `pnpm typecheck` are clean. No known failing tests. **Type-check the frontend with `pnpm typecheck` (`tsc -b --noEmit`), never with `pnpm exec tsc --noEmit`:** the root `tsconfig.json` is a solution file with `files: []`, so a bare `tsc --noEmit` checks nothing and exits 0.
 
 ## The CP-PAW hands-on course
 
-`docs/course/inventory.md` is the map: every exercise, what shows it, what is missing, and every
-finding so far. `scripts/course/exercises.py` holds the exercises as structures plus schema
+`docs/course/inventory.md` is the map by exercise; **`docs/course/figures.md` is the map by
+figure** — all 35, one row each, with what draws it today: **17 SHOWS · 8 PARTIAL · 5 MISSING ·
+5 n/a** (the counts are derived, see the file). That file answers "can the whole course be
+replicated and visualized", and its gaps table is grouped by the work each needs rather than by
+chapter, because one change closes several rows. `scripts/course/exercises.py` holds the exercises as structures plus schema
 values; two runners drive them, both through `CalculationService` so what they leave behind is a
 project the application opens:
 
@@ -32,10 +35,22 @@ Measured wall clock: water single point 15 s, water relaxation 29 s, orbital exp
 iron reference (R=30, 500 steps) 2 m 25 s, the eight-point iron cutoff sweep 4 min from that
 reference, the six-point water cell-size sweep 5 m 30 s from scratch.
 
-**Next:** chapters 4 (malonaldehyde), 6 (silicon, aluminium) and 7 (iron, NiO), which mostly run
-with what exists. Then cell dynamics (6.3.5), empty atoms (6.3.3), `paw_tra` mode extraction
-(5.10), contour plots (3.4) and a Birch-Murnaghan fit for 6.3.7 — the course's own tool for that
-is `paw_murnaghan.x`, worth reading before writing a fit.
+Traps worth knowing before driving the plugin from a script again: **`health_check()` has to have
+run first.** The installed paw tools need an older libgfortran than the system one, and the path to
+it is *discovered* by that check and then remembered on the settings object. Without it every
+analysis tool dies with `Fortran runtime error: Missing comma between descriptors` and exit code 2
+(`env -i /home/pmk/cp-paw/bin/fast/paw_bands.x case.bcntl` reproduces it). The API server has
+always run the check at startup; `scripts/course/run.py` now does too.
+
+**Next**, in the order that closes the most figures per unit of work (from `figures.md`'s gaps
+table): band curves coloured by occupation (6.4, 6.9 — needs a Fermi level along the path, which
+`paw_bands.x` does not report), a fitted curve through sweep points (6.6, 6.7 — read
+`paw_murnaghan.x` before writing the Birch-Murnaghan form), a DOS overlay across calculations
+(8.4), a running average on a time series (5.3), and distance-against-time from a stored
+trajectory (5.6). Then the chapters that are written and not yet run — 4 (malonaldehyde), 6
+(silicon, aluminium), 7 (iron, NiO) — and chapter 5 (MD), which needs no new features and runs
+longest. Still needing real new capability: cell dynamics (6.3.5), empty atoms (6.3.3),
+`paw_tra` mode extraction (5.4, 5.5, 5.10), contour plots (3.4), video export (4.9, 5.7).
 
 ## Resume commands
 
