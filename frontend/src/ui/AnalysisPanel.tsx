@@ -18,6 +18,9 @@ import {
 } from '../api/client';
 import { bandSeries, formatKPath } from '../model/bands';
 import { useCalculationStore } from '../state/calculationStore';
+import { useSelectionStore } from '../state/selectionStore';
+import { useStructureStore } from '../state/structureStore';
+import { coopsForBonds } from './coopRequests';
 import { useVolumetricStore } from '../state/volumetricStore';
 import { LineChart, type ChartMarker, type ChartSeries } from './charts/LineChart';
 import { channelOrbitals, channels, homoIndex, lumoIndex, stepIndex } from './analysis/orbitals';
@@ -47,6 +50,8 @@ async function waitForJob(
 export function AnalysisPanel({ onError }: { onError: (m: string) => void }): JSX.Element {
   const selected = useCalculationStore((s) => s.calculations.find((c) => c.id === s.selectedId));
   const upsert = useCalculationStore((s) => s.upsert);
+  const doc = useStructureStore((s) => s.doc);
+  const selectedBonds = useSelectionStore((s) => s.bonds);
   const loadGrid = useVolumetricStore((s) => s.loadGrid);
   const addSurface = useVolumetricStore((s) => s.addSurface);
 
@@ -60,6 +65,7 @@ export function AnalysisPanel({ onError }: { onError: (m: string) => void }): JS
   const [dos, setDos] = useState<DosSpectrum | null>(null);
   const [broadening, setBroadening] = useState(0.1);
   const [projection, setProjection] = useState<'none' | 'element' | 'atom'>('element');
+  const [withCoops, setWithCoops] = useState(false);
   const [bands, setBands] = useState<BandStructure | null>(null);
   const [path, setPath] = useState<KPathPoint[] | null>(null);
   const [nk, setNk] = useState(20);
@@ -170,6 +176,7 @@ export function AnalysisPanel({ onError }: { onError: (m: string) => void }): JS
           de_ev: 0.01,
           projection,
           l_channels: true,
+          coops: withCoops ? coops : [],
         }),
       );
       const finished = await waitForJob(calcId, upsert);
@@ -225,6 +232,9 @@ export function AnalysisPanel({ onError }: { onError: (m: string) => void }): JS
     };
   }, [dos]);
   const dosSeries = dosCharts.dos;
+
+  /** Overlap populations for the bonds currently selected in the viewport. */
+  const coops = useMemo(() => coopsForBonds(doc, selectedBonds), [doc, selectedBonds]);
 
   const dosMarkers: ChartMarker[] = useMemo(() => {
     const level = dos?.fermi_level ?? dos?.homo_energy ?? null;
@@ -442,6 +452,23 @@ export function AnalysisPanel({ onError }: { onError: (m: string) => void }): JS
                   <option value="atom">Per atom</option>
                 </select>
               </div>
+              <label className="form-advanced-toggle">
+                <input
+                  type="checkbox"
+                  checked={withCoops}
+                  disabled={coops.length === 0}
+                  onChange={(e) => setWithCoops(e.target.checked)}
+                />
+                Overlap population for the selected bond
+                {coops.length === 1 ? '' : 's'}
+                {coops.length === 0 && ' (select a bond first)'}
+              </label>
+              {withCoops && coops.length > 0 && (
+                <p className="muted">
+                  {coops.map((c) => c.label).join(', ')} — a hybrid along the bond against
+                  hydrogen&apos;s s orbital, which is the tutorial&apos;s own choice.
+                </p>
+              )}
               <div className="button-row">
                 <button className="primary" onClick={() => void runDos()} disabled={busy !== null}>
                   Compute DOS

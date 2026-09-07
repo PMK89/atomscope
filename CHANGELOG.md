@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- The DOS form can ask for **overlap populations of the bonds selected in the
+  viewport**. Which two orbitals to overlap is a chemical decision, so the
+  default is the tutorial's own choice for O–H: a hybrid on the heavier
+  partner pointing along the bond, against hydrogen's s orbital.
+
 - A sweep can **continue every point from one reference calculation** instead
   of starting each from scratch. Not only faster: every point then begins
   from the same electronic state, so the curve shows the parameter rather

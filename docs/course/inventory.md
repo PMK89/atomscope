@@ -180,8 +180,11 @@ Two gaps that showed up as soon as the pictures came from a project rather than 
 - **A DOS already computed was invisible.** Reopening a project said "No DOS computed yet" over a
   finished one, and recomputing would have overwritten the control file — losing any COOP or
   local-frame orbital it had been asked for. The panel reads an existing DOS back now.
-- **There is still no way to ask for a COOP from the UI.** The backend takes them; the DOS form
-  offers only broadening and projection. A small form, and the next thing to add there.
+- ~~There is still no way to ask for a COOP from the UI.~~ The DOS form has a checkbox for the
+  bonds selected in the viewport. Which two orbitals to overlap is a chemical decision, so the
+  default is the one the tutorial itself makes for O–H: a hybrid on the heavier partner pointing
+  along the bond against hydrogen's s. A d-block atom in a crystal field wants a named d orbital
+  instead, which the API takes but the form does not yet offer.
 
 ## Working notes
 
