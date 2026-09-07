@@ -83,6 +83,16 @@ class DosSeries(StrictModel):
         description="a COOP is a population, not a count: it is negative where antibonding,"
         " so it is plotted about zero rather than stacked",
     )
+    group: str | None = Field(
+        default=None,
+        description="id of the weight this one is part of, and its own id when it is a whole atom"
+        " or element. None for the total and for hand-built orbital weights, which overlap"
+        " whatever else was asked for. Series sharing a group partition it, so they can be"
+        " stacked; series with no group cannot.",
+    )
+    channel: str | None = Field(
+        default=None, description="'s', 'p', 'd' or 'f' when this is one channel of its group"
+    )
     dos: list[float]
     occupied_dos: list[float]
 

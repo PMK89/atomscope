@@ -2693,8 +2693,18 @@ export interface components {
      *     mirrored plots need no extra convention.
      */
     DosSeries: {
+      /**
+       * Channel
+       * @description 's', 'p', 'd' or 'f' when this is one channel of its group
+       */
+      channel?: string | null;
       /** Dos */
       dos: number[];
+      /**
+       * Group
+       * @description id of the weight this one is part of, and its own id when it is a whole atom or element. None for the total and for hand-built orbital weights, which overlap whatever else was asked for. Series sharing a group partition it, so they can be stacked; series with no group cannot.
+       */
+      group?: string | null;
       /**
        * Id
        * @description weight id, e.g. 'total', 'SI1_p'
@@ -4835,6 +4845,11 @@ export interface components {
       name: string;
       /** Points */
       points: components['schemas']['SweepPointSpec'][];
+      /**
+       * Restart From
+       * @description a completed calculation every point continues from, carrying its restart file; without it each point starts from scratch
+       */
+      restart_from?: string | null;
       /** Unit */
       unit?: string | null;
     };

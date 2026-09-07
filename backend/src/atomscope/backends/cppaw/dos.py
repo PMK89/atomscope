@@ -11,11 +11,11 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Literal
+from typing import Literal, NamedTuple
 
 import numpy as np
 
-from atomscope.backends.cppaw.deck import parse_deck
+from atomscope.backends.cppaw.deck import Block, parse_deck
 from atomscope.backends.cppaw.tools import dos_prefix
 from atomscope.model.spectrum import DosSeries, DosSpectrum
 
@@ -66,11 +66,56 @@ def read_fermi_level(dprot: Path) -> float | None:
     return float(m.group(1)) if m else None
 
 
-def dcntl_weights(text: str) -> tuple[str, list[tuple[str, str, str]], float | None]:
-    """(prefix, [(id, legend, "dos" | "coop")], broadening eV) from a generated ``.dcntl``.
+class WeightSpec(NamedTuple):
+    """One ``!WEIGHT`` or ``!COOP``, classified by what it decomposes.
+
+    Stacking a projected DOS under the total only makes sense over weights that *partition* it,
+    and a ``.dcntl`` says which those are: the ``TYPE`` on each ``!ATOM``. ``ALL`` is a whole
+    atom or element, ``S``/``P``/``D``/``F`` one of its channels, and an ``!ORB`` weight is a
+    hand-built orbital that overlaps whatever else was asked for and partitions nothing.
+    """
+
+    id: str
+    legend: str
+    kind: str  # "dos" | "coop"
+    group: str | None  # id of the weight this is part of; itself for a whole atom or element
+    channel: str | None  # "s" | "p" | "d" | "f" when this is one channel of its group
+
+
+def _classify(weights: list[Block], kind: str) -> list[WeightSpec]:
+    """Attach group and channel to each weight, by the atom sets and TYPEs in the deck."""
+    # atom sets of the ALL weights, which is what a channel weight has to be matched against
+    groups: dict[frozenset[str], str] = {}
+    for w in weights:
+        atoms = w.children_named("ATOM")
+        if atoms and all(str(a.get("TYPE", "")).upper() == "ALL" for a in atoms):
+            groups[frozenset(str(a.get("NAME")) for a in atoms)] = str(w.get("ID"))
+
+    out: list[WeightSpec] = []
+    for w in weights:
+        wid = str(w.get("ID"))
+        legend = str(w.get("LEGEND", wid))
+        atoms = w.children_named("ATOM")
+        types = {str(a.get("TYPE", "")).upper() for a in atoms}
+        names = frozenset(str(a.get("NAME")) for a in atoms)
+        group: str | None = None
+        channel: str | None = None
+        if kind == "dos" and atoms and not w.children_named("ORB"):
+            if types == {"ALL"}:
+                group = wid  # a whole atom or element: it is its own group
+            elif types and types <= {"S", "P", "D", "F"} and len(types) == 1:
+                group = groups.get(names)
+                channel = next(iter(types)).lower()
+        out.append(WeightSpec(wid, legend, kind, group, channel))
+    return out
+
+
+def dcntl_weights(text: str) -> tuple[str, list[WeightSpec], float | None]:
+    """(prefix, weights, broadening eV) from a generated ``.dcntl``.
 
     ``!WEIGHT`` and ``!COOP`` both write ``PREFIX//ID.dos`` in the same three-column format on
-    the same energy grid, so the only thing that has to be carried across is which is which.
+    the same energy grid, so what has to be carried across is which is which -- and, for the
+    ``!WEIGHT``s, what each one decomposes (see :class:`WeightSpec`).
     """
     deck = parse_deck(text)
     d = deck.child("DCNTL")
@@ -81,12 +126,10 @@ def dcntl_weights(text: str) -> tuple[str, list[tuple[str, str, str]], float | N
     prefix = str(gen.get("PREFIX", "")) if gen is not None else ""
     grid = d.child("GRID")
     broad = grid.get("BROADENING[EV]") if grid is not None else None
-    weights = [
-        (str(w.get("ID")), str(w.get("LEGEND", w.get("ID"))), kind)
-        for name, kind in (("WEIGHT", "dos"), ("COOP", "coop"))
-        for w in d.children_named(name)
-        if w.get("ID") is not None
-    ]
+    weights: list[WeightSpec] = []
+    for name, kind in (("WEIGHT", "dos"), ("COOP", "coop")):
+        present = [w for w in d.children_named(name) if w.get("ID") is not None]
+        weights.extend(_classify(present, kind))
     return prefix, weights, float(broad) if isinstance(broad, int | float) else None
 
 
@@ -129,7 +172,8 @@ def read_dos(
     prefix = prefix or dos_prefix(root)
     energies: np.ndarray | None = None
     series: list[DosSeries] = []
-    for wid, legend, kind in weights:
+    for spec in weights:
+        wid = spec.id
         path = work / f"{prefix}{wid}.dos"
         if not path.is_file():
             msg = f"{path.name} not found (paw_dos.x did not finish?)"
@@ -154,9 +198,11 @@ def read_dos(
             series.append(
                 DosSeries(
                     id=wid,
-                    label=legend,
+                    label=spec.legend,
                     spin=spin,
-                    kind=kind,  # type: ignore[arg-type]
+                    kind=spec.kind,  # type: ignore[arg-type]
+                    group=spec.group,
+                    channel=spec.channel,
                     dos=block.dos,
                     occupied_dos=block.occupied,
                 )

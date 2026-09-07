@@ -16,6 +16,7 @@ import {
   type OrbitalEntry,
   type OrbitalList,
 } from '../api/client';
+import { stackedDosSeries } from '../model/dosStack';
 import { partitionRunSeries } from '../model/runSeries';
 import { bandSeries, formatKPath } from '../model/bands';
 import { useCalculationStore } from '../state/calculationStore';
@@ -67,6 +68,7 @@ export function AnalysisPanel({ onError }: { onError: (m: string) => void }): JS
   const [broadening, setBroadening] = useState(0.1);
   const [projection, setProjection] = useState<'none' | 'element' | 'atom'>('element');
   const [withCoops, setWithCoops] = useState(false);
+  const [stackDos, setStackDos] = useState(true);
   const [bands, setBands] = useState<BandStructure | null>(null);
   const [path, setPath] = useState<KPathPoint[] | null>(null);
   const [nk, setNk] = useState(20);
@@ -252,15 +254,31 @@ export function AnalysisPanel({ onError }: { onError: (m: string) => void }): JS
       coop: dos.series.filter((s) => s.kind === 'coop').map(asSeries),
     };
   }, [dos]);
-  const dosSeries = dosCharts.dos;
+
+  const dosLevel = dos?.fermi_level ?? dos?.homo_energy ?? undefined;
+
+  /** The course's own DOS shape: the projections filled and stacked under the total's outline. */
+  const stackedDos: ChartSeries[] = useMemo(() => {
+    if (!dos) return [];
+    const { stacked, outlines } = stackedDosSeries(dos, dosLevel, (s, i) =>
+      s.spin === 'down' ? SPIN_COLORS[1]! : seriesColor(i),
+    );
+    return [...stacked, ...outlines];
+  }, [dos, dosLevel]);
+
+  const canStack = stackedDos.some((s) => s.baseline !== undefined);
+  const dosSeries = stackDos && canStack ? stackedDos : dosCharts.dos;
 
   /** Overlap populations for the bonds currently selected in the viewport. */
   const coops = useMemo(() => coopsForBonds(doc, selectedBonds), [doc, selectedBonds]);
 
-  const dosMarkers: ChartMarker[] = useMemo(() => {
-    const level = dos?.fermi_level ?? dos?.homo_energy ?? null;
-    return level === null ? [] : [{ x: level, label: dos?.fermi_level != null ? 'E_F' : 'HOMO' }];
-  }, [dos]);
+  const dosMarkers: ChartMarker[] = useMemo(
+    () =>
+      dosLevel === undefined
+        ? []
+        : [{ x: dosLevel, label: dos?.fermi_level != null ? 'E_F' : 'HOMO' }],
+    [dos, dosLevel],
+  );
 
   const bandChartSeries: ChartSeries[] = useMemo(
     () => (bands ? bandSeries(bands, SPIN_COLORS) : []),
@@ -481,6 +499,15 @@ export function AnalysisPanel({ onError }: { onError: (m: string) => void }): JS
                   <option value="atom">Per atom</option>
                 </select>
               </div>
+              <label className="form-advanced-toggle">
+                <input
+                  type="checkbox"
+                  checked={stackDos}
+                  disabled={!canStack}
+                  onChange={(e) => setStackDos(e.target.checked)}
+                />
+                Stack the projections under the total
+              </label>
               <label className="form-advanced-toggle">
                 <input
                   type="checkbox"

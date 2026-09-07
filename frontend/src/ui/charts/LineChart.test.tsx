@@ -64,3 +64,35 @@ test('onPick reports the data-space x of a click inside the plot', () => {
   fireEvent.click(svg, { clientX: 5, clientY: 100 });
   expect(onPick).toHaveBeenCalledTimes(1);
 });
+
+test('names the series in a legend, except the ones marked quiet', () => {
+  const { container } = render(
+    <LineChart
+      series={[
+        { id: 'a', label: 'oxygen p', x: [0, 1], y: [1, 2], color: '#f00' },
+        { id: 'b', label: 'hydrogen s', x: [0, 1], y: [2, 3], color: '#00f' },
+      ]}
+    />,
+  );
+  const legend = container.querySelector('.chart-legend');
+  expect(legend).not.toBeNull();
+  expect(legend!.textContent).toBe('oxygen phydrogen s');
+
+  // twenty band curves are not worth naming one by one, which is what `quiet` is for
+  const quiet = render(
+    <LineChart
+      series={[
+        { id: 'a', label: 'band 1', x: [0, 1], y: [1, 2], color: '#f00', quiet: true },
+        { id: 'b', label: 'band 2', x: [0, 1], y: [2, 3], color: '#f00', quiet: true },
+      ]}
+    />,
+  );
+  expect(quiet.container.querySelector('.chart-legend')).toBeNull();
+});
+
+test('does not put a legend on a single series', () => {
+  const { container } = render(
+    <LineChart series={[{ id: 'a', label: 'total', x: [0, 1], y: [1, 2], color: '#f00' }]} />,
+  );
+  expect(container.querySelector('.chart-legend')).toBeNull();
+});

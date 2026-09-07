@@ -266,11 +266,13 @@ def test_orb_weights_and_coops_are_written_as_the_cheat_sheet_spells_them() -> N
     # both kinds write PREFIX//ID.dos, so reading a .dcntl back has to say which is which
     prefix, entries, broadening = dcntl_weights(dcntl_text("case", h2o, opts))
     assert prefix == "case_dos_"
-    assert entries == [
+    assert [(e.id, e.legend, e.kind) for e in entries] == [
         ("total", "total", "dos"),
         ("o-sp3", "O sp3 toward H", "dos"),
         ("o-h", "O sp3 - H s", "coop"),
     ]
+    # neither the total nor a hand-built orbital partitions anything, so neither may be stacked
+    assert all(e.group is None and e.channel is None for e in entries)
     assert broadening == 0.1
 
 
@@ -297,3 +299,45 @@ def test_an_orbital_projection_has_to_name_atoms_that_exist() -> None:
     # ...and an id that would escape the file name is refused before it reaches the deck
     with pytest.raises(ValueError, match="String should match"):
         OrbitalWeight(id="../evil", orbitals=[OrbitalProjection(atom=0, type="S")])
+
+
+def test_weights_say_what_each_one_decomposes() -> None:
+    """A stacked DOS may only stack weights that partition the total, and the ``.dcntl`` says
+    which those are: the ``TYPE`` on each ``!ATOM``. Water with l channels has every shape at
+    once -- the total, whole atoms, their s and p channels, a hand-built sp3 orbital and a COOP.
+    """
+    h2o = from_atoms(molecule("H2O"))
+    opts = DosOptions(
+        projection="atom",
+        l_channels=True,
+        orbital_weights=[
+            OrbitalWeight(
+                id="o-sp3",
+                label="O sp3 toward H",
+                orbitals=[OrbitalProjection(atom=0, type="SP3", toward=1)],
+            )
+        ],
+        coops=[
+            CoopRequest(
+                id="o-h",
+                label="O sp3 - H s",
+                first=OrbitalProjection(atom=0, type="SP3", toward=1),
+                second=OrbitalProjection(atom=1, type="S", toward=0),
+            )
+        ],
+    )
+    _, entries, _ = dcntl_weights(dcntl_text("case", h2o, opts))
+    by_id = {e.id: e for e in entries}
+
+    assert by_id["total"].group is None  # the outline, not part of the stack
+    assert (by_id["O_1"].group, by_id["O_1"].channel) == ("O_1", None)  # its own group
+    assert (by_id["O_1_s"].group, by_id["O_1_s"].channel) == ("O_1", "s")
+    assert (by_id["O_1_p"].group, by_id["O_1_p"].channel) == ("O_1", "p")
+    assert (by_id["H_2_s"].group, by_id["H_2_s"].channel) == ("H_2", "s")
+    # a hand-built orbital overlaps whatever else was asked for: it partitions nothing
+    assert by_id["o-sp3"].group is None
+    assert by_id["o-h"].kind == "coop" and by_id["o-h"].group is None
+
+    # the channels of each group are a partition of it, and the groups a partition of the total
+    channels = [e for e in entries if e.channel is not None]
+    assert {e.group for e in channels} == {"O_1", "H_2", "H_3"}

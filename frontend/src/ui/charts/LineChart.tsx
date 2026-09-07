@@ -3,6 +3,8 @@
  * vertical markers (Fermi level, high-symmetry points) and a hover readout.
  */
 import { useMemo, useRef, useState } from 'react';
+
+import { areaPath, areaSpans } from './area';
 import {
   extent,
   formatTick,
@@ -26,6 +28,16 @@ export interface ChartSeries {
   dashed?: boolean;
   /** hide from the legend (e.g. many bands) */
   quiet?: boolean;
+  /**
+   * Lower edge of a filled area, same length as `y`. Present means "fill between `baseline` and
+   * `y`" -- a stacked density of states passes the running cumulative total here.
+   */
+  baseline?: number[];
+  /**
+   * x at which a filled area drops to half opacity. A stacked DOS puts the Fermi level here, so
+   * the occupied side reads solid and the empty side faint, as the course's figures draw it.
+   */
+  fillSplitX?: number;
 }
 
 export interface ChartMarker {
@@ -93,6 +105,7 @@ export function LineChart({
     () => (logY ? series.map((s) => ({ ...s, ...positiveOnly(s.x, s.y) })) : series),
     [series, logY],
   );
+  const filled = useMemo(() => drawn.filter((s) => s.baseline !== undefined), [drawn]);
   const plot = {
     x0: MARGIN.left,
     x1: width - MARGIN.right,
@@ -146,133 +159,165 @@ export function LineChart({
             return { s, x: s.x[i]!, y: s.y[i]! };
           });
 
+  // `quiet` exists for series there is no point naming one by one -- twenty band curves, say
+  const named = drawn.filter((s) => !s.quiet && s.label);
+
   return (
-    <svg
-      ref={svgRef}
-      className="line-chart"
-      viewBox={`0 0 ${width} ${height}`}
-      role="img"
-      aria-label={title ?? yLabel ?? 'chart'}
-      onMouseMove={onMove}
-      onMouseLeave={() => setHover(null)}
-      onClick={onPick ? onClick : undefined}
-      style={onPick ? { cursor: 'crosshair' } : undefined}
-    >
-      {title && (
-        <text x={plot.x0} y={MARGIN.top - 2} className="chart-title">
-          {title}
-        </text>
+    <>
+      {named.length > 1 && (
+        <p className="chart-legend">
+          {named.map((s) => (
+            <span key={s.id}>
+              <i style={{ background: s.color }} />
+              {s.label}
+            </span>
+          ))}
+        </p>
       )}
-      <rect
-        x={plot.x0}
-        y={plot.y1}
-        width={plot.x1 - plot.x0}
-        height={plot.y0 - plot.y1}
-        className="chart-plot"
-      />
-      {yTickList.map((v) => (
-        <g key={`y${v}`}>
-          <line x1={plot.x0} x2={plot.x1} y1={sy(v)} y2={sy(v)} className="chart-grid" />
-          <text x={plot.x0 - 4} y={sy(v) + 3} textAnchor="end" className="chart-tick">
-            {logY ? formatTick(v) : formatTick(v, yStep)}
+      <svg
+        ref={svgRef}
+        className="line-chart"
+        viewBox={`0 0 ${width} ${height}`}
+        role="img"
+        aria-label={title ?? yLabel ?? 'chart'}
+        onMouseMove={onMove}
+        onMouseLeave={() => setHover(null)}
+        onClick={onPick ? onClick : undefined}
+        style={onPick ? { cursor: 'crosshair' } : undefined}
+      >
+        {title && (
+          <text x={plot.x0} y={MARGIN.top - 2} className="chart-title">
+            {title}
           </text>
-        </g>
-      ))}
-      {xTickList.map((t, i) => (
-        <g key={`x${i}`}>
-          <line
-            x1={sx(t.value)}
-            x2={sx(t.value)}
-            y1={plot.y0}
-            y2={xTicks ? plot.y1 : plot.y0 + 4}
-            className={xTicks ? 'chart-grid' : 'chart-axis'}
-          />
-          <text x={sx(t.value)} y={plot.y0 + 14} textAnchor="middle" className="chart-tick">
-            {t.label}
-          </text>
-        </g>
-      ))}
-      {zeroLine && !logY && yDom[0] < 0 && yDom[1] > 0 && (
-        <line x1={plot.x0} x2={plot.x1} y1={sy(0)} y2={sy(0)} className="chart-axis" />
-      )}
-      {markers
-        .filter((m) => m.x >= xd[0] && m.x <= xd[1])
-        .map((m, i) => (
-          <g key={`m${i}`}>
-            <line
-              x1={sx(m.x)}
-              x2={sx(m.x)}
-              y1={plot.y0}
-              y2={plot.y1}
-              className="chart-marker"
-              style={m.color ? { stroke: m.color } : undefined}
-            />
-            {m.label && (
-              <text x={sx(m.x) + 3} y={plot.y1 + 10} className="chart-tick">
-                {m.label}
-              </text>
-            )}
+        )}
+        <rect
+          x={plot.x0}
+          y={plot.y1}
+          width={plot.x1 - plot.x0}
+          height={plot.y0 - plot.y1}
+          className="chart-plot"
+        />
+        {yTickList.map((v) => (
+          <g key={`y${v}`}>
+            <line x1={plot.x0} x2={plot.x1} y1={sy(v)} y2={sy(v)} className="chart-grid" />
+            <text x={plot.x0 - 4} y={sy(v) + 3} textAnchor="end" className="chart-tick">
+              {logY ? formatTick(v) : formatTick(v, yStep)}
+            </text>
           </g>
         ))}
-      {sticks.map((s, i) => (
-        <line
-          key={`stick${i}`}
-          x1={sx(s.x)}
-          x2={sx(s.x)}
-          y1={sy(Math.max(yDom[0], Math.min(0, yDom[1])))}
-          y2={sy(s.y)}
-          className={s.active ? 'chart-stick active' : 'chart-stick'}
-          style={s.color ? { stroke: s.color } : undefined}
-        />
-      ))}
-      {drawn.map((s) => (
-        <polyline
-          key={s.id}
-          fill="none"
-          stroke={s.color}
-          strokeWidth={1.5}
-          strokeDasharray={s.dashed ? '4 3' : undefined}
-          points={s.x.map((x, i) => `${sx(x).toFixed(1)},${sy(s.y[i]!).toFixed(1)}`).join(' ')}
-        />
-      ))}
-      <line x1={plot.x0} x2={plot.x1} y1={plot.y0} y2={plot.y0} className="chart-axis" />
-      <line x1={plot.x0} x2={plot.x0} y1={plot.y0} y2={plot.y1} className="chart-axis" />
-      {xLabel && (
-        <text
-          x={(plot.x0 + plot.x1) / 2}
-          y={height - 4}
-          textAnchor="middle"
-          className="chart-label"
-        >
-          {xLabel}
-        </text>
-      )}
-      {yLabel && (
-        <text
-          transform={`translate(10 ${(plot.y0 + plot.y1) / 2}) rotate(-90)`}
-          textAnchor="middle"
-          className="chart-label"
-        >
-          {yLabel}
-        </text>
-      )}
-      {hover != null && readout && readout.length > 0 && (
-        <g className="chart-hover">
-          <line x1={sx(hover)} x2={sx(hover)} y1={plot.y0} y2={plot.y1} className="chart-cursor" />
-          {readout.map((r, i) => (
-            <text
-              key={r.s.id}
-              x={plot.x1 - 4}
-              y={plot.y1 + 12 + i * 12}
-              textAnchor="end"
-              className="chart-readout"
-              fill={r.s.color}
-            >
-              {r.s.label}: {formatTick(r.y)} @ {formatTick(r.x)}
+        {xTickList.map((t, i) => (
+          <g key={`x${i}`}>
+            <line
+              x1={sx(t.value)}
+              x2={sx(t.value)}
+              y1={plot.y0}
+              y2={xTicks ? plot.y1 : plot.y0 + 4}
+              className={xTicks ? 'chart-grid' : 'chart-axis'}
+            />
+            <text x={sx(t.value)} y={plot.y0 + 14} textAnchor="middle" className="chart-tick">
+              {t.label}
             </text>
+          </g>
+        ))}
+        {zeroLine && !logY && yDom[0] < 0 && yDom[1] > 0 && (
+          <line x1={plot.x0} x2={plot.x1} y1={sy(0)} y2={sy(0)} className="chart-axis" />
+        )}
+        {markers
+          .filter((m) => m.x >= xd[0] && m.x <= xd[1])
+          .map((m, i) => (
+            <g key={`m${i}`}>
+              <line
+                x1={sx(m.x)}
+                x2={sx(m.x)}
+                y1={plot.y0}
+                y2={plot.y1}
+                className="chart-marker"
+                style={m.color ? { stroke: m.color } : undefined}
+              />
+              {m.label && (
+                <text x={sx(m.x) + 3} y={plot.y1 + 10} className="chart-tick">
+                  {m.label}
+                </text>
+              )}
+            </g>
           ))}
-        </g>
-      )}
-    </svg>
+        {sticks.map((s, i) => (
+          <line
+            key={`stick${i}`}
+            x1={sx(s.x)}
+            x2={sx(s.x)}
+            y1={sy(Math.max(yDom[0], Math.min(0, yDom[1])))}
+            y2={sy(s.y)}
+            className={s.active ? 'chart-stick active' : 'chart-stick'}
+            style={s.color ? { stroke: s.color } : undefined}
+          />
+        ))}
+        {filled.flatMap((s) =>
+          areaSpans(s.x, s.y, s.baseline!, s.fillSplitX).map((span, i) => (
+            <path
+              key={`${s.id}-fill${i}`}
+              d={areaPath(span, sx, sy)}
+              fill={s.color}
+              fillOpacity={span.solid ? 0.85 : 0.35}
+              stroke="none"
+            />
+          )),
+        )}
+        {drawn.map((s) => (
+          <polyline
+            key={s.id}
+            fill="none"
+            stroke={s.color}
+            strokeWidth={1.5}
+            strokeDasharray={s.dashed ? '4 3' : undefined}
+            points={s.x.map((x, i) => `${sx(x).toFixed(1)},${sy(s.y[i]!).toFixed(1)}`).join(' ')}
+          />
+        ))}
+        <line x1={plot.x0} x2={plot.x1} y1={plot.y0} y2={plot.y0} className="chart-axis" />
+        <line x1={plot.x0} x2={plot.x0} y1={plot.y0} y2={plot.y1} className="chart-axis" />
+        {xLabel && (
+          <text
+            x={(plot.x0 + plot.x1) / 2}
+            y={height - 4}
+            textAnchor="middle"
+            className="chart-label"
+          >
+            {xLabel}
+          </text>
+        )}
+        {yLabel && (
+          <text
+            transform={`translate(10 ${(plot.y0 + plot.y1) / 2}) rotate(-90)`}
+            textAnchor="middle"
+            className="chart-label"
+          >
+            {yLabel}
+          </text>
+        )}
+        {hover != null && readout && readout.length > 0 && (
+          <g className="chart-hover">
+            <line
+              x1={sx(hover)}
+              x2={sx(hover)}
+              y1={plot.y0}
+              y2={plot.y1}
+              className="chart-cursor"
+            />
+            {readout.map((r, i) => (
+              <text
+                key={r.s.id}
+                x={plot.x1 - 4}
+                y={plot.y1 + 12 + i * 12}
+                textAnchor="end"
+                className="chart-readout"
+                fill={r.s.color}
+              >
+                {r.s.label}: {formatTick(r.y)} @ {formatTick(r.x)}
+              </text>
+            ))}
+          </g>
+        )}
+      </svg>
+    </>
   );
 }

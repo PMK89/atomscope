@@ -7,7 +7,7 @@
  */
 import { useCallback, useEffect, useState } from 'react';
 import { api, type SweepCurve, type SweepSummary } from '../api/client';
-import { LineChart } from './charts/LineChart';
+import { LineChart, type ChartSeries } from './charts/LineChart';
 
 /** One millihartree in eV: what a total energy is quoted to, and the default tolerance. */
 const MILLIHARTREE = 0.0272113838;
@@ -82,6 +82,29 @@ export function SweepPanel({ onError }: { onError: (m: string) => void }): JSX.E
   }
 
   const done = curve?.result.points.filter((p) => p.energy_ev !== null) ?? [];
+
+  /**
+   * How big the basis set actually got at each point. The course draws this in a second panel
+   * under the energy (Fig. 8.1): a cutoff convergence is only readable next to the cost of it,
+   * and the two counts are what the tutorial's convergence tables list beside every energy.
+   */
+  const counts: ChartSeries[] = (
+    [
+      ['plane_waves_wavefunction', 'wave functions', '#2f6fdb'],
+      ['plane_waves_density', 'density', '#c2571a'],
+    ] as const
+  )
+    .map(([key, label, color]) => {
+      const have = done.filter((p) => p.properties?.[key] !== undefined);
+      return {
+        id: key,
+        label,
+        color,
+        x: have.map((p) => p.x),
+        y: have.map((p) => p.properties![key] as number),
+      };
+    })
+    .filter((series) => series.y.length > 1);
   const pending = curve?.result.points.filter((p) => p.energy_ev === null) ?? [];
 
   return (
@@ -148,6 +171,14 @@ export function SweepPanel({ onError }: { onError: (m: string) => void }): JSX.E
                 ? 'One point so far — a curve needs at least two.'
                 : 'Nothing has run yet.'}
             </p>
+          )}
+          {counts.length > 0 && (
+            <LineChart
+              series={counts}
+              xLabel={axisLabel(curve)}
+              yLabel="plane waves"
+              title="Basis-set size"
+            />
           )}
           <p className="muted" role="status">
             {curve.converged_from === null || curve.converged_from === undefined

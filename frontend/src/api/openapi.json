@@ -1195,12 +1195,36 @@
         "additionalProperties": false,
         "description": "One weight (total, per atom, per angular momentum ...) in one spin channel.\n\n``dos`` counts all states, ``occupied_dos`` weights them with the occupations; both in\nstates/eV. Spin-down series are stored as written by the code (negative sign) so that\nmirrored plots need no extra convention.",
         "properties": {
+          "channel": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "'s', 'p', 'd' or 'f' when this is one channel of its group",
+            "title": "Channel"
+          },
           "dos": {
             "items": {
               "type": "number"
             },
             "title": "Dos",
             "type": "array"
+          },
+          "group": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "id of the weight this one is part of, and its own id when it is a whole atom or element. None for the total and for hand-built orbital weights, which overlap whatever else was asked for. Series sharing a group partition it, so they can be stacked; series with no group cannot.",
+            "title": "Group"
           },
           "id": {
             "description": "weight id, e.g. 'total', 'SI1_p'",
@@ -5674,6 +5698,18 @@
             "minItems": 2,
             "title": "Points",
             "type": "array"
+          },
+          "restart_from": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "a completed calculation every point continues from, carrying its restart file; without it each point starts from scratch",
+            "title": "Restart From"
           },
           "unit": {
             "anyOf": [
