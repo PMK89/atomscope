@@ -4,6 +4,7 @@ import { beforeEach, expect, test, vi } from 'vitest';
 
 import { api, type DatabaseRow } from '../api/client';
 import { DatabasePanel } from './DatabasePanel';
+import { useCalculationStore } from '../state/calculationStore';
 
 const row = (over: Partial<DatabaseRow>): DatabaseRow =>
   ({
@@ -118,4 +119,34 @@ test('rebuilding reports the calculations it could not index', async () => {
 
   // a database quietly missing rows answers a query with the wrong ones, so this must surface
   await waitFor(() => expect(errors).toEqual(['water-relax: Bad key: natoms']));
+});
+
+test('a row opens its calculation, so Analysis can show the results', async () => {
+  vi.spyOn(api.database, 'select').mockResolvedValue({
+    rows: [row({})],
+    total: 1,
+    selection: null,
+  } as never);
+  const select = vi.spyOn(useCalculationStore.getState(), 'select');
+
+  render(<DatabasePanel onError={(m) => void errors.push(m)} />);
+  await userEvent.click(await screen.findByRole('button', { name: 'iron-reference' }));
+
+  expect(select).toHaveBeenCalledWith('c1');
+});
+
+test('shows charge and moment, which are the two the query language asks about', async () => {
+  vi.spyOn(api.database, 'select').mockResolvedValue({
+    rows: [row({ name: 'anion', charge: -1, magmom: 2 })],
+    total: 1,
+    selection: null,
+  } as never);
+
+  render(<DatabasePanel onError={(m) => void errors.push(m)} />);
+  await screen.findByText('anion');
+  expect(screen.getByText('-1.00')).toBeVisible();
+  expect(screen.getByText('2.00')).toBeVisible();
+  // and they are offered as example selections
+  expect(screen.getByTitle('singly charged anions')).toBeVisible();
+  expect(screen.getByTitle('has a magnetic moment')).toBeVisible();
 });

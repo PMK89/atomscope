@@ -8,12 +8,15 @@
 import { useCallback, useEffect, useState } from 'react';
 
 import { api, type DatabaseRow } from '../api/client';
+import { useCalculationStore } from '../state/calculationStore';
 
 const EXAMPLES: { query: string; means: string }[] = [
   { query: 'Fe', means: 'contains iron' },
   { query: 'Fe,O', means: 'contains both iron and oxygen' },
   { query: 'natoms<4', means: 'fewer than four atoms' },
   { query: 'energy<-500', means: 'total energy below −500 eV' },
+  { query: 'charge=-1', means: 'singly charged anions' },
+  { query: 'magmom>0', means: 'has a magnetic moment' },
   { query: 'spin_polarized=True', means: 'a parameter, by name' },
   { query: 'Si,epwpsi=30', means: 'silicon at a 30 Ry cutoff' },
 ];
@@ -37,6 +40,7 @@ function Row({ row, onOpen }: { row: DatabaseRow; onOpen: (id: string) => void }
       <td>{row.formula}</td>
       <td className="numeric">{row.natoms}</td>
       <td className="numeric">{row.energy == null ? '—' : row.energy.toFixed(3)}</td>
+      <td className="numeric">{row.charge == null ? '0' : row.charge.toFixed(2)}</td>
       <td className="numeric">{row.magmom == null ? '—' : row.magmom.toFixed(2)}</td>
       <td title={extras.map(([k, v]) => `${k}=${String(v)}`).join('\n')}>
         {extras.length === 0 ? '—' : `${extras.length} more`}
@@ -45,13 +49,9 @@ function Row({ row, onOpen }: { row: DatabaseRow; onOpen: (id: string) => void }
   );
 }
 
-export function DatabasePanel({
-  onError,
-  onSelectCalculation,
-}: {
-  onError: (message: string) => void;
-  onSelectCalculation?: (id: string) => void;
-}): JSX.Element {
+export function DatabasePanel({ onError }: { onError: (message: string) => void }): JSX.Element {
+  // selecting a row selects the calculation everywhere: the Analysis tab then shows its results
+  const selectCalculation = useCalculationStore((s) => s.select);
   const [selection, setSelection] = useState('');
   const [applied, setApplied] = useState('');
   const [rows, setRows] = useState<DatabaseRow[] | null>(null);
@@ -186,7 +186,7 @@ export function DatabasePanel({
               </thead>
               <tbody>
                 {rows.map((r) => (
-                  <Row key={r.id} row={r} onOpen={(id) => onSelectCalculation?.(id)} />
+                  <Row key={r.id} row={r} onOpen={selectCalculation} />
                 ))}
               </tbody>
             </table>

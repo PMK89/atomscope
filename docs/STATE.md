@@ -2,7 +2,7 @@
 
 Branch: main; this file is updated in the commit that checkpoints the work, so `git log -1 -- docs/STATE.md` is the last checkpoint. Phases 0-1 done; Phase 2 (editor tools), 3 (volumetric, trajectories, vectors), 4-5 (CP-PAW setup/execution/forces), 6 (CP-PAW analysis: DOS, bands, orbitals), crystallography, molecular mechanics and wavefunction surfaces are merged and working. Parity matrix at `8c51b48`, derived (see ROADMAP for the command): 229 IMPLEMENTED, 16 PARTIAL, 66 NOT STARTED, 1 BLOCKED of 312 rows.
 
-Tests: `pytest -q -m "not cppaw"` -> 567 passed (574 with the cppaw marker included), 1 skipped; `pytest -q -m cppaw` -> 7 passed (93 s, runs the real binaries -- **CP-PAW is found through `$PAWDIR`, which the user's own shell sets (`/home/pmk/cp-paw`), not `env.sh`**; `$ATOMSCOPE_CPPAW_DIR` overrides it); `pnpm vitest run` -> 573 passed; `pnpm exec playwright test` -> 40 passed in ~57 s (plus `ATOMSCOPE_COURSE=1` for the seven course pictures and the database spec, ~27 s) (against private servers, see below; `make test-e2e` points at the user's 5173, which is stale). **`source env.sh` before Playwright**: without `PLAYWRIGHT_BROWSERS_PATH` it looks in `~/.cache/ms-playwright`, finds nothing, and every test fails at `browserType.launch`. `ruff check`, `mypy` and `pnpm typecheck` are clean. No known failing tests. **Type-check the frontend with `pnpm typecheck` (`tsc -b --noEmit`), never with `pnpm exec tsc --noEmit`:** the root `tsconfig.json` is a solution file with `files: []`, so a bare `tsc --noEmit` checks nothing and exits 0.
+Tests: `pytest -q -m "not cppaw"` -> 570 passed, `-m cppaw` -> 7 passed (102 s, real binaries), 1 skipped; `pytest -q -m cppaw` -> 7 passed (93 s, runs the real binaries -- **CP-PAW is found through `$PAWDIR`, which the user's own shell sets (`/home/pmk/cp-paw`), not `env.sh`**; `$ATOMSCOPE_CPPAW_DIR` overrides it); `pnpm vitest run` -> 575 passed; `pnpm exec playwright test` -> 40 passed in ~57 s (plus `ATOMSCOPE_COURSE=1` for the seven course pictures and the database spec, 8 tests, ~28 s) (against private servers, see below; `make test-e2e` points at the user's 5173, which is stale). **`source env.sh` before Playwright**: without `PLAYWRIGHT_BROWSERS_PATH` it looks in `~/.cache/ms-playwright`, finds nothing, and every test fails at `browserType.launch`. `ruff check`, `mypy` and `pnpm typecheck` are clean. No known failing tests. **Type-check the frontend with `pnpm typecheck` (`tsc -b --noEmit`), never with `pnpm exec tsc --noEmit`:** the root `tsconfig.json` is a solution file with `files: []`, so a bare `tsc --noEmit` checks nothing and exits 0.
 
 ## Inspecting the course project, and shipping it
 
@@ -22,9 +22,16 @@ Two things now exist for keeping that:
 * **`export_project()`** (`POST /api/project/export`, `Export a copy` in the project panel) --
   copies a project without the files that are big and reproducible. Measured on the course
   project: 926 MB -> 151 MB, leaving out 683 MB of `case.rstrt` and 92 MB of `.myxml` setup
-  reports. Grids are *kept* (they cannot be recomputed once the restart is gone). The copy opens
-  and its DOS, bands and database all read back; it cannot be continued from, and `EXPORT.md` in
-  it says so.
+  reports. Grids are *kept* by default (they cannot be recomputed once the restart is gone);
+  adding `grids` to `exclude` gives a 36 MB tier that reads and plots but needs a re-run to draw
+  a surface -- which is the size the `examples/` plan in `docs/course/inventory.md` implies. The
+  copy opens and its DOS, bands and database all read back; it cannot be continued from, and
+  `EXPORT.md` in it says so.
+
+**Open question for the user (not answerable from the machine):** `examples/` does not exist yet,
+so the course library still lives only in gitignored `.scratch/`. 36 MB is the thin tier; whether
+that belongs in git, in a gitignored export behind a `make` target, or somewhere external is
+their call.
 
 ## The CP-PAW hands-on course
 

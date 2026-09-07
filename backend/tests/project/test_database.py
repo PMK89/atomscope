@@ -15,8 +15,15 @@ from atomscope.ase_bridge import from_atoms
 from atomscope.backends.registry import default_registry
 from atomscope.calculations import CalculationService
 from atomscope.jobs import JobManager
+from atomscope.model.structure import AtomicScalarProperty
 from atomscope.project import ProjectStore
-from atomscope.project.database import DB_NAME, ProjectDatabase, scalar_values
+from atomscope.project.database import (
+    DB_NAME,
+    ProjectDatabase,
+    scalar_values,
+    total_moment,
+)
+from atomscope.units import Unit
 
 
 def _service(tmp_path: Path) -> CalculationService:
@@ -149,3 +156,70 @@ async def test_an_unindexable_calculation_is_reported_not_swallowed(tmp_path: Pa
         problem = svc.index(calc_id)
     assert problem is not None
     assert "water" in problem and "natoms" in problem
+
+
+async def test_charge_and_spin_are_where_ase_looks_for_them(tmp_path: Path) -> None:
+    """`ase db ... 'charge=-1'` and `'magmom>0'` are the queries an ASE user types.
+
+    Both columns are sums over *per-atom* initial values, while Atomscope keeps the total charge
+    and the multiplicity as properties of the whole structure -- so without spreading them the
+    two things the user asked to select on both index as zero.
+    """
+    svc = _service(tmp_path)
+    anion = from_atoms(molecule("H2O"), name="anion")
+    anion.charge = -1.0
+    anion.multiplicity = 3  # two unpaired electrons
+    await _run(svc, "anion", anion)
+    await _run(svc, "neutral", from_atoms(molecule("CH4"), name="neutral"))
+
+    db = ase.db.connect(svc.project.root / DB_NAME)
+    assert {r.name for r in db.select("charge=-1")} == {"anion"}
+    # magmom is in Bohr magnetons: a multiplicity of 3 is two unpaired electrons
+    assert {r.name for r in db.select("magmom>0")} == {"anion"}
+    assert next(iter(db.select(name="anion"))).magmom == pytest.approx(2.0)
+    assert next(iter(db.select(name="neutral"))).charge == pytest.approx(0.0)
+
+
+def test_the_moment_is_read_from_whichever_the_run_stated() -> None:
+    """CP-PAW asks for S in hbar; ASE's magmom is the moment in Bohr magnetons, which is 2S.
+
+    A unit test rather than a run, because `total_spin` is CP-PAW's parameter and the backends
+    that run without CP-PAW reject it as unknown.
+    """
+    plain = from_atoms(molecule("H2O"), name="h2o")
+    assert total_moment(plain, {}) is None
+
+    triplet = from_atoms(molecule("O2"), name="o2")
+    triplet.multiplicity = 3
+    assert total_moment(triplet, {}) == pytest.approx(2.0)  # two unpaired electrons
+
+    # S = 1 hbar is the same two unpaired electrons
+    assert total_moment(plain, {"total_spin": 1.0}) == pytest.approx(2.0)
+    assert total_moment(plain, {"total_spin": 2.5}) == pytest.approx(5.0)
+    # and the things that say nothing about spin say nothing
+    assert total_moment(plain, {"total_spin": 0.0}) is None
+    assert total_moment(plain, {"total_spin": False}) is None
+    assert total_moment(plain, {"total_spin": "yes"}) is None
+
+    # per-atom moments, when a run carries them, are the answer instead
+    iron = from_atoms(bulk("Fe", cubic=True), name="fe")
+    iron.multiplicity = 3  # would say 2 if it were used, and it must not be
+    iron.atomic_scalars["initial_magmoms"] = AtomicScalarProperty(
+        values=[2.2] * len(iron.atoms), unit=Unit.DIMENSIONLESS
+    )
+    assert total_moment(iron, {}) == pytest.approx(2.2 * len(iron.atoms))
+
+
+async def test_a_moment_reaches_the_database_even_without_an_energy(tmp_path: Path) -> None:
+    """The moment rides on the calculator, so a row must get one whether or not there is energy."""
+    svc = _service(tmp_path)
+    triplet = from_atoms(molecule("O2"), name="o2")
+    triplet.multiplicity = 3
+    await _run(svc, "triplet", triplet)
+
+    db = ase.db.connect(svc.project.root / DB_NAME)
+    assert next(iter(db.select(name="triplet"))).magmom == pytest.approx(2.0)
+    # `magmom` in a *selection* reads db.version, which ase.db loads lazily -- so a magmom query
+    # as the very first operation on a fresh connection raises. Ours is not the first here, and
+    # the API route counts the rows before selecting, which loads it. See the user guide.
+    assert {r.name for r in db.select("magmom>0")} == {"triplet"}

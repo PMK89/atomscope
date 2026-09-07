@@ -25,6 +25,7 @@ from typing import TYPE_CHECKING, Any
 from ase.calculators.singlepoint import SinglePointCalculator
 
 from atomscope.ase_bridge import to_atoms
+from atomscope.ase_bridge.convert import INITIAL_MAGMOMS_PROPERTY as INITIAL_MAGMOMS
 
 if TYPE_CHECKING:  # pragma: no cover
     from ase import Atoms
@@ -63,6 +64,44 @@ def scalar_values(values: dict[str, object]) -> dict[str, Any]:
         elif isinstance(value, str) and value.strip():
             out[key] = value
     return out
+
+
+def _spread_charge(atoms: Atoms, structure: Structure) -> None:
+    """Put the total charge where ``ase.db`` looks for it: the per-atom initial charges.
+
+    ASE's ``charge`` column is their sum. Atomscope keeps a structure's total charge as a property
+    of the whole structure -- the bridge puts it in ``atoms.info`` -- so without this a charged
+    calculation indexes as ``charge=0`` and ``ase db ... 'charge=-1'`` finds nothing. Spreading it
+    evenly is a statement about the total, not a claim about any one atom; a real per-atom
+    assignment already present is left alone.
+    """
+    n = len(atoms)
+    if n and structure.charge and not atoms.get_initial_charges().any():  # type: ignore[no-untyped-call]
+        atoms.set_initial_charges([structure.charge / n] * n)  # type: ignore[no-untyped-call]
+
+
+def total_moment(structure: Structure, values: dict[str, object]) -> float | None:
+    """The total magnetic moment in Bohr magnetons, or None if the run said nothing about spin.
+
+    ASE's ``magmom`` column is *not* the sum of the initial moments -- measured, it stays empty
+    however they are set. It is the moment the calculator reported, so this is passed to the
+    ``SinglePointCalculator`` instead. (``charge`` is the opposite: that one *is* the sum of the
+    per-atom initial charges. The two columns do not work the same way.)
+
+    For a spin-only moment the value in Bohr magnetons is the number of unpaired electrons, 2S.
+    A multiplicity of 3 is two unpaired electrons; CP-PAW's ``total_spin`` is S in hbar (one
+    unpaired electron = 0.5), so both reduce to the same number. Per-atom moments, when a run
+    carries them, are summed instead.
+    """
+    magmoms = structure.atomic_scalars.get(INITIAL_MAGMOMS)
+    if magmoms is not None and any(magmoms.values):
+        return float(sum(magmoms.values))
+    if structure.multiplicity and structure.multiplicity > 1:
+        return float(structure.multiplicity - 1)
+    spin = values.get("total_spin")
+    if isinstance(spin, int | float) and not isinstance(spin, bool) and spin > 0:
+        return 2.0 * float(spin)
+    return None
 
 
 class ProjectDatabase:
@@ -133,18 +172,19 @@ class ProjectDatabase:
 
     def _atoms(self, calc: Calculation, structure: Structure) -> Atoms:
         atoms = to_atoms(structure)
-        if calc.results is None:
-            return atoms
-        energy = calc.results.properties.get("energy")
-        forces = None
-        final = calc.results.final_structure
-        if final is not None and "forces" in final.atomic_vectors:
-            forces = final.atomic_vectors["forces"].values
-        if energy is None and forces is None:
-            return atoms
-        atoms.calc = SinglePointCalculator(  # type: ignore[no-untyped-call]
-            atoms,
-            **({} if energy is None else {"energy": float(energy.value)}),
-            **({} if forces is None else {"forces": forces}),
-        )
+        _spread_charge(atoms, structure)
+
+        results: dict[str, Any] = {}
+        moment = total_moment(structure, calc.values)
+        if moment is not None:
+            results["magmom"] = moment
+        if calc.results is not None:
+            energy = calc.results.properties.get("energy")
+            if energy is not None:
+                results["energy"] = float(energy.value)
+            final = calc.results.final_structure
+            if final is not None and "forces" in final.atomic_vectors:
+                results["forces"] = final.atomic_vectors["forces"].values
+        if results:
+            atoms.calc = SinglePointCalculator(atoms, **results)  # type: ignore[no-untyped-call]
         return atoms

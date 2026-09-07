@@ -57,6 +57,13 @@ EXCLUSIONS: tuple[Exclusion, ...] = (
         " setup and regenerable from the setups file",
     ),
     Exclusion(
+        key="grids",
+        patterns=("*.cub", "*.f32", "*.wv"),
+        reason="the volumetric grids -- densities, orbitals, and their materialized form. These"
+        " are the pictures, so leaving them out gives a project that reads but cannot draw a"
+        " surface; re-running an example from its inputs regenerates them",
+    ),
+    Exclusion(
         key="trajectories",
         patterns=("*_r.tra", "*_e.tra"),
         reason="the raw trajectory tapes; the frames Atomscope plots are already in results.json",

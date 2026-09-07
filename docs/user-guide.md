@@ -1263,6 +1263,8 @@ that syntax is worth learning once and is the same one `ase db` uses on the comm
 | `Fe,O` | contains both iron and oxygen |
 | `natoms<4` | fewer than four atoms |
 | `energy<-500` | total energy below −500 eV |
+| `charge=-1` | singly charged anions |
+| `magmom>0` | has a magnetic moment |
 | `spin_polarized=True` | a parameter, by name |
 | `Si,epwpsi=30` | silicon, at a 30 Ry plane-wave cutoff |
 | `sweep_x>=40,Fe` | the iron points of a sweep from 40 upwards |
@@ -1277,9 +1279,26 @@ project that finished before the database existed gets one. If a calculation can
 the panel says which and why, because an index quietly missing rows answers a query with the
 wrong ones.
 
+`charge` and `magmom` are ASE's own columns and reach them by two different routes, which is
+worth knowing if you write to such a database yourself: `charge` is the sum of the per-atom
+initial charges, while `magmom` is only ever the moment a *calculator* reported — setting initial
+moments leaves the column empty. Atomscope keeps a structure's total charge and multiplicity as
+properties of the whole structure, so both are spread onto the atoms and the moment is attached
+as a calculator result when the row is written. `magmom` is in Bohr magnetons, which for a
+spin-only moment is the number of unpaired electrons: a multiplicity of 3 and CP-PAW's
+`total_spin = 1` (S in ħ) are the same two unpaired electrons and both index as `magmom=2`.
+
 The file is a plain ASE database, so `ase db atomscope.db Fe`, `ase gui`, and
 `ase.db.connect(...)` in a script all work on it directly; the panel shows its path. Over the API
 it is `GET /api/database?selection=...` and `POST /api/database/reindex`.
+
+> One `ase.db` bug to know about, in ASE and not in this file: selecting on `magmom` asserts
+> `self.version >= 6` before anything has loaded the version, which is `None`
+> (`ase/db/sqlite.py:576`). So `ase db file.db 'magmom>0'` fails with a `TypeError` on **any** ASE
+> database as the first operation on a connection, and no ordering of the selection string avoids
+> it. In a script, read something first — `db.count()` is enough — and `magmom` selections then
+> work. The panel and the API are unaffected because they count the rows before selecting. Every
+> other column, `charge` included, is fine from the command line.
 
 ### 8.4c Exporting a project
 
@@ -1302,10 +1321,14 @@ So an exported project cannot be **continued from**, and no *new* orbital, band 
 density can be extracted from it, because all of those read the restart. `EXPORT.md` in the copy
 records what was left out, how much of it there was and what that costs — someone will try.
 
-Setup reports and the raw trajectory tapes can be left out too, or nothing can:
 `GET /api/project/export/options` lists the categories with a reason each, and
-`POST /api/project/export` takes `exclude` (`[]` for a complete copy). A directory rather than an
-archive, so it opens straight away and `tar` is one command away for anyone who wants one file.
+`POST /api/project/export` takes `exclude` (`[]` for a complete copy). Adding `grids` to it gives
+a second, much thinner tier — on the course project 36 MB rather than 151 — which reads and plots
+everything but cannot draw a surface until the example is re-run from its inputs. Grids are *not*
+excluded by default precisely because they cannot be regenerated without that re-run.
+
+A directory rather than an archive, so it opens straight away and `tar` is one command away for
+anyone who wants one file.
 
 ### 8.5 Crystallography
 

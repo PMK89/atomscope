@@ -70,6 +70,25 @@ def test_a_complete_copy_is_possible_and_says_so(tmp_path: Path) -> None:
     assert "Nothing was left out" in (tmp_path / "out" / "EXPORT.md").read_text()
 
 
+def test_grids_can_be_dropped_for_a_thin_copy_but_are_not_by_default(tmp_path: Path) -> None:
+    """Two tiers: a working copy that still draws, and a thin one that has to be re-run.
+
+    Grids stay by default because once the restart file is gone they cannot be recomputed without
+    running the calculation again -- and they are the pictures.
+    """
+    store = _project(tmp_path)
+    kept = export_project(store, tmp_path / "full")
+    assert (tmp_path / "full" / "calculations" / "c1" / "work" / "case_density.cub").is_file()
+    assert "grids" not in kept.skipped
+
+    thin = export_project(store, tmp_path / "thin", exclude=DEFAULT_EXCLUDED | {"grids"})
+    assert not (tmp_path / "thin" / "calculations" / "c1" / "work" / "case_density.cub").exists()
+    assert thin.skipped["grids"][0] == 1
+    assert thin.bytes_copied < kept.bytes_copied
+    # and the copy says a surface will not draw until the example is re-run
+    assert "regenerates them" in (tmp_path / "thin" / "EXPORT.md").read_text()
+
+
 def test_trajectory_tapes_can_be_dropped_too(tmp_path: Path) -> None:
     store = _project(tmp_path)
     report = export_project(store, tmp_path / "out", exclude=DEFAULT_EXCLUDED | {"trajectories"})

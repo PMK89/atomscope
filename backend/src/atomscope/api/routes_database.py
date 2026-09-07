@@ -104,6 +104,9 @@ def select(
     if not db.path.exists():
         return DatabaseSelection(rows=[], total=0, selection=selection)
     with db.connect() as connection:
+        # Counting first is not only for the "n of m" line: ase.db loads its schema version
+        # lazily, and a selection on `magmom` reads that version before triggering the load, so
+        # a magmom query as the first operation on a fresh connection raises TypeError.
         total = connection.count()
         try:
             rows = [_row(r) for r in connection.select(selection or "", limit=limit)]
