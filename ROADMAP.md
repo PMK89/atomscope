@@ -4,7 +4,7 @@ Status legend: DONE / IN PROGRESS / PLANNED. Feature-level parity tracking is in
 `docs/avogadro1-feature-parity.md`; this file tracks phases and integration milestones.
 Session state, resume commands and known problems are in `docs/STATE.md`.
 
-**Counts are derived, never typed from memory.** At `e53b6ec`:
+**Counts are derived, never typed from memory.** At `12a03ac`:
 **229 IMPLEMENTED / 16 PARTIAL / 66 NOT STARTED / 1 BLOCKED of 312**, and the only row still open
 at HIGH or CRITICAL is AV-SURF-006. Re-derive both before trusting either:
 
@@ -48,9 +48,14 @@ Remaining: ring and polygon engines (AV-VIS-021/022), QTAIM engine, per-engine o
 
 ## Phase 4 — CP-PAW setup — DONE
 Task-oriented schema with course presets, STRC/CNTL generation (validated against the manual),
-input preview.
-Remaining: `!OCCUPATIONS!STATE` (antiferromagnets), inline `!AUGMENT` setups from `setups.rslv`,
-constraint scans, raw-deck import with unknown-key validation against `manual-schema.json`.
+input preview. Working through the hands-on course exercise by exercise found three things the
+schema could not say, all now implemented: `!ISOLATE` for a cell the structure brought (its own
+help text admitted the gap), masses per element (`M=5.` on carbon and oxygen is a
+Car-Parrinello trick, and only hydrogen's could be set), and `!ORBPOT` — which is what the
+antiferromagnet exercise actually needs, not `!OCCUPATIONS!STATE` as this file used to say.
+Remaining: inline `!AUGMENT` setups from `setups.rslv`, constraint scans, cell dynamics
+(ch. 6.3.5), empty atoms (ch. 6.3.3), raw-deck import with unknown-key validation against
+`manual-schema.json`.
 
 ## Phase 5 — CP-PAW execution — DONE
 Driver with soft stop, staged runs, completion check, libgfortran work-around, failure diagnosis,
@@ -59,11 +64,16 @@ Remaining: MPI (`ppaw_fast.x`), wall-clock limits, remote/HPC runner.
 
 ## Phase 6 — CP-PAW analysis — DONE (core)
 Energies, forces, geometry, trajectory, density/orbital cubes, eigenvalues/gaps, DOS/PDOS
-(`paw_dos.x`), band structure (`paw_bands.x`), orbital browser with on-demand export, convergence
-plots.
+(`paw_dos.x`), COOP and single-orbital weights in a local frame (`!COOP`, `!ORB` with `NNZ`),
+band structure (`paw_bands.x`), orbital browser with on-demand export, convergence plots,
+sweeps (`calculations/sweeps.py`, `/api/sweeps`, the Sweeps panel). Periodic grids are rolled onto
+their structure, so a molecule at the cell origin is drawn around its atoms rather than at the
+corners of the box. A DOS already computed is read back when a project is reopened.
 Remaining: `mode: diagonalize` bands fail on the binaries installed here (2025-05-07) and need a
-CP-PAW rebuild — the API reports that rather than serving the previous run's file; and DOS/band
-results are not reloaded when a project is reopened. Both are in `docs/STATE.md`.
+CP-PAW rebuild — the API reports that rather than serving the previous run's file; band results
+are still not reloaded on reopening (the DOS now is); `paw_tra` mode extraction (ch. 5.10);
+contour/slice plots (ch. 3.4); a Birch-Murnaghan fit for ch. 6.3.7 — the course's own tool for
+that is `paw_murnaghan.x`, worth reading before writing one.
 
 ## Phase 7 — ASE workflows — DONE (core)
 ASE built-in calculators, BFGS/L-BFGS/FIRE, Langevin MD, CP-PAW forces through `CppawCalculator`
@@ -104,6 +114,14 @@ Remaining, in the order a next session would take them:
 - **Execution adapters (ORCA, xTB)** — gated on the binaries, and neither is installed here:
   `/usr/bin/orca` is the GNOME screen reader, and there is no `xtb` on PATH. Until one exists
   there is nothing to test an adapter against, so this stays planned rather than in progress.
+
+## The CP-PAW hands-on course — IN PROGRESS
+Chapters 2, 3, 8.2 and 8.5 run end to end and are visualized; 8.3 and 8.4/6.3.6 are running;
+chapters 4, 6 and 7 are written and ready. `docs/course/inventory.md` is the map — every exercise,
+what shows it, what is missing, and the findings, of which the sharpest are that chapter 2
+reproduces the course's published geometry (0.9815 Å / 105.07° against 0.981 / 105.2) and that
+chapter 8.5's curve at the course's own cutoff measures the basis set rather than the periodic
+images. The document itself is not in this repository and must not be; the inventory says why.
 
 ## Phase 10 — Packaging and hardening — IN PROGRESS
 Done: the user guide, three tutorials (`docs/tutorials/`), the developer guide, ADRs, the
