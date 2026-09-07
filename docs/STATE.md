@@ -2,7 +2,29 @@
 
 Branch: main; this file is updated in the commit that checkpoints the work, so `git log -1 -- docs/STATE.md` is the last checkpoint. Phases 0-1 done; Phase 2 (editor tools), 3 (volumetric, trajectories, vectors), 4-5 (CP-PAW setup/execution/forces), 6 (CP-PAW analysis: DOS, bands, orbitals), crystallography, molecular mechanics and wavefunction surfaces are merged and working. Parity matrix at `8c51b48`, derived (see ROADMAP for the command): 229 IMPLEMENTED, 16 PARTIAL, 66 NOT STARTED, 1 BLOCKED of 312 rows.
 
-Tests: `pytest -q -m "not cppaw"` -> 542 passed (549 with the cppaw marker included), 1 skipped; `pytest -q -m cppaw` -> 7 passed (93 s, runs the real binaries -- **CP-PAW is found through `$PAWDIR`, which the user's own shell sets (`/home/pmk/cp-paw`), not `env.sh`**; `$ATOMSCOPE_CPPAW_DIR` overrides it); `pnpm vitest run` -> 568 passed; `pnpm exec playwright test` -> 40 passed in ~57 s (plus `ATOMSCOPE_COURSE=1` for the seven course pictures, ~25 s) (against private servers, see below; `make test-e2e` points at the user's 5173, which is stale). **`source env.sh` before Playwright**: without `PLAYWRIGHT_BROWSERS_PATH` it looks in `~/.cache/ms-playwright`, finds nothing, and every test fails at `browserType.launch`. `ruff check`, `mypy` and `pnpm typecheck` are clean. No known failing tests. **Type-check the frontend with `pnpm typecheck` (`tsc -b --noEmit`), never with `pnpm exec tsc --noEmit`:** the root `tsconfig.json` is a solution file with `files: []`, so a bare `tsc --noEmit` checks nothing and exits 0.
+Tests: `pytest -q -m "not cppaw"` -> 567 passed (574 with the cppaw marker included), 1 skipped; `pytest -q -m cppaw` -> 7 passed (93 s, runs the real binaries -- **CP-PAW is found through `$PAWDIR`, which the user's own shell sets (`/home/pmk/cp-paw`), not `env.sh`**; `$ATOMSCOPE_CPPAW_DIR` overrides it); `pnpm vitest run` -> 573 passed; `pnpm exec playwright test` -> 40 passed in ~57 s (plus `ATOMSCOPE_COURSE=1` for the seven course pictures and the database spec, ~27 s) (against private servers, see below; `make test-e2e` points at the user's 5173, which is stale). **`source env.sh` before Playwright**: without `PLAYWRIGHT_BROWSERS_PATH` it looks in `~/.cache/ms-playwright`, finds nothing, and every test fails at `browserType.launch`. `ruff check`, `mypy` and `pnpm typecheck` are clean. No known failing tests. **Type-check the frontend with `pnpm typecheck` (`tsc -b --noEmit`), never with `pnpm exec tsc --noEmit`:** the root `tsconfig.json` is a solution file with `files: []`, so a bare `tsc --noEmit` checks nothing and exits 0.
+
+## Inspecting the course project, and shipping it
+
+The 22 finished course calculations are a real Atomscope project at
+`.scratch/course-runs/course/` (**gitignored, 926 MB, this machine only**). To look at them:
+start the private servers (below), open `http://127.0.0.1:5191`, and put the absolute path into
+`Project path` in the left dock. Then a calculation in the list -> Analysis -> Convergence / DOS /
+Bands, or the `Database` tab for the whole set at once.
+
+Two things now exist for keeping that:
+
+* **`atomscope.db`** in the project root -- an `ase.db` database, one row per completed
+  calculation, written by `collect_results` and rebuildable with `CalculationService.reindex()`
+  or `POST /api/database/reindex`. Selection strings are ASE's own and are passed through
+  untouched: `Fe` -> 14, `Si,epwpsi=30` -> 5, `energy<-500` -> 14 on the course project. The
+  directories stay the source of truth; the database is an index over them.
+* **`export_project()`** (`POST /api/project/export`, `Export a copy` in the project panel) --
+  copies a project without the files that are big and reproducible. Measured on the course
+  project: 926 MB -> 151 MB, leaving out 683 MB of `case.rstrt` and 92 MB of `.myxml` setup
+  reports. Grids are *kept* (they cannot be recomputed once the restart is gone). The copy opens
+  and its DOS, bands and database all read back; it cannot be continued from, and `EXPORT.md` in
+  it says so.
 
 ## The CP-PAW hands-on course
 

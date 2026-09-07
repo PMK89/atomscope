@@ -1,0 +1,127 @@
+"""Exporting a project without the files that are big and reproducible."""
+
+from pathlib import Path
+
+import ase.db
+import pytest
+from ase.build import molecule
+
+from atomscope.ase_bridge import from_atoms
+from atomscope.backends.registry import default_registry
+from atomscope.calculations import CalculationService
+from atomscope.jobs import JobManager
+from atomscope.project import ProjectStore
+from atomscope.project.database import DB_NAME
+from atomscope.project.export import DEFAULT_EXCLUDED, export_project
+
+
+def _project(tmp_path: Path) -> ProjectStore:
+    store = ProjectStore.create(tmp_path / "p", "export")
+    store.save_structure(from_atoms(molecule("H2O"), name="h2o"))
+    # a calculation directory shaped like a real one: inputs, a protocol, a grid, a restart
+    work = store.register_calculation("c1") / "work"
+    work.mkdir(parents=True, exist_ok=True)
+    (work / "case.cntl").write_text("!CONTROL\n")
+    (work / "case.prot").write_text("PROGRAM STARTED\n")
+    (work / "case_density.cub").write_bytes(b"grid" * 1000)
+    (work / "case.rstrt").write_bytes(b"wavefunctions" * 5000)
+    (work / "case_stpforz8.myxml").write_bytes(b"setup" * 2000)
+    (work / "case_r.tra").write_bytes(b"tape" * 1000)
+    return store
+
+
+def test_the_restart_file_is_left_out_and_everything_readable_is_kept(tmp_path: Path) -> None:
+    store = _project(tmp_path)
+    report = export_project(store, tmp_path / "out")
+
+    out = tmp_path / "out"
+    assert (out / "project.json").is_file()
+    assert (out / "calculations" / "c1" / "work" / "case.cntl").is_file()
+    assert (out / "calculations" / "c1" / "work" / "case.prot").is_file()
+    # the grid is the picture, and without the restart it cannot be recomputed -- so it is kept
+    assert (out / "calculations" / "c1" / "work" / "case_density.cub").is_file()
+    # and the three defaults are gone
+    assert not (out / "calculations" / "c1" / "work" / "case.rstrt").exists()
+    assert not (out / "calculations" / "c1" / "work" / "case_stpforz8.myxml").exists()
+
+    assert set(report.skipped) == {"restart", "setup_reports"}
+    assert report.skipped["restart"] == (1, len(b"wavefunctions" * 5000))
+    assert report.bytes_skipped > report.bytes_copied  # that is the whole point
+
+
+def test_the_copy_says_what_it_is_missing(tmp_path: Path) -> None:
+    store = _project(tmp_path)
+    export_project(store, tmp_path / "out")
+    note = (tmp_path / "out" / "EXPORT.md").read_text()
+
+    assert "case.rstrt" not in note  # the category, not a file list
+    assert "restart" in note and "MB" in note
+    # someone will try to extract an orbital from the copy, so it has to say this
+    assert "cannot be **continued from**" in note
+    assert "no *new* orbital" in note
+
+
+def test_a_complete_copy_is_possible_and_says_so(tmp_path: Path) -> None:
+    store = _project(tmp_path)
+    report = export_project(store, tmp_path / "out", exclude=frozenset())
+
+    assert (tmp_path / "out" / "calculations" / "c1" / "work" / "case.rstrt").is_file()
+    assert report.skipped == {}
+    assert "Nothing was left out" in (tmp_path / "out" / "EXPORT.md").read_text()
+
+
+def test_trajectory_tapes_can_be_dropped_too(tmp_path: Path) -> None:
+    store = _project(tmp_path)
+    report = export_project(store, tmp_path / "out", exclude=DEFAULT_EXCLUDED | {"trajectories"})
+    assert not (tmp_path / "out" / "calculations" / "c1" / "work" / "case_r.tra").exists()
+    assert report.skipped["trajectories"][0] == 1
+
+
+def test_an_export_refuses_to_eat_its_own_project(tmp_path: Path) -> None:
+    store = _project(tmp_path)
+    with pytest.raises(ValueError, match="into itself"):
+        export_project(store, store.root)
+    with pytest.raises(ValueError, match="into itself"):
+        export_project(store, store.root / "inside")
+
+
+def test_an_export_refuses_a_directory_that_is_already_in_use(tmp_path: Path) -> None:
+    store = _project(tmp_path)
+    (tmp_path / "out").mkdir()
+    (tmp_path / "out" / "something").write_text("mine")
+    with pytest.raises(ValueError, match="not empty"):
+        export_project(store, tmp_path / "out")
+
+
+def test_an_unknown_exclusion_is_refused_rather_than_ignored(tmp_path: Path) -> None:
+    store = _project(tmp_path)
+    with pytest.raises(ValueError, match="unknown exclusion"):
+        export_project(store, tmp_path / "out", exclude=frozenset({"restart", "everything"}))
+
+
+async def test_an_exported_project_opens_and_keeps_its_results(tmp_path: Path) -> None:
+    """The point of the whole thing: the copy is a project, not an archive of one."""
+    store = ProjectStore.create(tmp_path / "p", "export")
+    svc = CalculationService(store, default_registry(), JobManager())
+    water = from_atoms(molecule("H2O"), name="h2o")
+    store.save_structure(water)
+    calc = svc.create(
+        name="water", backend_id="ase_builtin", structure=water, values={"task": "single_point"}
+    )
+    started = svc.run(calc.id)
+    assert started.job is not None
+    await svc.jobs.wait(started.job.id)
+    svc.collect_results(calc.id)
+    energy = svc.get(calc.id).results.properties["energy"].value  # type: ignore[union-attr]
+
+    export_project(store, tmp_path / "out")
+
+    reopened = CalculationService(
+        ProjectStore.open(tmp_path / "out"), default_registry(), JobManager()
+    )
+    copied = next(c for c in reopened.list() if c.name == "water")
+    assert copied.status == "completed"
+    assert copied.results is not None
+    assert copied.results.properties["energy"].value == energy
+    # and the database came with it, so the copy is queryable without rebuilding
+    assert ase.db.connect(tmp_path / "out" / DB_NAME).count() == 1

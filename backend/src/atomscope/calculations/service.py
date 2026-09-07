@@ -6,6 +6,7 @@ from __future__ import annotations
 import builtins
 import contextlib
 import json
+import logging
 import shutil
 from collections.abc import Sequence
 from pathlib import Path
@@ -18,8 +19,11 @@ from atomscope.jobs import JobManager
 from atomscope.jobs.models import StatusEvent
 from atomscope.model import Provenance, Structure
 from atomscope.project import ProjectStore
+from atomscope.project.database import ProjectDatabase
 from atomscope.project.manifest import dump_json
 from atomscope.schemas import ValidationReport, merge_values
+
+logger = logging.getLogger(__name__)
 
 
 class CalculationError(Exception):
@@ -281,7 +285,40 @@ class CalculationService:
             calc.result_structure_id = final.id
         calc.results = results
         self.save(calc)
+        self.index(calc.id)
         return results
+
+    def index(self, calc_id: str) -> str | None:
+        """Put a completed calculation into the project's ASE database (or take it out again).
+
+        Indexing is a convenience over the directories, never a second source of truth, so a
+        failure here must not lose the results that were just parsed: the database can always be
+        rebuilt from the project, and :meth:`reindex` does exactly that. The failure is returned
+        rather than only logged, because an index that is quietly missing a column answers a
+        query with the wrong rows, which is worse than not answering it.
+        """
+        calc = self.get(calc_id)
+        db = ProjectDatabase(self.project.root)
+        structure = (
+            self.project.load_structure(calc.result_structure_id)
+            if calc.result_structure_id is not None
+            else self.project.load_structure(calc.structure_id)
+        )
+        try:
+            if calc.status == "completed":
+                db.write(calc, structure)
+            else:
+                db.forget(calc.id)
+        except Exception as exc:  # noqa: BLE001 -- an index is not worth losing results over
+            logger.warning("could not index calculation %s: %s", calc.id, exc)
+            return f"{calc.name}: {exc}"
+        return None
+
+    def reindex(self) -> tuple[int, builtins.list[str]]:
+        """Rebuild the database from the project: (calculations indexed, failures)."""
+        done = [c for c in self.list() if c.status == "completed"]
+        problems = [p for p in (self.index(c.id) for c in done) if p is not None]
+        return len(done) - len(problems), problems
 
     # ---- post-processing ---------------------------------------------------------------------
     def run_analysis(self, calc_id: str, kind: str, options: dict[str, object]) -> Calculation:

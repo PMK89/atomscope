@@ -714,6 +714,8 @@ button {
 .orbital-table-wrap {
   max-height: 14rem;
   overflow-y: auto;
+  /* a table of parameters is wider than the dock: scroll it here, never the page */
+  overflow-x: auto;
   border: 1px solid var(--border);
   margin: 0.25rem 0;
 }

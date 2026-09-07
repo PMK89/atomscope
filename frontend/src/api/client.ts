@@ -39,6 +39,11 @@ export type OrbitalList = components['schemas']['OrbitalList'];
 export type DosSpectrum = components['schemas']['DosSpectrum'];
 export type SweepSummary = components['schemas']['SweepSummary'];
 export type SweepCurve = components['schemas']['SweepCurve'];
+export type DatabaseRow = components['schemas']['DatabaseRow'];
+export type DatabaseSelection = components['schemas']['DatabaseSelection'];
+export type ReindexResult = components['schemas']['ReindexResult'];
+export type ExportResult = components['schemas']['ExportResult'];
+export type ExclusionOption = components['schemas']['ExclusionOption'];
 export type SweepPoint = components['schemas']['SweepPoint'];
 export type DosSeries = components['schemas']['DosSeries'];
 export type DosOptions = components['schemas']['DosOptions'];
@@ -133,6 +138,10 @@ export const api = {
     open: (body: Body<'/api/project/open', 'post'>) =>
       request<ProjectInfo>('/api/project/open', json(body)),
     close: () => request<undefined>('/api/project/close', { method: 'POST' }),
+    exportOptions: () => request<ExclusionOption[]>('/api/project/export/options'),
+    /** Copy the project elsewhere without the files that are big and reproducible. */
+    exportTo: (body: Body<'/api/project/export', 'post'>) =>
+      request<ExportResult>('/api/project/export', json(body)),
     getViewSettings: () => request<Record<string, unknown>>('/api/project/view-settings'),
     putViewSettings: (settings: Record<string, unknown>) =>
       request<Record<string, unknown>>('/api/project/view-settings', {
@@ -387,6 +396,20 @@ export const api = {
     /** Runs every point that has not run, one after another; resolves when the last one ends. */
     run: (id: string) =>
       request<SweepCurve>(`/api/sweeps/${encodeURIComponent(id)}/run`, { method: 'POST' }),
+  },
+  /** The project's ASE database: finished calculations, selected by chemistry and parameter. */
+  database: {
+    /** `selection` is an ASE selection string and is passed through untouched. */
+    select: (selection?: string, limit?: number) => {
+      const q = new URLSearchParams();
+      if (selection) q.set('selection', selection);
+      if (limit !== undefined) q.set('limit', String(limit));
+      const query = q.toString();
+      return request<DatabaseSelection>(`/api/database${query ? `?${query}` : ''}`);
+    },
+    /** Rebuild it from the calculation directories, which are the source of truth. */
+    reindex: () => request<ReindexResult>('/api/database/reindex', { method: 'POST' }),
+    path: () => request<{ path: string; exists: boolean; name: string }>('/api/database/path'),
   },
   /** CP-PAW post-processing of a completed calculation (jobs run in its work directory). */
   cppaw: {

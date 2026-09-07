@@ -1343,6 +1343,66 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/database': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Select */
+    get: operations['select_api_database_get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/database/path': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Database Path
+     * @description Where the file is, so it can be opened with `ase db` or `ase gui` directly.
+     */
+    get: operations['database_path_api_database_path_get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/database/reindex': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Reindex
+     * @description Rebuild the database from the project's calculation directories.
+     *
+     *     The directories are the source of truth, so this is always safe: it is how a project made
+     *     before the database existed gets one, and how a database that has drifted is repaired.
+     */
+    post: operations['reindex_api_database_reindex_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/grids': {
     parameters: {
       query?: never;
@@ -1842,6 +1902,50 @@ export interface paths {
     put?: never;
     /** Create Project */
     post: operations['create_project_api_project_create_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/project/export': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Export Current Project
+     * @description Copy the open project somewhere else, without the files that are big and reproducible.
+     *
+     *     The copy is a project directory: open it like any other. What it cannot do is continue a run
+     *     or extract a new orbital, both of which read the restart file -- `EXPORT.md` in the copy says
+     *     so, with the numbers.
+     */
+    post: operations['export_current_project_api_project_export_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/project/export/options': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Export Options
+     * @description What an export can leave out, and why each one is safe to leave out.
+     */
+    get: operations['export_options_api_project_export_options_get'];
+    put?: never;
+    post?: never;
     delete?: never;
     options?: never;
     head?: never;
@@ -2638,6 +2742,60 @@ export interface components {
       /** Structure Id */
       structure_id: string;
     };
+    /**
+     * DatabaseRow
+     * @description One indexed calculation, as much of it as a results table needs.
+     */
+    DatabaseRow: {
+      /** Backend */
+      backend?: string | null;
+      /** Calculation Id */
+      calculation_id: string | null;
+      /** Charge */
+      charge?: number | null;
+      /**
+       * Energy
+       * @description eV
+       */
+      energy?: number | null;
+      /** Formula */
+      formula: string;
+      /**
+       * Id
+       * @description ASE row id
+       */
+      id: number;
+      /**
+       * Keys
+       * @description the row's key-value pairs, minus the ones above
+       */
+      keys?: {
+        [key: string]: unknown;
+      };
+      /** Magmom */
+      magmom?: number | null;
+      /** Name */
+      name: string | null;
+      /** Natoms */
+      natoms: number;
+      /** Status */
+      status?: string | null;
+    };
+    /** DatabaseSelection */
+    DatabaseSelection: {
+      /** Rows */
+      rows: components['schemas']['DatabaseRow'][];
+      /**
+       * Selection
+       * @description what was asked for, as given
+       */
+      selection?: string | null;
+      /**
+       * Total
+       * @description rows in the database, before the selection
+       */
+      total: number;
+    };
     /** Dipole */
     Dipole: {
       magnitude: components['schemas']['Quantity'];
@@ -2841,6 +2999,20 @@ export interface components {
         [key: string]: number;
       };
     };
+    /** ExclusionOption */
+    ExclusionOption: {
+      /**
+       * Default
+       * @description whether it is left out unless asked for
+       */
+      default: boolean;
+      /** Key */
+      key: string;
+      /** Patterns */
+      patterns: string[];
+      /** Reason */
+      reason: string;
+    };
     /** ExecutableReport */
     ExecutableReport: {
       /** Available */
@@ -2854,6 +3026,22 @@ export interface components {
       };
       /** Messages */
       messages?: string[];
+    };
+    /**
+     * ExportProjectRequest
+     * @description Where to put the copy, and what to leave out of it.
+     */
+    ExportProjectRequest: {
+      /**
+       * Exclude
+       * @description exclusion keys (see GET /api/project/export/options); the default leaves out restart files and setup reports
+       */
+      exclude?: string[] | null;
+      /**
+       * Path
+       * Format: path
+       */
+      path: string;
     };
     /** ExportRequest */
     ExportRequest: {
@@ -2878,6 +3066,20 @@ export interface components {
       path?: string | null;
       /** Text */
       text?: string | null;
+    };
+    /** ExportResult */
+    ExportResult: {
+      /** Bytes Copied */
+      bytes_copied: number;
+      /** Files */
+      files: number;
+      /**
+       * Path
+       * Format: path
+       */
+      path: string;
+      /** Skipped */
+      skipped: components['schemas']['SkippedCategory'][];
     };
     /** ExportTrajectoryRequest */
     ExportTrajectoryRequest: {
@@ -4137,6 +4339,16 @@ export interface components {
        */
       path: string;
     };
+    /** ReindexResult */
+    ReindexResult: {
+      /** Indexed */
+      indexed: number;
+      /**
+       * Problems
+       * @description calculations that could not be indexed, and why
+       */
+      problems?: string[];
+    };
     /**
      * Residue
      * @description Residue/chain information for biomolecules.
@@ -4358,6 +4570,17 @@ export interface components {
       /** Vectors */
       vectors?:
         [[number, number, number], [number, number, number], [number, number, number]] | null;
+    };
+    /** SkippedCategory */
+    SkippedCategory: {
+      /** Bytes */
+      bytes: number;
+      /** Files */
+      files: number;
+      /** Key */
+      key: string;
+      /** Reason */
+      reason: string;
     };
     /** SlabRequest */
     SlabRequest: {
@@ -7868,6 +8091,81 @@ export interface operations {
       };
     };
   };
+  select_api_database_get: {
+    parameters: {
+      query?: {
+        /** @description ASE selection string, e.g. 'Fe', 'Fe,O', 'natoms<4', 'epwpsi=30' */
+        selection?: string | null;
+        limit?: number;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['DatabaseSelection'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  database_path_api_database_path_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': {
+            [key: string]: string | boolean;
+          };
+        };
+      };
+    };
+  };
+  reindex_api_database_reindex_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ReindexResult'];
+        };
+      };
+    };
+  };
   list_all_api_grids_get: {
     parameters: {
       query?: never;
@@ -8656,6 +8954,59 @@ export interface operations {
         };
         content: {
           'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  export_current_project_api_project_export_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['ExportProjectRequest'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ExportResult'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  export_options_api_project_export_options_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ExclusionOption'][];
         };
       };
     };

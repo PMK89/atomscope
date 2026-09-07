@@ -21,6 +21,7 @@ import {
   SelectSettings,
 } from '../ui/toolPanels';
 import { AnalysisPanel } from '../ui/AnalysisPanel';
+import { DatabasePanel } from '../ui/DatabasePanel';
 import { SweepPanel } from '../ui/SweepPanel';
 import { CalculationPanel } from '../ui/CalculationPanel';
 import { CrystalPanel } from '../ui/CrystalPanel';
@@ -135,6 +136,13 @@ export function defaultRegistry(): PluginRegistry {
     description:
       'Several calculations that differ in one way — a cutoff, a cell size, a volume — read as one curve.',
     component: SweepPanel,
+  });
+  registry.registerPanel({
+    id: 'database',
+    label: 'Database',
+    description:
+      "The project's ASE database: finished calculations selected by the elements in them, by charge and spin, or by any parameter they were run with.",
+    component: DatabasePanel,
   });
   registry.registerPanel({
     id: 'spectra',

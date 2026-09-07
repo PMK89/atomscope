@@ -1113,6 +1113,144 @@
         "title": "CreateSweepRequest",
         "type": "object"
       },
+      "DatabaseRow": {
+        "additionalProperties": false,
+        "description": "One indexed calculation, as much of it as a results table needs.",
+        "properties": {
+          "backend": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Backend"
+          },
+          "calculation_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Calculation Id"
+          },
+          "charge": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Charge"
+          },
+          "energy": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "eV",
+            "title": "Energy"
+          },
+          "formula": {
+            "title": "Formula",
+            "type": "string"
+          },
+          "id": {
+            "description": "ASE row id",
+            "title": "Id",
+            "type": "integer"
+          },
+          "keys": {
+            "additionalProperties": true,
+            "description": "the row's key-value pairs, minus the ones above",
+            "title": "Keys",
+            "type": "object"
+          },
+          "magmom": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Magmom"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "natoms": {
+            "title": "Natoms",
+            "type": "integer"
+          },
+          "status": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status"
+          }
+        },
+        "required": ["id", "calculation_id", "name", "formula", "natoms"],
+        "title": "DatabaseRow",
+        "type": "object"
+      },
+      "DatabaseSelection": {
+        "additionalProperties": false,
+        "properties": {
+          "rows": {
+            "items": {
+              "$ref": "#/components/schemas/DatabaseRow"
+            },
+            "title": "Rows",
+            "type": "array"
+          },
+          "selection": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "what was asked for, as given",
+            "title": "Selection"
+          },
+          "total": {
+            "description": "rows in the database, before the selection",
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": ["rows", "total"],
+        "title": "DatabaseSelection",
+        "type": "object"
+      },
       "Dipole": {
         "additionalProperties": false,
         "properties": {
@@ -1494,6 +1632,34 @@
         "title": "EnergyResult",
         "type": "object"
       },
+      "ExclusionOption": {
+        "additionalProperties": false,
+        "properties": {
+          "default": {
+            "description": "whether it is left out unless asked for",
+            "title": "Default",
+            "type": "boolean"
+          },
+          "key": {
+            "title": "Key",
+            "type": "string"
+          },
+          "patterns": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Patterns",
+            "type": "array"
+          },
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          }
+        },
+        "required": ["key", "patterns", "reason", "default"],
+        "title": "ExclusionOption",
+        "type": "object"
+      },
       "ExecutableReport": {
         "additionalProperties": false,
         "properties": {
@@ -1519,6 +1685,35 @@
         },
         "required": ["available"],
         "title": "ExecutableReport",
+        "type": "object"
+      },
+      "ExportProjectRequest": {
+        "additionalProperties": false,
+        "description": "Where to put the copy, and what to leave out of it.",
+        "properties": {
+          "exclude": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "exclusion keys (see GET /api/project/export/options); the default leaves out restart files and setup reports",
+            "title": "Exclude"
+          },
+          "path": {
+            "format": "path",
+            "title": "Path",
+            "type": "string"
+          }
+        },
+        "required": ["path"],
+        "title": "ExportProjectRequest",
         "type": "object"
       },
       "ExportRequest": {
@@ -1583,6 +1778,34 @@
           }
         },
         "title": "ExportResponse",
+        "type": "object"
+      },
+      "ExportResult": {
+        "additionalProperties": false,
+        "properties": {
+          "bytes_copied": {
+            "title": "Bytes Copied",
+            "type": "integer"
+          },
+          "files": {
+            "title": "Files",
+            "type": "integer"
+          },
+          "path": {
+            "format": "path",
+            "title": "Path",
+            "type": "string"
+          },
+          "skipped": {
+            "items": {
+              "$ref": "#/components/schemas/SkippedCategory"
+            },
+            "title": "Skipped",
+            "type": "array"
+          }
+        },
+        "required": ["path", "files", "bytes_copied", "skipped"],
+        "title": "ExportResult",
         "type": "object"
       },
       "ExportTrajectoryRequest": {
@@ -4137,6 +4360,26 @@
         "title": "RecentFile",
         "type": "object"
       },
+      "ReindexResult": {
+        "additionalProperties": false,
+        "properties": {
+          "indexed": {
+            "title": "Indexed",
+            "type": "integer"
+          },
+          "problems": {
+            "description": "calculations that could not be indexed, and why",
+            "items": {
+              "type": "string"
+            },
+            "title": "Problems",
+            "type": "array"
+          }
+        },
+        "required": ["indexed"],
+        "title": "ReindexResult",
+        "type": "object"
+      },
       "Residue": {
         "additionalProperties": false,
         "description": "Residue/chain information for biomolecules.",
@@ -4617,6 +4860,30 @@
         },
         "required": ["structure"],
         "title": "SetCellRequest",
+        "type": "object"
+      },
+      "SkippedCategory": {
+        "additionalProperties": false,
+        "properties": {
+          "bytes": {
+            "title": "Bytes",
+            "type": "integer"
+          },
+          "files": {
+            "title": "Files",
+            "type": "integer"
+          },
+          "key": {
+            "title": "Key",
+            "type": "string"
+          },
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          }
+        },
+        "required": ["key", "files", "bytes", "reason"],
+        "title": "SkippedCategory",
         "type": "object"
       },
       "SlabRequest": {
@@ -10075,6 +10342,118 @@
         "tags": ["crystal"]
       }
     },
+    "/api/database": {
+      "get": {
+        "operationId": "select_api_database_get",
+        "parameters": [
+          {
+            "description": "ASE selection string, e.g. 'Fe', 'Fe,O', 'natoms<4', 'epwpsi=30'",
+            "in": "query",
+            "name": "selection",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "ASE selection string, e.g. 'Fe', 'Fe,O', 'natoms<4', 'epwpsi=30'",
+              "title": "Selection"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 200,
+              "maximum": 2000,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DatabaseSelection"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Select",
+        "tags": ["database"]
+      }
+    },
+    "/api/database/path": {
+      "get": {
+        "description": "Where the file is, so it can be opened with `ase db` or `ase gui` directly.",
+        "operationId": "database_path_api_database_path_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "boolean"
+                      }
+                    ]
+                  },
+                  "title": "Response Database Path Api Database Path Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Database Path",
+        "tags": ["database"]
+      }
+    },
+    "/api/database/reindex": {
+      "post": {
+        "description": "Rebuild the database from the project's calculation directories.\n\nThe directories are the source of truth, so this is always safe: it is how a project made\nbefore the database existed gets one, and how a database that has drifted is repaired.",
+        "operationId": "reindex_api_database_reindex_post",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReindexResult"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Reindex",
+        "tags": ["database"]
+      }
+    },
     "/api/grids": {
       "get": {
         "operationId": "list_all_api_grids_get",
@@ -11016,6 +11395,70 @@
           }
         },
         "summary": "Create Project",
+        "tags": ["project"]
+      }
+    },
+    "/api/project/export": {
+      "post": {
+        "description": "Copy the open project somewhere else, without the files that are big and reproducible.\n\nThe copy is a project directory: open it like any other. What it cannot do is continue a run\nor extract a new orbital, both of which read the restart file -- `EXPORT.md` in the copy says\nso, with the numbers.",
+        "operationId": "export_current_project_api_project_export_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExportProjectRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExportResult"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Export Current Project",
+        "tags": ["project"]
+      }
+    },
+    "/api/project/export/options": {
+      "get": {
+        "description": "What an export can leave out, and why each one is safe to leave out.",
+        "operationId": "export_options_api_project_export_options_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ExclusionOption"
+                  },
+                  "title": "Response Export Options Api Project Export Options Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Export Options",
         "tags": ["project"]
       }
     },

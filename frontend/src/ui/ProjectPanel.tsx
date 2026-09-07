@@ -13,6 +13,8 @@ export function ProjectPanel({ onError }: { onError: (m: string) => void }): JSX
   const doc = useStructureStore((s) => s.doc);
   const load = useStructureStore((s) => s.load);
   const [path, setPath] = useState('');
+  const [exportTo, setExportTo] = useState('');
+  const [exported, setExported] = useState<string | null>(null);
 
   useEffect(() => {
     project.refresh().catch((e: Error) => onError(e.message));
@@ -82,6 +84,49 @@ export function ProjectPanel({ onError }: { onError: (m: string) => void }): JSX
         <button onClick={() => run(saveCurrent())}>Save current structure</button>
         <button onClick={() => run(project.close())}>Close</button>
       </div>
+
+      <details className="form-section">
+        <summary>Export a copy</summary>
+        <p className="muted">
+          A copy that opens like any project, without the restart files — they are most of a
+          finished project&apos;s size and are needed only to continue a run or pull out a new
+          orbital. Everything already computed comes along.
+        </p>
+        <div className="form-row">
+          <label htmlFor="export-path">Copy to</label>
+          <input
+            id="export-path"
+            value={exportTo}
+            placeholder="/home/user/share/course"
+            onChange={(e) => setExportTo(e.target.value)}
+          />
+        </div>
+        <div className="button-row">
+          <button
+            disabled={!exportTo}
+            onClick={() => {
+              setExported(null);
+              api.project
+                .exportTo({ path: exportTo })
+                .then((r) => {
+                  const left = (r.skipped ?? []).reduce((n, s) => n + s.bytes, 0);
+                  setExported(
+                    `${r.files} files, ${(r.bytes_copied / 2 ** 20).toFixed(1)} MB` +
+                      (left ? ` — ${(left / 2 ** 20).toFixed(1)} MB left out` : ''),
+                  );
+                })
+                .catch((e: Error) => onError(e.message));
+            }}
+          >
+            Export
+          </button>
+        </div>
+        {exported && (
+          <p className="muted" role="status">
+            {exported}. See <code>EXPORT.md</code> in the copy for what it does not contain.
+          </p>
+        )}
+      </details>
       <h4>Structures ({project.structures.length})</h4>
       <ul className="tree">
         {project.structures.map((s) => (

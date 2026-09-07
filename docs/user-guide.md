@@ -1246,6 +1246,67 @@ run finished before the parser read them has to be re-collected
 Sweeps are created over the API (`POST /api/sweeps`) or by
 `scripts/course/sweep.py`; the panel runs and reads them.
 
+### 8.4b The project database
+
+A project keeps its calculations as directories, which is right for the files and wrong for the
+question *"which of these did I run on iron, spin-polarized, at a 30 Ry cutoff?"*. The
+**Database** tab answers that. It is an `ase.db` SQLite database, `atomscope.db`, in the project
+root: one row per finished calculation, holding the final structure as an ASE `Atoms`, the total
+energy the way ASE stores energies, and every parameter the run used.
+
+The query box takes an **ASE selection string** and sends it to the server unchanged, because
+that syntax is worth learning once and is the same one `ase db` uses on the command line:
+
+| selection | means |
+|-----------|-------|
+| `Fe` | contains iron |
+| `Fe,O` | contains both iron and oxygen |
+| `natoms<4` | fewer than four atoms |
+| `energy<-500` | total energy below −500 eV |
+| `spin_polarized=True` | a parameter, by name |
+| `Si,epwpsi=30` | silicon, at a 30 Ry plane-wave cutoff |
+| `sweep_x>=40,Fe` | the iron points of a sweep from 40 upwards |
+
+A bare word means *has this key*, so a mistyped selection matches nothing rather than failing —
+the panel says how many of how many matched, so an accidental zero is visible.
+
+A calculation joins the database when its results are collected, which happens automatically.
+**Rebuild** re-derives the whole database from the calculation directories: they are the source
+of truth and the database is only an index over them, so rebuilding is always safe and is how a
+project that finished before the database existed gets one. If a calculation cannot be indexed
+the panel says which and why, because an index quietly missing rows answers a query with the
+wrong ones.
+
+The file is a plain ASE database, so `ase db atomscope.db Fe`, `ase gui`, and
+`ase.db.connect(...)` in a script all work on it directly; the panel shows its path. Over the API
+it is `GET /api/database?selection=...` and `POST /api/database/reindex`.
+
+### 8.4c Exporting a project
+
+`Export a copy` in the project panel writes the project somewhere else **without the restart
+files**. That matters more than it sounds: measured on the CP-PAW hands-on course project — 22
+calculations, water through iron and silicon — the project is 926 MB, of which 683 MB (74%) is
+`case.rstrt` and another 92 MB is setup reports that are byte-identical between runs sharing a
+setup. The copy is 151 MB and opens, reads, plots and queries exactly like the original.
+
+The distinction is not size but what a file *is*:
+
+* an **input** or a **protocol** cannot be regenerated — it is the record of what was run, so it
+  always comes along;
+* a **grid** (a `.cub`, a materialised `.f32`) is the picture, and once the restart file is gone
+  it cannot be recomputed, so it comes along too even though it is large;
+* a **restart file** is the wave functions — the one thing a continuation needs and the one thing
+  nothing else can be derived from, which is exactly why it is both huge and left out.
+
+So an exported project cannot be **continued from**, and no *new* orbital, band structure or
+density can be extracted from it, because all of those read the restart. `EXPORT.md` in the copy
+records what was left out, how much of it there was and what that costs — someone will try.
+
+Setup reports and the raw trajectory tapes can be left out too, or nothing can:
+`GET /api/project/export/options` lists the categories with a reason each, and
+`POST /api/project/export` takes `exclude` (`[]` for a complete copy). A directory rather than an
+archive, so it opens straight away and `tar` is one command away for anyone who wants one file.
+
 ### 8.5 Crystallography
 
 ![The Crystal tab](images/crystal-panel.png)
