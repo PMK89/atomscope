@@ -22,7 +22,9 @@ outputs in ``tests/fixtures/cppaw``):
 
 * ``EIGENVALUES [EV] FOR K-POINT n [AND SPIN s]`` blocks with rows ``offset: e1 e2 ...`` in eV
   (the prefix is the band offset of the row), and the
-  scalar lines ``BAND INDEX OF HOMO[ FOR SPIN s]``, ``SMALLEST DIRECT GAP``, ``ABSOLUTE GAP``.
+  scalar lines ``BAND INDEX OF HOMO[ FOR SPIN s]``, ``SMALLEST DIRECT GAP``, ``ABSOLUTE GAP``,
+  and the two plane-wave counts (``NUMBER OF (GLOBAL) PLANE WAVES FOR WAVE FUNCTION`` and
+  ``#(G-VECTORS FOR DENSITY)``).
 
 Every report block is kept (the protocol may hold several: initial, periodic NWRITE reports,
 final), so trajectories of the reported quantities can be reconstructed.
@@ -46,6 +48,10 @@ _EIG_HEAD = re.compile(r"^EIGENVALUES \[EV\] FOR K-POINT\s+(\d+)(?:\s+AND SPIN\s
 _EIG_ROW = re.compile(r"^\s*(\d+):\s+(.*)$")
 _HOMO = re.compile(r"^BAND INDEX OF HOMO(?: FOR SPIN\s+(\d+))?\.*:\s*(\d+)")
 _GAP = re.compile(r"^(SMALLEST DIRECT GAP|ABSOLUTE GAP)\.*:\s*([-\d.]+)\s*EV")
+_PLANE_WAVES = re.compile(
+    r"^(NUMBER OF \(GLOBAL\) PLANE WAVES FOR WAVE FUNCTION|#\(G-VECTORS FOR DENSITY\))"
+    r"\.*:\s*(\d+)"
+)
 _ERROR = re.compile(r"ERROR|STOP IN|ERRORMESSAGE", re.IGNORECASE)
 
 
@@ -113,6 +119,11 @@ class ProtocolData:
     homo_band_index_by_spin: dict[int, int] = field(default_factory=dict)  # spin (1-based) -> band
     direct_gap_ev: float | None = None
     absolute_gap_ev: float | None = None
+    #: How large the basis actually was. The tutorial's ch. 8 asks for these beside every energy
+    #: in its convergence tables, because a cutoff or a cell is only meaningful together with the
+    #: number of plane waves it produced.
+    plane_waves_wavefunction: int | None = None
+    plane_waves_density: int | None = None
     error_lines: list[str] = field(default_factory=list)
 
     @property
@@ -223,6 +234,12 @@ def parse_protocol_text(text: str) -> ProtocolData:  # noqa: PLR0912, PLR0915
             data.homo_band_index_by_spin[spin] = int(hb.group(2))
             if spin == 1:
                 data.homo_band_index = int(hb.group(2))
+        pw = _PLANE_WAVES.match(stripped)
+        if pw is not None:
+            if pw.group(1).startswith("NUMBER"):
+                data.plane_waves_wavefunction = int(pw.group(2))
+            else:
+                data.plane_waves_density = int(pw.group(2))
         gm = _GAP.match(stripped)
         if gm:
             if gm.group(1).startswith("SMALLEST"):

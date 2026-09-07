@@ -96,6 +96,16 @@ def collect(
         bundle.properties["band_gap"] = Quantity(value=prot.absolute_gap_ev, unit=Unit.EV)
     if prot.direct_gap_ev is not None:
         bundle.properties["direct_gap"] = Quantity(value=prot.direct_gap_ev, unit=Unit.EV)
+    # How large the basis actually was. A cutoff or a cell size means nothing on its own, which
+    # is why the tutorial's convergence tables ask for these beside every energy.
+    if prot.plane_waves_wavefunction is not None:
+        bundle.properties["plane_waves_wavefunction"] = Quantity(
+            value=float(prot.plane_waves_wavefunction), unit=Unit.DIMENSIONLESS
+        )
+    if prot.plane_waves_density is not None:
+        bundle.properties["plane_waves_density"] = Quantity(
+            value=float(prot.plane_waves_density), unit=Unit.DIMENSIONLESS
+        )
     if prot.energy_reports:
         for name, val in prot.energy_reports[-1].terms_h.items():
             bundle.extra[f"energy_term:{name}"] = val * Hartree

@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+- **Sweeps: several calculations that differ in one way, read back as one
+  curve.** A convergence test, an energy-against-volume curve, a scan. What
+  varies is either one schema value or the structure itself — a cell-size or
+  volume sweep moves the lattice, which no schema value can express.
+  Membership lives on each calculation, so a sweep is a view over the project
+  rather than a second thing to keep in step with it, and a project written
+  before sweeps existed still loads.
+- CP-PAW protocols now yield the two plane-wave counts (wave function and
+  density) as scalar properties. A cutoff or a cell size means nothing without
+  them, which is why the tutorial's convergence tables ask for both beside
+  every energy.
+
 - **Periodic grids are drawn around their molecule, not inside out.** CP-PAW
   writes a grid over the unit cell starting at the cell's own origin, and a
   molecule placed at that origin therefore has its density split across the

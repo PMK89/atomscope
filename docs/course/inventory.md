@@ -65,7 +65,7 @@ we do not have · `TODO` not started.
 | 8.2 | Convergence | plane-wave cutoff, wave function | H₂O or Si | a sweep over `EPWPSI` | energy against cutoff | **no sweep runner** | BLOCKED |
 | 8.3 | Convergence | plane-wave cutoff, density | as above | a sweep over `CDUAL` | energy against the dual cutoff | as above | BLOCKED |
 | 8.4 | Convergence | number of k-points | Si | a sweep | energy against mesh | as above | BLOCKED |
-| 8.5 | Convergence | cell size for a molecule | H₂O | a sweep over the cell | energy against isolation distance | as above | BLOCKED |
+| 8.5 | Convergence | cell size for a molecule | H₂O | a sweep over the cell | energy against isolation distance | sweep runner, `LineChart` | RUNS |
 
 ## Findings
 
@@ -110,12 +110,30 @@ we do not have · `TODO` not started.
 - `!OCCUPATIONS!STATE` **is** implemented (`strc.py`, `parse_occupation_states`), contrary to what
   ROADMAP Phase 4 still says; whether it covers what the NiO exercise needs is checked in ch. 7.
 
+- **A cell-size sweep at the course's cutoff measures the basis set, not the images.** Chapter
+  8.5's energies fall in alternating steps of −2.9 and −0.5 mH rather than settling. Everything
+  else was ruled out by measurement: tightening `ETOL` by six orders of magnitude gives
+  bit-identical energies, turning `!ISOLATE` off leaves the pattern intact, the plane-wave count
+  grows smoothly as *a*³ (2421 → 27317 over 8–18 Å), and displacing the molecule by half a grid
+  step moves the energy by 0.033 mH, so it is not an egg-box artefact. Doubling the cutoff to
+  60 Ry collapses the steps to −0.32 and +0.08 mH and the curve is flat from 12 Å — the answer the
+  course gives. Which G-shells fall inside a fixed cutoff sphere changes as the cell grows, and at
+  30 Ry that wobble is several times the interaction being measured. Worth a warning in the app
+  when a sweep varies the cell at an unconverged cutoff.
+- **The convergence tables need the plane-wave counts, and now have them.** Ch. 8 asks for
+  `#plane waves for wave functions` and `#plane waves for density` beside every energy, because a
+  cutoff or a cell means nothing on its own. Both are parsed from the protocol and reported as
+  scalar properties, so they come out of a sweep as extra columns.
+
 ## What the course needs that we do not have
 
 Ordered by how many exercises each unblocks.
 
-1. **A sweep/series runner** — 6.3.6, 6.3.7, 8.2, 8.3, 8.4, 8.5 (six exercises, the whole of
-   chapter 8). One parameter varied over a list, N jobs, one plot of the result against it.
+1. ~~A sweep/series runner~~ — done (`calculations/sweeps.py`). A sweep is several calculations
+   that differ in one way, each carrying its membership, read back as one curve; what varies is
+   either a schema value or **the structure**, because a cell-size or volume sweep moves the
+   lattice and no schema value can express that. The remaining work on it is the plot in the app
+   and the API route.
 2. **COOP** — 3.5, 4.7.5. Another `!WEIGHT` kind in the `.dcntl` plus a plot that can show
    negative values.
 3. **Per-state occupations for NiO** — 7.3. The `!OCCUPATIONS!STATE` block exists; what is not

@@ -16,6 +16,7 @@ from typing import Any
 
 from ase import Atoms
 from atomscope.ase_bridge import from_atoms
+from atomscope.calculations.sweeps import SweepPointSpec, SweepSpec
 from atomscope.model import Structure
 
 
@@ -202,6 +203,116 @@ def _water_orbitals() -> Exercise:
 
 
 EXERCISES = (*EXERCISES, _water_orbitals())
+
+
+#: The geometry our own ch. 2.8 run settled on: 0.9815 A, 105.07 degrees. The course's ch. 8.5
+#: says to sweep the cell around "the relaxed structure from section 2.8", so this is it, written
+#: down rather than read out of a run directory that may not exist.
+RELAXED_WATER = (
+    ("O", (0.0144, 0.0144, 0.0)),
+    ("H", (0.9875, -0.1143, 0.0)),
+    ("H", (-0.1143, 0.9875, 0.0)),
+)
+
+
+def fcc_water(lattice_parameter: float) -> Structure:
+    """Relaxed water in a face-centred cell of cube edge ``lattice_parameter`` (A)."""
+    half = lattice_parameter / 2.0
+    return from_atoms(
+        Atoms(
+            "".join(e for e, _ in RELAXED_WATER),
+            positions=[p for _, p in RELAXED_WATER],
+            cell=[(0.0, half, half), (half, 0.0, half), (half, half, 0.0)],
+            pbc=True,
+        ),
+        name=f"water in a {lattice_parameter:g} A fcc cell",
+    )
+
+
+@dataclass(frozen=True)
+class SweepExercise:
+    """A course exercise that is several runs and one curve."""
+
+    id: str
+    chapter: str
+    title: str
+    structure: Structure
+    """The reference structure; points may bring their own."""
+    spec: SweepSpec
+    shows: str
+    notes: tuple[str, ...] = field(default_factory=tuple)
+
+
+CELL_PARAMETERS = (8.0, 10.0, 12.0, 14.0, 16.0, 18.0)
+
+SWEEPS: tuple[SweepExercise, ...] = (
+    SweepExercise(
+        id="water-cell-size",
+        chapter="8.5",
+        title="How far apart the periodic images of a molecule have to be",
+        structure=fcc_water(12.0),
+        spec=SweepSpec(
+            name="Water cell size",
+            backend_id="cppaw",
+            label="Lattice parameter",
+            unit="angstrom",
+            base_values={
+                **COURSE_WAVEFUNCTION,
+                "task": "single_point",
+                "start": "scratch",
+                "nstep": 600,
+                "empty_bands": 5,
+                # The effect measured here is a few millihartree over the whole range, so each
+                # run has to be converged well below that or the curve is the stopping rule's
+                # noise rather than the physics. At the default ETOL the step from 10 to 12 A
+                # came out six times smaller than the step from 12 to 14, which is not something
+                # a monotone interaction does.
+                "etol": 1e-9,
+                "autoconv": 200,
+            },
+            points=[
+                SweepPointSpec(x=a, structure=fcc_water(a)) for a in CELL_PARAMETERS
+            ],
+        ),
+        shows="the total energy falling and then flattening off as the images stop interacting",
+        notes=(
+            (
+                "The cell is what varies, not a parameter: a plane-wave code always computes a"
+                " crystal, and the question is how large a cell has to be before the molecule in"
+                " it stops feeling its own images. No schema value can express that, which is why"
+                " a sweep point may carry a structure of its own."
+            ),
+            (
+                "The course's rule of thumb is 6 A between any two atoms of neighbouring images,"
+                " which for this fcc cell is a lattice parameter of about 12 A -- the value ch. 2"
+                " uses. Its Fig. 8.5 shows the energy flat from roughly 12 A onwards."
+            ),
+            (
+                "At the course's 30 Ry cutoff this sweep does not measure what it is meant to."
+                " The energy falls in alternating steps of -2.9 and -0.5 mH instead of settling,"
+                " and that is the basis set, not the images: it survives tightening ETOL by six"
+                " orders of magnitude (bit-identical energies), it survives turning !ISOLATE off,"
+                " the plane-wave count grows smoothly as a^3, and displacing the molecule by half"
+                " a grid step moves the energy by only 0.033 mH, so it is not an egg-box effect"
+                " either. Doubling the cutoff to 60 Ry collapses the steps to -0.32 and +0.08 mH"
+                " and the curve is then flat from 12 A -- which is the answer the course gives."
+                " Which G-shells fall inside a fixed cutoff sphere changes as the cell grows, and"
+                " at 30 Ry that wobble is several times larger than the interaction being looked"
+                " for. The exercise is kept at the course's own parameters; what the numbers mean"
+                " is here."
+            ),
+        ),
+    ),
+)
+
+
+def sweep_by_id(exercise_id: str) -> SweepExercise:
+    for e in SWEEPS:
+        if e.id == exercise_id:
+            return e
+    known = ", ".join(e.id for e in SWEEPS)
+    msg = f"no course sweep {exercise_id!r}; known: {known}"
+    raise KeyError(msg)
 
 
 def by_id(exercise_id: str) -> Exercise:

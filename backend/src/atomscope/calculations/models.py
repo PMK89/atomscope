@@ -24,6 +24,28 @@ class AnalysisJob(StrictModel):
     job: JobRecord
 
 
+class SweepMembership(StrictModel):
+    """This calculation is one point of a sweep: several runs that differ in one way.
+
+    A convergence test, an energy-against-volume curve, a scan -- the tutorial's whole chapter 8
+    is this shape. Membership is recorded on the member rather than in an object of its own, so
+    the sweep is a view over the calculations a project already holds: everything with this
+    ``sweep_id``, in order of ``x``.
+
+    What varies is either one schema value (``key``) or the structure itself (``key`` is None) --
+    a cell-size or volume sweep changes the lattice, which no schema value can express. Either
+    way ``x`` is the number the result is plotted against, and ``label``/``unit`` say what that
+    number is, because for a structure sweep there is no parameter to ask.
+    """
+
+    sweep_id: str
+    label: str = Field(description="axis label, e.g. 'Plane-wave cutoff'")
+    unit: str | None = None
+    key: str | None = Field(default=None, description="schema key varied; None = the structure")
+    x: float
+    index: int
+
+
 class Calculation(StrictModel):
     """Persisted as ``calculations/<id>/calculation.json`` inside the project."""
 
@@ -43,6 +65,9 @@ class Calculation(StrictModel):
     results: ResultBundle | None = None
     result_structure_id: str | None = None
     parent_calculation_id: str | None = Field(default=None, description="for reruns/restarts")
+    sweep: SweepMembership | None = Field(
+        default=None, description="set when this calculation is one point of a sweep"
+    )
     analysis_jobs: list[AnalysisJob] = Field(default_factory=list)
     notes: str = ""
     provenance: Provenance | None = None
