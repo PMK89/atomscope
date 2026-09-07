@@ -23,9 +23,10 @@ continues from a reference uses `SweepSpec.restart_from`. `--rerun` forks and ru
 `sweep --recollect` re-reads finished points with the parser as it is now.
 
 Done: ch. 2 (reproduces the published geometry, 0.9815 Å / 105.07°), ch. 3 (orbitals, density,
-DOS, COOP, and the grid centring that made the pictures right), ch. 8.2 (iron cutoff, monotone,
-settled from 40 Ry), ch. 8.5 (cell size — see the finding, the curve measures the basis set at the
-course's cutoff, not the images). Ch. 8.3, 8.4/6.3.6 written and running.
+DOS, COOP, and the grid centring that made the pictures right), ch. 8.2 (iron cutoff, settled from 40 Ry), 8.3 (iron
+dual cutoff, flat from 2), 8.4/6.3.6 (silicon k-points, settled from R=30, gap 0.776 eV against the
+course's 0.8), ch. 8.5 (cell size — see the finding, the curve measures the basis set at the
+course's cutoff, not the images). All of chapter 8 is done.
 
 Measured wall clock: water single point 15 s, water relaxation 29 s, orbital export + DOS ~20 s,
 iron reference (R=30, 500 steps) 2 m 25 s, the eight-point iron cutoff sweep 4 min from that

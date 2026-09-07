@@ -57,14 +57,14 @@ we do not have · `TODO` not started.
 | 6.3.3 | Solids: silicon | empty atoms | Si | setup with empty spheres | DOS projected on the interstitial | **empty atoms not in the schema** | BLOCKED |
 | 6.3.4 | Solids: silicon | band structure | Si | `paw_bands` | Γ–X–W–L–Γ–K band structure | band-structure plot | TODO |
 | 6.3.5 | Solids: silicon | lattice constant by cell dynamics | Si | cell relaxation | the optimized lattice constant | **cell dynamics not in the schema** | BLOCKED |
-| 6.3.6 | Solids: silicon | k-point convergence | Si | a sweep over R | energy against k-point density | Sweeps panel (same sweep as 8.4) | RUNS |
+| 6.3.6 | Solids: silicon | k-point convergence | Si | a sweep over R | energy against k-point density | Sweeps panel (same sweep as 8.4) | DONE |
 | 6.3.7 | Solids: silicon | E(V), pressure, bulk modulus | Si | a sweep over volumes | Birch-Murnaghan fit | **no E(V) fit** | BLOCKED |
 | 6.4.2 | Solids: aluminium | electronic structure of a metal | Al, fcc | Mermin occupations, k-points | DOS and bands of a metal, Fermi level | DOS, bands, electron temperature | READY |
 | 7.2.2 | Magnetism | ferromagnetic iron | Fe, bcc | spin-polarized | spin-resolved DOS, moment | spin DOS, spin density | READY |
 | 7.3 | Magnetism | antiferromagnetic NiO | NiO, rock salt doubled along (111) | spin-polarized, `!ORBPOT` then the same run without it | the AFM ordering and its gap | `orbital_potentials` | READY |
 | 8.2 | Convergence | plane-wave cutoff, wave function | Fe (bcc, non-magnetic) | a sweep over `EPWPSI`, all restarted from one reference | energy against cutoff, beside the basis size | Sweeps panel | DONE |
-| 8.3 | Convergence | plane-wave cutoff, density | Fe | a sweep over `CDUAL`, independent runs | energy against the density cutoff | Sweeps panel | RUNS |
-| 8.4 | Convergence | number of k-points | Si | a sweep over the k-point density R | energy against the density | Sweeps panel | RUNS |
+| 8.3 | Convergence | plane-wave cutoff, density | Fe | a sweep over `CDUAL`, independent runs | energy against the density cutoff | Sweeps panel | DONE |
+| 8.4 | Convergence | number of k-points | Si | a sweep over the k-point density R | energy against the density | Sweeps panel | DONE |
 | 8.5 | Convergence | cell size for a molecule | H₂O | a sweep over the cell | energy against isolation distance | Sweeps panel | DONE |
 
 ## Findings
@@ -129,6 +129,24 @@ we do not have · `TODO` not started.
   smooth, and when you vary the cell at a fixed cutoff the basis composition wobbles underneath
   you. Iron's own energy is −22.0250 H at 70 Ry against the course's −22.0678 in Fig. 8.2 — the
   same code-vintage offset as everywhere else.
+- **CDUAL=2 is already enough for iron at 30 Ry, and the conservative choice buys nothing.**
+  Chapter 8.3 over 2, 3, 4, 5, 6 moves the total energy by 0.045 mH in total, while the density
+  basis grows from 314 to 1660 G-vectors — 5.3× the cost for 20 µH. The wave-function basis stays
+  at 222 throughout, as it must: `CDUAL` is the density's cutoff alone. The course's ch. 2.6 calls
+  CDUAL=2 "good but not excellent" and CDUAL=4 the conservative choice, and its ch. 8.3 explains
+  why the difference is small — past 4 only the exchange-correlation energy is still affected,
+  the Hartree and kinetic energies being exact there. Measured, that difference is 0.02 mH for
+  this system. One system at one cutoff, and a total energy: a property that leans harder on the
+  density could still care.
+- **Silicon's band gap reproduces the course's, and its k-point convergence shows why a converged
+  energy is not a converged gap.** Chapter 8.4/6.3.6 over R = 10, 20, 30, 40, 50 bohr: the energy
+  falls −86.4, −5.9, −0.5, −0.26 mH and settles from R=30 at one millihartree, which is the
+  10–50 range the course calls usual. The indirect gap at R=30 is **0.776 eV** against the "about
+  0.8 eV" the course states (experiment 1.12 eV — PBE underestimates it, as the course says).
+  But the gap does not converge with the energy: 0.668, 0.763, 0.776, 0.637, 0.650 eV. An indirect
+  gap is a minimum over the k-points that happen to be sampled, and the meshes for different R are
+  not nested, so a denser mesh can find a lower conduction-band minimum and a different one can
+  miss it again. Worth knowing before quoting a gap off a converged total energy.
 - **The convergence tables need the plane-wave counts, and now have them.** Ch. 8 asks for
   `#plane waves for wave functions` and `#plane waves for density` beside every energy, because a
   cutoff or a cell means nothing on its own. Both are parsed from the protocol and reported as
