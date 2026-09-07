@@ -1153,6 +1153,21 @@ Projections are further split into s/p/d/f channels where the element has them.
 Spin degeneracy is restored for non-spin-polarised runs, so integrating the
 occupied DOS gives the valence-electron count.
 
+**Overlap populations (COOP)** — select a bond in the viewport, tick
+`Overlap population for the selected bond`, then `Compute DOS`. The result is
+plotted under the density of states in a chart of its own: a COOP is a
+population rather than a count of states, positive where the two orbitals are
+bonding and negative where they are antibonding, and at a tenth of the DOS's
+scale it would be a flat line on the same axis.
+
+Which two orbitals to overlap is a chemical decision, not a mechanical one, so
+the default is the one the CP-PAW hands-on course makes for its own O–H
+example: a hybrid on the heavier partner pointing along the bond, against
+hydrogen's s orbital. The form says so. Other combinations — a named d orbital
+in a crystal field, say — go through `POST /api/cppaw/calculations/{id}/dos`
+with `coops` (and `orbital_weights` for the density of states of one orbital in
+a frame of its own).
+
 **Band structure** — set `k-points per segment` (default 20). The path is
 ASE's default high-symmetry path for the lattice, shown above the button.
 `Compute bands` writes a `.bcntl`, runs `paw_bands.x` and reads the resulting
@@ -1161,10 +1176,37 @@ ASE's default high-symmetry path for the lattice, shown above the button.
 > Two caveats today. (a) The chart in the `Bands` section does not currently
 > draw the band curves — the numbers are correct in the stored data and over
 > `GET /api/cppaw/calculations/{id}/bands`, but the plot comes out empty
-> (see [§10](#10-limits-and-known-problems)). (b) DOS and band results are not
-> re-loaded when you reopen a project: the sections say *No DOS computed yet* /
-> *No band structure computed yet* until you press the button again in the
-> current session.
+> (see [§10](#10-limits-and-known-problems)). (b) Band results are not re-loaded
+> when you reopen a project: the section says *No band structure computed yet*
+> until you press the button again. A DOS **is** re-loaded — it used to say
+> *No DOS computed yet* over a finished one, and pressing the button again
+> would have overwritten the control file, losing any COOP it had been asked
+> for.
+
+### 8.4a Sweeps
+
+A sweep is several calculations that differ in one way, read as one curve: a
+plane-wave cutoff, a cell size, a volume, a k-point density. Pick one in the
+`Sweeps` tab, press `Run remaining points`, and the panel plots the total
+energy against whatever was varied.
+
+It also says where the curve settled — *"Settled from lattice parameter 16
+angstrom onwards, within 1.00 mH"* — because that is the question a convergence
+test is asking, and reading it off a plot by eye is how people get it wrong.
+The tolerance is a dropdown; one millihartree is the default, being roughly
+what a wave-function optimization at its default stopping rule delivers.
+Asking for less measures the noise floor rather than the physics.
+
+Two things vary in practice, and both work: a **parameter** (`epwpsi`,
+`cdual`, `kpoint_r`) or the **structure** — a cell-size or volume sweep moves
+the lattice vectors, which no parameter can express. A sweep may also continue
+every point from one converged reference calculation instead of starting each
+from scratch; that is faster, and it means every point begins from the same
+electronic state, so the curve shows the parameter rather than N independent
+convergences.
+
+Sweeps are created over the API (`POST /api/sweeps`) or by
+`scripts/course/sweep.py`; the panel runs and reads them.
 
 ### 8.5 Crystallography
 
