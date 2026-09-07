@@ -7,7 +7,7 @@ export npm_config_cache := $(ROOT)/.npm-cache
 export PLAYWRIGHT_BROWSERS_PATH := $(ROOT)/.playwright-browsers
 PY := $(ROOT)/.venv/bin/python
 
-.PHONY: bench bench-full test-perf test-e2e setup backend-sync frontend-install test test-backend test-frontend lint typecheck dev-backend dev-frontend contracts
+.PHONY: bench bench-full test-perf test-e2e setup backend-sync frontend-install test test-backend test-frontend lint typecheck dev-backend dev-frontend contracts course-export
 
 setup: backend-sync frontend-install
 
@@ -47,6 +47,28 @@ contracts:
 
 test-e2e:
 	cd frontend && pnpm exec playwright test
+
+# Regenerate examples/ from the CP-PAW hands-on course runs under .scratch/course-runs/course.
+#
+# Committed by default without the volumetric grids as well as without the restart files: the
+# course project is 926 MB, of which 683 MB is restart, 114 MB grids and 92 MB setup reports.
+# What is left -- inputs, protocols, parsed results, DOS and band data -- is 37 MB and is the
+# record of what was run. The grids are the only omission that costs a picture, and they come
+# back by re-running an example (scripts/course/run.py), which is why they are droppable.
+#
+#   make course-export                  # 37 MB, the committed library
+#   make course-export EXCLUDE=restart  # 151 MB, draws its surfaces without re-running
+#   make course-export EXCLUDE=         # everything, restart files included
+EXCLUDE ?= restart,setup_reports,grids
+COURSE_PROJECT ?= $(ROOT)/.scratch/course-runs/course
+COURSE_EXAMPLE ?= $(ROOT)/examples/cppaw-handson-course
+
+course-export:
+	@test -f "$(COURSE_PROJECT)/project.json" \
+	  || { echo "no course project at $(COURSE_PROJECT) -- see docs/course/inventory.md"; exit 1; }
+	rm -rf "$(COURSE_EXAMPLE)"
+	cd backend && PYTHONPATH=$(ROOT)/backend/src $(PY) -m atomscope.project.export_cli \
+	  "$(COURSE_PROJECT)" "$(COURSE_EXAMPLE)" --exclude "$(EXCLUDE)"
 
 # Performance harness (see docs/performance.md). Results go to .scratch/bench/.
 bench:

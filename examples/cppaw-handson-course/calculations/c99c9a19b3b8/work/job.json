@@ -1,0 +1,32 @@
+{
+  "calculation_id": "c99c9a19b3b8",
+  "created_at": "2026-09-07T11:12:00.317228Z",
+  "error": null,
+  "exit_code": 0,
+  "finished_at": "2026-09-07T11:12:30.589569Z",
+  "id": "b1987226fdfd",
+  "pid": 3858439,
+  "spec": {
+    "argv": [
+      "/home/pmk/Projects/atomscope/backend/../.venv/bin/python",
+      "-m",
+      "atomscope.backends.cppaw.runner",
+      "/home/pmk/Projects/atomscope/.scratch/course-runs/course/calculations/c99c9a19b3b8/work",
+      "case",
+      "/home/pmk/cp-paw/bin/fast/paw_fast.x"
+    ],
+    "cwd": "/home/pmk/Projects/atomscope/.scratch/course-runs/course/calculations/c99c9a19b3b8/work",
+    "description": "CP-PAW single_point on Fe (periodic)",
+    "env": {
+      "LD_LIBRARY_PATH": "/home/pmk/miniconda3/pkgs/libgfortran5-13.2.0-ha4646dd_0/lib"
+    },
+    "soft_stop_seconds": 120.0,
+    "stderr_name": "driver.err",
+    "stdout_name": "driver.log",
+    "watch_files": [
+      "case.prot"
+    ]
+  },
+  "started_at": "2026-09-07T11:12:00.318544Z",
+  "status": "completed"
+}

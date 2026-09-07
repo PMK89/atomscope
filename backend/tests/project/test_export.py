@@ -13,6 +13,7 @@ from atomscope.jobs import JobManager
 from atomscope.project import ProjectStore
 from atomscope.project.database import DB_NAME
 from atomscope.project.export import DEFAULT_EXCLUDED, export_project
+from atomscope.project.export_cli import main
 
 
 def _project(tmp_path: Path) -> ProjectStore:
@@ -144,3 +145,23 @@ async def test_an_exported_project_opens_and_keeps_its_results(tmp_path: Path) -
     assert copied.results.properties["energy"].value == energy
     # and the database came with it, so the copy is queryable without rebuilding
     assert ase.db.connect(tmp_path / "out" / DB_NAME).count() == 1
+
+
+def test_the_cli_takes_the_exclusions_make_passes_it(tmp_path: Path) -> None:
+    """`make course-export EXCLUDE=...` goes through this, so the parsing is worth pinning."""
+    store = _project(tmp_path)
+    assert main([str(store.root), str(tmp_path / "a"), "--exclude", "restart,grids"]) == 0
+    assert not (tmp_path / "a" / "calculations" / "c1" / "work" / "case_density.cub").exists()
+    # a setup report is *not* excluded here: the flag replaces the default, it does not add to it
+    assert (tmp_path / "a" / "calculations" / "c1" / "work" / "case_stpforz8.myxml").is_file()
+
+    # EXCLUDE= means a complete copy, and whitespace or a trailing comma is not an unknown key
+    assert main([str(store.root), str(tmp_path / "b"), "--exclude", ""]) == 0
+    assert (tmp_path / "b" / "calculations" / "c1" / "work" / "case.rstrt").is_file()
+    assert main([str(store.root), str(tmp_path / "c"), "--exclude", " restart , "]) == 0
+    assert not (tmp_path / "c" / "calculations" / "c1" / "work" / "case.rstrt").exists()
+
+    # omitting it entirely is the default pair
+    assert main([str(store.root), str(tmp_path / "d")]) == 0
+    assert not (tmp_path / "d" / "calculations" / "c1" / "work" / "case_stpforz8.myxml").exists()
+    assert (tmp_path / "d" / "calculations" / "c1" / "work" / "case_density.cub").is_file()

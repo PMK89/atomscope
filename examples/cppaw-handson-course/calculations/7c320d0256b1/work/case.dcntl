@@ -1,0 +1,34 @@
+!DCNTL
+  !GENERIC PREFIX='case_dos_' !END
+  !GRID DE[EV]=0.01 BROADENING[EV]=0.172 !END
+  !WEIGHT ID='total' LEGEND='total' TYPE='TOTAL' !END
+  !WEIGHT ID='O_1' LEGEND='O_1'
+    !ATOM NAME='O_1' TYPE='ALL' !END
+  !END
+  !WEIGHT ID='O_1_s' LEGEND='O_1 s'
+    !ATOM NAME='O_1' TYPE='S' !END
+  !END
+  !WEIGHT ID='O_1_p' LEGEND='O_1 p'
+    !ATOM NAME='O_1' TYPE='P' !END
+  !END
+  !WEIGHT ID='H_2' LEGEND='H_2'
+    !ATOM NAME='H_2' TYPE='ALL' !END
+  !END
+  !WEIGHT ID='H_2_s' LEGEND='H_2 s'
+    !ATOM NAME='H_2' TYPE='S' !END
+  !END
+  !WEIGHT ID='H_3' LEGEND='H_3'
+    !ATOM NAME='H_3' TYPE='ALL' !END
+  !END
+  !WEIGHT ID='H_3_s' LEGEND='H_3 s'
+    !ATOM NAME='H_3' TYPE='S' !END
+  !END
+  !WEIGHT ID='o-sp3' LEGEND='O sp3 toward H'
+    !ORB ATOM='O_1' TYPE='SP3' NNZ='H_2' !END
+  !END
+  !COOP ID='o-h' LEGEND='O sp3 - H s'
+    !ORB1 ATOM='O_1' TYPE='SP3' NNZ='H_2' !END
+    !ORB2 ATOM='H_2' TYPE='S' NNZ='O_1' !END
+  !END
+!END
+!EOB

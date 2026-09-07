@@ -1,0 +1,20 @@
+!CONTROL
+  !FILES
+    !FILE ID='STRC' EXT=F NAME='case.strc' !END
+    !FILE ID='RESTART_IN' EXT=F NAME='case.rstrt' !END
+  !END
+  !GENERIC START=F NSTEP=1 DT=5.0 NWRITE=1 ETOL=1.0E-05 AUTOCONV=20 !END
+  !DFT TYPE=10 !END
+  !FOURIER EPWPSI=30.0 CDUAL=2.0 !END
+  !PSIDYN STOP=T FRIC=0.01 SAFEORTHO=T !END
+  !ANALYSE
+    !TRA R=T E=F !END
+    !WAVE TITLE='band 1 k 1 spin 1' FILE='case_orb_b1k1s1.wv' B=1 K=1 S=1 DR=0.25 !END
+    !WAVE TITLE='band 2 k 1 spin 1' FILE='case_orb_b2k1s1.wv' B=2 K=1 S=1 DR=0.25 !END
+    !WAVE TITLE='band 3 k 1 spin 1' FILE='case_orb_b3k1s1.wv' B=3 K=1 S=1 DR=0.25 !END
+    !WAVE TITLE='band 4 k 1 spin 1' FILE='case_orb_b4k1s1.wv' B=4 K=1 S=1 DR=0.25 !END
+    !WAVE TITLE='band 5 k 1 spin 1' FILE='case_orb_b5k1s1.wv' B=5 K=1 S=1 DR=0.25 !END
+    !WAVE TITLE='band 6 k 1 spin 1' FILE='case_orb_b6k1s1.wv' B=6 K=1 S=1 DR=0.25 !END
+  !END
+!END
+!EOB

@@ -1,0 +1,20 @@
+
+FILE REPORT
+===========
+IDENTIFIER                FILENAME
+PROT                      case_density.wprot
+CNTL                      case_density.wcntl
+STRC                      case.strc_out
+WAVE                      case_density.wv
+WAVEDX                    /dev/null
+CUBE                      case_density.cub
+VRML                      case_density.wrl
+GNUCONTOUR                case_density_c.gnu
+GNURUBBERSHEET            case_density_r.gnu
+
+UNUSED ELEMENTS FROM INPUT FILE
+================================
+NAME OF CURRENT LIST: WCNTL
+UNUSED ELEMENTS COULD INDICATE MISSPELLED OR INCORRECTLY PLACED DATA OR LISTS
+---------START LIST OF UNUSED ELEMENTS------------------------------------------
+---------END LIST OF UNUSED ELEMENTS--------------------------------------------

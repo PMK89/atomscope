@@ -1,0 +1,28 @@
+{
+  "calculation_id": "9b02b0a8d751",
+  "created_at": "2026-09-07T12:12:12.887707Z",
+  "error": null,
+  "exit_code": 0,
+  "finished_at": "2026-09-07T12:12:12.912386Z",
+  "id": "a32e03ff13a1",
+  "pid": 4118023,
+  "spec": {
+    "argv": [
+      "/home/pmk/cp-paw/bin/fast/paw_bands.x",
+      "case.bcntl"
+    ],
+    "cwd": "/home/pmk/Projects/atomscope/.scratch/course-runs/course/calculations/9b02b0a8d751/work",
+    "description": "band structure of Si2",
+    "env": {
+      "LD_LIBRARY_PATH": "/home/pmk/miniconda3/pkgs/libgfortran5-13.2.0-ha4646dd_0/lib"
+    },
+    "soft_stop_seconds": 5.0,
+    "stderr_name": "bands.err",
+    "stdout_name": "bands.log",
+    "watch_files": [
+      "case.bprot"
+    ]
+  },
+  "started_at": "2026-09-07T12:12:12.891664Z",
+  "status": "completed"
+}

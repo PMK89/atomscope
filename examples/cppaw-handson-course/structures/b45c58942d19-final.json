@@ -1,0 +1,78 @@
+{
+  "id": "b45c58942d19-final",
+  "name": "Silicon k-points — k-point density R 10 (result)",
+  "atoms": [
+    {
+      "element": "Si",
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "formal_charge": 0,
+      "label": null,
+      "uid": "472c7b0ccc2f"
+    },
+    {
+      "element": "Si",
+      "position": [
+        1.3577499042511758,
+        1.3577499042511758,
+        1.3577499042511758
+      ],
+      "formal_charge": 0,
+      "label": null,
+      "uid": "84688354184f"
+    }
+  ],
+  "bonds": [],
+  "cell": {
+    "vectors": [
+      [
+        0.0,
+        2.7154998085023516,
+        2.7154998085023516
+      ],
+      [
+        2.7154998085023516,
+        0.0,
+        2.7154998085023516
+      ],
+      [
+        2.7154998085023516,
+        2.7154998085023516,
+        0.0
+      ]
+    ],
+    "pbc": [
+      true,
+      true,
+      true
+    ]
+  },
+  "charge": 0.0,
+  "multiplicity": null,
+  "atomic_scalars": {
+    "cppaw_charge": {
+      "values": [
+        -0.0,
+        -0.0
+      ],
+      "unit": "e",
+      "description": "Q[E] from ATOMLIST"
+    }
+  },
+  "atomic_vectors": {},
+  "properties": {},
+  "constraints": [],
+  "residues": [],
+  "provenance": {
+    "source": "calculation:b45c58942d19",
+    "created_at": "2026-09-07T12:23:05.621135Z",
+    "software": "cppaw",
+    "parents": [
+      "d588394b734e"
+    ],
+    "notes": ""
+  }
+}

@@ -1,0 +1,10 @@
+!WCNTL
+  !FILES
+    !FILE ID='STRC' EXT=F NAME='case_orb.strc_out' !END
+    !FILE ID='WAVE' EXT=F NAME='case_orb_b1k1s1.wv' !END
+    !FILE ID='CUBE' EXT=F NAME='case_orb_b1k1s1.cub' !END
+    !FILE ID='WAVEDX' EXT=F NAME='/dev/null' !END
+  !END
+  !VIEWBOX O=0.0 0.0 0.0 T=0.0 11.338357 11.338357 11.338357 0.0 11.338357 11.338357 11.338357 0.0 !END
+!END
+!EOB

@@ -1,0 +1,32 @@
+{
+  "calculation_id": "2cf06a77d5f1",
+  "created_at": "2026-09-07T10:55:47.884271Z",
+  "error": null,
+  "exit_code": 0,
+  "finished_at": "2026-09-07T10:56:04.045846Z",
+  "id": "214f45cec23e",
+  "pid": 3782933,
+  "spec": {
+    "argv": [
+      "/home/pmk/Projects/atomscope/backend/../.venv/bin/python",
+      "-m",
+      "atomscope.backends.cppaw.runner",
+      "/home/pmk/Projects/atomscope/.scratch/course-runs/course/calculations/2cf06a77d5f1/work",
+      "case",
+      "/home/pmk/cp-paw/bin/fast/paw_fast.x"
+    ],
+    "cwd": "/home/pmk/Projects/atomscope/.scratch/course-runs/course/calculations/2cf06a77d5f1/work",
+    "description": "CP-PAW single_point on H2O (periodic)",
+    "env": {
+      "LD_LIBRARY_PATH": "/home/pmk/miniconda3/pkgs/libgfortran5-13.2.0-ha4646dd_0/lib"
+    },
+    "soft_stop_seconds": 120.0,
+    "stderr_name": "driver.err",
+    "stdout_name": "driver.log",
+    "watch_files": [
+      "case.prot"
+    ]
+  },
+  "started_at": "2026-09-07T10:55:47.887484Z",
+  "status": "completed"
+}

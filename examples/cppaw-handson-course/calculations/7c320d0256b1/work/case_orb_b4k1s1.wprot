@@ -1,0 +1,20 @@
+
+FILE REPORT
+===========
+IDENTIFIER                FILENAME
+PROT                      case_orb_b4k1s1.wprot
+CNTL                      case_orb_b4k1s1.wcntl
+STRC                      case_orb.strc_out
+WAVE                      case_orb_b4k1s1.wv
+WAVEDX                    /dev/null
+CUBE                      case_orb_b4k1s1.cub
+VRML                      case_orb_b4k1s1.wrl
+GNUCONTOUR                case_orb_b4k1s1_c.gnu
+GNURUBBERSHEET            case_orb_b4k1s1_r.gnu
+
+UNUSED ELEMENTS FROM INPUT FILE
+================================
+NAME OF CURRENT LIST: WCNTL
+UNUSED ELEMENTS COULD INDICATE MISSPELLED OR INCORRECTLY PLACED DATA OR LISTS
+---------START LIST OF UNUSED ELEMENTS------------------------------------------
+---------END LIST OF UNUSED ELEMENTS--------------------------------------------

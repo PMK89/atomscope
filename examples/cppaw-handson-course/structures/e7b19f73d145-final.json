@@ -1,0 +1,66 @@
+{
+  "id": "e7b19f73d145-final",
+  "name": "Iron cutoff — Plane-wave cutoff 50 (result)",
+  "atoms": [
+    {
+      "element": "Fe",
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "formal_charge": 0,
+      "label": null,
+      "uid": "75a87390a864"
+    }
+  ],
+  "bonds": [],
+  "cell": {
+    "vectors": [
+      [
+        -1.434999898803489,
+        1.434999898803489,
+        1.434999898803489
+      ],
+      [
+        1.434999898803489,
+        -1.434999898803489,
+        1.434999898803489
+      ],
+      [
+        1.434999898803489,
+        1.434999898803489,
+        -1.434999898803489
+      ]
+    ],
+    "pbc": [
+      true,
+      true,
+      true
+    ]
+  },
+  "charge": 0.0,
+  "multiplicity": null,
+  "atomic_scalars": {
+    "cppaw_charge": {
+      "values": [
+        -0.0
+      ],
+      "unit": "e",
+      "description": "Q[E] from ATOMLIST"
+    }
+  },
+  "atomic_vectors": {},
+  "properties": {},
+  "constraints": [],
+  "residues": [],
+  "provenance": {
+    "source": "calculation:e7b19f73d145",
+    "created_at": "2026-09-07T12:23:05.347912Z",
+    "software": "cppaw",
+    "parents": [
+      "7929d7a8ce09"
+    ],
+    "notes": ""
+  }
+}

@@ -1,0 +1,72 @@
+{
+  "id": "d12ed61c83d9",
+  "name": "water",
+  "atoms": [
+    {
+      "element": "O",
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "formal_charge": 0,
+      "label": null,
+      "uid": "d6d73946e46c"
+    },
+    {
+      "element": "H",
+      "position": [
+        1.05,
+        0.0,
+        0.0
+      ],
+      "formal_charge": 0,
+      "label": null,
+      "uid": "fbb71cdad29b"
+    },
+    {
+      "element": "H",
+      "position": [
+        0.0,
+        1.05,
+        0.0
+      ],
+      "formal_charge": 0,
+      "label": null,
+      "uid": "3233d56c9b2e"
+    }
+  ],
+  "bonds": [],
+  "cell": {
+    "vectors": [
+      [
+        0.0,
+        6.0,
+        6.0
+      ],
+      [
+        6.0,
+        0.0,
+        6.0
+      ],
+      [
+        6.0,
+        6.0,
+        0.0
+      ]
+    ],
+    "pbc": [
+      true,
+      true,
+      true
+    ]
+  },
+  "charge": 0.0,
+  "multiplicity": null,
+  "atomic_scalars": {},
+  "atomic_vectors": {},
+  "properties": {},
+  "constraints": [],
+  "residues": [],
+  "provenance": null
+}

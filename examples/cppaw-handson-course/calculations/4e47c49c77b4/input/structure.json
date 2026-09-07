@@ -1,0 +1,61 @@
+{
+  "id": "d588394b734e",
+  "name": "silicon",
+  "atoms": [
+    {
+      "element": "Si",
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "formal_charge": 0,
+      "label": null,
+      "uid": "472c7b0ccc2f"
+    },
+    {
+      "element": "Si",
+      "position": [
+        1.35775,
+        1.35775,
+        1.35775
+      ],
+      "formal_charge": 0,
+      "label": null,
+      "uid": "84688354184f"
+    }
+  ],
+  "bonds": [],
+  "cell": {
+    "vectors": [
+      [
+        0.0,
+        2.7155,
+        2.7155
+      ],
+      [
+        2.7155,
+        0.0,
+        2.7155
+      ],
+      [
+        2.7155,
+        2.7155,
+        0.0
+      ]
+    ],
+    "pbc": [
+      true,
+      true,
+      true
+    ]
+  },
+  "charge": 0.0,
+  "multiplicity": null,
+  "atomic_scalars": {},
+  "atomic_vectors": {},
+  "properties": {},
+  "constraints": [],
+  "residues": [],
+  "provenance": null
+}

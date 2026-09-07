@@ -1,0 +1,112 @@
+{
+  "id": "b0b2d1f5c1a1-final",
+  "name": "water-relax (result)",
+  "atoms": [
+    {
+      "element": "O",
+      "position": [
+        0.014410403029477261,
+        0.01440407912677972,
+        -1.0447558866193037e-6
+      ],
+      "formal_charge": 0,
+      "label": null,
+      "uid": "d6d73946e46c"
+    },
+    {
+      "element": "H",
+      "position": [
+        0.9874562337817219,
+        -0.11430100395392184,
+        -0.00001844794971605854
+      ],
+      "formal_charge": 0,
+      "label": null,
+      "uid": "fbb71cdad29b"
+    },
+    {
+      "element": "H",
+      "position": [
+        -0.11428365181536969,
+        0.987450942675705,
+        0.00002225197813464948
+      ],
+      "formal_charge": 0,
+      "label": null,
+      "uid": "3233d56c9b2e"
+    }
+  ],
+  "bonds": [],
+  "cell": {
+    "vectors": [
+      [
+        0.0,
+        5.999999576878701,
+        5.999999576878701
+      ],
+      [
+        5.999999576878701,
+        0.0,
+        5.999999576878701
+      ],
+      [
+        5.999999576878701,
+        5.999999576878701,
+        0.0
+      ]
+    ],
+    "pbc": [
+      true,
+      true,
+      true
+    ]
+  },
+  "charge": 0.0,
+  "multiplicity": null,
+  "atomic_scalars": {
+    "cppaw_charge": {
+      "values": [
+        -0.61324,
+        0.30662,
+        0.30662
+      ],
+      "unit": "e",
+      "description": "Q[E] from ATOMLIST"
+    }
+  },
+  "atomic_vectors": {
+    "forces": {
+      "values": [
+        [
+          -0.20157450299468416,
+          -0.20157450299468416,
+          -0.0
+        ],
+        [
+          0.04216609501419413,
+          0.12084185766262953,
+          0.0
+        ],
+        [
+          0.12084185766262953,
+          0.04216609501419413,
+          -0.0
+        ]
+      ],
+      "unit": "eV/angstrom",
+      "description": "forces from the last ATOMLIST report (printed to 0.01 mH/Bohr)"
+    }
+  },
+  "properties": {},
+  "constraints": [],
+  "residues": [],
+  "provenance": {
+    "source": "calculation:b0b2d1f5c1a1",
+    "created_at": "2026-09-07T12:23:04.734356Z",
+    "software": "cppaw",
+    "parents": [
+      "d12ed61c83d9"
+    ],
+    "notes": ""
+  }
+}

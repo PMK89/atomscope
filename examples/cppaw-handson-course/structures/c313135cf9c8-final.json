@@ -1,0 +1,66 @@
+{
+  "id": "c313135cf9c8-final",
+  "name": "Iron dual cutoff — Density cutoff factor 3 (result)",
+  "atoms": [
+    {
+      "element": "Fe",
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "formal_charge": 0,
+      "label": null,
+      "uid": "2afbde0e0fb4"
+    }
+  ],
+  "bonds": [],
+  "cell": {
+    "vectors": [
+      [
+        -1.434999898803489,
+        1.434999898803489,
+        1.434999898803489
+      ],
+      [
+        1.434999898803489,
+        -1.434999898803489,
+        1.434999898803489
+      ],
+      [
+        1.434999898803489,
+        1.434999898803489,
+        -1.434999898803489
+      ]
+    ],
+    "pbc": [
+      true,
+      true,
+      true
+    ]
+  },
+  "charge": 0.0,
+  "multiplicity": null,
+  "atomic_scalars": {
+    "cppaw_charge": {
+      "values": [
+        -0.0
+      ],
+      "unit": "e",
+      "description": "Q[E] from ATOMLIST"
+    }
+  },
+  "atomic_vectors": {},
+  "properties": {},
+  "constraints": [],
+  "residues": [],
+  "provenance": {
+    "source": "calculation:c313135cf9c8",
+    "created_at": "2026-09-07T12:23:05.467586Z",
+    "software": "cppaw",
+    "parents": [
+      "7f1ab64146df"
+    ],
+    "notes": ""
+  }
+}

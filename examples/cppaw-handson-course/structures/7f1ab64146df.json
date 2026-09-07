@@ -1,0 +1,50 @@
+{
+  "id": "7f1ab64146df",
+  "name": "bcc iron",
+  "atoms": [
+    {
+      "element": "Fe",
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "formal_charge": 0,
+      "label": null,
+      "uid": "2afbde0e0fb4"
+    }
+  ],
+  "bonds": [],
+  "cell": {
+    "vectors": [
+      [
+        -1.435,
+        1.435,
+        1.435
+      ],
+      [
+        1.435,
+        -1.435,
+        1.435
+      ],
+      [
+        1.435,
+        1.435,
+        -1.435
+      ]
+    ],
+    "pbc": [
+      true,
+      true,
+      true
+    ]
+  },
+  "charge": 0.0,
+  "multiplicity": null,
+  "atomic_scalars": {},
+  "atomic_vectors": {},
+  "properties": {},
+  "constraints": [],
+  "residues": [],
+  "provenance": null
+}
