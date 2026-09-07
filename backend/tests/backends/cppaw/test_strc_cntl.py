@@ -314,3 +314,77 @@ def test_masses_can_be_set_per_element_and_the_old_single_key_still_works() -> N
     # no masses given, none written: CP-PAW's own defaults are the physical ones
     plain = parse_deck(strc_text(water, StrcOptions())).child("STRUCTURE")
     assert all(sp.get("M") is None for sp in plain.children_named("SPECIES"))
+
+
+def test_orbital_potentials_break_the_symmetry_of_an_antiferromagnet() -> None:
+    """Ch. 7.3: NiO's two nickel atoms are equivalent, so nothing makes a spin-polarized run
+    prefer the antiferromagnetic ordering that is its ground state. `!ORBPOT` pushes one nickel's
+    d shell up and the other's down; the exercise then removes it and continues, because a result
+    must not depend on the nudge that found it.
+    """
+    from ase import Atoms
+
+    from atomscope.backends.cppaw.strc import parse_orbital_potentials
+
+    got = parse_orbital_potentials("1 +0.1 D 1 2.0\n2 -0.1 d 1 2.\n# a comment\n\n")
+    assert [(p.atom, p.value, p.shell, p.spin, p.radius) for p in got] == [
+        (0, 0.1, "D", 1, 2.0),
+        (1, -0.1, "D", 1, 2.0),
+    ]
+    # spin and radius have defaults, as the deck does
+    default = parse_orbital_potentials("3 -0.2 P")[0]
+    assert (default.atom, default.value, default.shell, default.spin, default.radius) == (
+        2,
+        -0.2,
+        "P",
+        1,
+        2.0,
+    )
+
+    for bad in ("0 0.1 D", "1 0.1 G", "1 0.1 D 3", "1 0.1 D 1 0", "1 0.1"):
+        with pytest.raises(ValueError, match="orbital potential"):
+            parse_orbital_potentials(bad)
+
+    a = 4.17
+    nio = from_atoms(
+        Atoms(
+            "Ni2O2",
+            positions=[
+                (0.0, 0.0, 0.0),
+                (a, a, a),
+                (0.5 * a, 0.5 * a, 0.5 * a),
+                (1.5 * a, 1.5 * a, 1.5 * a),
+            ],
+            cell=[(a, 0.5 * a, 0.5 * a), (0.5 * a, a, 0.5 * a), (0.5 * a, 0.5 * a, a)],
+            pbc=True,
+        ),
+        name="NiO",
+    )
+    text = strc_text(
+        nio,
+        StrcOptions(
+            spin_polarized=True,
+            orbital_potentials="1 +0.1 D 1 2.0\n2 -0.1 D 1 2.0",
+            kpoint_mode="density",
+            kpoint_r=20.0,
+        ),
+    )
+    strc = parse_deck(text).child("STRUCTURE")
+    pots = strc.child("ORBPOT").children_named("POT")
+    # two-letter symbols take no underscore, which is the course's own NI1/NI2
+    assert [p.get("ATOM") for p in pots] == ["NI1", "NI2"]
+    assert [p.get("VALUE") for p in pots] == [0.1, -0.1]
+    assert [(p.get("TYPE"), p.get("S"), p.get("RC")) for p in pots] == [("D", 1, 2.0)] * 2
+    # no potentials asked for, no block: this is not something to write by default
+    assert parse_deck(strc_text(nio, StrcOptions())).child("STRUCTURE").child("ORBPOT") is None
+
+    with pytest.raises(ValueError, match="past the end of the structure"):
+        strc_text(nio, StrcOptions(orbital_potentials="9 0.1 D"))
+
+    # ...and it has to survive the trip through the schema values, which is the path the
+    # application uses and the one where this went missing while the test above still passed
+    from_values = StrcOptions.from_values(
+        {"orbital_potentials": "1 +0.1 D 1 2.0\n2 -0.1 D 1 2.0", "spin_polarized": True}
+    )
+    assert len(parse_orbital_potentials(from_values.orbital_potentials)) == 2
+    assert "ORBPOT" in strc_text(nio, from_values)

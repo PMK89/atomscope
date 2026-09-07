@@ -690,6 +690,205 @@ SWEEPS = (
 )
 
 
+def aluminium() -> Structure:
+    """Chapter 6.4: fcc aluminium at its experimental lattice constant, 4.05 A."""
+    a = 4.05
+    return from_atoms(
+        Atoms(
+            "Al",
+            positions=[(0.0, 0.0, 0.0)],
+            cell=[
+                (0.0, 0.5 * a, 0.5 * a),
+                (0.5 * a, 0.0, 0.5 * a),
+                (0.5 * a, 0.5 * a, 0.0),
+            ],
+            pbc=True,
+        ),
+        name="aluminium",
+    )
+
+
+def nickel_oxide() -> Structure:
+    """Chapter 7.3: NiO in the magnetic superstructure -- rock salt doubled along (111).
+
+    The cell is what makes the antiferromagnet expressible at all: the two nickel atoms have to
+    sit in *different* positions of the cell for their spins to differ.
+    """
+    a = 4.17
+    return from_atoms(
+        Atoms(
+            "Ni2O2",
+            positions=[
+                (0.0, 0.0, 0.0),
+                (a, a, a),
+                (0.5 * a, 0.5 * a, 0.5 * a),
+                (1.5 * a, 1.5 * a, 1.5 * a),
+            ],
+            cell=[(a, 0.5 * a, 0.5 * a), (0.5 * a, a, 0.5 * a), (0.5 * a, 0.5 * a, a)],
+            pbc=True,
+        ),
+        name="nickel oxide",
+    )
+
+
+#: A metal: fractional occupations from a Mermin functional at T=0, and SAFEORTHO off.
+METAL = {
+    "occupations": "mermin",
+    "electron_temperature": 0.0,
+    "mermin_retard": 10.0,
+    "safeortho": False,
+}
+
+EXERCISES = (
+    *EXERCISES,
+    Exercise(
+        id="silicon-wavefunction",
+        chapter="6.3.1",
+        title="Silicon at its experimental lattice constant",
+        structure=silicon(),
+        values=SILICON_REFERENCE,
+        shows="the total energy, the number of k-points, and the band gap of an insulator",
+        analysis=(
+            ("dos", {"broadening_ev": 0.2, "de_ev": 0.01, "projection": "atom"}),
+        ),
+        notes=(
+            (
+                "The course asks for the wave-function optimization only, not a relaxation:"
+                " the point of this exercise is the experimental lattice constant, and finding"
+                " the one DFT prefers comes later (ch. 6.3.5)."
+            ),
+        ),
+    ),
+    Exercise(
+        id="aluminium",
+        chapter="6.4.2",
+        title="The electronic structure of a metal",
+        structure=aluminium(),
+        values={
+            **SILICON_REFERENCE,
+            **METAL,
+            "empty_bands": 8,
+            "npro_overrides": "Al: 1 1 1",
+        },
+        shows="partially filled bands, a Fermi level, and a DOS with no gap at it",
+        analysis=(
+            ("dos", {"broadening_ev": 0.2, "de_ev": 0.01, "projection": "atom"}),
+        ),
+        notes=(
+            (
+                "The course shifts the DOS energy axis to the Fermi level by hand (EZERO[EV])."
+                " We do not need to: the Fermi level comes back with the spectrum and the plot"
+                " marks it."
+            ),
+        ),
+    ),
+    Exercise(
+        id="iron-ferromagnet",
+        chapter="7.2.2",
+        title="Is bcc iron magnetic?",
+        structure=bcc_iron(),
+        values={
+            **IRON_REFERENCE,
+            "spin_polarized": True,
+            "total_spin": 2.0,
+            "write_spin_density": True,
+        },
+        shows=(
+            "a spin-resolved DOS and a moment to compare with the 2.22 Bohr magnetons measured,"
+            " and an energy to compare with the non-magnetic iron-reference run"
+        ),
+        analysis=(
+            ("dos", {"broadening_ev": 0.2, "de_ev": 0.01, "projection": "atom"}),
+        ),
+        notes=(
+            (
+                "The comparison is the exercise: this energy against `iron-reference`, which is"
+                " the same calculation with NSPIN=1. If the magnetic one is lower, iron is"
+                " magnetic at this lattice constant."
+            ),
+        ),
+    ),
+    Exercise(
+        id="nio-symmetry-broken",
+        chapter="7.3",
+        title="Push NiO into an antiferromagnetic ordering",
+        structure=nickel_oxide(),
+        values={
+            "xc": 10,
+            "epwpsi": 30.0,
+            "cdual": 2.0,
+            "task": "single_point",
+            "start": "scratch",
+            "nstep": 500,
+            "empty_bands": 4,
+            "spin_polarized": True,
+            "total_spin": 0.0,
+            "kpoint_mode": "density",
+            "kpoint_r": 20.0,
+            "npro_overrides": "Ni: 2 1 2; O: 2 2 1",
+            "lrhox": 4,
+            "isolate": "never",
+            "setup_type": ".75_6.0",
+            "psi_friction": 0.01,
+            "psi_auto": True,
+            "psi_auto_minfric": 0.02,
+            # the whole point: one nickel's d shell up, the other's down
+            "orbital_potentials": "1 +0.1 D 1 2.0\n2 -0.1 D 1 2.0",
+        },
+        shows="nothing to be quoted: this is the nudge, and its result is not the answer",
+        notes=(
+            (
+                "The two nickel atoms are equivalent, so nothing makes a spin-polarized run"
+                " prefer the antiferromagnetic ordering that is its ground state. !ORBPOT breaks"
+                " the symmetry. NiO is an insulator, so no Mermin functional and SAFEORTHO stays"
+                " on -- unlike the metals in ch. 6.4 and 7.2."
+            ),
+        ),
+    ),
+    Exercise(
+        id="nio-antiferromagnet",
+        chapter="7.3",
+        title="NiO's electronic structure, with the nudge removed",
+        structure=nickel_oxide(),
+        values={
+            "xc": 10,
+            "epwpsi": 30.0,
+            "cdual": 2.0,
+            "task": "single_point",
+            "start": "restart",
+            "nstep": 500,
+            "empty_bands": 4,
+            "spin_polarized": True,
+            "total_spin": 0.0,
+            "kpoint_mode": "density",
+            "kpoint_r": 20.0,
+            "npro_overrides": "Ni: 2 1 2; O: 2 2 1",
+            "lrhox": 4,
+            "isolate": "never",
+            "setup_type": ".75_6.0",
+            "psi_friction": 0.01,
+            "psi_auto": True,
+            "psi_auto_minfric": 0.02,
+            "write_spin_density": True,
+            # and here it is gone, which is the reason this is a second exercise
+            "orbital_potentials": "",
+        },
+        shows="the total energy, HOMO, LUMO and gap of the antiferromagnet, and its spin density",
+        continues="nio-symmetry-broken",
+        analysis=(
+            ("dos", {"broadening_ev": 0.2, "de_ev": 0.01, "projection": "atom"}),
+        ),
+        notes=(
+            (
+                "The course is explicit that the potential must be removed before any result is"
+                " read, and that this second run continues from the first one's restart file."
+                " A result that depended on the nudge would not be a result."
+            ),
+        ),
+    ),
+)
+
+
 def sweep_by_id(exercise_id: str) -> SweepExercise:
     for e in SWEEPS:
         if e.id == exercise_id:

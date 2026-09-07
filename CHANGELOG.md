@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- **External orbital potentials (`!ORBPOT`)**: a potential on one orbital
+  shell of one atom in one spin channel. It is how you reach an
+  antiferromagnet — two equivalent atoms have no reason to order themselves,
+  so the symmetry has to be broken deliberately, and then the potential
+  removed and the calculation continued before any result is read.
+
 - **Atomic masses per element** (`C: 5; O: 5; H: 2`). These are the fictitious
   masses of Car-Parrinello dynamics, not physical ones: making the heavy atoms
   lighter and hydrogen heavier brings their vibrational timescales together so

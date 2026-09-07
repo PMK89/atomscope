@@ -224,6 +224,19 @@ SCHEMA = ParameterSchema(
                     help="Unoccupied states included in the calculation (needed for LUMO plots and metals).",
                 ),
                 ParameterSpec(
+                    key="orbital_potentials",
+                    label="External orbital potentials (!ORBPOT)",
+                    type="text",
+                    default="",
+                    backend_path="STRUCTURE/ORBPOT/POT",
+                    help="One per line: 'atom value shell [spin] [rc]', e.g. '1 +0.1 D 1 2.0'."
+                    " A potential on one shell of one atom, used to push a calculation into a"
+                    " chosen magnetic ordering -- two equivalent atoms have no reason to order"
+                    " themselves otherwise. Remove it and continue from the restart file before"
+                    " taking any result: the answer must not depend on the nudge that found it.",
+                    advanced=True,
+                ),
+                ParameterSpec(
                     key="occupations",
                     label="Occupations",
                     type="enum",

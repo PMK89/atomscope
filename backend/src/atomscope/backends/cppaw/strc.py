@@ -113,6 +113,7 @@ class StrcOptions:
     kpoint_r: float = 12.0
     kpoint_div: tuple[int, int, int] = (2, 2, 2)
     occupation_states: str = ""
+    orbital_potentials: str = ""
     library: SetupsLibrary | None = None
 
     @classmethod
@@ -134,6 +135,7 @@ class StrcOptions:
             kpoint_r=float(v.get("kpoint_r", 12.0)),  # type: ignore[arg-type]
             kpoint_div=(int(div[0]), int(div[1]), int(div[2])),  # type: ignore[index]
             occupation_states=str(v.get("occupation_states", "") or ""),
+            orbital_potentials=str(v.get("orbital_potentials", "") or ""),
         )
 
 
@@ -165,6 +167,59 @@ def parse_occupation_states(text: str) -> list[OccupationState]:
             msg = f"invalid occupation state {raw!r} (band>=1, spin 1|2, 0<=f<=2)"
             raise ValueError(msg)
         out.append(OccupationState(band, spin, occ, kpt))
+    return out
+
+
+@dataclass(frozen=True)
+class OrbitalPotential:
+    """An external potential on one orbital shell of one atom, in one spin channel.
+
+    Chapter 7.3's way into an antiferromagnet: NiO's two nickel atoms are equivalent, so a
+    spin-polarized calculation started from nothing has no reason to prefer the ordering that is
+    the ground state. Pushing the d shell up on one and down on the other breaks the symmetry;
+    the potential is then **removed** and the calculation continued from that restart file,
+    because the answer must not depend on the nudge that found it.
+    """
+
+    atom: int
+    """0-based index into the structure."""
+    value: float
+    """Hartree; the tutorial uses +0.1 and -0.1."""
+    shell: str
+    """S, P, D or F -- an angular momentum, not one of the hybrid orbital names."""
+    spin: int = 1
+    radius: float = 2.0
+    """RC: how far out the potential acts, in bohr."""
+
+
+SHELLS = ("S", "P", "D", "F")
+
+
+def parse_orbital_potentials(text: str) -> list[OrbitalPotential]:
+    """Parse ``'atom value shell [spin] [rc]'`` lines, e.g. ``'1 +0.1 D 1 2.0'``.
+
+    The atom is 1-based here, the way the tutorial's own ``ATOM='NI1'`` reads, and 0-based in the
+    dataclass -- one conversion, in one place.
+    """
+    out: list[OrbitalPotential] = []
+    for raw in text.splitlines():
+        line = raw.split("#", 1)[0].strip().replace(",", " ")
+        if not line:
+            continue
+        parts = line.split()
+        if len(parts) not in (3, 4, 5):
+            msg = f"orbital potential line needs 'atom value shell [spin] [rc]': {raw!r}"
+            raise ValueError(msg)
+        index, value, shell = int(parts[0]), float(parts[1]), parts[2].upper()
+        spin = int(parts[3]) if len(parts) >= 4 else 1
+        radius = float(parts[4]) if len(parts) == 5 else 2.0
+        if index < 1 or shell not in SHELLS or spin not in (1, 2) or radius <= 0:
+            msg = (
+                f"invalid orbital potential {raw!r}"
+                f" (atom>=1, shell one of {'/'.join(SHELLS)}, spin 1|2, rc>0)"
+            )
+            raise ValueError(msg)
+        out.append(OrbitalPotential(index - 1, value, shell, spin, radius))
     return out
 
 
@@ -265,6 +320,22 @@ def build_strc(structure: Structure, opts: StrcOptions) -> Block:
         a.set("NAME", atom_name(atom.element, i))
         a.set("R", [float(x) for x in atom.position])
         strc.children.append(a)
+
+    potentials = parse_orbital_potentials(opts.orbital_potentials)
+    if potentials:
+        blk = Block("ORBPOT")
+        for pot in potentials:
+            if pot.atom >= len(structure.atoms):
+                msg = f"orbital potential names atom {pot.atom + 1}, past the end of the structure"
+                raise ValueError(msg)
+            entry = Block("POT")
+            entry.set("ATOM", atom_name(structure.atoms[pot.atom].element, pot.atom))
+            entry.set("VALUE", pot.value)
+            entry.set("TYPE", pot.shell)
+            entry.set("S", pot.spin)
+            entry.set("RC", pot.radius)
+            blk.children.append(entry)
+        strc.children.append(blk)
 
     constraints = _constraints_block(structure)
     if constraints is not None:

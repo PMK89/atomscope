@@ -42,10 +42,10 @@ we do not have · `TODO` not started.
 | 3.4 | Water wave functions | contour plots (optional) | H₂O | — | a plane cut through an orbital | **no contour/slice view** | BLOCKED |
 | 3.5 | Water wave functions | DOS and COOP | H₂O | `paw_dos` | density of states; crystal-orbital overlap population | DOS plot + COOP plot | DONE |
 | 4.4 | Malonaldehyde | build from the Lewis formula | C₃H₄O₂ | — | building a molecule by hand | draw tool, builder | TODO |
-| 4.5 | Malonaldehyde | optimize the electronic structure | C₃H₄O₂ | wave-function optimization | convergence | as 2.7 | TODO |
-| 4.6 | Malonaldehyde | relax the atomic structure | C₃H₄O₂ | relaxation | the enol geometry, intramolecular H bond | relaxation, geometry, H-bond layer | TODO |
+| 4.5 | Malonaldehyde | optimize the electronic structure | C₃H₄O₂ | wave-function optimization | convergence | as 2.7 | READY |
+| 4.6 | Malonaldehyde | relax the atomic structure | C₃H₄O₂ | relaxation | the enol geometry, intramolecular H bond | relaxation, geometry, H-bond layer | READY |
 | 4.7.2 | Malonaldehyde | orbitals and eigenvalues | C₃H₄O₂ | — | the frontier orbitals and the level diagram | orbital browser; **eigenvalue level diagram?** | TODO |
-| 4.7.3 | Malonaldehyde | density of states | C₃H₄O₂ | `paw_dos` | projected DOS per atom and per angular momentum | DOS/PDOS plot | TODO |
+| 4.7.3 | Malonaldehyde | density of states | C₃H₄O₂ | `paw_dos` | projected DOS per atom and per angular momentum | DOS/PDOS plot | READY |
 | 4.7.4 | Malonaldehyde | special orbitals, local coordinates | C₃H₄O₂ | `paw_dos` weights | projections onto a local frame | `!ORB` with `NNZ` | READY |
 | 4.7.5 | Malonaldehyde | COOPs (optional) | C₃H₄O₂ | `paw_dos` | bonding/antibonding character per bond | COOP plot | READY |
 | 4.7.6 | Malonaldehyde | wave functions and density | C₃H₄O₂ | cube export | isosurfaces | isosurface engine | TODO |
@@ -59,9 +59,9 @@ we do not have · `TODO` not started.
 | 6.3.5 | Solids: silicon | lattice constant by cell dynamics | Si | cell relaxation | the optimized lattice constant | **cell dynamics not in the schema** | BLOCKED |
 | 6.3.6 | Solids: silicon | k-point convergence | Si | a sweep over R | energy against k-point density | Sweeps panel (same sweep as 8.4) | RUNS |
 | 6.3.7 | Solids: silicon | E(V), pressure, bulk modulus | Si | a sweep over volumes | Birch-Murnaghan fit | **no E(V) fit** | BLOCKED |
-| 6.4.2 | Solids: aluminium | electronic structure of a metal | Al, fcc | Mermin occupations, k-points | DOS and bands of a metal, Fermi level | DOS, bands, electron temperature | TODO |
-| 7.2.2 | Magnetism | ferromagnetic iron | Fe, bcc | spin-polarized | spin-resolved DOS, moment | spin DOS, spin density | TODO |
-| 7.3 | Magnetism | antiferromagnetic NiO | NiO rocksalt | spin-polarized, per-state occupations | the AFM ordering and its gap | **`!OCCUPATIONS!STATE` not in the schema** | BLOCKED |
+| 6.4.2 | Solids: aluminium | electronic structure of a metal | Al, fcc | Mermin occupations, k-points | DOS and bands of a metal, Fermi level | DOS, bands, electron temperature | READY |
+| 7.2.2 | Magnetism | ferromagnetic iron | Fe, bcc | spin-polarized | spin-resolved DOS, moment | spin DOS, spin density | READY |
+| 7.3 | Magnetism | antiferromagnetic NiO | NiO, rock salt doubled along (111) | spin-polarized, `!ORBPOT` then the same run without it | the AFM ordering and its gap | `orbital_potentials` | READY |
 | 8.2 | Convergence | plane-wave cutoff, wave function | Fe (bcc, non-magnetic) | a sweep over `EPWPSI`, all restarted from one reference | energy against cutoff, beside the basis size | Sweeps panel | DONE |
 | 8.3 | Convergence | plane-wave cutoff, density | Fe | a sweep over `CDUAL`, independent runs | energy against the density cutoff | Sweeps panel | RUNS |
 | 8.4 | Convergence | number of k-points | Si | a sweep over the k-point density R | energy against the density | Sweeps panel | RUNS |
@@ -150,8 +150,12 @@ Ordered by how many exercises each unblocks.
    DX2-Y2, SP, SP2, SP3. `NNZ` points a hybrid at a neighbour, which is what makes a local frame.
    Verified against `paw_dos.x` before any code was written, and the COOP goes both ways as it
    should (−0.07 to 0.47 for the O–H bond).
-3. **Per-state occupations for NiO** — 7.3. The `!OCCUPATIONS!STATE` block exists; what is not
-   yet checked is whether the exercise needs more than it writes.
+3. ~~Per-state occupations for NiO~~ — the exercise does not need them. It needs `!ORBPOT`, an
+   external potential on one orbital shell of one atom in one spin channel, which pushes the two
+   equivalent nickel atoms into opposite orderings; the potential is then removed and the run
+   continued from its restart file, because a result must not depend on the nudge that found it.
+   ROADMAP's guess that this was `!OCCUPATIONS!STATE` was wrong. Implemented as
+   `orbital_potentials`.
 4. **Cell dynamics** — 6.3.5; also gives 6.3.7 a second route.
 5. **Empty atoms** — 6.3.3.
 6. **`paw_tra` mode extraction** — 5.10.
@@ -185,6 +189,16 @@ Two gaps that showed up as soon as the pictures came from a project rather than 
   default is the one the tutorial itself makes for O–H: a hybrid on the heavier partner pointing
   along the bond against hydrogen's s. A d-block atom in a crystal field wants a named d orbital
   instead, which the API takes but the form does not yet offer.
+
+## What the course needed that the schema could not say
+
+Three things turned up only by writing the exercises out, none of them guessable from the feature
+list:
+
+- **`!ISOLATE` for a cell the structure brought** (ch. 2.5) — fixed.
+- **Masses per element** (ch. 4) — `M=5.` on carbon and oxygen and `M=2.` on hydrogen, the
+  fictitious masses of Car-Parrinello dynamics. Only hydrogen's could be set.
+- **`!ORBPOT`** (ch. 7.3) — see above.
 
 ## Working notes
 
