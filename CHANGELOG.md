@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+- **A Sweeps panel**, with `/api/sweeps` behind it: pick a sweep, run the
+  points that have not run, and read the curve — with the answer a
+  convergence test is actually asking for stated in words ("settled from
+  16 angstrom onwards, within 1.00 mH") rather than left to be judged by eye.
+- Chart axis ticks take their precision from the spacing between ticks
+  instead of a fixed four significant digits, so two neighbouring ticks can
+  no longer print the same number.
+- Collecting a calculation's results a second time replaces its result
+  structure instead of adding another copy to the project.
 - **Sweeps: several calculations that differ in one way, read back as one
   curve.** A convergence test, an energy-against-volume curve, a scan. What
   varies is either one schema value or the structure itself — a cell-size or

@@ -20,10 +20,16 @@ what the application uses and what `analysis_run_spec` assumes. Chapter 2 reprod
 published geometry (0.9815 Å / 105.07° against 0.981 / 105.2). Timings: water single point 15 s,
 relaxation 29 s, orbital export + DOS about 20 s more.
 
-**Next: centre a periodic grid on its structure.** The course puts molecules at the cell origin,
-so their cubes wrap and the isosurfaces come out at the corners of the box -- see the finding in
-the inventory. After that, a sweep runner (it unblocks all of chapter 8 and two of chapter 6) and
-COOP.
+**Next: COOP** (ch. 3.5 and 4.7.5) — the course's `.dcntl` syntax is `!COOP` with `!ORB1`/`!ORB2`
+naming an atom, an orbital type and a neighbour for the local z axis; `dos.py` already reads the
+`.dos` files and `LineChart` already handles negative y. Then chapters 4, 6 and 7, which mostly
+run with what exists, and writing 8.2/8.3/8.4/6.3.6 down as sweeps.
+
+Done so far: ch. 2 (reproduces the published geometry), ch. 3 (orbitals, density, DOS, and the
+grid centring that made the pictures right), ch. 8.5 (the cell-size sweep, in the app).
+Sweeps live in `calculations/sweeps.py` with `/api/sweeps` and a Sweeps panel; run one with
+`PYTHONPATH=src:../scripts/course ../.venv/bin/python -m sweep water-cell-size`, and `--recollect`
+re-reads finished runs with the parser as it is now.
 
 ## Resume commands
 

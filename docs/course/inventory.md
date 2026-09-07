@@ -65,7 +65,7 @@ we do not have · `TODO` not started.
 | 8.2 | Convergence | plane-wave cutoff, wave function | H₂O or Si | a sweep over `EPWPSI` | energy against cutoff | **no sweep runner** | BLOCKED |
 | 8.3 | Convergence | plane-wave cutoff, density | as above | a sweep over `CDUAL` | energy against the dual cutoff | as above | BLOCKED |
 | 8.4 | Convergence | number of k-points | Si | a sweep | energy against mesh | as above | BLOCKED |
-| 8.5 | Convergence | cell size for a molecule | H₂O | a sweep over the cell | energy against isolation distance | sweep runner, `LineChart` | RUNS |
+| 8.5 | Convergence | cell size for a molecule | H₂O | a sweep over the cell | energy against isolation distance | Sweeps panel | DONE |
 
 ## Findings
 
@@ -132,8 +132,10 @@ Ordered by how many exercises each unblocks.
 1. ~~A sweep/series runner~~ — done (`calculations/sweeps.py`). A sweep is several calculations
    that differ in one way, each carrying its membership, read back as one curve; what varies is
    either a schema value or **the structure**, because a cell-size or volume sweep moves the
-   lattice and no schema value can express that. The remaining work on it is the plot in the app
-   and the API route.
+   lattice and no schema value can express that. The plot and the API route are done too:
+   `/api/sweeps` and a **Sweeps** panel that states where the curve settled instead of leaving it
+   to be read off by eye. 8.2, 8.3, 8.4 and 6.3.6 are now a matter of writing the exercise down;
+   6.3.7 additionally wants a Birch-Murnaghan fit.
 2. **COOP** — 3.5, 4.7.5. Another `!WEIGHT` kind in the `.dcntl` plus a plot that can show
    negative values.
 3. **Per-state occupations for NiO** — 7.3. The `!OCCUPATIONS!STATE` block exists; what is not
@@ -143,6 +145,16 @@ Ordered by how many exercises each unblocks.
 6. **`paw_tra` mode extraction** — 5.10.
 7. **Contour/slice plots** — 3.4, and a genuinely useful viewer feature beyond this course.
 8. ~~Centring a periodic grid on its structure~~ — done.
+
+## Two defects the sweep picture showed
+
+- **Re-collecting a calculation's results left another copy of the result structure.** The id came
+  from whatever the parser minted, which for CP-PAW is a fresh one each time, so the project grew
+  a duplicate structure on every re-collect — visible as `… Lattice parameter 8 (result)` twice in
+  the structure list. The id is `<calculation>-final` now, so collecting again replaces it.
+- **Two different ticks could carry the same label.** `formatTick` used four significant digits,
+  so on an axis running from −471.15 to −470.95 eV both −471.05 and −471.10 printed as `-471.1`.
+  The precision a tick needs comes from the spacing between ticks, not from the size of the value.
 
 ## Working notes
 
