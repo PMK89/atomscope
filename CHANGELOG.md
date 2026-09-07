@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+- **COOP: crystal-orbital overlap populations**, plotted under the density of
+  states in a chart of their own — positive where two orbitals are bonding,
+  negative where they are antibonding. With them come `!ORB` weights: the
+  density of states of one named orbital, optionally in a frame whose z axis
+  points at a neighbour, which is the only frame in which a lone pair or an
+  sp3 lobe means anything.
+- A density of states already computed for a calculation is read back when
+  the project is reopened, instead of the panel offering to compute it again
+  and overwriting the control file it was asked for.
+
 - **A Sweeps panel**, with `/api/sweeps` behind it: pick a sweep, run the
   points that have not run, and read the curve — with the answer a
   convergence test is actually asking for stated in words ("settled from

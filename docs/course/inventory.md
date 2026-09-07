@@ -40,14 +40,14 @@ we do not have · `TODO` not started.
 | 2.8.5 | Water structure | analyse in Avogadro | H₂O | — | the point of the whole application | our own viewer | TODO |
 | 3.3 | Water wave functions | extract and plot orbitals | H₂O | one-shot with orbital export | isosurfaces of the occupied and empty orbitals | orbital browser, isosurface engine | DONE |
 | 3.4 | Water wave functions | contour plots (optional) | H₂O | — | a plane cut through an orbital | **no contour/slice view** | BLOCKED |
-| 3.5 | Water wave functions | DOS and COOP | H₂O | `paw_dos` | density of states; crystal-orbital overlap population | DOS plot (8 series); **no COOP** | RUNS |
+| 3.5 | Water wave functions | DOS and COOP | H₂O | `paw_dos` | density of states; crystal-orbital overlap population | DOS plot + COOP plot | DONE |
 | 4.4 | Malonaldehyde | build from the Lewis formula | C₃H₄O₂ | — | building a molecule by hand | draw tool, builder | TODO |
 | 4.5 | Malonaldehyde | optimize the electronic structure | C₃H₄O₂ | wave-function optimization | convergence | as 2.7 | TODO |
 | 4.6 | Malonaldehyde | relax the atomic structure | C₃H₄O₂ | relaxation | the enol geometry, intramolecular H bond | relaxation, geometry, H-bond layer | TODO |
 | 4.7.2 | Malonaldehyde | orbitals and eigenvalues | C₃H₄O₂ | — | the frontier orbitals and the level diagram | orbital browser; **eigenvalue level diagram?** | TODO |
 | 4.7.3 | Malonaldehyde | density of states | C₃H₄O₂ | `paw_dos` | projected DOS per atom and per angular momentum | DOS/PDOS plot | TODO |
-| 4.7.4 | Malonaldehyde | special orbitals, local coordinates | C₃H₄O₂ | `paw_dos` weights | projections onto a local frame | **local coordinate systems in the dcntl?** | TODO |
-| 4.7.5 | Malonaldehyde | COOPs (optional) | C₃H₄O₂ | `paw_dos` | bonding/antibonding character per bond | **no COOP** | BLOCKED |
+| 4.7.4 | Malonaldehyde | special orbitals, local coordinates | C₃H₄O₂ | `paw_dos` weights | projections onto a local frame | `!ORB` with `NNZ` | READY |
+| 4.7.5 | Malonaldehyde | COOPs (optional) | C₃H₄O₂ | `paw_dos` | bonding/antibonding character per bond | COOP plot | READY |
 | 4.7.6 | Malonaldehyde | wave functions and density | C₃H₄O₂ | cube export | isosurfaces | isosurface engine | TODO |
 | 5 | Malonaldehyde MD | Nosé-Hoover thermostats, equilibration | C₃H₄O₂ | Car-Parrinello MD at 300 K | temperature history, energy conservation, equipartition | MD run, trajectory playback, energy plots | TODO |
 | 5.10 | Malonaldehyde MD | extract proton-transfer modes | C₃H₄O₂ | `paw_tra` | a chosen internal coordinate against time | **`paw_tra` mode extraction not wrapped** | BLOCKED |
@@ -136,8 +136,11 @@ Ordered by how many exercises each unblocks.
    `/api/sweeps` and a **Sweeps** panel that states where the curve settled instead of leaving it
    to be read off by eye. 8.2, 8.3, 8.4 and 6.3.6 are now a matter of writing the exercise down;
    6.3.7 additionally wants a Birch-Murnaghan fit.
-2. **COOP** — 3.5, 4.7.5. Another `!WEIGHT` kind in the `.dcntl` plus a plot that can show
-   negative values.
+2. ~~COOP~~ — done, and `!ORB` weights with it, which unblocks 4.7.4 as well. The orbital types
+   come from the course's own cheat sheet (app. A.4): S, PX, PY, PZ, DXY, DXZ, DYZ, D3Z2-R2,
+   DX2-Y2, SP, SP2, SP3. `NNZ` points a hybrid at a neighbour, which is what makes a local frame.
+   Verified against `paw_dos.x` before any code was written, and the COOP goes both ways as it
+   should (−0.07 to 0.47 for the O–H bond).
 3. **Per-state occupations for NiO** — 7.3. The `!OCCUPATIONS!STATE` block exists; what is not
    yet checked is whether the exercise needs more than it writes.
 4. **Cell dynamics** — 6.3.5; also gives 6.3.7 a second route.
@@ -155,6 +158,21 @@ Ordered by how many exercises each unblocks.
 - **Two different ticks could carry the same label.** `formatTick` used four significant digits,
   so on an axis running from −471.15 to −470.95 eV both −471.05 and −471.10 printed as `-471.1`.
   The precision a tick needs comes from the spacing between ticks, not from the size of the value.
+
+## The runner uses the application's own path
+
+Every exercise is a calculation in one project under `.scratch/course-runs/course/`, created and
+run through `CalculationService`, and the chapters that continue from a restart file are **forks**
+— which is what the service already calls that. So the example library is a project the
+application opens, and the pictures are taken by opening it rather than by importing files.
+
+Two gaps that showed up as soon as the pictures came from a project rather than from a cube:
+
+- **A DOS already computed was invisible.** Reopening a project said "No DOS computed yet" over a
+  finished one, and recomputing would have overwritten the control file — losing any COOP or
+  local-frame orbital it had been asked for. The panel reads an existing DOS back now.
+- **There is still no way to ask for a COOP from the UI.** The backend takes them; the DOS form
+  offers only broadening and projection. A small form, and the next thing to add there.
 
 ## Working notes
 

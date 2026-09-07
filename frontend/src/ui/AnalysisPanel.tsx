@@ -83,6 +83,17 @@ export function AnalysisPanel({ onError }: { onError: (m: string) => void }): JS
     api.cppaw.orbitals(calcId).then(setOrbitals).catch(fail);
   }, [calcId, isCppaw, done, section, orbitals, fail]);
 
+  // A DOS already computed in this calculation's work directory is still there: reopening the
+  // project used to say "No DOS computed yet" over a finished one, and recomputing it would
+  // overwrite the control file -- losing any COOP or local-frame orbital it had been asked for.
+  useEffect(() => {
+    if (!calcId || !isCppaw || !done || section !== 'dos' || dos) return;
+    api.cppaw
+      .dos(calcId)
+      .then(setDos)
+      .catch(() => setDos(null)); // none computed yet is the ordinary case, not an error
+  }, [calcId, isCppaw, done, section, dos]);
+
   useEffect(() => {
     if (!calcId || !isCppaw || !done || section !== 'bands' || path) return;
     api.cppaw
@@ -192,9 +203,14 @@ export function AnalysisPanel({ onError }: { onError: (m: string) => void }): JS
     }
   };
 
-  const dosSeries: ChartSeries[] = useMemo(() => {
-    if (!dos) return [];
-    return dos.series.map((s, i) => ({
+  /**
+   * A COOP is a population, not a count of states: it goes negative where the two orbitals are
+   * antibonding, and it is one or two tenths where a density of states is several. Put on the
+   * same axis it would be a flat line at zero, so the two get a chart each.
+   */
+  const dosCharts: { dos: ChartSeries[]; coop: ChartSeries[] } = useMemo(() => {
+    if (!dos) return { dos: [], coop: [] };
+    const asSeries = (s: (typeof dos.series)[number], i: number): ChartSeries => ({
       id: `${s.id}-${s.spin}`,
       label: s.spin === 'none' ? s.label : `${s.label} (${s.spin})`,
       x: dos.energies,
@@ -202,8 +218,13 @@ export function AnalysisPanel({ onError }: { onError: (m: string) => void }): JS
       y: s.dos,
       color: s.spin === 'down' ? SPIN_COLORS[1]! : seriesColor(i),
       dashed: s.spin === 'down',
-    }));
+    });
+    return {
+      dos: dos.series.filter((s) => s.kind !== 'coop').map(asSeries),
+      coop: dos.series.filter((s) => s.kind === 'coop').map(asSeries),
+    };
   }, [dos]);
+  const dosSeries = dosCharts.dos;
 
   const dosMarkers: ChartMarker[] = useMemo(() => {
     const level = dos?.fermi_level ?? dos?.homo_energy ?? null;
@@ -427,15 +448,34 @@ export function AnalysisPanel({ onError }: { onError: (m: string) => void }): JS
                 </button>
               </div>
               {dos ? (
-                <LineChart
-                  series={dosSeries}
-                  markers={dosMarkers}
-                  zeroLine
-                  xLabel="E [eV]"
-                  yLabel="DOS [states/eV]"
-                  title="Density of states"
-                  height={240}
-                />
+                <>
+                  <LineChart
+                    series={dosSeries}
+                    markers={dosMarkers}
+                    zeroLine
+                    xLabel="E [eV]"
+                    yLabel="DOS [states/eV]"
+                    title="Density of states"
+                    height={240}
+                  />
+                  {dosCharts.coop.length > 0 && (
+                    <>
+                      <LineChart
+                        series={dosCharts.coop}
+                        markers={dosMarkers}
+                        zeroLine
+                        xLabel="E [eV]"
+                        yLabel="COOP"
+                        title="Crystal-orbital overlap population"
+                        height={200}
+                      />
+                      <p className="muted">
+                        Positive where the two orbitals are bonding, negative where they are
+                        antibonding.
+                      </p>
+                    </>
+                  )}
+                </>
               ) : (
                 <p className="muted">No DOS computed yet.</p>
               )}

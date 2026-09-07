@@ -66,8 +66,12 @@ def read_fermi_level(dprot: Path) -> float | None:
     return float(m.group(1)) if m else None
 
 
-def dcntl_weights(text: str) -> tuple[str, list[tuple[str, str]], float | None]:
-    """(prefix, [(weight id, legend)], broadening eV) from a generated ``.dcntl``."""
+def dcntl_weights(text: str) -> tuple[str, list[tuple[str, str, str]], float | None]:
+    """(prefix, [(id, legend, "dos" | "coop")], broadening eV) from a generated ``.dcntl``.
+
+    ``!WEIGHT`` and ``!COOP`` both write ``PREFIX//ID.dos`` in the same three-column format on
+    the same energy grid, so the only thing that has to be carried across is which is which.
+    """
     deck = parse_deck(text)
     d = deck.child("DCNTL")
     if d is None:
@@ -78,8 +82,9 @@ def dcntl_weights(text: str) -> tuple[str, list[tuple[str, str]], float | None]:
     grid = d.child("GRID")
     broad = grid.get("BROADENING[EV]") if grid is not None else None
     weights = [
-        (str(w.get("ID")), str(w.get("LEGEND", w.get("ID"))))
-        for w in d.children_named("WEIGHT")
+        (str(w.get("ID")), str(w.get("LEGEND", w.get("ID"))), kind)
+        for name, kind in (("WEIGHT", "dos"), ("COOP", "coop"))
+        for w in d.children_named(name)
         if w.get("ID") is not None
     ]
     return prefix, weights, float(broad) if isinstance(broad, int | float) else None
@@ -124,7 +129,7 @@ def read_dos(
     prefix = prefix or dos_prefix(root)
     energies: np.ndarray | None = None
     series: list[DosSeries] = []
-    for wid, legend in weights:
+    for wid, legend, kind in weights:
         path = work / f"{prefix}{wid}.dos"
         if not path.is_file():
             msg = f"{path.name} not found (paw_dos.x did not finish?)"
@@ -148,7 +153,12 @@ def read_dos(
             )
             series.append(
                 DosSeries(
-                    id=wid, label=legend, spin=spin, dos=block.dos, occupied_dos=block.occupied
+                    id=wid,
+                    label=legend,
+                    spin=spin,
+                    kind=kind,  # type: ignore[arg-type]
+                    dos=block.dos,
+                    occupied_dos=block.occupied,
                 )
             )
     return DosSpectrum(

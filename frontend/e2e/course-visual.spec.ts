@@ -124,3 +124,25 @@ test('water: the cell-size convergence curve, in the app', async ({ page, reques
   await expect(page.locator('.panel-body svg')).toBeVisible();
   await page.screenshot({ path: join(SHOTS, 'cell-size-convergence.png') });
 });
+
+test('water: the density of states, with the O-H COOP under it', async ({ page, request }) => {
+  const base = process.env['PLAYWRIGHT_BASE_URL'] ?? 'http://127.0.0.1:5173';
+  const project = join(RUNS, 'course');
+  test.skip(!existsSync(project), 'run scripts/course/run.py water-orbitals first');
+
+  await request.post(`${base}/api/project/close`);
+  expect(
+    (await request.post(`${base}/api/project/open`, { data: { path: project } })).ok(),
+  ).toBeTruthy();
+
+  await page.goto('/');
+  await page.getByRole('button', { name: 'water-orbitals completed' }).click();
+  await page.getByRole('tab', { name: 'Analysis' }).click();
+  await page.getByRole('button', { name: 'DOS', exact: true }).click();
+
+  // the DOS was computed when the exercise ran; the panel reads it back
+  const coop = page.locator('svg[aria-label="Crystal-orbital overlap population"]');
+  await expect(coop).toBeVisible({ timeout: 20_000 });
+  await expect(page.getByText(/Positive where the two orbitals are bonding/)).toBeVisible();
+  await page.screenshot({ path: join(SHOTS, 'water-dos-coop.png') });
+});

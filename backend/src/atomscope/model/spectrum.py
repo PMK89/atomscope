@@ -78,6 +78,11 @@ class DosSeries(StrictModel):
     id: str = Field(description="weight id, e.g. 'total', 'SI1_p'")
     label: str
     spin: Spin = "none"
+    kind: Literal["dos", "coop"] = Field(
+        default="dos",
+        description="a COOP is a population, not a count: it is negative where antibonding,"
+        " so it is plotted about zero rather than stacked",
+    )
     dos: list[float]
     occupied_dos: list[float]
 

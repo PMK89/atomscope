@@ -18,12 +18,15 @@ from atomscope.backends.cppaw.analysis import (
 )
 from atomscope.backends.cppaw.bands import parse_band_text, read_bands
 from atomscope.backends.cppaw.deck import parse_deck
-from atomscope.backends.cppaw.dos import integrate, parse_dos_text, read_dos
+from atomscope.backends.cppaw.dos import dcntl_weights, integrate, parse_dos_text, read_dos
 from atomscope.backends.cppaw.protocol import Eigenvalues, parse_protocol_text
 from atomscope.backends.cppaw.tools import (
     BandOptions,
+    CoopRequest,
     DosOptions,
+    OrbitalProjection,
     OrbitalRequest,
+    OrbitalWeight,
     band_file,
     band_sidecar,
     band_sidecar_text,
@@ -219,3 +222,78 @@ def test_orbital_restart_cntl() -> None:
         ("case_orb_b4k2s2.wv", 4, 2, 2, 0.3),
     ]
     assert ctl.path("PSIDYN", "AUTO") is None
+
+
+def test_orb_weights_and_coops_are_written_as_the_cheat_sheet_spells_them() -> None:
+    """App. A.4 of the tutorial: `!ORB` inside a `!WEIGHT`, and `!COOP` with `!ORB1`/`!ORB2`.
+
+    `NNZ` is what makes a hybrid mean anything -- an sp3 lobe has to point somewhere -- and it is
+    what ch. 4.7.4 (local coordinate systems) is about.
+    """
+    h2o = from_atoms(molecule("H2O"))
+    opts = DosOptions(
+        projection="none",
+        orbital_weights=[
+            OrbitalWeight(
+                id="o-sp3",
+                label="O sp3 toward H",
+                orbitals=[OrbitalProjection(atom=0, type="SP3", toward=1)],
+            )
+        ],
+        coops=[
+            CoopRequest(
+                id="o-h",
+                label="O sp3 - H s",
+                first=OrbitalProjection(atom=0, type="SP3", toward=1),
+                second=OrbitalProjection(atom=1, type="S", toward=0),
+            )
+        ],
+    )
+    deck = parse_deck(dcntl_text("case", h2o, opts)).child("DCNTL")
+    assert deck is not None
+
+    weights = deck.children_named("WEIGHT")
+    assert [w.get("ID") for w in weights] == ["total", "o-sp3"]
+    orb = weights[1].children_named("ORB")[0]
+    assert orb.get("ATOM") == "O_1" and orb.get("TYPE") == "SP3" and orb.get("NNZ") == "H_2"
+
+    coop = deck.children_named("COOP")[0]
+    assert coop.get("ID") == "o-h" and coop.get("LEGEND") == "O sp3 - H s"
+    one, two = coop.children_named("ORB1")[0], coop.children_named("ORB2")[0]
+    assert (one.get("ATOM"), one.get("TYPE"), one.get("NNZ")) == ("O_1", "SP3", "H_2")
+    assert (two.get("ATOM"), two.get("TYPE"), two.get("NNZ")) == ("H_2", "S", "O_1")
+
+    # both kinds write PREFIX//ID.dos, so reading a .dcntl back has to say which is which
+    prefix, entries, broadening = dcntl_weights(dcntl_text("case", h2o, opts))
+    assert prefix == "case_dos_"
+    assert entries == [
+        ("total", "total", "dos"),
+        ("o-sp3", "O sp3 toward H", "dos"),
+        ("o-h", "O sp3 - H s", "coop"),
+    ]
+    assert broadening == 0.1
+
+
+def test_an_orbital_projection_has_to_name_atoms_that_exist() -> None:
+    h2o = from_atoms(molecule("H2O"))
+
+    def weight(atom: int, toward: int | None) -> DosOptions:
+        return DosOptions(
+            projection="none",
+            orbital_weights=[
+                OrbitalWeight(
+                    id="w", orbitals=[OrbitalProjection(atom=atom, type="SP3", toward=toward)]
+                )
+            ],
+        )
+
+    with pytest.raises(ValueError, match="outside a structure of 3 atoms"):
+        dcntl_text("case", h2o, weight(7, None))
+    with pytest.raises(ValueError, match="outside a structure of 3 atoms"):
+        dcntl_text("case", h2o, weight(0, 9))
+    # an orbital pointing at its own atom has no axis to build
+    with pytest.raises(ValueError, match="cannot point at its own atom"):
+        dcntl_text("case", h2o, weight(1, 1))
+    # ...and an id that would escape the file name is refused before it reaches the deck
+    with pytest.raises(ValueError, match="String should match"):
+        OrbitalWeight(id="../evil", orbitals=[OrbitalProjection(atom=0, type="S")])

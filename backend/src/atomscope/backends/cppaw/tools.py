@@ -38,11 +38,71 @@ L_CHANNELS: tuple[tuple[str, int], ...] = (("s", 0), ("p", 2), ("d", 18), ("f", 
 the historical asecppaw ``makeDcntl``: p beyond He, d beyond Ar, f beyond Kr)."""
 
 
+#: The orbitals ``!ORB`` accepts, from the tutorial's paw_dos cheat sheet (app. A.4, which points
+#: at the manual's section 13.2.1 for the definitions). The hybrids are the reason ``NNZ`` exists:
+#: an sp3 lobe has to point somewhere.
+OrbitalType = Literal[
+    "S",
+    "PX",
+    "PY",
+    "PZ",
+    "DXY",
+    "DXZ",
+    "DYZ",
+    "D3Z2-R2",
+    "DX2-Y2",
+    "SP",
+    "SP2",
+    "SP3",
+]
+
+
+class OrbitalProjection(StrictModel):
+    """One atomic orbital, optionally in a frame whose z axis points at a neighbour.
+
+    ``toward`` is the tutorial's ``NNZ``. Without it an orbital like ``PZ`` or ``SP3`` is
+    expressed in the cell's own axes, which is rarely what a chemical question means: ch. 4.7.4
+    is about exactly this, projecting onto a local frame rather than a global one.
+    """
+
+    atom: int = Field(ge=0, description="0-based index into the structure")
+    type: OrbitalType
+    toward: int | None = Field(
+        default=None, ge=0, description="0-based index of the atom the local z axis points at"
+    )
+
+
+class OrbitalWeight(StrictModel):
+    """A ``!WEIGHT`` made of named orbitals rather than whole atoms or angular momenta."""
+
+    id: str = Field(min_length=1, pattern=r"^[A-Za-z0-9_.\-]+$")
+    label: str = ""
+    orbitals: list[OrbitalProjection] = Field(min_length=1)
+
+
+class CoopRequest(StrictModel):
+    """A crystal-orbital overlap population between two orbitals.
+
+    Positive where the two orbitals are bonding, negative where they are antibonding, which is
+    what makes it worth plotting beside a density of states: the DOS says where the states are,
+    the COOP says what they are doing.
+    """
+
+    id: str = Field(min_length=1, pattern=r"^[A-Za-z0-9_.\-]+$")
+    label: str = ""
+    first: OrbitalProjection
+    second: OrbitalProjection
+
+
 class DosOptions(StrictModel):
     broadening_ev: float = Field(default=0.1, gt=0, description="thermal broadening k_B T")
     de_ev: float = Field(default=0.01, gt=0, description="energy grid spacing")
     projection: Literal["none", "element", "atom"] = "element"
     l_channels: bool = Field(default=True, description="also project on s/p/d/f per element/atom")
+    orbital_weights: list[OrbitalWeight] = Field(
+        default_factory=list, description="!WEIGHT blocks built from named orbitals"
+    )
+    coops: list[CoopRequest] = Field(default_factory=list, description="!COOP blocks")
 
 
 class BandOptions(StrictModel):
@@ -102,6 +162,24 @@ def dos_weights(
     return weights
 
 
+def _orb_block(name: str, structure: Structure, orb: OrbitalProjection) -> Block:
+    """``!ORB``/``!ORB1``/``!ORB2``: an atom, an orbital, and optionally what its z axis faces."""
+    n_atoms = len(structure.atoms)
+    for index in (orb.atom, orb.toward):
+        if index is not None and index >= n_atoms:
+            msg = f"atom index {index} is outside a structure of {n_atoms} atoms"
+            raise ValueError(msg)
+    block = Block(name)
+    block.set("ATOM", atom_name(structure.atoms[orb.atom].element, orb.atom))
+    block.set("TYPE", orb.type)
+    if orb.toward is not None:
+        if orb.toward == orb.atom:
+            msg = f"an orbital cannot point at its own atom (index {orb.atom})"
+            raise ValueError(msg)
+        block.set("NNZ", atom_name(structure.atoms[orb.toward].element, orb.toward))
+    return block
+
+
 def dcntl_text(root_name: str, structure: Structure, opts: DosOptions) -> str:
     root = Block("__ROOT__")
     d = Block("DCNTL")
@@ -122,6 +200,21 @@ def dcntl_text(root_name: str, structure: Structure, opts: DosOptions) -> str:
             a.set("TYPE", typ)
             w.children.append(a)
         d.children.append(w)
+    for weight in opts.orbital_weights:
+        w = Block("WEIGHT")
+        w.set("ID", weight.id)
+        w.set("LEGEND", weight.label or weight.id)
+        for orb in weight.orbitals:
+            w.children.append(_orb_block("ORB", structure, orb))
+        d.children.append(w)
+    for coop in opts.coops:
+        c = Block("COOP")
+        c.set("ID", coop.id)
+        # paw_dos labels a COOP "COOP:SET n" in the file trailer, so the legend is ours to give
+        c.set("LEGEND", coop.label or coop.id)
+        c.children.append(_orb_block("ORB1", structure, coop.first))
+        c.children.append(_orb_block("ORB2", structure, coop.second))
+        d.children.append(c)
     return format_deck(root)
 
 

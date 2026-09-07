@@ -2585,6 +2585,25 @@ export interface components {
       /** @description all conformers with energies (eV) */
       trajectory: components['schemas']['Trajectory'];
     };
+    /**
+     * CoopRequest
+     * @description A crystal-orbital overlap population between two orbitals.
+     *
+     *     Positive where the two orbitals are bonding, negative where they are antibonding, which is
+     *     what makes it worth plotting beside a density of states: the DOS says where the states are,
+     *     the COOP says what they are doing.
+     */
+    CoopRequest: {
+      first: components['schemas']['OrbitalProjection'];
+      /** Id */
+      id: string;
+      /**
+       * Label
+       * @default
+       */
+      label: string;
+      second: components['schemas']['OrbitalProjection'];
+    };
     /** CreateCalculationRequest */
     CreateCalculationRequest: {
       /** Backend Id */
@@ -2637,6 +2656,11 @@ export interface components {
        */
       broadening_ev: number;
       /**
+       * Coops
+       * @description !COOP blocks
+       */
+      coops?: components['schemas']['CoopRequest'][];
+      /**
        * De Ev
        * @description energy grid spacing
        * @default 0.01
@@ -2648,6 +2672,11 @@ export interface components {
        * @default true
        */
       l_channels: boolean;
+      /**
+       * Orbital Weights
+       * @description !WEIGHT blocks built from named orbitals
+       */
+      orbital_weights?: components['schemas']['OrbitalWeight'][];
       /**
        * Projection
        * @default element
@@ -2671,6 +2700,13 @@ export interface components {
        * @description weight id, e.g. 'total', 'SI1_p'
        */
       id: string;
+      /**
+       * Kind
+       * @description a COOP is a population, not a count: it is negative where antibonding, so it is plotted about zero rather than stacked
+       * @default dos
+       * @enum {string}
+       */
+      kind: 'dos' | 'coop';
       /** Label */
       label: string;
       /** Occupied Dos */
@@ -3738,6 +3774,43 @@ export interface components {
       /** Orbitals */
       orbitals: components['schemas']['OrbitalEntry'][];
     };
+    /**
+     * OrbitalProjection
+     * @description One atomic orbital, optionally in a frame whose z axis points at a neighbour.
+     *
+     *     ``toward`` is the tutorial's ``NNZ``. Without it an orbital like ``PZ`` or ``SP3`` is
+     *     expressed in the cell's own axes, which is rarely what a chemical question means: ch. 4.7.4
+     *     is about exactly this, projecting onto a local frame rather than a global one.
+     */
+    OrbitalProjection: {
+      /**
+       * Atom
+       * @description 0-based index into the structure
+       */
+      atom: number;
+      /**
+       * Toward
+       * @description 0-based index of the atom the local z axis points at
+       */
+      toward?: number | null;
+      /**
+       * Type
+       * @enum {string}
+       */
+      type:
+        | 'S'
+        | 'PX'
+        | 'PY'
+        | 'PZ'
+        | 'DXY'
+        | 'DXZ'
+        | 'DYZ'
+        | 'D3Z2-R2'
+        | 'DX2-Y2'
+        | 'SP'
+        | 'SP2'
+        | 'SP3';
+    };
     /** OrbitalRequest */
     OrbitalRequest: {
       /**
@@ -3755,6 +3828,21 @@ export interface components {
        * @default 1
        */
       spin: number;
+    };
+    /**
+     * OrbitalWeight
+     * @description A ``!WEIGHT`` made of named orbitals rather than whole atoms or angular momenta.
+     */
+    OrbitalWeight: {
+      /** Id */
+      id: string;
+      /**
+       * Label
+       * @default
+       */
+      label: string;
+      /** Orbitals */
+      orbitals: components['schemas']['OrbitalProjection'][];
     };
     /** OutputImport */
     OutputImport: {

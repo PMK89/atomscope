@@ -189,14 +189,42 @@ def _water_orbitals() -> Exercise:
                 },
             ),
             # 2000 K in the course's !GRID BROADENING[K]; k_B T at 2000 K is 0.172 eV
-            ("dos", {"broadening_ev": 0.172, "de_ev": 0.01, "projection": "atom"}),
+            (
+                "dos",
+                {
+                    "broadening_ev": 0.172,
+                    "de_ev": 0.01,
+                    "projection": "atom",
+                    # ch. 3.5's own COOP: the oxygen's sp3 lobe pointing at a hydrogen against
+                    # that hydrogen's s orbital. Positive where they bond, negative where they
+                    # do not.
+                    "coops": [
+                        {
+                            "id": "o-h",
+                            "label": "O sp3 - H s",
+                            "first": {"atom": 0, "type": "SP3", "toward": 1},
+                            "second": {"atom": 1, "type": "S", "toward": 0},
+                        }
+                    ],
+                    # ch. 4.7.4 is about this: an orbital in a frame of its own rather than the
+                    # cell's, which for a lone pair is the only frame that means anything
+                    "orbital_weights": [
+                        {
+                            "id": "o-sp3",
+                            "label": "O sp3 toward H",
+                            "orbitals": [{"atom": 0, "type": "SP3", "toward": 1}],
+                        }
+                    ],
+                },
+            ),
         ),
         notes=(
             (
                 "The course's .dcntl asks for the total DOS, oxygen s and p separately, and the"
                 " two hydrogens together, then a COOP between the oxygen sp3 and the hydrogen s."
                 " We write the total and a projection per atom and angular momentum, which covers"
-                " the first four weights; the COOP is not something we can express yet."
+                " its first four weights, plus that COOP and one local-frame orbital of the kind"
+                " ch. 4.7.4 is about."
             ),
         ),
     )
