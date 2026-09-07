@@ -109,3 +109,33 @@ def test_collect_reads_cube(tmp_path: Path) -> None:
     )
     assert len(bundle.grids) == 1 and bundle.grids[0].kind == "electron_density"
     assert bundle.grids[0].data_ref == "case_density.cub" and bundle.grids[0].shape == (80, 80, 80)
+
+
+def test_thermostat_friction_series(tmp_path: Path) -> None:
+    """The two friction traces the course plots in ch. 5.5 (Figs 5.1, 5.2).
+
+    Both are parsed from the ``!>`` rows; the atom thermostat's is emitted only when it is
+    actually doing something, so a wave-function-only run does not gain an all-zero series.
+    """
+    work = tmp_path / "work"
+    shutil.copytree(FIX / "si2_rdyn", work)
+    s = structure_from_strc(work / "si2.strc", ["Si", "Si"])
+    bundle = collect(work, "si2", s, expect_forces=True, analysis=[])
+
+    from atomscope.backends.cppaw.protocol import parse_protocol
+
+    steps = parse_protocol(work / "si2.prot").steps
+    by_name = {series.name: series for series in bundle.series}
+
+    for name, values in (
+        ("friction_psi", [step.friction_psi for step in steps]),
+        ("friction_atoms", [step.friction_atoms for step in steps]),
+    ):
+        if any(v != 0.0 for v in values):
+            assert by_name[name].y == values
+            assert by_name[name].x == [step.time_ps for step in steps]
+            assert by_name[name].x_unit == "ps"
+        else:
+            assert name not in by_name
+    # the wave thermostat is always on in these runs, so this one has to be there
+    assert "friction_psi" in by_name

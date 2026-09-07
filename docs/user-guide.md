@@ -1173,15 +1173,13 @@ ASE's default high-symmetry path for the lattice, shown above the button.
 `Compute bands` writes a `.bcntl`, runs `paw_bands.x` and reads the resulting
 `.dat` files.
 
-> Two caveats today. (a) The chart in the `Bands` section does not currently
-> draw the band curves — the numbers are correct in the stored data and over
-> `GET /api/cppaw/calculations/{id}/bands`, but the plot comes out empty
-> (see [§10](#10-limits-and-known-problems)). (b) Band results are not re-loaded
-> when you reopen a project: the section says *No band structure computed yet*
-> until you press the button again. A DOS **is** re-loaded — it used to say
-> *No DOS computed yet* over a finished one, and pressing the button again
-> would have overwritten the control file, losing any COOP it had been asked
-> for.
+> One caveat today: the chart draws every band in the same colour. The course's
+> band-structure figures separate the occupied bands from the empty ones, which
+> needs a Fermi level along the path — `paw_bands.x` reports eigenvalues only
+> (see [§10](#10-limits-and-known-problems)). A band structure already computed
+> **is** re-loaded when you reopen the project, as a DOS is; neither has to be
+> recomputed, and recomputing a DOS would overwrite the control file and lose
+> any COOP it had been asked for.
 
 ### 8.4a Sweeps
 
@@ -1389,17 +1387,15 @@ area, so undo can fire from inside the Cartesian editor.
 Things you will notice, with their current status. None of them has a
 workaround hidden from you.
 
-* **Band-structure chart is empty.** `paw_bands.x` runs, the data is parsed
-  correctly and is available over the API, but the chart in Analysis ▸ Bands
-  draws only the axes and the high-symmetry ticks. Read the gap from the
-  eigenvalues (Analysis ▸ Orbitals, or the protocol) until this is fixed.
+* **Band curves are all one colour.** The chart draws one curve per band, but
+  the course's figures distinguish occupied bands from empty ones, and
+  `paw_bands.x` reports eigenvalues without a Fermi level along the path. Read
+  the gap from the eigenvalues (Analysis ▸ Orbitals, or the protocol).
 * **`diagonalize` band mode fails** on a CP-PAW installation whose
   `paw_bands.x` predates that option — the tool stops with
   `BANDS: MODE UNKNOWN … DIAG`, and the previous (interpolated) result is
   returned unchanged instead of an error. Use the default
   interpolation mode, or rebuild CP-PAW.
-* **DOS and bands are not restored when a project is reopened**; press the
-  compute button again.
 * **Cancelling a CP-PAW run takes ~90 s to report**, even when CP-PAW itself
   stopped immediately. The stop is clean and the restart file is written; only
   the status update is late.

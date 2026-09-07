@@ -37,7 +37,12 @@ def open_project(root: Path = PROJECT) -> CalculationService:
         if (root / "project.json").exists()
         else ProjectStore.create(root, "CP-PAW hands-on course")
     )
-    return CalculationService(project, default_registry(), JobManager())
+    registry = default_registry()
+    # The installed paw tools need an older libgfortran than the system one, and the path to it is
+    # only discovered by the health check -- which the API server runs at startup and a script
+    # otherwise never does. Without it every tool dies on a format error (see cppaw/settings.py).
+    registry.get("cppaw").health_check()
+    return CalculationService(project, registry, JobManager())
 
 
 def find(service: CalculationService, exercise_id: str) -> Calculation | None:

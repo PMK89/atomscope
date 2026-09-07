@@ -267,12 +267,12 @@ interpolated onto the path.
 
 > **Two things to know today.**
 >
-> 1. The *chart* in the Bands section currently draws the axes and the
->    high-symmetry ticks but **not the band curves** — the data is correct and
->    complete, the plot is not. Until that is fixed, read the numbers from
->    Analysis ▸ Orbitals (which lists the eigenvalues of the self-consistent
->    mesh), from the protocol's `ABSOLUTE GAP` line, or from
->    `GET /api/cppaw/calculations/{id}/bands`.
+> 1. The chart draws one curve per band, all in one colour. The course's
+>    Fig. 6.4 distinguishes the occupied bands from the empty ones, which needs
+>    a Fermi level along the path that `paw_bands.x` does not report; the
+>    eigenvalues themselves are exact. Read the numbers from Analysis ▸ Orbitals
+>    (the eigenvalues of the self-consistent mesh), from the protocol's
+>    `ABSOLUTE GAP` line, or from `GET /api/cppaw/calculations/{id}/bands`.
 > 2. `paw_bands.x` also has a `diagonalize` mode, which re-diagonalises the
 >    Hamiltonian at each k-point instead of interpolating. It is slower and
 >    more accurate — but a CP-PAW build older than the option rejects it with

@@ -16,6 +16,7 @@ import {
   type OrbitalEntry,
   type OrbitalList,
 } from '../api/client';
+import { partitionRunSeries } from '../model/runSeries';
 import { bandSeries, formatKPath } from '../model/bands';
 import { useCalculationStore } from '../state/calculationStore';
 import { useSelectionStore } from '../state/selectionStore';
@@ -108,6 +109,16 @@ export function AnalysisPanel({ onError }: { onError: (m: string) => void }): JS
       .catch(() => setPath([]));
   }, [calcId, isCppaw, done, section, path]);
 
+  // and likewise a band structure already computed: recomputing it is minutes of work for a
+  // picture that is sitting in the work directory, which is what an example project is made of
+  useEffect(() => {
+    if (!calcId || !isCppaw || !done || section !== 'bands' || bands) return;
+    api.cppaw
+      .bands(calcId)
+      .then(setBands)
+      .catch(() => setBands(null)); // none computed yet is the ordinary case, not an error
+  }, [calcId, isCppaw, done, section, bands]);
+
   const rows = useMemo(
     () => (orbitals ? channelOrbitals(orbitals.orbitals, kpoint, spin) : []),
     [orbitals, kpoint, spin],
@@ -117,22 +128,32 @@ export function AnalysisPanel({ onError }: { onError: (m: string) => void }): JS
     [orbitals],
   );
 
-  const convergence: ChartSeries[] = useMemo(() => {
-    const all = selected?.results?.series ?? [];
-    return all
-      .filter((s) => s.name !== 'temperature')
-      .map((s, i) => ({
+  const charts = useMemo(() => partitionRunSeries(selected?.results?.series ?? []), [selected]);
+  const { temperature } = charts;
+
+  const convergence: ChartSeries[] = useMemo(
+    () =>
+      charts.convergence.map((s, i) => ({
         id: s.name,
         label: `${s.y_label} [${s.y_unit}]`,
         x: s.x,
         y: s.y,
         color: seriesColor(i),
-      }));
-  }, [selected]);
+      })),
+    [charts],
+  );
 
-  const temperature = useMemo(
-    () => (selected?.results?.series ?? []).find((s) => s.name === 'temperature'),
-    [selected],
+  /** What the thermostats are doing, against time: the course's Figs 5.1 and 5.2 in one chart. */
+  const friction: ChartSeries[] = useMemo(
+    () =>
+      charts.friction.map((s, i) => ({
+        id: s.name,
+        label: s.y_label,
+        x: s.x,
+        y: s.y,
+        color: seriesColor(i + 1),
+      })),
+    [charts],
   );
 
   const showOrbital = async (entry: OrbitalEntry): Promise<void> => {
@@ -316,6 +337,14 @@ export function AnalysisPanel({ onError }: { onError: (m: string) => void }): JS
                   xLabel={`time [${temperature.x_unit}]`}
                   yLabel="T [K]"
                   title="Temperature"
+                />
+              )}
+              {friction.length > 0 && (
+                <LineChart
+                  series={friction}
+                  xLabel="time [ps]"
+                  yLabel="friction"
+                  title="Thermostat friction"
                 />
               )}
             </>

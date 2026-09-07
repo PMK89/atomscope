@@ -209,6 +209,26 @@ def collect(
                     y=[s.temperature_k for s in prot.steps],
                 )
             )
+        # What the thermostats are doing. The course plots both against time (ch. 5.5): the wave
+        # thermostat's friction says whether the wave functions are still following the atoms, and
+        # the atom thermostat's says how hard it is pulling the atoms towards the target
+        # temperature. Dimensionless, and zero throughout when a run has no thermostat at all.
+        for name, label, values in (
+            ("friction_psi", "wave-function friction", [s.friction_psi for s in prot.steps]),
+            ("friction_atoms", "atom friction", [s.friction_atoms for s in prot.steps]),
+        ):
+            if any(v != 0.0 for v in values):
+                bundle.series.append(
+                    ScalarSeries(
+                        name=name,
+                        x_label="time",
+                        x_unit="ps",
+                        y_label=label,
+                        y_unit="",
+                        x=[s.time_ps for s in prot.steps],
+                        y=values,
+                    )
+                )
     bundle.extra["homo_band_index"] = prot.homo_band_index
     bundle.extra["homo_band_index_by_spin"] = {
         str(k): v for k, v in sorted(prot.homo_band_index_by_spin.items())
