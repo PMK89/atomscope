@@ -50,9 +50,13 @@ export function stackedDosSeries(
     };
   });
 
-  // everything the stack cannot account for, drawn as a plain line on top of it
+  // The total, and any weight that partitions nothing (a hand-built orbital), as plain lines on
+  // top. A group whose channels are being stacked is deliberately *not* drawn: it is the sum of
+  // them, so a line for it would put the same states on the chart twice -- the double-counting
+  // the stack itself avoids, coming back in as an outline.
+  const superseded = new Set(chosen.filter((s) => s.channel != null).map((s) => s.group!));
   const outlines: ChartSeries[] = plottable
-    .filter((s) => !chosen.includes(s))
+    .filter((s) => !chosen.includes(s) && !(s.group != null && superseded.has(s.group)))
     .map((s, i) => ({
       id: `${s.id}-${s.spin}`,
       label: s.spin === 'none' ? s.label : `${s.label} (${s.spin})`,

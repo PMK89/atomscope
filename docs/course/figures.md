@@ -111,6 +111,23 @@ would be invisible in a unit test but obvious in the picture:
 - **Spin down is a second, independently accumulated stack**, drawn negative so the two channels
   mirror about zero — which is what we already store (`DosSeries` keeps the code's sign).
 
+## Which SHOWS rows have been photographed
+
+A row saying `SHOWS` is a claim until someone has looked at the picture. `frontend/e2e/course-visual.spec.ts`
+(`ATOMSCOPE_COURSE=1 pnpm exec playwright test`, see [`../testing.md`](../testing.md)) opens the
+course project in the running application, asserts what has to be on the chart and writes the
+picture to `.scratch/course-shots/`. Seven pass today, covering Figs 4.8, 5.1, 5.2, 6.4, 8.1, 8.2,
+8.5 and the DOS shape shared by 3.1/4.2/4.6/6.1/7.1/7.3. The remaining `SHOWS` rows — 2.1, 4.7,
+6.5, 7.2, 8.3 — are the viewer and sweep surfaces the shared suite already covers, on systems the
+course chapters have not been run for yet (see [`inventory.md`](inventory.md)).
+
+Two things the pictures caught that the unit tests could not:
+
+- The stack was drawing each whole-atom weight *as well as* its own channels — the exact
+  double-counting the stack excludes, coming back in as an outline and as four extra legend
+  entries. Visible immediately in the picture, invisible to a test asserting on the stack alone.
+- The friction chart was below the fold, so the "figure" was a screenshot that did not contain it.
+
 ## What was checked, and how
 
 - **The band chart draws.** The user guide had been saying it "does not currently draw the band
@@ -128,6 +145,10 @@ would be invisible in a unit test but obvious in the picture:
   `LineChart` drew a series' `label` nowhere. The course's DOS captions identify each region
   by colour, so a stack of unnamed coloured bands would not have been that figure. Series
   marked `quiet` (the twenty band curves) stay out of it, which is what the flag was for.
+- **The unoccupied states are barely projected, and that is real.** Water's total DOS peaks at
+  8.1 states/eV above the Fermi level where the atom-projected weights reach 2.4, so the filled
+  stack almost vanishes there while the total's outline does not. Diffuse empty states project
+  poorly onto atomic spheres; the outline is what makes that visible instead of hiding it.
 - **Analysis tools need the health check to have run.** `paw_bands.x` failed with
   `exit code 2` and a Fortran format error until the course runner was made to call
   `health_check()`. The installed CP-PAW tools need an older libgfortran than the system one and

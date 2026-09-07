@@ -28,14 +28,11 @@ describe('stackedDosSeries', () => {
     ]);
     // the whole-atom weights would double-count against their own channels
     expect(stacked.map((s) => s.id)).not.toContain('O_1-none');
-    // the total is an outline; the hand-built sp3 orbital partitions nothing; the COOP is not here
-    expect(outlines.map((s) => s.id)).toEqual([
-      'total-none',
-      'O_1-none',
-      'H_2-none',
-      'H_3-none',
-      'o-sp3-none',
-    ]);
+    // the total is an outline, and so is the hand-built sp3 orbital, which partitions nothing
+    expect(outlines.map((s) => s.id)).toEqual(['total-none', 'o-sp3-none']);
+    // the whole-atom weights are the sums of the channels being stacked: drawing them as well
+    // would put the same states on the chart twice
+    expect(outlines.map((s) => s.id)).not.toContain('O_1-none');
     expect([...stacked, ...outlines].map((s) => s.id)).not.toContain('o-h-none');
   });
 
