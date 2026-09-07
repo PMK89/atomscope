@@ -73,6 +73,14 @@ EXCLUSIONS: tuple[Exclusion, ...] = (
 BY_KEY = {e.key: e for e in EXCLUSIONS}
 DEFAULT_EXCLUDED = frozenset({"restart", "setup_reports"})
 
+# Job records, calculation manifests and driver logs carry the absolute paths of whatever ran:
+# the executable, the interpreter, the work directory, the library path. An export is a copy made
+# to be shared, so it should not carry the exporting machine's home directory around with it --
+# `~/cp-paw/bin/fast/paw_fast.x` says everything the record was for without naming a user. Only
+# these three text formats are touched; the code's own output (.prot, .dos, .banddata) is copied
+# byte for byte, because a parser fixture that has been edited is not a fixture.
+SCRUBBED = frozenset({".json", ".log", ".md"})
+
 
 @dataclass
 class ExportReport:
@@ -81,6 +89,7 @@ class ExportReport:
     destination: Path
     files: int = 0
     bytes_copied: int = 0
+    scrubbed: int = 0
     skipped: dict[str, tuple[int, int]] = field(default_factory=dict)  # key -> (files, bytes)
 
     @property
@@ -92,6 +101,34 @@ class ExportReport:
         self.skipped[key] = (files + 1, total + size)
 
 
+def _tilde(path: Path) -> str:
+    """``~/...`` where a path is under the home directory. See :data:`SCRUBBED`."""
+    home = Path.home()
+    try:
+        return f"~/{path.relative_to(home)}"
+    except ValueError:
+        return str(path)
+
+
+def _copy_scrubbed(source: Path, target: Path, home: str) -> bool:
+    """Copy a text record with the home directory written as ``~``. False if it was not one.
+
+    Returns False rather than raising for anything that is not decodable text: a file with a
+    scrubbable suffix but binary content is copied verbatim by the caller instead of corrupted.
+    """
+    if source.suffix not in SCRUBBED or not home:
+        return False
+    try:
+        text = source.read_text(encoding="utf-8")
+    except (UnicodeDecodeError, OSError):
+        return False
+    if home not in text:
+        return False
+    target.write_text(text.replace(home, "~"), encoding="utf-8")
+    shutil.copystat(source, target)
+    return True
+
+
 def _matches(path: Path, exclusion: Exclusion) -> bool:
     return any(path.match(pattern) for pattern in exclusion.patterns)
 
@@ -100,7 +137,7 @@ def _readme(report: ExportReport, excluded: frozenset[str], source: Path) -> str
     lines = [
         "# Exported Atomscope project",
         "",
-        f"Copied from `{source}`.",
+        f"Copied from `{_tilde(source)}`.",
         "",
         f"{report.files} files, {report.bytes_copied / 2**20:.1f} MB.",
         "",
@@ -165,6 +202,9 @@ def export_project(
 
     rules = [BY_KEY[key] for key in excluded]
     report = ExportReport(destination=destination)
+    home = str(Path.home())
+    if len(home) < 2:  # "/" or "" would rewrite every path in every file
+        home = ""
     for path in sorted(source.rglob("*")):
         if path.is_dir():
             continue
@@ -175,9 +215,12 @@ def export_project(
             continue
         target = destination / relative
         target.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copy2(path, target)
+        if not _copy_scrubbed(path, target, home):
+            shutil.copy2(path, target)
+        else:
+            report.scrubbed += 1
         report.files += 1
-        report.bytes_copied += path.stat().st_size
+        report.bytes_copied += target.stat().st_size
 
     (destination / "EXPORT.md").write_text(_readme(report, excluded, source), encoding="utf-8")
     return report

@@ -88,14 +88,14 @@
     "id": "01a92745823f",
     "spec": {
       "argv": [
-        "/home/pmk/Projects/atomscope/backend/../.venv/bin/python",
+        "~/Projects/atomscope/backend/../.venv/bin/python",
         "-m",
         "atomscope.backends.cppaw.runner",
-        "/home/pmk/Projects/atomscope/.scratch/course-runs/course/calculations/7c320d0256b1/work",
+        "~/Projects/atomscope/.scratch/course-runs/course/calculations/7c320d0256b1/work",
         "case",
-        "/home/pmk/cp-paw/bin/fast/paw_fast.x",
+        "~/cp-paw/bin/fast/paw_fast.x",
         "--wave",
-        "/home/pmk/cp-paw/bin/fast/paw_wave.x",
+        "~/cp-paw/bin/fast/paw_wave.x",
         "--cube",
         "electron_density=case_density.wv",
         "--box",
@@ -112,9 +112,9 @@
         "11.338357",
         "0.000000"
       ],
-      "cwd": "/home/pmk/Projects/atomscope/.scratch/course-runs/course/calculations/7c320d0256b1/work",
+      "cwd": "~/Projects/atomscope/.scratch/course-runs/course/calculations/7c320d0256b1/work",
       "env": {
-        "LD_LIBRARY_PATH": "/home/pmk/miniconda3/pkgs/libgfortran5-13.2.0-ha4646dd_0/lib"
+        "LD_LIBRARY_PATH": "~/miniconda3/pkgs/libgfortran5-13.2.0-ha4646dd_0/lib"
       },
       "stdout_name": "driver.log",
       "stderr_name": "driver.err",
@@ -1223,7 +1223,7 @@
         "orbital": null,
         "structure_id": "c946466f7df9",
         "provenance": {
-          "source": "/home/pmk/Projects/atomscope/.scratch/course-runs/course/calculations/7c320d0256b1/work/case_density.cub",
+          "source": "~/Projects/atomscope/.scratch/course-runs/course/calculations/7c320d0256b1/work/case_density.cub",
           "created_at": "2026-09-07T12:23:04.823173Z",
           "software": null,
           "parents": [],
@@ -1549,14 +1549,14 @@
         "id": "faa922043370",
         "spec": {
           "argv": [
-            "/home/pmk/Projects/atomscope/backend/../.venv/bin/python",
+            "~/Projects/atomscope/backend/../.venv/bin/python",
             "-m",
             "atomscope.backends.cppaw.runner",
-            "/home/pmk/Projects/atomscope/.scratch/course-runs/course/calculations/7c320d0256b1/work",
+            "~/Projects/atomscope/.scratch/course-runs/course/calculations/7c320d0256b1/work",
             "case_orb",
-            "/home/pmk/cp-paw/bin/fast/paw_fast.x",
+            "~/cp-paw/bin/fast/paw_fast.x",
             "--wave",
-            "/home/pmk/cp-paw/bin/fast/paw_wave.x",
+            "~/cp-paw/bin/fast/paw_wave.x",
             "--cube",
             "orbital:1=case_orb_b1k1s1.wv",
             "--cube",
@@ -1583,9 +1583,9 @@
             "11.338357",
             "0.000000"
           ],
-          "cwd": "/home/pmk/Projects/atomscope/.scratch/course-runs/course/calculations/7c320d0256b1/work",
+          "cwd": "~/Projects/atomscope/.scratch/course-runs/course/calculations/7c320d0256b1/work",
           "env": {
-            "LD_LIBRARY_PATH": "/home/pmk/miniconda3/pkgs/libgfortran5-13.2.0-ha4646dd_0/lib"
+            "LD_LIBRARY_PATH": "~/miniconda3/pkgs/libgfortran5-13.2.0-ha4646dd_0/lib"
           },
           "stdout_name": "orbitals.log",
           "stderr_name": "orbitals.err",
@@ -1645,12 +1645,12 @@
         "id": "d76be513ce01",
         "spec": {
           "argv": [
-            "/home/pmk/cp-paw/bin/fast/paw_dos.x",
+            "~/cp-paw/bin/fast/paw_dos.x",
             "case.dcntl"
           ],
-          "cwd": "/home/pmk/Projects/atomscope/.scratch/course-runs/course/calculations/7c320d0256b1/work",
+          "cwd": "~/Projects/atomscope/.scratch/course-runs/course/calculations/7c320d0256b1/work",
           "env": {
-            "LD_LIBRARY_PATH": "/home/pmk/miniconda3/pkgs/libgfortran5-13.2.0-ha4646dd_0/lib"
+            "LD_LIBRARY_PATH": "~/miniconda3/pkgs/libgfortran5-13.2.0-ha4646dd_0/lib"
           },
           "stdout_name": "dos.log",
           "stderr_name": "dos.err",

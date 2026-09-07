@@ -33,6 +33,8 @@ def main(argv: list[str] | None = None) -> int:
 
     report = export_project(ProjectStore.open(args.project), args.destination, exclude=exclude)
     print(f"{report.files} files, {report.bytes_copied / 2**20:.1f} MB -> {report.destination}")
+    if report.scrubbed:
+        print(f"  home directory written as ~ in {report.scrubbed} text records")
     for key, (files, size) in sorted(report.skipped.items()):
         print(f"  left out {key}: {files} files, {size / 2**20:.1f} MB")
     return 0

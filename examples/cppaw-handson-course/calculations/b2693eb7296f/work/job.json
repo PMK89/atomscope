@@ -8,17 +8,17 @@
   "pid": 3864945,
   "spec": {
     "argv": [
-      "/home/pmk/Projects/atomscope/backend/../.venv/bin/python",
+      "~/Projects/atomscope/backend/../.venv/bin/python",
       "-m",
       "atomscope.backends.cppaw.runner",
-      "/home/pmk/Projects/atomscope/.scratch/course-runs/course/calculations/b2693eb7296f/work",
+      "~/Projects/atomscope/.scratch/course-runs/course/calculations/b2693eb7296f/work",
       "case",
-      "/home/pmk/cp-paw/bin/fast/paw_fast.x"
+      "~/cp-paw/bin/fast/paw_fast.x"
     ],
-    "cwd": "/home/pmk/Projects/atomscope/.scratch/course-runs/course/calculations/b2693eb7296f/work",
+    "cwd": "~/Projects/atomscope/.scratch/course-runs/course/calculations/b2693eb7296f/work",
     "description": "CP-PAW single_point on Fe (periodic)",
     "env": {
-      "LD_LIBRARY_PATH": "/home/pmk/miniconda3/pkgs/libgfortran5-13.2.0-ha4646dd_0/lib"
+      "LD_LIBRARY_PATH": "~/miniconda3/pkgs/libgfortran5-13.2.0-ha4646dd_0/lib"
     },
     "soft_stop_seconds": 120.0,
     "stderr_name": "driver.err",

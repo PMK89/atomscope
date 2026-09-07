@@ -1330,6 +1330,11 @@ excluded by default precisely because they cannot be regenerated without that re
 A directory rather than an archive, so it opens straight away and `tar` is one command away for
 anyone who wants one file.
 
+Job records, calculation manifests and driver logs are copied with the exporting machine's home
+directory written as `~`, because an export is made to be shared and
+`~/cp-paw/bin/fast/paw_fast.x` says everything the record was for without naming a user. The
+code's own output is copied byte for byte and never rewritten.
+
 ### 8.5 Crystallography
 
 ![The Crystal tab](images/crystal-panel.png)

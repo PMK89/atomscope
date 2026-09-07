@@ -1,5 +1,6 @@
 """Exporting a project without the files that are big and reproducible."""
 
+import json
 from pathlib import Path
 
 import ase.db
@@ -56,6 +57,9 @@ def test_the_copy_says_what_it_is_missing(tmp_path: Path) -> None:
     note = (tmp_path / "out" / "EXPORT.md").read_text()
 
     assert "case.rstrt" not in note  # the category, not a file list
+    # and it does not name the machine it was exported from either
+    assert str(Path.home()) not in note
+    assert "~/" in note
     assert "restart" in note and "MB" in note
     # someone will try to extract an orbital from the copy, so it has to say this
     assert "cannot be **continued from**" in note
@@ -165,3 +169,41 @@ def test_the_cli_takes_the_exclusions_make_passes_it(tmp_path: Path) -> None:
     assert main([str(store.root), str(tmp_path / "d")]) == 0
     assert not (tmp_path / "d" / "calculations" / "c1" / "work" / "case_stpforz8.myxml").exists()
     assert (tmp_path / "d" / "calculations" / "c1" / "work" / "case_density.cub").is_file()
+
+
+def test_the_exporting_machines_home_directory_does_not_travel(tmp_path: Path) -> None:
+    """An export is made to be shared, so it should not name the user who made it.
+
+    The records that carry absolute paths are the job manifests and driver logs -- what ran, from
+    where, against which library. `~/cp-paw/bin/paw.x` says all of that without a username.
+    """
+    store = _project(tmp_path)
+    work = store.calculation_dir("c1") / "work"
+    home = str(Path.home())
+    (work / "job.json").write_text(
+        json.dumps({"argv": [f"{home}/cp-paw/bin/fast/paw_fast.x"], "cwd": f"{home}/p/work"})
+    )
+    (work / "driver.log").write_text(f"running {home}/cp-paw/bin/fast/paw_fast.x\n")
+    # the code's own output must not be touched: an edited fixture is not a fixture
+    (work / "case.prot").write_text(f"PROGRAM STARTED\nFILE {home}/somewhere\n")
+
+    report = export_project(store, tmp_path / "out")
+    out = tmp_path / "out" / "calculations" / "c1" / "work"
+
+    assert home not in (out / "job.json").read_text()
+    assert json.loads((out / "job.json").read_text())["argv"] == ["~/cp-paw/bin/fast/paw_fast.x"]
+    assert home not in (out / "driver.log").read_text()
+    assert "~/cp-paw" in (out / "driver.log").read_text()
+    # ... and the protocol is byte for byte what the code wrote, home directory and all
+    assert (out / "case.prot").read_bytes() == (work / "case.prot").read_bytes()
+    assert report.scrubbed == 2
+
+
+def test_a_binary_file_with_a_text_suffix_is_copied_not_corrupted(tmp_path: Path) -> None:
+    store = _project(tmp_path)
+    work = store.calculation_dir("c1") / "work"
+    blob = b"\xff\xfe\x00binary pretending to be json"
+    (work / "weird.json").write_bytes(blob)
+
+    export_project(store, tmp_path / "out")
+    assert (tmp_path / "out" / "calculations" / "c1" / "work" / "weird.json").read_bytes() == blob

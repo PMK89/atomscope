@@ -56,7 +56,7 @@
     "constraints": [],
     "residues": [],
     "provenance": {
-      "source": "/home/pmk/Projects/atomscope/.scratch/course-runs/course/calculations/acd9fbbd3d73/work",
+      "source": "~/Projects/atomscope/.scratch/course-runs/course/calculations/acd9fbbd3d73/work",
       "created_at": "2026-09-07T12:23:05.422905Z",
       "software": "CP-PAW",
       "parents": [],

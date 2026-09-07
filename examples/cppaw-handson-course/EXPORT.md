@@ -1,6 +1,6 @@
 # Exported Atomscope project
 
-Copied from `/home/pmk/Projects/atomscope/.scratch/course-runs/course`.
+Copied from `~/Projects/atomscope/.scratch/course-runs/course`.
 
 508 files, 36.9 MB.
 

@@ -41,6 +41,14 @@ That needs a working CP-PAW (found through `$PAWDIR`; see `docs/user-guide.md` Â
 excluded rather than kept because, unlike the restart file they came from, they can be recomputed
 â€” and 114 MB of binary blobs is not what a repository is for.
 
+## Paths
+
+The job records and driver logs here name the executable, interpreter and library path each run
+used, with the exporting machine's home directory written as `~`. That is done by the export, not
+by hand, so a shared project says what ran without naming who ran it. CP-PAW's own output --
+`.prot`, `.dos`, `.banddata` -- is copied byte for byte and is not rewritten: an edited fixture is
+not a fixture.
+
 ## Regenerating
 
 ```bash
