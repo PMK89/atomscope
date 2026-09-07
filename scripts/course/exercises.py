@@ -268,6 +268,8 @@ class SweepExercise:
     """The reference structure; points may bring their own."""
     spec: SweepSpec
     shows: str
+    continues: str | None = None
+    """An exercise whose restart file every point continues from (the spec's `restart_from`)."""
     notes: tuple[str, ...] = field(default_factory=tuple)
 
 
@@ -328,6 +330,215 @@ SWEEPS: tuple[SweepExercise, ...] = (
                 " at 30 Ry that wobble is several times larger than the interaction being looked"
                 " for. The exercise is kept at the course's own parameters; what the numbers mean"
                 " is here."
+            ),
+        ),
+    ),
+)
+
+
+def bcc_iron() -> Structure:
+    """Chapter 8.2's reference: bcc iron, a=2.87 A, in its primitive (rhombohedral) cell.
+
+    The course picks iron for the cutoff test because a late 3d transition metal is the worst
+    case: hard to converge, and the 3d states are what make it hard.
+    """
+    a = 2.87
+    return from_atoms(
+        Atoms(
+            "Fe",
+            positions=[(0.0, 0.0, 0.0)],
+            cell=[
+                (-0.5 * a, 0.5 * a, 0.5 * a),
+                (0.5 * a, -0.5 * a, 0.5 * a),
+                (0.5 * a, 0.5 * a, -0.5 * a),
+            ],
+            pbc=True,
+        ),
+        name="bcc iron",
+    )
+
+
+#: Chapter 8.2's control settings: a metal, so Mermin occupations at T=0 and SAFEORTHO off, and
+#: non-magnetic (NSPIN=1) even though iron is not -- the convergence of the cutoff is the subject,
+#: and spin would only make each point slower.
+IRON_REFERENCE = {
+    "xc": 10,
+    "epwpsi": 30.0,
+    "cdual": 2.0,
+    "task": "single_point",
+    "start": "scratch",
+    "nstep": 500,
+    "empty_bands": 10,
+    "occupations": "mermin",
+    "electron_temperature": 0.0,
+    "mermin_retard": 10.0,
+    "safeortho": False,
+    "psi_friction": 0.01,
+    "psi_auto": True,
+    "psi_auto_fric_minus": 0.3,
+    "psi_auto_fact_minus": 0.97,
+    "psi_auto_fric_plus": 0.3,
+    "psi_auto_minfric": 0.02,
+    "kpoint_mode": "density",
+    "kpoint_r": 30.0,
+    "npro_overrides": "Fe: 1 1 2",
+    "lrhox": 4,
+    "isolate": "never",
+    "setup_type": ".75_6.0",
+}
+
+EXERCISES = (
+    *EXERCISES,
+    Exercise(
+        id="iron-reference",
+        chapter="8.2",
+        title="A converged non-magnetic iron calculation to vary parameters from",
+        structure=bcc_iron(),
+        values=IRON_REFERENCE,
+        shows="nothing on its own: it is the restart file chapter 8's sweeps continue from",
+        notes=(
+            (
+                "The course's prose says to reduce the k-point density R to 20 while the deck it"
+                " prints beside it says R=30. We follow the deck, which is the file that would"
+                " actually have been run."
+            ),
+        ),
+    ),
+)
+
+
+def silicon() -> Structure:
+    """Chapter 6.3: silicon in the diamond structure at its experimental lattice constant.
+
+    The course writes the two atoms at 0 and (1/4, 1/4, 1/4) *of the lattice constant*, which is
+    Cartesian in units of LUNIT rather than fractional -- for fcc diamond that is a/4 along the
+    body diagonal.
+    """
+    a = 5.431
+    return from_atoms(
+        Atoms(
+            "Si2",
+            positions=[(0.0, 0.0, 0.0), (0.25 * a, 0.25 * a, 0.25 * a)],
+            cell=[
+                (0.0, 0.5 * a, 0.5 * a),
+                (0.5 * a, 0.0, 0.5 * a),
+                (0.5 * a, 0.5 * a, 0.0),
+            ],
+            pbc=True,
+        ),
+        name="silicon",
+    )
+
+
+SILICON_REFERENCE = {
+    "xc": 10,
+    "epwpsi": 30.0,
+    "cdual": 2.0,
+    "task": "single_point",
+    "start": "scratch",
+    "nstep": 500,
+    "empty_bands": 5,
+    "psi_friction": 0.01,
+    "psi_auto": True,
+    "psi_auto_minfric": 0.02,
+    "kpoint_mode": "density",
+    "kpoint_r": 30.0,
+    "npro_overrides": "Si: 2 2 1",
+    "lrhox": 4,
+    "isolate": "never",
+    "setup_type": ".75_6.0",
+}
+
+SWEEPS = (
+    *SWEEPS,
+    SweepExercise(
+        id="iron-cutoff",
+        chapter="8.2",
+        title="How large a plane-wave cutoff iron needs",
+        structure=bcc_iron(),
+        spec=SweepSpec(
+            name="Iron cutoff",
+            backend_id="cppaw",
+            label="Plane-wave cutoff",
+            unit="rydberg",
+            key="epwpsi",
+            base_values={**IRON_REFERENCE, "start": "restart"},
+            points=[
+                SweepPointSpec(x=cutoff, values={"epwpsi": cutoff})
+                for cutoff in (20.0, 25.0, 30.0, 35.0, 40.0, 50.0, 60.0, 70.0)
+            ],
+        ),
+        shows="the total energy against the cutoff, beside how fast the basis grows with it",
+        continues="iron-reference",
+        notes=(
+            (
+                "The course lists three ways to do this and picks the second: converge once from"
+                " scratch, then run every cutoff from that restart file. That is what"
+                " `restart_from` is, and it is not only faster -- every point starts from the"
+                " same electronic state, so the curve shows the cutoff rather than eight"
+                " independent convergences."
+            ),
+            (
+                "Iron because a late 3d transition metal is the worst case. The course's own"
+                ' command is `paw_scan -r "EPWPSI 20 25 30 35 40 50 60 70" -j 1 -w fast ./fe`;'
+                " those are the eight points."
+            ),
+        ),
+    ),
+    SweepExercise(
+        id="iron-dual-cutoff",
+        chapter="8.3",
+        title="How large a density cutoff iron needs",
+        structure=bcc_iron(),
+        spec=SweepSpec(
+            name="Iron dual cutoff",
+            backend_id="cppaw",
+            label="Density cutoff factor",
+            key="cdual",
+            base_values=IRON_REFERENCE,
+            points=[
+                SweepPointSpec(x=dual, values={"cdual": dual})
+                for dual in (2.0, 3.0, 4.0, 5.0, 6.0)
+            ],
+        ),
+        shows="the energy flattening off past CDUAL=4, and the density basis growing with it",
+        notes=(
+            (
+                "The course asks for independent calculations here rather than restarts, so this"
+                " sweep has no `restart_from`: CDUAL changes the density representation, and"
+                " restarting into a different one is not the same calculation."
+            ),
+            (
+                "It also says what to expect: past CDUAL=4 only the exchange-correlation energy"
+                " is still affected, because the Hartree and kinetic energies are exactly"
+                " converged there."
+            ),
+        ),
+    ),
+    SweepExercise(
+        id="silicon-kpoints",
+        chapter="8.4, 6.3.6",
+        title="How many k-points silicon needs",
+        structure=silicon(),
+        spec=SweepSpec(
+            name="Silicon k-points",
+            backend_id="cppaw",
+            label="k-point density R",
+            unit="bohr",
+            key="kpoint_r",
+            base_values=SILICON_REFERENCE,
+            points=[
+                SweepPointSpec(x=r, values={"kpoint_r": r})
+                for r in (10.0, 20.0, 30.0, 40.0, 50.0)
+            ],
+        ),
+        shows="the energy against the k-point density, and how many k-points each density means",
+        notes=(
+            (
+                "R is a real-space length: the k-point grid is chosen so that the crystal"
+                " repeated that far apart would be sampled. The course tries 20, 30 and 50 bohr"
+                " and says 30-50 is the usual range; 10 is added at the bottom to show what too"
+                " coarse looks like."
             ),
         ),
     ),

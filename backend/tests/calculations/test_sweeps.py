@@ -9,6 +9,7 @@ from ase.build import bulk
 from atomscope.ase_bridge import from_atoms
 from atomscope.backends.registry import default_registry
 from atomscope.calculations import CalculationService
+from atomscope.calculations.service import CalculationError
 from atomscope.calculations.sweeps import (
     SweepPoint,
     SweepPointSpec,
@@ -175,3 +176,41 @@ def test_a_project_written_before_sweeps_existed_still_loads(tmp_path: Path) -> 
     )
     assert reopened.get(calc.id).sweep is None
     assert members(reopened, "anything") == []
+
+
+async def test_a_restart_sweep_needs_a_backend_that_has_restart_files(tmp_path: Path) -> None:
+    """The tutorial's ch. 8.2 converges once and then varies the parameter from that restart file.
+
+    Not only faster -- every point starts from the same electronic state, so the curve shows the
+    parameter rather than N independent convergences. A backend with nothing to restart from has
+    to say so rather than quietly run N convergences instead.
+    """
+    svc, jm = _service(tmp_path)
+    copper = from_atoms(bulk("Cu", cubic=True), name="cu")
+    svc.project.save_structure(copper)
+    reference = svc.create(
+        name="reference",
+        backend_id="ase_builtin",
+        structure=copper,
+        values={"task": "single_point"},
+    )
+    reference = svc.run(reference.id)
+    assert reference.job is not None
+    await jm.wait(reference.job.id)
+    svc.collect_results(reference.id)
+
+    spec = SweepSpec(
+        name="steps",
+        backend_id="ase_builtin",
+        label="Relaxation steps",
+        key="max_steps",
+        base_values={"task": "relax"},
+        restart_from=reference.id,
+        points=[SweepPointSpec(x=n, values={"max_steps": int(n)}) for n in (1, 2)],
+    )
+    before = {c.id for c in svc.list()}
+    with pytest.raises(CalculationError, match="no restart files"):
+        create_sweep(svc, spec, copper)
+    # ...and nothing half-made is left behind for the next attempt to trip over
+    assert [c for c in svc.list() if c.sweep is not None] == []
+    assert {c.id for c in svc.list()} == before

@@ -192,6 +192,9 @@ class CalculationService:
         if restart_from_parent:
             copied = self._copy_restart_files(parent, child)
             if not copied:
+                # the child was registered a moment ago; leaving it behind would put an empty
+                # calculation in the project for every failed attempt to continue one
+                self.project.forget_calculation(child.id)
                 msg = "parent has no restart files to continue from"
                 raise CalculationError(msg)
         self.save(child)

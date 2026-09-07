@@ -52,19 +52,19 @@ we do not have · `TODO` not started.
 | 5 | Malonaldehyde MD | Nosé-Hoover thermostats, equilibration | C₃H₄O₂ | Car-Parrinello MD at 300 K | temperature history, energy conservation, equipartition | MD run, trajectory playback, energy plots | TODO |
 | 5.10 | Malonaldehyde MD | extract proton-transfer modes | C₃H₄O₂ | `paw_tra` | a chosen internal coordinate against time | **`paw_tra` mode extraction not wrapped** | BLOCKED |
 | 5.11 | Malonaldehyde MD | visualize the dynamics | C₃H₄O₂ | — | the trajectory as a movie | trajectory playback | TODO |
-| 6.3.1 | Solids: silicon | wave functions at equilibrium | Si, 2-atom fcc cell | wave-function optimization, k-points | total energy, convergence | periodic setup, k-point controls | TODO |
+| 6.3.1 | Solids: silicon | wave functions at equilibrium | Si, 2-atom fcc cell | wave-function optimization, k-points | total energy, convergence | periodic setup, k-point controls | READY |
 | 6.3.2 | Solids: silicon | density of states | Si | `paw_dos` | the band gap in the DOS | DOS plot | TODO |
 | 6.3.3 | Solids: silicon | empty atoms | Si | setup with empty spheres | DOS projected on the interstitial | **empty atoms not in the schema** | BLOCKED |
 | 6.3.4 | Solids: silicon | band structure | Si | `paw_bands` | Γ–X–W–L–Γ–K band structure | band-structure plot | TODO |
 | 6.3.5 | Solids: silicon | lattice constant by cell dynamics | Si | cell relaxation | the optimized lattice constant | **cell dynamics not in the schema** | BLOCKED |
-| 6.3.6 | Solids: silicon | k-point convergence | Si | a sweep | energy against k-point mesh | **no sweep/series runner** | BLOCKED |
+| 6.3.6 | Solids: silicon | k-point convergence | Si | a sweep over R | energy against k-point density | Sweeps panel (same sweep as 8.4) | RUNS |
 | 6.3.7 | Solids: silicon | E(V), pressure, bulk modulus | Si | a sweep over volumes | Birch-Murnaghan fit | **no E(V) fit** | BLOCKED |
 | 6.4.2 | Solids: aluminium | electronic structure of a metal | Al, fcc | Mermin occupations, k-points | DOS and bands of a metal, Fermi level | DOS, bands, electron temperature | TODO |
 | 7.2.2 | Magnetism | ferromagnetic iron | Fe, bcc | spin-polarized | spin-resolved DOS, moment | spin DOS, spin density | TODO |
 | 7.3 | Magnetism | antiferromagnetic NiO | NiO rocksalt | spin-polarized, per-state occupations | the AFM ordering and its gap | **`!OCCUPATIONS!STATE` not in the schema** | BLOCKED |
-| 8.2 | Convergence | plane-wave cutoff, wave function | H₂O or Si | a sweep over `EPWPSI` | energy against cutoff | **no sweep runner** | BLOCKED |
-| 8.3 | Convergence | plane-wave cutoff, density | as above | a sweep over `CDUAL` | energy against the dual cutoff | as above | BLOCKED |
-| 8.4 | Convergence | number of k-points | Si | a sweep | energy against mesh | as above | BLOCKED |
+| 8.2 | Convergence | plane-wave cutoff, wave function | Fe (bcc, non-magnetic) | a sweep over `EPWPSI`, all restarted from one reference | energy against cutoff, beside the basis size | Sweeps panel | DONE |
+| 8.3 | Convergence | plane-wave cutoff, density | Fe | a sweep over `CDUAL`, independent runs | energy against the density cutoff | Sweeps panel | RUNS |
+| 8.4 | Convergence | number of k-points | Si | a sweep over the k-point density R | energy against the density | Sweeps panel | RUNS |
 | 8.5 | Convergence | cell size for a molecule | H₂O | a sweep over the cell | energy against isolation distance | Sweeps panel | DONE |
 
 ## Findings
@@ -120,6 +120,15 @@ we do not have · `TODO` not started.
   course gives. Which G-shells fall inside a fixed cutoff sphere changes as the cell grows, and at
   30 Ry that wobble is several times the interaction being measured. Worth a warning in the app
   when a sweep varies the cell at an unconverged cutoff.
+- **Iron's cutoff curve is what a convergence test should look like, and it settles the cell-size
+  puzzle.** Chapter 8.2 run as a sweep — eight cutoffs from 20 to 70 Ry, every point continuing
+  from one converged reference — gives a monotone curve with steps that shrink all the way down:
+  −5.11, −2.18, −2.65, −1.09, −0.33, −0.04, −0.06 mH, settled from 40 Ry at one millihartree.
+  Four minutes for eight points. That is the same machinery that produced the *alternating* steps
+  in ch. 8.5, which is the point: when the basis is what you vary deliberately the curve is
+  smooth, and when you vary the cell at a fixed cutoff the basis composition wobbles underneath
+  you. Iron's own energy is −22.0250 H at 70 Ry against the course's −22.0678 in Fig. 8.2 — the
+  same code-vintage offset as everywhere else.
 - **The convergence tables need the plane-wave counts, and now have them.** Ch. 8 asks for
   `#plane waves for wave functions` and `#plane waves for density` beside every energy, because a
   cutoff or a cell means nothing on its own. Both are parsed from the protocol and reported as

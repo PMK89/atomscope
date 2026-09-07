@@ -53,6 +53,11 @@ class SweepSpec(StrictModel):
     unit: str | None = None
     key: str | None = None
     base_values: dict[str, object] = Field(default_factory=dict)
+    restart_from: str | None = Field(
+        default=None,
+        description="a completed calculation every point continues from, carrying its restart"
+        " file; without it each point starts from scratch",
+    )
     points: list[SweepPointSpec] = Field(min_length=2)
 
 
@@ -102,16 +107,33 @@ class SweepResult(StrictModel):
 def create_sweep(
     service: CalculationService, spec: SweepSpec, structure: Structure
 ) -> list[Calculation]:
-    """One calculation per point, each carrying its membership. Nothing is run yet."""
+    """One calculation per point, each carrying its membership. Nothing is run yet.
+
+    With ``restart_from`` each point is a fork of that calculation and continues from its restart
+    file, which is what the tutorial's ch. 8.2 prescribes: converge once, then vary the parameter
+    from there. It matters for more than speed -- every point starts from the same electronic
+    state, so the curve shows the parameter rather than eight independent convergences.
+    """
     sweep_id = new_uid()
     made: list[Calculation] = []
     for index, point in enumerate(spec.points):
-        calc = service.create(
-            name=f"{spec.name} — {spec.label} {point.x:g}",
-            backend_id=spec.backend_id,
-            structure=point.structure or structure,
-            values={**spec.base_values, **point.values},
-        )
+        name = f"{spec.name} — {spec.label} {point.x:g}"
+        values = {**spec.base_values, **point.values}
+        if spec.restart_from is not None:
+            calc = service.fork(
+                spec.restart_from,
+                values,
+                name=name,
+                restart_from_parent=True,
+                structure=point.structure,
+            )
+        else:
+            calc = service.create(
+                name=name,
+                backend_id=spec.backend_id,
+                structure=point.structure or structure,
+                values=values,
+            )
         calc.sweep = SweepMembership(
             sweep_id=sweep_id,
             label=spec.label,

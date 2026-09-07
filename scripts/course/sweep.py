@@ -1,12 +1,12 @@
-"""Run one of the course's convergence sweeps through a real Atomscope project.
+"""Run one of the course's convergence sweeps in the shared course project.
 
 Usage (from `backend/`):
 
-    PYTHONPATH=src:../scripts/course ../.venv/bin/python -m sweep water-cell-size
+    PYTHONPATH=src:../scripts/course ../.venv/bin/python -m sweep iron-cutoff
 
-This goes the whole way through `CalculationService`, so what it leaves behind is a project the
-application can open -- which is what the example library is meant to be. The project lands in
-`.scratch/course-runs/<id>/project`.
+The sweep lives in the same project as the single-run exercises
+(`.scratch/course-runs/course/`), because that is where the reference calculation it continues
+from lives. `--recollect` re-reads finished points with the parser as it is now.
 """
 
 from __future__ import annotations
@@ -14,49 +14,42 @@ from __future__ import annotations
 import argparse
 import asyncio
 import json
-from pathlib import Path
 
 from ase.units import Hartree
-from atomscope.backends.registry import default_registry
 from atomscope.calculations import CalculationService
 from atomscope.calculations.sweeps import create_sweep, members, run_sweep
-from atomscope.jobs import JobManager
-from atomscope.project import ProjectStore
 
 from exercises import SweepExercise, sweep_by_id
-
-ROOT = Path(__file__).resolve().parents[2]
+from run import find, open_project
 
 
 async def run(
-    exercise: SweepExercise, root: Path, *, fresh: bool, recollect: bool = False
+    exercise: SweepExercise, service: CalculationService, *, recollect: bool
 ) -> dict[str, object]:
-    if fresh and root.exists():
-        import shutil
+    spec = exercise.spec
+    if exercise.continues:
+        reference = find(service, exercise.continues)
+        if reference is None or reference.status != "completed":
+            msg = (
+                f"{exercise.id} continues {exercise.continues}, which has not completed"
+            )
+            raise SystemExit(msg)
+        spec = spec.model_copy(update={"restart_from": reference.id})
 
-        shutil.rmtree(root)
-    project = (
-        ProjectStore.open(root)
-        if (root / "project.json").exists()
-        else ProjectStore.create(root, exercise.id)
-    )
-    service = CalculationService(project, default_registry(), JobManager())
-
-    project.save_structure(exercise.structure)
-    for point in exercise.spec.points:
-        if point.structure is not None:
-            project.save_structure(point.structure)
-
-    existing = [c for c in service.list() if c.sweep is not None]
+    existing = [
+        c for c in service.list() if c.sweep is not None and c.sweep.label == spec.label
+    ]
     if existing:
         sweep_id = existing[0].sweep.sweep_id  # type: ignore[union-attr]
     else:
-        made = create_sweep(service, exercise.spec, exercise.structure)
-        sweep_id = made[0].sweep.sweep_id  # type: ignore[union-attr]
+        service.project.save_structure(exercise.structure)
+        for point in spec.points:
+            if point.structure is not None:
+                service.project.save_structure(point.structure)
+        sweep_id = create_sweep(service, spec, exercise.structure)[0].sweep.sweep_id  # type: ignore[union-attr]
 
     if recollect:
-        # re-read the work directories with the parser as it is now: a completed run's results
-        # are only as complete as the parser was on the day it finished
+        # a finished run's results are only as complete as the parser was on the day it finished
         for calc in members(service, sweep_id):
             if calc.status == "completed":
                 service.collect_results(calc.id)
@@ -66,7 +59,6 @@ async def run(
         {
             "x": p.x,
             "status": p.status,
-            "energy_ev": p.energy_ev,
             "energy_hartree": None
             if p.energy_ev is None
             else round(p.energy_ev / Hartree, 6),
@@ -76,36 +68,31 @@ async def run(
         }
         for p in result.points
     ]
-    summary: dict[str, object] = {
+    return {
         "id": exercise.id,
         "chapter": exercise.chapter,
         "axis": f"{result.label} ({result.unit})" if result.unit else result.label,
         "converged_from_mh": result.converged_from(),
         "points": rows,
-        "project": str(root),
     }
-    (root / "sweep.json").write_text(json.dumps(summary, indent=2))
-    service.close()
-    return summary
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("exercise")
     parser.add_argument(
-        "--keep", action="store_true", help="continue an existing project"
-    )
-    parser.add_argument(
         "--recollect",
         action="store_true",
-        help="re-read finished runs with the parser as it is now",
+        help="re-read finished points with the current parser",
     )
     args = parser.parse_args()
-    exercise = sweep_by_id(args.exercise)
-    root = ROOT / ".scratch" / "course-runs" / exercise.id / "project"
-    summary = asyncio.run(
-        run(exercise, root, fresh=not args.keep, recollect=args.recollect)
-    )
+    service = open_project()
+    try:
+        summary = asyncio.run(
+            run(sweep_by_id(args.exercise), service, recollect=args.recollect)
+        )
+    finally:
+        service.close()
     print(json.dumps(summary, indent=2))
 
 

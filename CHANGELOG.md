@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- A sweep can **continue every point from one reference calculation** instead
+  of starting each from scratch. Not only faster: every point then begins
+  from the same electronic state, so the curve shows the parameter rather
+  than N independent convergences.
+- A fork that cannot find a restart file to continue from no longer leaves an
+  empty calculation behind in the project.
+
 - **COOP: crystal-orbital overlap populations**, plotted under the density of
   states in a chart of their own — positive where two orbitals are bonding,
   negative where they are antibonding. With them come `!ORB` weights: the

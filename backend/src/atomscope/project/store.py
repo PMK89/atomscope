@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import os
 import re
+import shutil
 import tempfile
 from datetime import UTC, datetime
 from pathlib import Path
@@ -168,6 +169,19 @@ class ProjectStore:
     # ---- calculations (directories are created here; contents are owned by services) -------
     def calculation_dir(self, calculation_id: str) -> Path:
         return self.path_in_project("calculations", _check_id(calculation_id))
+
+    def forget_calculation(self, calculation_id: str) -> None:
+        """Undo :meth:`register_calculation`: drop the directory and the manifest entry.
+
+        For a calculation that failed while being set up. Not for deleting finished work -- that
+        wants an explicit user action and a different name.
+        """
+        if calculation_id in self.manifest.calculation_ids:
+            self.manifest.calculation_ids.remove(calculation_id)
+            self.save_manifest()
+        d = self.calculation_dir(calculation_id)
+        if d.is_dir():
+            shutil.rmtree(d)
 
     def register_calculation(self, calculation_id: str) -> Path:
         d = self.calculation_dir(calculation_id)
