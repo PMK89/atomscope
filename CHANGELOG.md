@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- **Atomic masses per element** (`C: 5; O: 5; H: 2`). These are the fictitious
+  masses of Car-Parrinello dynamics, not physical ones: making the heavy atoms
+  lighter and hydrogen heavier brings their vibrational timescales together so
+  one time step suits all of them. Only hydrogen's could be set before.
+
 - The DOS form can ask for **overlap populations of the bonds selected in the
   viewport**. Which two orbitals to overlap is a chemical decision, so the
   default is the tutorial's own choice for O–H: a hybrid on the heavier

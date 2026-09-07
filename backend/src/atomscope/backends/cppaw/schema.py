@@ -588,6 +588,18 @@ SCHEMA = ParameterSchema(
                     help="e.g. 'Fe: 2 2 2; O: 2 2 1' — projectors per angular momentum; default 1 1 for H/He, 2 2 1 otherwise.",
                 ),
                 ParameterSpec(
+                    key="atom_masses",
+                    label="Atomic masses (u)",
+                    type="string",
+                    default="",
+                    backend_path="STRUCTURE/SPECIES/M",
+                    help="e.g. 'C: 5; O: 5; H: 2' — the fictitious masses of Car-Parrinello"
+                    " dynamics, not physical ones. Making the heavy atoms lighter and hydrogen"
+                    " heavier brings their vibrational timescales together, so one time step"
+                    " suits all of them.",
+                    advanced=True,
+                ),
+                ParameterSpec(
                     key="hydrogen_mass",
                     label="Hydrogen mass (u)",
                     type="number",

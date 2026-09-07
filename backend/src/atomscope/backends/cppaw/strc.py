@@ -59,6 +59,31 @@ def parse_npro_overrides(text: str) -> dict[str, list[int]]:
     return out
 
 
+def parse_masses(text: str, hydrogen_mass: float = 0.0) -> dict[str, float]:
+    """``'C: 5; O: 5; H: 2'`` -> ``{'C': 5.0, 'O': 5.0, 'H': 2.0}``.
+
+    These are the fictitious masses of Car-Parrinello dynamics, not physical ones. Making the
+    heavy atoms lighter and hydrogen heavier brings their vibrational timescales together, so one
+    time step suits all of them -- the tutorial's ch. 4 sets ``M=5.`` on carbon and oxygen and
+    ``M=2.`` on hydrogen for exactly that. ``hydrogen_mass`` is the older single-element form and
+    still applies, unless this text names hydrogen itself.
+    """
+    out: dict[str, float] = {}
+    if hydrogen_mass > 0:
+        out["H"] = hydrogen_mass
+    for part in text.split(";"):
+        if ":" not in part:
+            continue
+        sym, _, value = part.partition(":")
+        try:
+            mass = float(value)
+        except ValueError:
+            continue
+        if sym.strip() and mass > 0:
+            out[sym.strip().capitalize()] = mass
+    return out
+
+
 def isolate_mode(value: object) -> str:
     """The three-way choice, accepting the boolean projects saved before it was one.
 
@@ -78,6 +103,7 @@ class StrcOptions:
     rad_rcov: float = 1.4
     npro_overrides: str = ""
     hydrogen_mass: float = 0.0
+    atom_masses: str = ""
     box_margin: float = 4.0
     isolate: str = "auto"
     spin_polarized: bool = False
@@ -98,6 +124,7 @@ class StrcOptions:
             rad_rcov=float(v.get("rad_rcov", 1.4)),  # type: ignore[arg-type]
             npro_overrides=str(v.get("npro_overrides", "")),
             hydrogen_mass=float(v.get("hydrogen_mass", 0.0)),  # type: ignore[arg-type]
+            atom_masses=str(v.get("atom_masses", "")),
             box_margin=float(v.get("box_margin", 4.0)),  # type: ignore[arg-type]
             isolate=isolate_mode(v.get("isolate", "auto")),
             spin_polarized=bool(v.get("spin_polarized", False)),
@@ -201,6 +228,7 @@ def build_strc(structure: Structure, opts: StrcOptions) -> Block:
         occ.children.append(blk)
 
     overrides = parse_npro_overrides(opts.npro_overrides)
+    masses = parse_masses(opts.atom_masses, opts.hydrogen_mass)
     seen: list[str] = []
     for sym in structure.symbols():
         if sym in seen:
@@ -210,8 +238,8 @@ def build_strc(structure: Structure, opts: StrcOptions) -> Block:
         if library_block is not None:
             # inline !SPECIES (with !AUGMENT) from the external library, as paw_resolve does
             sp = library_block
-            if sym == "H" and opts.hydrogen_mass > 0:
-                sp.set("M", opts.hydrogen_mass)
+            if sym in masses:
+                sp.set("M", masses[sym])
             if sym in overrides:
                 sp.set("NPRO", list(overrides[sym]))
         else:
@@ -219,8 +247,8 @@ def build_strc(structure: Structure, opts: StrcOptions) -> Block:
             sp.set("NAME", species_name(sym))
             # CP-PAW splits the ID at the FIRST underscore: 'O_.75_6.0' -> element O, type .75_6.0
             sp.set("ID", setup_id(sym, opts.setup_type))
-            if sym == "H" and opts.hydrogen_mass > 0:
-                sp.set("M", opts.hydrogen_mass)
+            if sym in masses:
+                sp.set("M", masses[sym])
             sp.set("NPRO", list(overrides.get(sym, default_npro(sym))))
             sp.set("LRHOX", opts.lrhox)
             sp.set("RAD/RCOV", opts.rad_rcov)

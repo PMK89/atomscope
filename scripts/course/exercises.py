@@ -407,6 +407,151 @@ EXERCISES = (
 )
 
 
+#: Chapter 4.4.2's starting geometry, built from the Lewis formula: the enol form of
+#: malonaldehyde, with the hydrogen on one oxygen and an intramolecular hydrogen bond to the
+#: other. Coordinates as the course prints them, in Angstrom.
+MALONALDEHYDE = (
+    ("C", (-1.22686, 0.20947, 0.20017)),
+    ("C", (0.12930, 0.79738, 0.34620)),
+    ("C", (1.30591, 0.21615, 0.02262)),
+    ("H", (0.17192, 1.80149, 0.75751)),
+    ("O", (-1.41386, -0.90880, -0.24663)),
+    ("O", (1.43298, -1.02727, -0.49993)),
+    ("H", (2.21462, 0.78505, 0.19292)),
+    ("H", (0.70291, -1.62339, -0.69512)),
+    ("H", (-2.08289, 0.80221, 0.50490)),
+)
+
+
+def malonaldehyde() -> Structure:
+    """Chapter 4: malonaldehyde in a 14 A fcc cell.
+
+    The course notes that regular fcc vectors need a lattice constant of at least 14 A for this
+    molecule to clear its own images by 6 A -- a bigger molecule needs a bigger cell for the same
+    isolation, which is the whole subject of ch. 8.5.
+    """
+    half = 7.0
+    return from_atoms(
+        Atoms(
+            "".join(e for e, _ in MALONALDEHYDE),
+            positions=[p for _, p in MALONALDEHYDE],
+            cell=[(0.0, half, half), (half, 0.0, half), (half, half, 0.0)],
+            pbc=True,
+        ),
+        name="malonaldehyde",
+    )
+
+
+#: Ch. 4 uses water's control file with one addition: fictitious masses. Carbon and oxygen at
+#: 5 u and hydrogen at 2 u bring the vibrational timescales together so one time step suits all.
+MALONALDEHYDE_MASSES = "C: 5; O: 5; H: 2"
+
+EXERCISES = (
+    *EXERCISES,
+    Exercise(
+        id="malonaldehyde-wavefunction",
+        chapter="4.5",
+        title="Optimize the electronic structure of malonaldehyde",
+        structure=malonaldehyde(),
+        values={
+            **COURSE_WAVEFUNCTION,
+            "task": "single_point",
+            "start": "scratch",
+            "nstep": 200,
+            "empty_bands": 5,
+            "npro_overrides": "H: 1 0 0; C: 2 2 1; O: 2 2 1",
+            "atom_masses": MALONALDEHYDE_MASSES,
+        },
+        shows="the energy converging for a nine-atom molecule, and its HOMO-LUMO gap",
+        notes=(
+            (
+                "The course gives C and O NPRO=2 2 1 and H NPRO=1 0 0, which is what our"
+                " defaults would have chosen for C and O anyway; hydrogen is the one that"
+                " differs."
+            ),
+        ),
+    ),
+    Exercise(
+        id="malonaldehyde-relax",
+        chapter="4.6",
+        title="Relax malonaldehyde",
+        structure=malonaldehyde(),
+        values={
+            **COURSE_WAVEFUNCTION,
+            "task": "relax",
+            "start": "restart",
+            "nstep": 2000,
+            "empty_bands": 5,
+            "npro_overrides": "H: 1 0 0; C: 2 2 1; O: 2 2 1",
+            "atom_masses": MALONALDEHYDE_MASSES,
+            "psi_auto_fric_minus": 0.05,
+            "psi_auto_fric_plus": 0.2,
+            "atom_friction": 0.0,
+            "atom_auto": True,
+        },
+        shows=(
+            "the enol geometry: a short C-O and a long C=O, and the intramolecular hydrogen bond"
+            " the H-bond layer should draw"
+        ),
+        continues="malonaldehyde-wavefunction",
+    ),
+    Exercise(
+        id="malonaldehyde-orbitals",
+        chapter="4.7",
+        title="Malonaldehyde's orbitals, DOS and overlap populations",
+        structure=malonaldehyde(),
+        values={
+            **COURSE_WAVEFUNCTION,
+            "task": "single_point",
+            "start": "restart",
+            "nstep": 200,
+            "empty_bands": 5,
+            "npro_overrides": "H: 1 0 0; C: 2 2 1; O: 2 2 1",
+            "atom_masses": MALONALDEHYDE_MASSES,
+            "write_density": True,
+            "grid_spacing": 0.3,
+        },
+        shows="the frontier orbitals, the DOS per element, and the C-O overlap populations",
+        continues="malonaldehyde-relax",
+        analysis=(
+            (
+                "orbitals",
+                # the twelve occupied valence orbitals plus the first two empty ones
+                {
+                    "orbitals": [
+                        {"band": b, "kpoint": 1, "spin": 1} for b in range(1, 15)
+                    ]
+                },
+            ),
+            (
+                "dos",
+                {
+                    "broadening_ev": 0.172,
+                    "de_ev": 0.01,
+                    "projection": "element",
+                    # ch. 4.7.5: the two C-O bonds, one of which is the enol C-O and the other
+                    # the carbonyl C=O, so their overlap populations should not look alike
+                    "coops": [
+                        {
+                            "id": "c1-o5",
+                            "label": "C1 sp3 - O5 sp3",
+                            "first": {"atom": 0, "type": "SP3", "toward": 4},
+                            "second": {"atom": 4, "type": "SP3", "toward": 0},
+                        },
+                        {
+                            "id": "c3-o6",
+                            "label": "C3 sp3 - O6 sp3",
+                            "first": {"atom": 2, "type": "SP3", "toward": 5},
+                            "second": {"atom": 5, "type": "SP3", "toward": 2},
+                        },
+                    ],
+                },
+            ),
+        ),
+    ),
+)
+
+
 def silicon() -> Structure:
     """Chapter 6.3: silicon in the diamond structure at its experimental lattice constant.
 

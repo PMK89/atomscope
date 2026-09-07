@@ -291,3 +291,26 @@ def test_centred_cube_rolls_a_grid_onto_its_molecule(tmp_path: Path) -> None:
         "density.cub",
         None,
     )
+
+
+def test_masses_can_be_set_per_element_and_the_old_single_key_still_works() -> None:
+    """Ch. 4 sets M=5 on carbon and oxygen and M=2 on hydrogen: Car-Parrinello masses, not real
+    ones. `hydrogen_mass` was the only way to say that, and it could only say it about hydrogen.
+    """
+    from atomscope.backends.cppaw.strc import parse_masses
+
+    assert parse_masses("C: 5; O: 5; H: 2") == {"C": 5.0, "O": 5.0, "H": 2.0}
+    # the older key is the same statement about one element
+    assert parse_masses("", 2.0) == {"H": 2.0}
+    # ...and the text wins where both name hydrogen, because it is the more specific instruction
+    assert parse_masses("H: 3", 2.0) == {"H": 3.0}
+    # nonsense is dropped rather than written into a deck
+    assert parse_masses("C: ; : 5; O: -1; junk") == {}
+
+    water = from_atoms(molecule("H2O"), name="water")
+    strc = parse_deck(strc_text(water, StrcOptions(atom_masses="O: 5; H: 2"))).child("STRUCTURE")
+    masses = {sp.get("NAME"): sp.get("M") for sp in strc.children_named("SPECIES")}
+    assert masses == {"O_": 5.0, "H_": 2.0}
+    # no masses given, none written: CP-PAW's own defaults are the physical ones
+    plain = parse_deck(strc_text(water, StrcOptions())).child("STRUCTURE")
+    assert all(sp.get("M") is None for sp in plain.children_named("SPECIES"))
