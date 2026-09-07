@@ -25,7 +25,7 @@ from atomscope.model import (
     new_uid,
 )
 from atomscope.model.grid import GridKind
-from atomscope.parsers.cube import read_cube
+from atomscope.parsers.cube import CubeData, centre_on, grid_period, read_cube, write_cube
 from atomscope.units import Unit
 
 MH_PER_BOHR_TO_EV_PER_ANG = 1e-3 * Hartree / Bohr
@@ -260,7 +260,7 @@ def collect(
             continue
         grid: VolumetricGrid = data.grid
         grid.name = kind.replace("_", " ")
-        grid.data_ref = cube.name
+        grid.data_ref = centred_cube(cube, data, final)[0]
         grid.structure_id = final.id
         if kind.startswith("orbital:"):
             from atomscope.model import OrbitalInfo  # noqa: PLC0415
@@ -273,6 +273,62 @@ def collect(
             grid.orbital = OrbitalInfo(index=band - 1, energy=energy, spin="none", kpoint=0)
         bundle.grids.append(grid)
     return bundle
+
+
+def geometry_from_run(work: Path, root: str, fallback: Structure) -> Structure:
+    """``fallback`` with the positions the run finished at, when they can be read.
+
+    The orbital export runs as a one-step restart of a finished calculation, so the grids belong
+    to that calculation's geometry rather than to whatever was fed in at the start -- which after
+    a relaxation is not the same structure.
+    """
+    strc_out = work / f"{root}.strc_out"
+    if not strc_out.is_file():
+        return fallback
+    try:
+        geo = read_strc_geometry(strc_out.read_text(errors="replace"))
+    except (ValueError, OSError):
+        return fallback
+    if len(geo.positions_ang) != fallback.n_atoms:
+        return fallback
+    moved = fallback.model_copy(deep=True)
+    for atom, position in zip(moved.atoms, geo.positions_ang, strict=True):
+        atom.position = (float(position[0]), float(position[1]), float(position[2]))
+    return moved
+
+
+def centred_cube(cube: Path, data: CubeData, structure: Structure) -> tuple[str, np.ndarray | None]:
+    """A copy of ``cube`` rolled so ``structure`` sits in the middle of the grid.
+
+    CP-PAW writes its grids over the unit cell starting at the cell's own origin. The tutorial
+    puts a molecule at that origin -- ch. 2.5 explains why the cell is chosen the way it is -- so
+    the density and the orbitals come out split across the grid boundary, with lobes at the
+    corners of the box and nothing in the middle. Rolling by a whole number of voxels fixes it
+    exactly: no value changes, only which index it sits at, with the origin moved to match.
+
+    Returns the name of the cube a viewer should read, and the rolled values when there was
+    something to roll. The original file is left where it is, and is what comes back when the
+    grid is not one cell of this structure's own.
+    """
+    if structure.cell is None or not structure.is_periodic():
+        return cube.name, None
+    grid = data.grid
+    period = grid_period(grid.shape, grid.axes, structure.cell.vectors)
+    if period is None:
+        return cube.name, None
+    positions = structure.positions()
+    # the middle of what is drawn, not the centroid: a centroid is pulled about by where the
+    # light atoms are, and for anything less symmetric than water that moves the picture
+    middle = (positions.min(axis=0) + positions.max(axis=0)) / 2.0
+    values, origin = centre_on(
+        data.values, grid.origin, grid.axes, period, (middle[0], middle[1], middle[2])
+    )
+    if origin == tuple(grid.origin):
+        return cube.name, None
+    grid.origin = origin
+    out = cube.with_name(f"{cube.stem}_centred{cube.suffix}")
+    write_cube(out, grid, values, structure)
+    return out.name, values
 
 
 def _scalars(values: list[float], unit: Unit, description: str):  # type: ignore[no-untyped-def]  # noqa: ANN202

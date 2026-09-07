@@ -35,7 +35,7 @@ from atomscope.backends.cppaw.cntl import (
     parse_orbital_bands,
 )
 from atomscope.backends.cppaw.dos import read_dos
-from atomscope.backends.cppaw.results import collect
+from atomscope.backends.cppaw.results import centred_cube, collect, geometry_from_run
 from atomscope.backends.cppaw.schema import PRESETS, SCHEMA
 from atomscope.backends.cppaw.setups import SetupsLibrary
 from atomscope.backends.cppaw.strc import (
@@ -479,9 +479,14 @@ class CppawPlugin:
             cube = work_dir / f"{Path(orbital_wave_file(orbital_root(root), req)).stem}.cub"
             if not cube.is_file():
                 continue
-            grid = read_cube(cube, kind="orbital", unit=Unit.E_PER_BOHR3).grid
+            data = read_cube(cube, kind="orbital", unit=Unit.E_PER_BOHR3)
+            grid = data.grid
             grid.name = f"orbital b{req.band} k{req.kpoint} s{req.spin}"
-            grid.data_ref = cube.name
+            # ...rolled so the molecule is in the middle of it; see `centred_cube`
+            geometry = geometry_from_run(
+                work_dir, root, self._structure_from_inputs(work_dir.parent / "input")
+            )
+            grid.data_ref = centred_cube(cube, data, geometry)[0]
             eig = next(
                 (e for e in info.eigenvalues if e.kpoint == req.kpoint and e.spin == req.spin), None
             )

@@ -2,6 +2,7 @@
 from pathlib import Path
 
 import numpy as np
+import pytest
 from ase.build import bulk, molecule
 from ase.units import Bohr
 
@@ -232,3 +233,61 @@ def test_isolate_reads_the_boolean_older_projects_saved() -> None:
     assert StrcOptions.from_values({}).isolate == "auto"
     # anything unrecognised falls back to the default rather than silently never isolating
     assert isolate_mode("nonsense") == "auto"
+
+
+def test_centred_cube_rolls_a_grid_onto_its_molecule(tmp_path: Path) -> None:
+    """A molecule at the origin of its cell has its density at the corners of the grid.
+
+    CP-PAW writes grids over the cell from the cell's own origin, and the tutorial puts molecules
+    at that origin, so this is the normal case rather than a corner case.
+    """
+    import numpy as np
+    from ase import Atoms
+
+    from atomscope.backends.cppaw.results import centred_cube
+    from atomscope.model import VolumetricGrid, new_uid
+    from atomscope.parsers.cube import read_cube, write_cube
+    from atomscope.units import Unit
+
+    structure = from_atoms(
+        Atoms("He", positions=[(0.0, 0.0, 0.0)], cell=[6.0, 6.0, 6.0], pbc=True),
+        name="one atom at the origin",
+    )
+    n = 13  # 12 intervals of 0.5 A, plus the repeated boundary plane paw_wave.x writes
+    grid = VolumetricGrid(
+        id=new_uid(),
+        name="density",
+        kind="electron_density",
+        origin=(0.0, 0.0, 0.0),
+        axes=((0.5, 0.0, 0.0), (0.0, 0.5, 0.0), (0.0, 0.0, 0.5)),
+        shape=(n, n, n),
+        unit=Unit.E_PER_BOHR3,
+        data_ref="density.cub",
+    )
+    values = np.zeros((n, n, n))
+    for corner in np.ndindex(2, 2, 2):  # the atom's density, split over all eight corners
+        values[tuple(-1 if c else 0 for c in corner)] = 1.0
+    cube = tmp_path / "density.cub"
+    write_cube(cube, grid, values, structure)
+
+    name, rolled = centred_cube(cube, read_cube(cube, kind="electron_density"), structure)
+    assert name == "density_centred.cub"
+    assert rolled is not None
+    # the eight corner peaks are one peak in the middle now, and nothing else changed
+    assert rolled[:-1, :-1, :-1].sum() == pytest.approx(1.0)
+    peak = np.unravel_index(np.argmax(rolled), rolled.shape)
+    assert peak == (6, 6, 6)
+
+    # ...and it is still at the atom, one cell over: the field did not move, its labelling did
+    back = read_cube(tmp_path / name, kind="electron_density")
+    world = np.asarray(back.grid.origin) + np.asarray(peak, dtype=float) * 0.5
+    assert np.allclose(np.mod(world, 6.0), 0.0, atol=1e-6)
+    # the rewritten cube carries the real structure, not the periodic images CP-PAW lists
+    assert back.structure.n_atoms == 1
+
+    # a grid that is not one cell of this structure is left exactly as it is
+    aperiodic = from_atoms(Atoms("He", positions=[(0.0, 0.0, 0.0)]), name="no cell")
+    assert centred_cube(cube, read_cube(cube, kind="electron_density"), aperiodic) == (
+        "density.cub",
+        None,
+    )

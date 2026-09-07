@@ -22,6 +22,7 @@ from ase.data import chemical_symbols
 from ase.units import Bohr
 
 from atomscope.model import Atom, Provenance, Structure, VolumetricGrid, new_uid
+from atomscope.model.common import Vec3
 from atomscope.model.grid import GridKind
 from atomscope.units import Unit
 
@@ -117,3 +118,69 @@ def write_cube(path: Path, grid: VolumetricGrid, values: np.ndarray, structure: 
         if full != len(flat):
             tail = flat[full:]
             fh.write(" ".join(["%13.5E"] * len(tail)) % tuple(tail) + "\n")
+
+
+def grid_period(
+    shape: tuple[int, int, int],
+    axes: tuple[Vec3, Vec3, Vec3],
+    cell: tuple[Vec3, Vec3, Vec3],
+) -> tuple[int, int, int] | None:
+    """How many grid points make one period along each axis, or ``None`` if this grid is not one
+    cell of ``cell``.
+
+    Two conventions are in use. ``N`` points over ``N-1`` intervals writes the boundary plane
+    twice, which is what CP-PAW's ``paw_wave.x`` does; ``N`` points over ``N`` intervals does not.
+    Which one a file uses is not something to infer from the values -- two identical planes could
+    be a coincidence of a smooth field, and a file written to five decimals never repeats exactly
+    anyway. The cell answers it: the period is whichever count carries a step vector onto the
+    matching lattice vector.
+    """
+    a = np.asarray(axes, dtype=float)
+    c = np.asarray(cell, dtype=float)
+    period: list[int] = []
+    for i, n in enumerate(shape):
+        for count in (n - 1, n):
+            if count > 0 and np.allclose(count * a[i], c[i], rtol=1e-3, atol=1e-6):
+                period.append(count)
+                break
+        else:
+            return None
+    return (period[0], period[1], period[2])
+
+
+def centre_on(
+    values: np.ndarray,
+    origin: Vec3,
+    axes: tuple[Vec3, Vec3, Vec3],
+    period: tuple[int, int, int],
+    target: Vec3,
+) -> tuple[np.ndarray, Vec3]:
+    """Roll a periodic grid so ``target`` sits at the middle of it.
+
+    A molecule at the origin of its cell has half of its density at each end of the grid, because
+    the field is periodic and the grid starts where the molecule is. Rolling by a whole number of
+    voxels is exact -- nothing is interpolated and no value changes, only which index each value
+    is stored at, with the origin moved to match. The result is the same physical field, drawn
+    around the molecule instead of inside out.
+
+    ``period`` comes from :func:`grid_period`. Where the grid repeats its boundary plane
+    (``shape = period + 1``) the duplicate is rebuilt afterwards, so the shape does not change.
+    """
+    a = np.asarray(axes, dtype=float)
+    o = np.asarray(origin, dtype=float)
+    # the middle of one period, measured from the grid's own origin
+    half = 0.5 * (np.asarray(period, dtype=float)[:, None] * a).sum(axis=0)
+    # ...and the origin that would put `target` there. Only whole-voxel shifts keep the field
+    # untouched, so the wanted origin is rounded onto the grid's own steps.
+    wanted = np.asarray(target, dtype=float) - half
+    shift = np.rint(np.linalg.solve(a.T, o - wanted)).astype(int)
+
+    rolled = np.asarray(values)
+    for i, (n, p) in enumerate(zip(rolled.shape, period, strict=True)):
+        core = np.take(rolled, range(p), axis=i)
+        core = np.roll(core, int(shift[i]), axis=i)
+        # value at the new index i is the old value at i - shift, which is what a positive roll is
+        rolled = np.concatenate([core, np.take(core, [0], axis=i)], axis=i) if n == p + 1 else core
+
+    moved = o - a.T @ shift
+    return rolled, (float(moved[0]), float(moved[1]), float(moved[2]))

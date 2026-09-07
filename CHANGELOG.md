@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+- **Periodic grids are drawn around their molecule, not inside out.** CP-PAW
+  writes a grid over the unit cell starting at the cell's own origin, and a
+  molecule placed at that origin therefore has its density split across the
+  grid boundary — lobes at the corners of the box and nothing in the middle.
+  Density and orbital cubes are now rolled by a whole number of voxels so the
+  structure sits in the middle of the grid. The roll is exact: no
+  interpolation, no value changes, only which index each value sits at, with
+  the origin moved to match. The rewritten cube also carries the real
+  structure instead of the periodic image atoms CP-PAW lists beside it.
+
 - **A drag now turns about what you are looking at.** Rotation used to swing
   the view around the centre of the structure wherever that had ended up,
   which is what made it feel unpredictable after a pan or a zoom. It now turns
