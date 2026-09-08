@@ -1,6 +1,6 @@
 {
  "source": {
-  "file": "/home/pmk/cp-paw/src/Docs/manual.tex",
+  "file": "~/cp-paw/src/Docs/manual.tex",
   "blocks": 147,
   "keys": 487,
   "generator": "build_schema.py wrapping cp-paw/tools/extract_manual_metadata.py",
@@ -12,17 +12,17 @@
   ],
   "deck_survey": {
    "roots": [
-    "/media/pmk/SysEx/cs/paw/handson2022",
-    "/media/pmk/SysEx/cs/paw/hoc2w",
-    "/media/pmk/SysEx/cs/paw/Handson_2ndweek",
-    "/media/pmk/SysEx/cs/paw/paw_hoc",
-    "/media/pmk/SysEx/cs/paw/testset",
-    "/media/pmk/SysEx/cs/paw/projects",
-    "/media/pmk/SysEx/cs/paw/examples"
+    "$COURSE/handson2022",
+    "$COURSE/hoc2w",
+    "$COURSE/Handson_2ndweek",
+    "$COURSE/paw_hoc",
+    "$COURSE/testset",
+    "$COURSE/projects",
+    "$COURSE/examples"
    ],
    "unique_decks": 691,
    "scanned_files": 1362,
-   "note": "used_by_decks = number of decks under /media/pmk/SysEx/cs/paw using the key"
+   "note": "used_by_decks = number of decks under $COURSE using the key"
   }
  },
  "blocks": {

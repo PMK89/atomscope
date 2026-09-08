@@ -159,7 +159,7 @@ Press **Run**. The badge next to the calculation name goes `queued` →
 Atomscope's own driver:
 
 ```
-[atomscope] starting /home/pmk/cp-paw/bin/fast/paw_fast.x case.cntl in .../work
+[atomscope] starting ~/cp-paw/bin/fast/paw_fast.x case.cntl in .../work
 ```
 
 and then a live tail of `case.prot`, CP-PAW's protocol file, which is the file

@@ -2,7 +2,7 @@
 
 Branch: main; this file is updated in the commit that checkpoints the work, so `git log -1 -- docs/STATE.md` is the last checkpoint. Phases 0-1 done; Phase 2 (editor tools), 3 (volumetric, trajectories, vectors), 4-5 (CP-PAW setup/execution/forces), 6 (CP-PAW analysis: DOS, bands, orbitals), crystallography, molecular mechanics and wavefunction surfaces are merged and working. Parity matrix at `8c51b48`, derived (see ROADMAP for the command): 229 IMPLEMENTED, 16 PARTIAL, 66 NOT STARTED, 1 BLOCKED of 312 rows.
 
-Tests: `pytest -q -m "not cppaw"` -> 570 passed, `-m cppaw` -> 7 passed (102 s, real binaries), 1 skipped; `pytest -q -m cppaw` -> 7 passed (93 s, runs the real binaries -- **CP-PAW is found through `$PAWDIR`, which the user's own shell sets (`/home/pmk/cp-paw`), not `env.sh`**; `$ATOMSCOPE_CPPAW_DIR` overrides it); `pnpm vitest run` -> 575 passed; `pnpm exec playwright test` -> 40 passed in ~57 s (plus `ATOMSCOPE_COURSE=1` for the seven course pictures and the database spec, 8 tests, ~28 s) (against private servers, see below; `make test-e2e` points at the user's 5173, which is stale). **`source env.sh` before Playwright**: without `PLAYWRIGHT_BROWSERS_PATH` it looks in `~/.cache/ms-playwright`, finds nothing, and every test fails at `browserType.launch`. `ruff check`, `mypy` and `pnpm typecheck` are clean. No known failing tests. **Type-check the frontend with `pnpm typecheck` (`tsc -b --noEmit`), never with `pnpm exec tsc --noEmit`:** the root `tsconfig.json` is a solution file with `files: []`, so a bare `tsc --noEmit` checks nothing and exits 0.
+Tests: `pytest -q -m "not cppaw"` -> 570 passed, `-m cppaw` -> 7 passed (102 s, real binaries), 1 skipped; `pytest -q -m cppaw` -> 7 passed (93 s, runs the real binaries -- **CP-PAW is found through `$PAWDIR`, which the user's own shell sets (`~/cp-paw`), not `env.sh`**; `$ATOMSCOPE_CPPAW_DIR` overrides it); `pnpm vitest run` -> 575 passed; `pnpm exec playwright test` -> 40 passed in ~57 s (plus `ATOMSCOPE_COURSE=1` for the seven course pictures and the database spec, 8 tests, ~28 s) (against private servers, see below; `make test-e2e` points at the user's 5173, which is stale). **`source env.sh` before Playwright**: without `PLAYWRIGHT_BROWSERS_PATH` it looks in `~/.cache/ms-playwright`, finds nothing, and every test fails at `browserType.launch`. `ruff check`, `mypy` and `pnpm typecheck` are clean. No known failing tests. **Type-check the frontend with `pnpm typecheck` (`tsc -b --noEmit`), never with `pnpm exec tsc --noEmit`:** the root `tsconfig.json` is a solution file with `files: []`, so a bare `tsc --noEmit` checks nothing and exits 0.
 
 ## Inspecting the course project, and shipping it
 
@@ -37,10 +37,12 @@ that is the one omission that costs a picture, and `examples/README.md` says so.
 The whole history went with it, so every intermediate state and commit message is public. Before
 pushing: no secrets in tracked files, no PDF or OCR text in any of the 297 commits, no course
 prose in the generated decks, and `docs/reviews-codex-*.md` read through and confirmed to be
-technical findings rather than session logs. Two cosmetic things left alone deliberately --
-`docs/provenance.md` records absolute `/home/pmk` paths by design (including where the course
-PDFs are kept), and the review files' `file:line` links are absolute so they render broken on
-GitHub.
+technical findings rather than session logs. Afterwards the workstation paths were taken out of every tracked file: `~/...` or a named
+environment variable (`$PAWDIR`, `$COURSE` for the course material on the external drive) instead
+of one machine's layout, and the two code-review documents' `file:line` links made repo-relative
+with `#L` anchors so they resolve. `export_project` writes the home directory as `~` in the
+`.json`, `.log` and `.md` records it copies, so an exported project does not carry it either;
+CP-PAW's own output is copied byte for byte.
 
 ## The CP-PAW hands-on course
 
@@ -77,7 +79,7 @@ Traps worth knowing before driving the plugin from a script again: **`health_che
 run first.** The installed paw tools need an older libgfortran than the system one, and the path to
 it is *discovered* by that check and then remembered on the settings object. Without it every
 analysis tool dies with `Fortran runtime error: Missing comma between descriptors` and exit code 2
-(`env -i /home/pmk/cp-paw/bin/fast/paw_bands.x case.bcntl` reproduces it). The API server has
+(`env -i ~/cp-paw/bin/fast/paw_bands.x case.bcntl` reproduces it). The API server has
 always run the check at startup; `scripts/course/run.py` now does too.
 
 **Next**, in the order that closes the most figures per unit of work (from `figures.md`'s gaps
@@ -93,7 +95,7 @@ longest. Still needing real new capability: cell dynamics (6.3.5), empty atoms (
 ## Resume commands
 
 ```bash
-cd /home/pmk/Projects/atomscope && source env.sh
+cd ~/Projects/atomscope && source env.sh
 git status && git log --oneline | head -20
 cat docs/STATE.md ROADMAP.md
 make test          # backend pytest + frontend vitest -- note `test-backend` is a bare

@@ -1,12 +1,14 @@
 # CP-PAW on this workstation: analysis for the Atomscope adapter
 
-Status: investigation report, 2026-09-05. Everything below was derived from the installed distribution `/home/pmk/cp-paw` (manual source `src/Docs/manual.tex`, Fortran sources, examples), the hands-on course decks under `/media/pmk/SysEx/cs/paw`, the finished output set in `/home/pmk/ase-cp-paw/calculations/h2o` (and `ch3cli`), the earlier web-workbench code and its audit, and smoke runs executed under `/home/pmk/Projects/atomscope/.scratch/cppaw/`. Manual line numbers refer to `/home/pmk/cp-paw/src/Docs/manual.tex`; `file:line` refers to `/home/pmk/cp-paw/src/`. Machine-readable schema: `/home/pmk/Projects/atomscope/.scratch/cppaw/cppaw-schema-draft.json` (147 blocks, 487 keys, each with manual line and deck-usage count). Supporting material: `.scratch/cppaw/schema/` (full tables), `.scratch/cppaw/outputs/output-formats.md` (source-cited format notes), `.scratch/cppaw/tutorial/used-keys.json`, `.scratch/cppaw/tools/usage/`.
+Status: investigation report, 2026-09-05. Everything below was derived from the installed distribution `~/cp-paw` (manual source `src/Docs/manual.tex`, Fortran sources, examples), the hands-on course decks under `$COURSE`
+(written that way throughout: the course material sits on an external drive, and its location is
+not part of the finding), the finished output set in `~/ase-cp-paw/calculations/h2o` (and `ch3cli`), the earlier web-workbench code and its audit, and smoke runs executed under `.scratch/cppaw/`. Manual line numbers refer to `~/cp-paw/src/Docs/manual.tex`; `file:line` refers to `~/cp-paw/src/`. Machine-readable schema: `.scratch/cppaw/cppaw-schema-draft.json` (147 blocks, 487 keys, each with manual line and deck-usage count). Supporting material: `.scratch/cppaw/schema/` (full tables), `.scratch/cppaw/outputs/output-formats.md` (source-cited format notes), `.scratch/cppaw/tutorial/used-keys.json`, `.scratch/cppaw/tools/usage/`.
 
 ## 0. Key findings
 
 1. **How to run**: `cd <dir>; paw_fast.x case.cntl 1>case.out 2>&1` with `case.strc` next to it; monitor `case.prot`; stop with `touch case.exit`; restart with `START=F` (+ `NEWSTRC=T` to take a new geometry). Parallel: `mpirun -np N --oversubscribe ppaw_fast.x case.cntl` (`OMP_NUM_THREADS=1`).
 2. **Setups**: no external setup files exist or are needed. `!SPECIES ID='<EL>_.75_6.0'` (and `_NDLSS_V0`, `_NDLSS_SC_V0`, `_HBS`, `_HBS_SC`) are built internally; the 2022 course decks inline `!AUGMENT` blocks from `setups.rslv` via `paw_resolve`. `PAWDIR` is not read by the binaries.
-3. **The installed binaries do not start on this machine** (system libgfortran upgraded to GCC 16; `paw_trace.f90` has a malformed FORMAT). Work-around: `LD_LIBRARY_PATH=/home/pmk/miniconda3/pkgs/libgfortran5-13.2.0-ha4646dd_0/lib`; permanent fix: one-character patch + rebuild (§7.1).
+3. **The installed binaries do not start on this machine** (system libgfortran upgraded to GCC 16; `paw_trace.f90` has a malformed FORMAT). Work-around: `LD_LIBRARY_PATH=~/miniconda3/pkgs/libgfortran5-13.2.0-ha4646dd_0/lib`; permanent fix: one-character patch + rebuild (§7.1).
 4. **Smoke tests passed with the work-around**: si2 12 s, E = −7.9050265 H; h2o 147 s, E = −17.3290129 H, gap 5.70 eV; `paw_wave.x`, `paw_dos.x`, `paw_bands.x` produce `.cub`, `.dos`, `bands.dat` from these outputs. Restart, exit-file stop, `NEWSTRC`, error exit all verified.
 5. **Forces are printed in the protocol only when a `!RDYN` block exists** (`paw_atoms.f90:257`; verified: si2 without RDYN → no force column, si2 with RDYN → `( 0.01, 0.01, 0.01)` mH/a₀). Precision is 2 decimals in mH/a₀; use `_f.tra` for real work.
 6. **Protocol, trajectory and constraint files are appended across runs**; `START=F` (the default) ignores the STRC geometry; `STOP=T` means zero initial velocity; the autopilot may end MD/relaxation runs early; unknown keys are reported under `UNUSED ELEMENTS` rather than rejected.
@@ -17,17 +19,17 @@ Status: investigation report, 2026-09-05. Everything below was derived from the 
 
 | Item | Value |
 |---|---|
-| Distribution root (`$PAWDIR`) | `/home/pmk/cp-paw` (git clone of https://github.com/cp-paw/cp-paw.git, branch `main`, commit `aa467ef8739758bfe067e80a2ab61f5697ede009` of 2024-12-18; "development version") |
+| Distribution root (`$PAWDIR`) | `~/cp-paw` (git clone of https://github.com/cp-paw/cp-paw.git, branch `main`, commit `aa467ef8739758bfe067e80a2ab61f5697ede009` of 2024-12-18; "development version") |
 | Build date | 2025-05-07 20:03 CEST, built as root (`paw_fast.x --version`) |
-| Serial binaries | `/home/pmk/cp-paw/bin/fast/paw_*.x` (+ `paw_*` symlinks without `.x`, + shell scripts `paw_*.sh` with `paw_*` symlinks) |
-| Parallel binaries | `/home/pmk/cp-paw/bin/fast_parallel/ppaw_*.x` — present (`ppaw_fast.x`, 11.8 MB, and a `ppaw_*` copy of every tool). Launched via `doppaw.sh -n N ROOT`, which runs `export OMP_NUM_THREADS=1; $(which mpirun) -np N --oversubscribe $(which ppaw_fast.x) ROOT.cntl 1>out 2>&1` (`doppaw.sh:119-125`; it also creates a private `TMPDIR`); `mpirun` is `/usr/bin/mpirun` (Open MPI). Not exercised in this analysis. |
-| Debug binaries | `/home/pmk/cp-paw/bin/dbg/` |
+| Serial binaries | `$PAWDIR/bin/fast/paw_*.x` (+ `paw_*` symlinks without `.x`, + shell scripts `paw_*.sh` with `paw_*` symlinks) |
+| Parallel binaries | `$PAWDIR/bin/fast_parallel/ppaw_*.x` — present (`ppaw_fast.x`, 11.8 MB, and a `ppaw_*` copy of every tool). Launched via `doppaw.sh -n N ROOT`, which runs `export OMP_NUM_THREADS=1; $(which mpirun) -np N --oversubscribe $(which ppaw_fast.x) ROOT.cntl 1>out 2>&1` (`doppaw.sh:119-125`; it also creates a private `TMPDIR`); `mpirun` is `/usr/bin/mpirun` (Open MPI). Not exercised in this analysis. |
+| Debug binaries | `$PAWDIR/bin/dbg/` |
 | Build system | `paw_install` (top level) loops over `dbg fast fast_parallel` and calls `src/Buildtools/paw_build.sh -v -j10 -c <choice> [-z]`; `parmfile` (bash, sourced by paw_build.sh) picks the compiler (`gfortran` here, `mpif90` for parallel), libraries via `pkg-config` (openblas, fftw3, libxcf03) and sets `BINDIR=$(pwd)/bin/<choice>`, `BUILDDIR=$(pwd)/bin/Build_<choice>` (module files, `big.mk`), `DOCDIR=$(pwd)/doc` (manual built with latexmk unless `-z`). Preprocessor `paw_dollar_ok.sh` rewrites `$` in identifiers to `__`, so `MPE$STOPALL` appears as `MPE__STOPALL` in messages. |
 | Compile parameters (`paw_fast.x --parmfile` writes `parms.in_use` into the cwd; identical to `bin/Build_fast/etc/parms.in_use`) | `FC=/usr/bin/gfortran`, `FCFLAGS=-I/usr/include/x86_64-linux-gnu/openblas-pthread/ -ftree-vectorize -funroll-loops -O3 -finline-functions -fwhole-program -flto=3 -march=native`, `LIBS=-L/usr/lib/x86_64-linux-gnu/openblas-pthread/ -lopenblas -lfftw3 -lxcf03`, `INCLUDES=/usr/include/fftw3.f03 /usr/include/xc_f03_lib_m.mod`, `CPPFLAGS=""`, `PARALLEL=false`, `SUFFIX=fast`. Note `-march=native`: the binary is tied to this CPU family. |
 | Linked libraries (`ldd paw_fast.x`) | libopenblas.so.0, libfftw3.so.3, libxcf03.so.9 (LibXC 5.2.3), libgfortran.so.5, libmvec, libm, libc |
-| Environment on this machine | `PAWDIR=/home/pmk/cp-paw` is exported; `PATH` contains `bin/fast`, `bin/fast_parallel`, `bin/dbg`. The binaries themselves read **no** environment variable except `HOSTNAME` (`paw_trace.f90:75`); `PAWDIR` is only used by the shell scripts and by the documentation (`$PAWDIR/parameters/stp.cntl`, which does not exist here). |
-| Runtime blocker | The current system `libgfortran5` (GCC 16 runtime, installed 2026-03-22) rejects a malformed run-time FORMAT in `paw_trace.f90` → every actual run of `paw_fast.x` (and of every tool that calls `TRACE$PUSH` before reading input: `paw_dos.x`, `paw_tra.x`, `paw_grab.x`, `paw_cleantra.x`) aborts within 0.2 s. `paw_fast.x --version|--help|--parmfile`, `paw_wave.x -h`, `paw_bands.x -h` still work because they exit before the first trace call — a health check must therefore run a real (tiny) deck. See section 7.1 for the evidence and the two remedies. All results in this document were obtained with `LD_LIBRARY_PATH=/home/pmk/miniconda3/pkgs/libgfortran5-13.2.0-ha4646dd_0/lib`. |
-| Manual | `/home/pmk/cp-paw/src/Docs/manual.tex` (12,500 lines; rendered `/home/pmk/cp-paw/doc/manual.pdf`). Block/keyword documentation is fully regular (`\block{}`, `\brules{}`, `\bdescr{}`, `\mbax{\key{} \vdescr{} \vformat{} \vrules{} \vdefault{}}`) — 147 active blocks, 487 keys. |
+| Environment on this machine | `PAWDIR=~/cp-paw` is exported; `PATH` contains `bin/fast`, `bin/fast_parallel`, `bin/dbg`. The binaries themselves read **no** environment variable except `HOSTNAME` (`paw_trace.f90:75`); `PAWDIR` is only used by the shell scripts and by the documentation (`$PAWDIR/parameters/stp.cntl`, which does not exist here). |
+| Runtime blocker | The current system `libgfortran5` (GCC 16 runtime, installed 2026-03-22) rejects a malformed run-time FORMAT in `paw_trace.f90` → every actual run of `paw_fast.x` (and of every tool that calls `TRACE$PUSH` before reading input: `paw_dos.x`, `paw_tra.x`, `paw_grab.x`, `paw_cleantra.x`) aborts within 0.2 s. `paw_fast.x --version|--help|--parmfile`, `paw_wave.x -h`, `paw_bands.x -h` still work because they exit before the first trace call — a health check must therefore run a real (tiny) deck. See section 7.1 for the evidence and the two remedies. All results in this document were obtained with `LD_LIBRARY_PATH=~/miniconda3/pkgs/libgfortran5-13.2.0-ha4646dd_0/lib`. |
+| Manual | `~/cp-paw/src/Docs/manual.tex` (12,500 lines; rendered `~/cp-paw/doc/manual.pdf`). Block/keyword documentation is fully regular (`\block{}`, `\brules{}`, `\bdescr{}`, `\mbax{\key{} \vdescr{} \vformat{} \vrules{} \vdefault{}}`) — 147 active blocks, 487 keys. |
 | Examples / tests | `src/Docs/Examples/si2.{cntl,strc}`; `tests/unittests`, `tests/fulltests/si2` (reference energy asserted by `analyse.sh`); `src/Tools/Preopt/case.{pcntl,strc}`. |
 
 ### 1.1 Tools (all in `bin/fast/`; `-h` output captured in `.scratch/cppaw/tools/usage/`)
@@ -103,7 +105,7 @@ allowed). Standard IDs and default extensions:
    * `!STRUCTURE!SPECIES ID=...` looked up in a file attached as
      `!CONTROL!FILES!FILE ID='AUGPARMS' NAME=... EXT=F` (format `!ACNTL !AUGMENT ID=... !END !END`).
    No `.stp` files, `setups.rslv`-style files or `$PAWDIR/parameters` exist on this
-   workstation except `/media/pmk/SysEx/cs/paw/handson2022/setups.rslv` (the
+   workstation except `$COURSE/handson2022/setups.rslv` (the
    tutorial's inline definitions, see section 6). `PAWDIR` is **not read** by the
    binaries (the only `GET_ENVIRONMENT_VARIABLE('PAWDIR')` in
    `paw_ioroutines.f90:680` is commented out); it is a convention of the shell
@@ -197,7 +199,7 @@ Minimal complete decks (both run as-is, section 7):
 
 ### 3.2 How the tables below were produced
 
-`/home/pmk/Projects/atomscope/.scratch/cppaw/cppaw-schema-draft.json` was generated from `manual.tex` by `.scratch/cppaw/schema/build_schema.py` (wrapping the parser `tools/extract_manual_metadata.py` that ships with the distribution; 147 blocks, 487 keys; every entry carries `source_line`). Spot checks of 17 keys and 4 blocks against the manual by line number found no discrepancies; four manual typos were transcribed by hand and carry a `note`. Keys were then cross-referenced with **691 unique real decks** (1362 files) found under `/media/pmk/SysEx/cs/paw/{handson2022,hoc2w,Handson_2ndweek,paw_hoc,testset,projects,examples}` (`.scratch/cppaw/tutorial/used-keys.json`, produced by `.scratch/cppaw/tutorial/parse_decks.py`): the column **Used** gives the number of decks using the key (✓ = used, blank = not used in any deck). The full tables for all 147 blocks are in `.scratch/cppaw/schema/schema-tables.md`; below are the blocks that occur in the tutorial decks, the h2o/si2 examples, or are needed for restart/stop control. Long descriptions are truncated (`...`); `default` strings are verbatim from the manual.
+`.scratch/cppaw/cppaw-schema-draft.json` was generated from `manual.tex` by `.scratch/cppaw/schema/build_schema.py` (wrapping the parser `tools/extract_manual_metadata.py` that ships with the distribution; 147 blocks, 487 keys; every entry carries `source_line`). Spot checks of 17 keys and 4 blocks against the manual by line number found no discrepancies; four manual typos were transcribed by hand and carry a `note`. Keys were then cross-referenced with **691 unique real decks** (1362 files) found under `$COURSE/{handson2022,hoc2w,Handson_2ndweek,paw_hoc,testset,projects,examples}` (`.scratch/cppaw/tutorial/used-keys.json`, produced by `.scratch/cppaw/tutorial/parse_decks.py`): the column **Used** gives the number of decks using the key (✓ = used, blank = not used in any deck). The full tables for all 147 blocks are in `.scratch/cppaw/schema/schema-tables.md`; below are the blocks that occur in the tutorial decks, the h2o/si2 examples, or are needed for restart/stop control. Long descriptions are truncated (`...`); `default` strings are verbatim from the manual.
 
 Keys used by real decks that are **not in the manual** (Atomscope must tolerate them when importing decks; some are typos that CP-PAW silently ignores, some are newer than the manual): `!CONTROL!GENERIC AUTOCONF` (typo of `AUTOCONV`), `!CONTROL!PSIDYN SAVEORTHO` (typo of `SAFEORTHO`), `!CONTROL!PSIDYN M`, `!CONTROL!PSIDYN!THERMOSTAT T[K]` (documented for `!RDYN!THERMOSTAT` only), `!CONTROL!ANALYSE!WAVE DIAG`, `!CONTROL!DFT!NTBO HFWEIGHT`, `!STRUCTURE!SPECIES FILE|ZV|RAD/COV|XXPS<G2>|XXPS<G4>`, `!STRUCTURE!SPECIES!NTBO TAILLAMBDA|RTAIL/RCOV|RTAILCUT/RCOV`, `!DCNTL!GRID EMIN[EV]|EMAX[EV]`, `!DCNTL!WEIGHT!ORB` and `!DCNTL!COOP!ORB1/ORB2` keys (`ATOM NAME NNX NNZ TYPE Z` — documented under `!DCNTL!ORBITAL!ORB` and referenced), `!DPCNTL!GRAPH!SET FILLCOLOR`. Blocks in decks that are not in the manual: `!STRUCTURE!CONSTRAINTS!LINEAR_PHI|LINEAR_Q2|LINEAR_Q3` (+ `!ATOM`), `!DCNTL!OUTPUT`, `!TCNTL!MODEX` (disabled variant), `!SCNTL!SETUP...` (the *old* setup-file format, superseded by `!ACNTL!AUGMENT`, see `paw_setups.f90:1488-1490`), and nesting mistakes (`!STRUCTURE!SPECIES!SPECIES`, `!STRUCTURE!SPECIES!ATOM` — a missing `!END` swallows the following blocks silently; CP-PAW still runs).
 
@@ -1444,7 +1446,7 @@ Commands the tutorial has students run (verbatim from the decks' scripts and `pa
 
 | Family | Chapter | Real decks (read-only) | Computes | CNTL features | STRC features | Setups | Post-processing present | Run time | Outputs |
 |---|---|---|---|---|---|---|---|---|---|
-| Water, wave-function optimisation | 2.7, 3 | `/media/pmk/SysEx/cs/paw/projects/hoc/h2o/h2o.{cntl,strc,wcntl,dpcntl}`, `.../zip/h2o.dcntl`; reference outputs in the same dir | single point, MOs, DOS/COOP | `START=T NSTEP=200`, `!PSIDYN FRIC=0.01 + !AUTO` | isolated molecule in a box, `LUNIT`, `ID='O_.75_6.0'`/`'H_.75_6.0'` with `M=5./2.` (heavy masses for faster dynamics) | internal `.75_6.0` | `h2o.wcntl` (band 3 MO → cube), `h2o.dcntl` (O s/p, H, O-H COOP), `.dpcntl` | ~1 min (est., EPWPSI=30) | `.prot .rstrt .strc_out _r.tra .pdos .banddata`, `h2o_b3.wv/.cub` |
+| Water, wave-function optimisation | 2.7, 3 | `$COURSE/projects/hoc/h2o/h2o.{cntl,strc,wcntl,dpcntl}`, `.../zip/h2o.dcntl`; reference outputs in the same dir | single point, MOs, DOS/COOP | `START=T NSTEP=200`, `!PSIDYN FRIC=0.01 + !AUTO` | isolated molecule in a box, `LUNIT`, `ID='O_.75_6.0'`/`'H_.75_6.0'` with `M=5./2.` (heavy masses for faster dynamics) | internal `.75_6.0` | `h2o.wcntl` (band 3 MO → cube), `h2o.dcntl` (O s/p, H, O-H COOP), `.dpcntl` | ~1 min (est., EPWPSI=30) | `.prot .rstrt .strc_out _r.tra .pdos .banddata`, `h2o_b3.wv/.cub` |
 | Water, relaxation | 2.8 | `projects/hoc/h2o/h2o_after_atomic_opt/` (results), CNTL pattern = `!RDYN` + `!RDYN!AUTO` | geometry optimisation | `START=F`, `!RDYN FRIC=... !AUTO` | as above | | | minutes | forces in ATOMLIST |
 | Malonaldehyde (C₃O₂H₄) | 4, 5 | `projects/hoc/c3o2h4/c3o2h4.{cntl,strc,dcntl,dpcntl}`, `hoc/zip/c3o2h4.*`, `c3o2h4_after_wft_opt/`, `c3o2h4_after_atom_opt/` | electron optimisation → relaxation → MD (proton transfer) | `START=F NSTEP=2000`, `!PSIDYN FRIC=0.0 STOP=T`, `!RDYN FRIC=0.0 STOP=T` (`!AUTO_X` disabled → free MD), thermostats (`!THERMOSTAT T[K]= FREQ[THZ]=`) in ch.5 | molecule, `!ISOLATE`, `!CONSTRAINTS` for translations/rotations | internal `.75_6.0`, `M=5.` C/O, `M=2.` H | `.dcntl/.dpcntl`, `paw_tra.x` mode analysis | 10-30 min (est.) | `_r.tra` trajectory, `_e.tra` |
 | Silicon | 6 | `projects/hoc/Si/si.{cntl,strc,bcntl,dcntl,dpcntl}` (+ outputs), `src/Docs/Examples/si2.*`, `Si0/` | periodic single point, DOS, band structure | `NSTEP=1000 START=T`, `!AUTO` | fcc 2-atom cell `LUNIT[AA]=5.431`, `!KPOINTS R=30.`, `EMPTY=5` | internal `SI_.75_6.0` | `si.bcntl` (6 k-lines to `Dos/bands.dat`), `si.dcntl` | 12 s (si2, R=10) – few min (R=30) | `.banddata`, `bands.dat` |
@@ -1452,12 +1454,12 @@ Commands the tutorial has students run (verbatim from the decks' scripts and `pa
 | Iron (ferromagnet) | 7.2 | `projects/hoc/Fe/fe.{cntl,strc,dcntl,dpcntl}` + outputs, `hoc/zip/fe.*` | spin-polarised metal, moment | `!MERMIN ADIABATIC=T RETARD=10. TETRA+=T T[K]=0.`, `SAFEORTHO=F` | bcc `LUNIT[AA]=2.87`, `NSPIN=2 SPIN[HBAR]=2. EMPTY=10`, `R=30.` | `FE_.75_6.0` | spin-resolved DOS | minutes | |
 | NiO (antiferromagnet) | 7 / 2nd week | `projects/hoc/NiO/nio.*`, `projects/NiO/{NiO_wfo,NiO_aso,NiO_hybrid_wfo}/nio.cntl`, `nio.wcntl` | AFM oxide, spin density | `NSTEP=2000 START=F`, `!ANALYSE!DENSITY TYPE='TOTAL'|'SPIN'` (disabled `_x` in one deck), hybrid-functional variant (`!DFT!NTBO`) | `LUNIT[AA]=4.17`, `NSPIN=2 SPIN[HBAR]=0.`, `!OCCUPATIONS!STATE` for AFM order, `R=20.` | `NI_.75_6.0`, `O_.75_6.0` | `nio_density.wv/.cub` | 10+ min | |
 | Convergence tests | 8 | `projects/hoc/convergence/{al,fe,h2o}` | EPWPSI / CDUAL / k-point / cell-size scans | `paw_scan`-style directory per value | | | | | E vs parameter |
-| SN2 reaction (CH₃Cl + I⁻, CH₃Cl + Br⁻, SN1 variants) | 2022 project | `handson2022/sn2/src/*.strc` (23), `sn2/src/{sample.cntl_strt,sample.cntl_rlx,sample.cntl_tsscan,md.cntl,md.tcntl}`, `*.dcntl/*.dpcntl`, `setups.rslv`; also `/home/pmk/ase-cp-paw/calculations/ch3cli/cppaw0..8` (a finished 9-point scan) | reactant/product relaxation, transition-state scan along a bond-length constraint, MD | staged CNTLs (start → relax → scan), `!RDYN STOP=T FRIC=0.0` | charged molecule `CHARGE[E]=-1.0`, `LUNIT=1.889726124`, `!ISOLATE`, `!CONSTRAINTS!BOND ATOM1='C_1' ATOM2='I_1' MOVE=T SHOW=T VALUE=@VAL@ NSTEP=100` | inline `!AUGMENT` (`MY_NDLSS_*`, `TYPE='NDLSS'`) via `@` placeholders + `paw_resolve` | `.dcntl`, `md.tcntl` (movie.xyz) | 5-15 min per point (est.) | `_constr.report` with `!>` constraint values/forces |
+| SN2 reaction (CH₃Cl + I⁻, CH₃Cl + Br⁻, SN1 variants) | 2022 project | `handson2022/sn2/src/*.strc` (23), `sn2/src/{sample.cntl_strt,sample.cntl_rlx,sample.cntl_tsscan,md.cntl,md.tcntl}`, `*.dcntl/*.dpcntl`, `setups.rslv`; also `~/ase-cp-paw/calculations/ch3cli/cppaw0..8` (a finished 9-point scan) | reactant/product relaxation, transition-state scan along a bond-length constraint, MD | staged CNTLs (start → relax → scan), `!RDYN STOP=T FRIC=0.0` | charged molecule `CHARGE[E]=-1.0`, `LUNIT=1.889726124`, `!ISOLATE`, `!CONSTRAINTS!BOND ATOM1='C_1' ATOM2='I_1' MOVE=T SHOW=T VALUE=@VAL@ NSTEP=100` | inline `!AUGMENT` (`MY_NDLSS_*`, `TYPE='NDLSS'`) via `@` placeholders + `paw_resolve` | `.dcntl`, `md.tcntl` (movie.xyz) | 5-15 min per point (est.) | `_constr.report` with `!>` constraint values/forces |
 | Graphene | 2nd week | `handson2022/Handson_Projects/Graphene/src/*.strc` (6), `*.dcntl`, `sample.wcntl`, `g3x3wp.wcntl` | supercells with N/B doping, DOS, MO plots | | 2-D periodic slab | resolve | yes | | |
 | H in Pd / Jahn-Teller | 2nd week | `Handson_Projects/HinPd/src/pd*.strc`, `hoc2w/Jahn-Teller/src/*` (+ `doc/diffusion.pdf`) | H diffusion in Pd (octahedral vs tetrahedral sites) | | 32-atom Pd supercell | resolve | `.dcntl` | | |
 | Ruby (Cr:Al₂O₃) | 2nd week | `Handson_Projects/Ruby/src/*.strc`, `ruby*.dcntl`, `ruby.wcntl`, `hoc2w/Ruby/doc/forstudents.pdf` | d-level splitting, spin states | | corundum cell, `NSPIN=2`, `!OCCUPATIONS!STATE` | resolve | DOS per Cr d-orbital, MO plots | | |
 | Schottky barrier, Si surface reconstruction, Si phase diagram | 2nd week | `Handson_Projects/{Schottkybarrier,Surfacereconstruction,Phasediagram}/src/` (`cell.cntl`, `scan1.cntl`, `start.cntl`, `doall.sh`) | slabs, interfaces, E(V) of Si phases with `paw_scanlat` + `paw_murnaghan.x`, `!CONTROL!CELL` dynamics | `!CELL MOVE= FRIC= STOP=`, `!ANALYSE!1DPOT` | | resolve | `doall.sh` shows the full pipeline incl. `paw_get -w efermi`, `paw_resolve -f KPOINTS=` | | |
-| Misc. | — | `/media/pmk/SysEx/cs/paw/examples/{c9m0ar,surface,t-hooo,pcmo_ce}.*`, `testset/` (G2, W4-11 benchmark sets), `projects/{cyclo18carbon,haems,munchnone,PrCeO2,qcorral,Thien_Surface}` | | | | | | | |
+| Misc. | — | `$COURSE/examples/{c9m0ar,surface,t-hooo,pcmo_ce}.*`, `testset/` (G2, W4-11 benchmark sets), `projects/{cyclo18carbon,haems,munchnone,PrCeO2,qcorral,Thien_Surface}` | | | | | | | |
 
 Setup-resolution mechanism used by the 2022 decks: STRC templates contain `@SETUPS@` (or `@SPECIES_X@`, `@KPOINTS@`, `@VAL@` for scan values); `paw_resolve -f SETUPS=$SRC/setups.rslv -r VAL=2.3 -i template.strc -o work/case.strc` replaces the line with the file contents / the value. `setups.rslv` is a plain list of `!SPECIES ... !AUGMENT ... !END !END` blocks (CL, H_, C_, BR, I_, ...) with `TYPE='NDLSS'` augmentation and `!NTBO` parameters. The older hoc decks (2019) use the internal `<EL>_.75_6.0` IDs and need nothing external. No deck uses `!FILES!FILE ID='AUGPARMS'`.
 
@@ -1472,8 +1474,8 @@ Run times above marked "est." are extrapolated from the smoke tests (si2: 0.07 s
 Command (as the manual prescribes, section "Execute the simulation code", manual.tex ~l.606):
 
 ```bash
-cd /home/pmk/Projects/atomscope/.scratch/cppaw/si2
-/home/pmk/cp-paw/bin/fast/paw_fast.x si2.cntl 1>si2.err 2>&1     # exit code 2 after 0.15 s
+cd .scratch/cppaw/si2
+$PAWDIR/bin/fast/paw_fast.x si2.cntl 1>si2.err 2>&1     # exit code 2 after 0.15 s
 ```
 
 `si2.err`:
@@ -1503,7 +1505,7 @@ an older `libgfortran.so.5` (GCC 13.2) that happens to be present in a conda
 package cache:
 
 ```bash
-export LD_LIBRARY_PATH=/home/pmk/miniconda3/pkgs/libgfortran5-13.2.0-ha4646dd_0/lib
+export LD_LIBRARY_PATH=~/miniconda3/pkgs/libgfortran5-13.2.0-ha4646dd_0/lib
 ```
 
 Permanent fixes (what would be needed): (1) add the missing comma in
@@ -1521,9 +1523,9 @@ the explanation.
 ### 7.2 si2 example (`src/Docs/Examples/si2.{cntl,strc}`, unmodified)
 
 ```bash
-cd /home/pmk/Projects/atomscope/.scratch/cppaw/si2
-LD_LIBRARY_PATH=/home/pmk/miniconda3/pkgs/libgfortran5-13.2.0-ha4646dd_0/lib \
-  timeout 600 /home/pmk/cp-paw/bin/fast/paw_fast.x si2.cntl 1>si2.err 2>&1
+cd .scratch/cppaw/si2
+LD_LIBRARY_PATH=~/miniconda3/pkgs/libgfortran5-13.2.0-ha4646dd_0/lib \
+  timeout 600 $PAWDIR/bin/fast/paw_fast.x si2.cntl 1>si2.err 2>&1
 ```
 
 * Setup resolution: `!SPECIES ID='SI_.75_6.0'` — the suffix after the first
@@ -1613,7 +1615,7 @@ SI2      (  1.35734,  1.35734,  1.35734)   28.0855    0.5365  -0.00000
 Note: the header announces a `FORCE[MH/ABOHR]` column but **no force vector is
 printed** because atoms were not propagated (`ATOMS ARE NOT PROPAGATED`).
 
-### 7.3 h2o example (`/home/pmk/ase-cp-paw/calculations/h2o/case.{cntl,strc}`)
+### 7.3 h2o example (`~/ase-cp-paw/calculations/h2o/case.{cntl,strc}`)
 
 Modifications: `START=F` -> `START=T` (no restart file in a fresh directory),
 `NSTEP=1` -> `NSTEP=300`, removed the `!FILE ID='RESTART_OUT' NAME='/dev/null'`
@@ -1658,7 +1660,7 @@ O and H, isolated-molecule cell, `NSPIN=2`, `EMPTY=15`) is unmodified.
 
 ## 8. Known traps
 
-Sources: the third-party audit of the earlier web workbench (`/home/pmk/cp-paw/docs/third_party_audit_report.md`), the workbench code (`/home/pmk/cp-paw/backend/app/protocol.py`, `restarts.py`, ...), the manual, the Fortran sources and the probes of section 7. Status: **VERIFIED** = reproduced here or read in the source at the cited line; **MANUAL** = stated by the manual; **AUDIT** = reported by the audit, consistent with the source.
+Sources: the third-party audit of the earlier web workbench (`~/cp-paw/docs/third_party_audit_report.md`), the workbench code (`~/cp-paw/backend/app/protocol.py`, `restarts.py`, ...), the manual, the Fortran sources and the probes of section 7. Status: **VERIFIED** = reproduced here or read in the source at the cited line; **MANUAL** = stated by the manual; **AUDIT** = reported by the audit, consistent with the source.
 
 1. **Forces appear in the protocol only when `!CONTROL!RDYN` exists** (`paw_atoms.f90:257`, `TDYN`), and with `STOP=T` not in the first ATOMLIST. A single-point deck therefore yields no forces; the workbench's ASE calculator read `[0,0,0]` and BFGS "converged" at step 0 (audit PARSE-1). VERIFIED (§7.2 vs §7.4). Remedy: force evaluation = `!RDYN FRIC=1.0 STOP=T !END` (friction 1 = steepest descent) with a small `NSTEP` and `NWRITE=1`, then read the ATOMLIST of the last step. Verified (`si2_force/`, Si2 displaced by 0.02 lattice units, `NEWSTRC=T`, 5 steps): forces appear from the first propagated step on (`(-189.17, -0.02, -0.03)` → `(-141.40, 0.13, -0.41)` mH/a₀ as the wave functions re-converge for the new geometry), the atom moved only 1.46593 → 1.46584 Å. Forces are only meaningful once the electrons are converged for the *current* geometry, so run enough steps for `EKIN(PSI)` to drop. **Do not use `_f.tra` as the force source: in this build it contains only zeros**, both without `!RDYN` (`si2_ftra/`: 59 records, all 0.0) and with `!RDYN` (`si2_force/`: records 144-147 all 0.0 while the ATOMLIST shows −189 mH/a₀).
 2. **Protocol forces have 2 decimals in mH/a₀** (`F7.2`); resolution 5·10⁻⁴ eV/Å — too coarse for tight relaxations; `Q[E]` overflows to `********` for |Q|≥100 in early unconverged steps (seen in ch3cli). VERIFIED.

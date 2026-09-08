@@ -27,11 +27,12 @@ from ase.units import Bohr
 from atomscope.ase_bridge.convert import from_atoms
 from atomscope.model import Structure
 
-#: 1CRN.pdb from the Avogadro 1 test files (read-only reference material).
+#: Crambin (1CRN), from the copy of the Avogadro 1 test file that lives in this repository, so a
+#: benchmark run needs nothing outside it. `ATOMSCOPE_BENCH_PDB` overrides it.
 CRAMBIN = Path(
     os.environ.get(
         "ATOMSCOPE_BENCH_PDB",
-        "/media/pmk/SysEx/cs/paw/avogadro/avogadro-master/testfiles/1CRN.pdb",
+        str(Path(__file__).resolve().parents[1] / "tests" / "fixtures" / "bio" / "1crn.pdb"),
     )
 )
 

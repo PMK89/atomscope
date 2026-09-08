@@ -1,12 +1,12 @@
 # ASE integration analysis for Atomscope
 
 Scope: (a) the installed ASE 3.25.0 API surface Atomscope should build on, (b) the historical
-`asecppaw` package (`/home/pmk/ase-cp-paw`, author Patrick M. Kaiser, 2020-2025), and (c) the prior
-web-workbench ASE code (`/home/pmk/cp-paw/backend/app/`). Everything below was verified against the
-files on disk and by running read-only introspection with `/home/pmk/miniconda3/envs/asecppaw/bin/python`
-(ASE 3.25.0). Scratch outputs live in `/home/pmk/Projects/atomscope/.scratch/ase/`.
+`asecppaw` package (`~/ase-cp-paw`, author Patrick M. Kaiser, 2020-2025), and (c) the prior
+web-workbench ASE code (`~/cp-paw/backend/app/`). Everything below was verified against the
+files on disk and by running read-only introspection with `~/miniconda3/envs/asecppaw/bin/python`
+(ASE 3.25.0). Scratch outputs live in `.scratch/ase/`.
 
-Licensing note: `/home/pmk/ase-cp-paw/setup.cfg:9` says `license = MIT` and `pyproject.toml:12` says
+Licensing note: `~/ase-cp-paw/setup.cfg:9` says `license = MIT` and `pyproject.toml:12` says
 `license = { file = "LICENSE" }`, but **no LICENSE file exists in the repository** (`ls LICENSE*` is empty;
 the README links to a non-existent `LICENSE`). Since the author is the project owner, this is fixable by
 adding the file; until then the package has no effective license grant and nothing should be vendored
@@ -16,7 +16,7 @@ from it into a distributed product without the owner adding one.
 
 ## 1. `asecppaw` architecture
 
-### 1.1 Module map (`/home/pmk/ase-cp-paw/src/asecppaw/`, 14 986 lines total)
+### 1.1 Module map (`~/ase-cp-paw/src/asecppaw/`, 14 986 lines total)
 
 | Module | Lines | Responsibility | Third-party deps |
 |---|---|---|---|
@@ -105,7 +105,7 @@ summarised in more detail in section 1.9-1.12.
     `sbatchpaw` must be on `PATH`. **`PAWDIR` is never read** by the package (the CP-PAW binaries find
     setups themselves). Cluster-specific defaults are hard-coded: `node='2x12o'`, `version='1216'`,
     `'2x12o_low_priority'` (`globals.py:16,22`). Personal paths: `examples/nudged-elastic-bands/fireneb_vc.py:23`
-    `sys.path.append('/home/pkaiser/hiwi/AseCppaw')`; the README example points to
+    `sys.path.append('/home/<user>/hiwi/AseCppaw')`; the README example points to
     `data/examples/h2o` which does not exist.
   * Progress: `tailProt()` (1579-1671) busy-polls the `.prot` file (`follow()` generator, 20 ms
     sleep), feeds `!>` rows into `cppawProtocol` and report lines into `cppawReport`, and stops on
@@ -284,9 +284,9 @@ generator (`makeCompDictDb`, `autoRE`, `balancedCoefficients`, `scoreReactions`,
 ORCA inputs for cross-validation; `tools/povray.py` renders.
 
 **Examples/docs.** All `examples/useCase*.py` hard-code personal paths
-(`/home/pmk/paw/hiwi/new_ase_cpaw/...`, `/mnt/pmk/nuku/femoco_resting_state/...`, `uName='pmk'`);
+(`/home/<user>/paw/hiwi/new_ase_cpaw/...`, `/mnt/<user>/nuku/femoco_resting_state/...`, `uName='<user>'`);
 `examples/ir_h2o/infrared.py` and `fireneb_vc.py` import the pre-package modules `AseCppaw`,
-`AseCppawBatch`, `AseCppawInputFiles` from `/home/pkaiser/hiwi/AseCppaw`. `changes.patch` is not a
+`AseCppawBatch`, `AseCppawInputFiles` from `/home/<user>/hiwi/AseCppaw`. `changes.patch` is not a
 diff but a 48-line list of file paths. `docs/doxygen` is stale (references a removed `db_old`);
 `docs/notebooks/` has `h2o`, `indole`, `neb`, `neb_reload`, `contour_plot`, `read_manual` notebooks.
 `paw_setup.sh` is an apt/`git clone`/build script that symlinks CP-PAW binaries into `/usr/local/bin`.
@@ -295,7 +295,7 @@ diff but a 48-line list of file paths. `docs/doxygen` is stale (references a rem
 `ase>=3.22`, `numpy>=1.21`, `openbabel-wheel>=3.1.1.21`), `setup.cfg` (1.2.0, `openbabel>=3.1.1`),
 `setup.py` (0.1.0, `pdfplumber`, author email `pmk@example.com`). `python_requires` not pinned
 consistently. The package is editable-installed in the `asecppaw` env pointing at
-`/home/pmk/ase-cp-paw/src`.
+`~/ase-cp-paw/src`.
 
 **History.** 30 commits, 2022-11-23 (`16351c3 ase-cp-paw inital commit state 14.11.22`) to
 2025-05-24 (`aaea61b neb works`), one author under three identities (`Patrick Kaiser`, `PMK89`,
@@ -360,14 +360,14 @@ consistently. The package is editable-installed in the `asecppaw` env pointing a
 
 Verified against real protocols:
 
-* `/home/pmk/ase-cp-paw/calculations/h2o/case.prot` (CNTL has `!RDYN_x` = disabled). The ATOMLIST rows
+* `~/ase-cp-paw/calculations/h2o/case.prot` (CNTL has `!RDYN_x` = disabled). The ATOMLIST rows
   have the `FORCE[MH/ABOHR]` header but **no force column**:
   ```
   NAME          POSITION[ANGSTROM]            M[U]    MPSI_EFF[U] Q[E]           FORCE[MH/ABOHR]
   O_1      (  0.00000,  0.00000,  0.11926)   15.9994    3.3263  -0.00000
   ```
   `grep -c` for rows with two parenthesis groups: **0**.
-* `/home/pmk/ase-cp-paw/calculations/ch3cli/cppaw1/case.prot` (CNTL `!GENERIC NSTEP=1`, `!RDYN STOP=T FRIC=0.0`):
+* `~/ase-cp-paw/calculations/ch3cli/cppaw1/case.prot` (CNTL `!GENERIC NSTEP=1`, `!RDYN STOP=T FRIC=0.0`):
   ```
   CL1      ( -1.84596,  0.48399,  0.00003)   35.4527    1.6537  -0.44329  ( -16.52,  -0.33,   0.03)
   ```
@@ -377,7 +377,7 @@ Verified against real protocols:
   without a force triple, `prot.py:483-486`); ch3cli -> real forces (max 0.025 eV/Å) and energy
   `-936.234 eV = -34.4060 H`. So any ASE optimiser or NEB driven by the default
   `sample_rlxe.cntl` (`!RDYN_X`) converges at step 0 - exactly the PARSE-1 no-op reported in
-  `/home/pmk/cp-paw/docs/third_party_audit_report.md`. The workbench fixed this by (a) running native
+  `~/cp-paw/docs/third_party_audit_report.md`. The workbench fixed this by (a) running native
   CP-PAW friction dynamics instead of ASE-BFGS and (b) `parse_protocol_report(..., require_forces=True)`
   raising when no forces are present (`backend/app/protocol.py:247-302`).
 * Additional precision trap: forces are printed with 2 decimals in mH/aBohr, i.e. in steps of
@@ -420,11 +420,11 @@ per-atom values.
 | B14 | `input_files.py:1300-1388`, `prot.py:645` | Debug `print()` on hot paths (every `!>` line is printed). |
 | B15 | `calculator.py:1852-1883` | `converged` heuristic (`STOP SIGNAL RECEIVED`) false for finished `NSTEP=1` runs (reproduced: `converged=False, ERROR=False`). |
 | B16 | `calculator.py:1034-1063` | `checkTmp` truncates any `*.tmp` > 1 GB to a single space; `checkOld` (1370-1406) deletes all files in the working directory. |
-| B17 | `globals.py`, examples | Hard-coded cluster names (`2x12o`, `1216`, `sbatchpaw`), personal path `/home/pkaiser/hiwi/AseCppaw` (`fireneb_vc.py:23`), README example path that does not exist, notebook importing a non-existent `ase_cppaw` module. |
+| B17 | `globals.py`, examples | Hard-coded cluster names (`2x12o`, `1216`, `sbatchpaw`), personal path `/home/<user>/hiwi/AseCppaw` (`fireneb_vc.py:23`), README example path that does not exist, notebook importing a non-existent `ase_cppaw` module. |
 | B18 | `prot.py:322` | Energy is the *last* `TOTAL ENERGY` in the file irrespective of which program run produced it; protocols are appended across runs (h2o: 3 runs, ch3cli: 292). |
 | B19 | `calculator.py:960-965` | With `read=True`, `calculate()` re-parses the file for every `get_*` call; no caching invalidation logic ties results to the Atoms actually computed. |
 
-### 3.4 Cross-check with the workbench audit (`/home/pmk/cp-paw/docs/*.md`) and code
+### 3.4 Cross-check with the workbench audit (`~/cp-paw/docs/*.md`) and code
 
 * **PARSE-1** (critical, relaxation no-op): root cause identical to 3.1. Current workbench code is the
   *post-fix* state: `workflows.py:182-267` runs native `!RDYN` relaxation, `protocol.py:247-302`
@@ -453,7 +453,7 @@ per-atom values.
 ## 4. Tests in `ase-cp-paw/tests`
 
 Procedure: the repository was copied (rsync, excluding `.git` and `__pycache__`) to
-`/home/pmk/Projects/atomscope/.scratch/ase/ase-cp-paw-copy/` and pytest was run there with
+`.scratch/ase/ase-cp-paw-copy/` and pytest was run there with
 `PYTHONPATH=src`. `pytest` is **not installed** in the `asecppaw` env; it was borrowed via `PYTHONPATH`
 from another existing conda env (`envs/ape`, pytest 7.4.0, Python 3.11.7) without installing anything.
 
@@ -472,8 +472,8 @@ from another existing conda env (`envs/ape`, pytest 7.4.0, Python 3.11.7) withou
 * Import check of every module with `PYTHONPATH=src` in the `asecppaw` env: all import except
   `visualize.py` (`ModuleNotFoundError: No module named 'AseColors'`). Third-party imports used across
   the package: numpy, pandas, matplotlib, ipywidgets, nglview, openbabel/pybel - all present in the env.
-* The CP-PAW binary itself is present on this machine (`/home/pmk/cp-paw/bin/fast/paw_fast.x`,
-  `PAWDIR=/home/pmk/cp-paw`) but is not used by any test. The workbench (`/home/pmk/cp-paw/backend/tests/test_ase.py`)
+* The CP-PAW binary itself is present on this machine (`$PAWDIR/bin/fast/paw_fast.x`,
+  `PAWDIR=~/cp-paw`) but is not used by any test. The workbench (`~/cp-paw/backend/tests/test_ase.py`)
   shows the better pattern: a fake `paw_fast.x` shell script that writes a canned protocol, so the
   calculator can be tested end-to-end without CP-PAW.
 
@@ -481,7 +481,7 @@ from another existing conda env (`envs/ape`, pytest 7.4.0, Python 3.11.7) withou
 
 ## 5. ASE 3.25 API surface for Atomscope
 
-Installed: **3.25.0** (`/home/pmk/miniconda3/envs/asecppaw/lib/python3.11/site-packages/ase`). PyPI
+Installed: **3.25.0** (`~/miniconda3/envs/asecppaw/lib/python3.11/site-packages/ase`). PyPI
 latest (2026-09-04): **3.29.0** (3.26.0 2025-08-12, 3.27.0 2025-12-28, 3.28.0 2026-03-17, 3.29.0
 2026-06-21). Atomscope should target `ase>=3.25` for the API below and re-verify against 3.29 before
 release; the relevant modern surfaces (`GenericFileIOCalculator`, `ase.mep`, `ase.filters`,
@@ -593,7 +593,7 @@ backends json/sqlite/postgresql/mysql; `row.toatoms()`, `key_value_pairs`, `data
 
 ### 5.7 `ase.io` formats relevant to Avogadro parity (ASE 3.25, 99 formats registered)
 
-Full dump: `/home/pmk/Projects/atomscope/.scratch/ase/out3.txt`. `single` = one structure per file.
+Full dump: `.scratch/ase/out3.txt`. `single` = one structure per file.
 
 | Format (ase name) | read | write | notes |
 |---|---|---|---|
@@ -794,7 +794,7 @@ file -> `ase.io.read` -> heuristic bonds when the file had bonds.
   (and `NEWSTRC=T` when the structure changed) in the generated CNTL - no string surgery on files.
 * Errors: non-zero exit, `ERROR`/`STOP IN` lines, missing `PROGRAM FINISHED`, or missing required
   blocks -> `CalculationFailed` with the protocol tail attached; never return `'ERROR IN CALCULATION'`.
-* Testing: fixture protocols from `/home/pmk/ase-cp-paw/calculations/{h2o,ch3cli}` (no-force and
+* Testing: fixture protocols from `~/ase-cp-paw/calculations/{h2o,ch3cli}` (no-force and
   with-force cases) plus a fake `paw_fast.x` script (as in the workbench `test_ase.py`) for end-to-end
   calculator tests without CP-PAW; a real-binary smoke test gated on `[cppaw]` being configured.
 
