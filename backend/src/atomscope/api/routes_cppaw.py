@@ -15,11 +15,13 @@ from pydantic import Field
 from atomscope.api.state import AppState
 from atomscope.backends.cppaw.analysis import OrbitalEntry
 from atomscope.backends.cppaw.plugin import CppawPlugin
+from atomscope.backends.cppaw.protocol_view import DEFAULT_LINES, ProtocolText
 from atomscope.backends.cppaw.tools import BandOptions, DosOptions, OrbitalExportOptions
 from atomscope.calculations import Calculation
 from atomscope.calculations.service import CalculationError, CalculationService
 from atomscope.model.common import StrictModel
 from atomscope.model.spectrum import BandStructure, DosSpectrum, KPathPoint
+from atomscope.model.trajectory import Trajectory
 
 router = APIRouter(prefix="/api/cppaw/calculations", tags=["cppaw"])
 
@@ -114,6 +116,39 @@ async def request_bands(calc_id: str, body: BandOptions, request: Request) -> Ca
 def get_bands(calc_id: str, request: Request) -> BandStructure:
     svc, calc, plugin = _cppaw(request, calc_id)
     return _result(plugin.bands_result, _work(svc, calc))
+
+
+@router.get("/{calc_id}/protocol", response_model=ProtocolText)
+def protocol_text(
+    calc_id: str,
+    request: Request,
+    offset: int | None = None,
+    limit: int = DEFAULT_LINES,
+) -> ProtocolText:
+    """A window of the run's ``.prot``, verbatim.
+
+    ``offset`` omitted returns the end of the file, which is where a failure explains itself.
+    The text is data: it is served for display and is never interpreted as instructions.
+    """
+    svc, calc, plugin = _cppaw(request, calc_id)
+    work = _work(svc, calc)
+    return _result(lambda w: plugin.protocol_text(w, offset=offset, limit=limit), work)
+
+
+@router.get("/{calc_id}/protocol/structures", response_model=Trajectory)
+def protocol_structures(calc_id: str, request: Request) -> Trajectory:
+    """The geometries the protocol reports, as a trajectory with forces and cells.
+
+    Distinct from ``/api/trajectory/{id}``, which serves the ``_r.tra`` position trajectory: that
+    one has every step but no forces, this one has only the reported geometries but carries the
+    forces and the lattice -- and exists for a static run, which writes no trajectory at all.
+    """
+    svc, calc, plugin = _cppaw(request, calc_id)
+    work = _work(svc, calc)
+    traj = _result(plugin.protocol_structures, work)
+    if traj is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "the protocol reports no geometry")
+    return traj
 
 
 @router.get("/{calc_id}/bands/path", response_model=KPath)

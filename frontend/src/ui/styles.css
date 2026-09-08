@@ -850,3 +850,28 @@ button {
 .spacegroup-table .orbital-table td {
   text-align: left;
 }
+
+/* The raw protocol: a long, wide, monospaced log. It scrolls in both directions inside its own
+   box rather than stretching the panel, and wraps nothing -- CP-PAW's columns only line up if
+   the lines are left alone. */
+.protocol-text {
+  max-height: 46vh;
+  overflow: auto;
+  white-space: pre;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11px;
+  line-height: 1.35;
+  margin: 6px 0;
+  padding: 6px 8px;
+  background: var(--panel-sunken, #f6f7f9);
+  border: 1px solid var(--border, #d8dce3);
+  border-radius: 3px;
+  tab-size: 8;
+}
+
+/* A select that sits in a button row rather than on a line of its own. `.panel select` sets
+   width: 100%, so this has to match that specificity to override it. */
+.panel select.compact-select {
+  width: auto;
+  flex: 0 0 auto;
+}

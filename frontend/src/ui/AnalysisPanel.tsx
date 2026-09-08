@@ -31,8 +31,9 @@ import {
   type ChartYMarker,
 } from './charts/LineChart';
 import { channelOrbitals, channels, homoIndex, lumoIndex, stepIndex } from './analysis/orbitals';
+import { ProtocolView } from './analysis/ProtocolView';
 
-type Section = 'convergence' | 'orbitals' | 'dos' | 'bands';
+type Section = 'convergence' | 'orbitals' | 'dos' | 'bands' | 'protocol';
 
 const SERIES_COLORS = ['#2f6fdb', '#e07a3c', '#3cb371', '#9b59b6', '#c0392b'];
 const SPIN_COLORS = ['#2f6fdb', '#c0392b'];
@@ -314,7 +315,7 @@ export function AnalysisPanel({ onError }: { onError: (m: string) => void }): JS
   return (
     <div className="panel analysis-panel">
       <div className="tabs">
-        {(['convergence', 'orbitals', 'dos', 'bands'] as const).map((s) => (
+        {(['convergence', 'orbitals', 'dos', 'bands', 'protocol'] as const).map((s) => (
           <button
             key={s}
             className={section === s ? 'tab active' : 'tab'}
@@ -326,7 +327,9 @@ export function AnalysisPanel({ onError }: { onError: (m: string) => void }): JS
                 ? 'Bands'
                 : s === 'orbitals'
                   ? 'Orbitals'
-                  : 'Convergence'}
+                  : s === 'protocol'
+                    ? 'Protocol'
+                    : 'Convergence'}
           </button>
         ))}
       </div>
@@ -628,6 +631,15 @@ export function AnalysisPanel({ onError }: { onError: (m: string) => void }): JS
                 <p className="muted">No band structure computed yet.</p>
               )}
             </>
+          )}
+        </>
+      )}
+      {section === 'protocol' && (
+        <>
+          {!isCppaw ? (
+            <p className="muted">Only CP-PAW calculations write a protocol.</p>
+          ) : (
+            <ProtocolView calcId={selected.id} />
           )}
         </>
       )}

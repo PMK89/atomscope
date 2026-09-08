@@ -48,6 +48,7 @@ export type SweepPoint = components['schemas']['SweepPoint'];
 export type DosSeries = components['schemas']['DosSeries'];
 export type DosOptions = components['schemas']['DosOptions'];
 export type BandStructure = components['schemas']['BandStructure'];
+export type ProtocolText = components['schemas']['ProtocolText'];
 export type BandOptions = components['schemas']['BandOptions'];
 export type KPathPoint = components['schemas']['KPathPoint'];
 export type KPath = components['schemas']['KPath'];
@@ -433,5 +434,16 @@ export const api = {
       request<BandStructure>(`/api/cppaw/calculations/${encodeURIComponent(id)}/bands`),
     bandPath: (id: string) =>
       request<KPath>(`/api/cppaw/calculations/${encodeURIComponent(id)}/bands/path`),
+    protocol: (id: string, params: { offset?: number; limit?: number } = {}) => {
+      const q = new URLSearchParams();
+      if (params.offset !== undefined) q.set('offset', String(params.offset));
+      if (params.limit !== undefined) q.set('limit', String(params.limit));
+      const query = q.toString();
+      return request<ProtocolText>(
+        `/api/cppaw/calculations/${encodeURIComponent(id)}/protocol${query ? `?${query}` : ''}`,
+      );
+    },
+    protocolStructures: (id: string) =>
+      request<Trajectory>(`/api/cppaw/calculations/${encodeURIComponent(id)}/protocol/structures`),
   },
 };

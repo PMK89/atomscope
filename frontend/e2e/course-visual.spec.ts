@@ -260,6 +260,43 @@ test('silicon: the band structure along the fcc path', async ({ page, request })
   await page.screenshot({ path: join(SHOTS, 'silicon-bands.png') });
 });
 
+test('water: the protocol as text, and the geometries it reports', async ({ page, request }) => {
+  const base = process.env['PLAYWRIGHT_BASE_URL'] ?? 'http://127.0.0.1:5173';
+  const project = join(RUNS, 'course');
+  test.skip(!existsSync(project), 'run scripts/course/run.py water-relax first');
+
+  await request.post(`${base}/api/project/close`);
+  expect(
+    (await request.post(`${base}/api/project/open`, { data: { path: project } })).ok(),
+  ).toBeTruthy();
+
+  await page.goto('/');
+  await page.getByRole('button', { name: /water-relax completed/ }).click();
+  await page.getByRole('tab', { name: 'Analysis' }).click();
+  await page.getByRole('button', { name: 'Protocol', exact: true }).click();
+
+  // the end of the file is what opens: it is where a run reports how it finished
+  const text = page.locator('.protocol-text');
+  await expect(text).toBeVisible({ timeout: 20_000 });
+  await expect(text).toContainText('PROGRAM FINISHED');
+  const panel = page.locator('.analysis-panel');
+  await expect(panel).toContainText('case.prot');
+
+  // paging to the front reaches the banner, and back to the end returns
+  await panel.getByRole('button', { name: 'Start' }).click();
+  await expect(text).toContainText('CP-PAW');
+  await expect(text).not.toContainText('PROGRAM FINISHED');
+  await panel.getByRole('button', { name: 'End' }).click();
+  await expect(text).toContainText('PROGRAM FINISHED');
+
+  await page.screenshot({ path: join(SHOTS, 'water-protocol.png') });
+
+  // the reported geometries become the trajectory the player drives
+  await panel.getByRole('button', { name: 'Show reported geometries' }).click();
+  await expect(panel).toContainText(/reported geometr(y|ies) loaded/);
+  await page.screenshot({ path: join(SHOTS, 'water-protocol-geometries.png') });
+});
+
 test('iron: the cutoff convergence over the basis-set size it cost', async ({ page, request }) => {
   const base = process.env['PLAYWRIGHT_BASE_URL'] ?? 'http://127.0.0.1:5173';
   const project = join(RUNS, 'course');

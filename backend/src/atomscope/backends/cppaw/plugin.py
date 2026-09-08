@@ -35,6 +35,12 @@ from atomscope.backends.cppaw.cntl import (
     parse_orbital_bands,
 )
 from atomscope.backends.cppaw.dos import read_dos, read_fermi_level
+from atomscope.backends.cppaw.protocol_view import (
+    DEFAULT_LINES,
+    ProtocolText,
+    protocol_structures,
+    read_protocol_text,
+)
 from atomscope.backends.cppaw.results import centred_cube, collect, geometry_from_run
 from atomscope.backends.cppaw.schema import PRESETS, SCHEMA
 from atomscope.backends.cppaw.setups import SetupsLibrary
@@ -59,6 +65,7 @@ from atomscope.backends.cppaw.tools import (
 from atomscope.jobs.models import RunSpec
 from atomscope.model import OrbitalInfo, Structure, VolumetricGrid
 from atomscope.model.spectrum import BandStructure, DosSpectrum, KPathPoint
+from atomscope.model.trajectory import Trajectory
 from atomscope.parsers.cube import read_cube
 from atomscope.schemas import (
     ParameterSchema,
@@ -531,6 +538,25 @@ class CppawPlugin:
             fermi_level=info.fermi_level or read_fermi_level(work_dir / "case.dprot"),
             homo_energy=info.homo_energy,
         )
+
+    def protocol_text(
+        self, work_dir: Path, *, offset: int | None = None, limit: int = DEFAULT_LINES
+    ) -> ProtocolText:
+        return read_protocol_text(work_dir / "case.prot", offset=offset, limit=limit)
+
+    def protocol_structures(self, work_dir: Path) -> Trajectory | None:
+        """The geometries the protocol reports, in order.
+
+        The calculation's own structure supplies the element names; it is beside the work
+        directory, and falling back to the atom names only matters for a run Atomscope did not
+        set up itself.
+        """
+        symbols: list[str] | None = None
+        try:
+            symbols = self._structure_from_inputs(work_dir.parent / "input").symbols()
+        except (OSError, ValueError):
+            symbols = None
+        return protocol_structures(work_dir, "case", symbols=symbols)
 
     def default_band_path(self, work_dir: Path) -> list[KPathPoint]:
         return default_kpath(self._structure_from_inputs(work_dir.parent / "input"))

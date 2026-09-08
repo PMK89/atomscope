@@ -143,3 +143,30 @@ def test_cppaw_analysis_tools_over_api(tmp_path: Path) -> None:  # noqa: PLR0915
             f"/api/cppaw/calculations/{cid}/orbitals/export", json={"orbitals": [{"band": 99}]}
         )
         assert r.status_code == 409
+
+        # the protocol, verbatim and paged, and the geometries it reports
+        page = c.get(f"/api/cppaw/calculations/{cid}/protocol?limit=30")
+        assert page.status_code == 200, page.text
+        body = page.json()
+        whole = (base_dir / "case.prot").read_text().splitlines()
+        assert body["name"] == "case.prot"
+        assert body["total_lines"] == len(whole)
+        # the default window is the end of the file, byte for byte
+        assert body["text"].splitlines() == whole[-30:]
+        assert body["run_starts"] == [
+            i for i, ln in enumerate(whole) if ln.startswith("PROGRAM ST")
+        ]
+        first = c.get(f"/api/cppaw/calculations/{cid}/protocol?offset=0&limit=5").json()
+        assert first["offset"] == 0
+        assert first["text"].splitlines() == whole[:5]
+
+        traj = c.get(f"/api/cppaw/calculations/{cid}/protocol/structures")
+        assert traj.status_code == 200, traj.text
+        tj = traj.json()
+        assert tj["kind"] == "protocol"
+        assert tj["symbols"] == ["Si", "Si"]
+        assert len(tj["frames"]) >= 2
+        # the last reported geometry carries the converged energy, and the cell travels with it
+        assert tj["frames"][-1]["energy"] is not None
+        assert tj["frames"][-1]["cell"] is not None
+        assert all(len(f["positions"]) == 2 for f in tj["frames"])

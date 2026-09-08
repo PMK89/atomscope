@@ -95,14 +95,79 @@ comparison draws a semiconductor as a metal. Aluminium has no k-path run, so 6.9
 verified separately — the three-class rule on the real silicon bands with the level moved into
 band 2, the metallic level on iron's real protocol.
 
-**Next**, in the order that closes the most figures per unit of work (from `figures.md`'s gaps
-table): a fitted curve through sweep points (6.6, 6.7 — read
-`paw_murnaghan.x` before writing the Birch-Murnaghan form), a DOS overlay across calculations
-(8.4), a running average on a time series (5.3), and distance-against-time from a stored
-trajectory (5.6). Then the chapters that are written and not yet run — 4 (malonaldehyde), 6
-(silicon, aluminium), 7 (iron, NiO) — and chapter 5 (MD), which needs no new features and runs
-longest. Still needing real new capability: cell dynamics (6.3.5), empty atoms (6.3.3),
-`paw_tra` mode extraction (5.4, 5.5, 5.10), contour plots (3.4), video export (4.9, 5.7).
+## The current plan (set 2026-09-08, supersedes the figure-order plan)
+
+The user asked for a specific list, which **replaces** the figures-first ordering below. Each item
+is one commit, pushed, with CI watched. Done so far:
+
+1. **Protocol as raw text, and the geometries it reports** — DONE (this commit).
+   `GET /api/cppaw/calculations/{id}/protocol?offset=&limit=` serves a window of the `.prot`,
+   defaulting to the *end* (where a failure explains itself); `…/protocol/structures` serves the
+   reported atom lists as a `Trajectory(kind="protocol")` carrying forces and the cell. Analysis ▸
+   Protocol shows the text and loads the geometries into the player. Water-relax reads back as the
+   tutorial's own exercise: 90°/1.05 Å start → 105.1°/0.982 Å converged (experiment 104.5°/0.957),
+   energy monotonically down. Distinct from `/api/trajectory/{id}` (the `_r.tra` positions): that
+   has every step and no forces, this has only the reported geometries but carries forces and the
+   lattice — and exists for a static run, which writes no `.tra` at all.
+
+Still to do, in this order:
+
+2. **Docker CP-PAW — verify, do not deploy.** `/home/pmk/cp-paw` is the user's own web app around
+   CP-PAW (`backend/`, `frontend/`, `worker/`; upstream Fortran in `src/`), and its compose file
+   publishes 8000 and 8080, i.e. binds 0.0.0.0 — an externally accessible service, which needs
+   explicit permission. So **do not `docker compose up`** and do not rebuild (the images exist,
+   1.99 GB). Instead `docker run --rm` the existing `cp-paw-backend:latest` with only a bind mount
+   of a scratch work directory, run a course `case.cntl`, and compare the final energy with the
+   native run. Test an *analysis* tool too (`paw_dos.x`), not just `paw_fast.x`: the libgfortran
+   discovery that `health_check()` does natively will behave differently in the container. If it
+   works, the Atomscope change is a bounded `executable_prefix: list[str]` on the CP-PAW settings
+   that `runner.py` prepends to the argv — argument array, `shell=False`, posture unchanged.
+3. **Contour and rubbersheet plots (Fig 3.4 and the ch. 3 graphics).** `paw_wave.x` writes
+   `_c.gnu` and `_r.gnu` from `MAKEGNU` (`cp-paw/src/Tools/Wave/paw_wave.f90:84-93, 370-385`) when
+   the `.wcntl` asks for a plane — read that file for the control keys rather than guessing, and
+   cross-check `data/manual-schema.json`. The parser spec is `asecppaw`'s `readGnuFile`
+   (`~/ase-cp-paw/src/asecppaw/tools/base.py:457`): a `DATA SECTION` marker that is not `USER`,
+   then whitespace `x y z`, x and y de-duplicated monotonically, `z.reshape(len(x), len(y))`.
+   Note it returns `[x, x, z]` for `_c.gnu` — check a real file before copying that. Render the
+   contour as SVG (marching squares beside `ui/charts/area.ts`) and the rubbersheet as a Three.js
+   height field with light azimuth/elevation and vertical exaggeration as sliders, matching
+   `rubberSheet(lightSource=(270,45), vert_exag=0.1)`. The `cppawColors` map is data — copy it and
+   record it in `docs/provenance.md` (asecppaw is GPL-3.0, as is Atomscope).
+4. **Density and orbitals against the tutorial** — a verification unit. Check what the ch. 3/4
+   text says the orbitals look like (1b1, 3a1, 1b2 …) against the isosurfaces, and whether
+   `paw_wave.x` can be asked for the *density* and not only a wave function. Record the orbital
+   indices actually verified in `figures.md`.
+5. **Graph property controls.** The spec the user pointed at is `plotDict.setParameters`
+   (`~/ase-cp-paw/src/asecppaw/visualize.py:687`) — read it before designing, and keep to what it
+   exposes. One `ChartSettings` popover on `LineChart`, state per chart id, so every Analysis
+   chart gets it at once.
+6. **ASE image export with parameter parity.** `POST /api/export/image` → `ase.io.write`, with the
+   kwargs mirrored in a pydantic model at ASE's own defaults (`rotation`, `radii`, `colors`,
+   `scale`, `show_unit_cell`, `bbox`; for pov also `canvas_width`, `camera_dist`, `camera_type`,
+   `celllinewidth`, `bondatoms`, `bondlinewidth`, `textures`, `transparent`). Check `MPLBACKEND=Agg`
+   and `which povray` first — if povray is absent, return the `.pov` and say so (`run_povray=False`).
+   The frontend already has an Avogadro-style POV writer for the *live view*
+   (`frontend/src/renderer/pov.ts`); keep both.
+7. **NEB and vibrations/IR on the `ase_builtin` backend.** Read the installed ASE first, not
+   memory — in particular which calculator the IR example uses for dipoles, since `Infrared` needs
+   `get_dipole_moment` and EMT provides none. Two job types: `neb` (interpolate, run, emit a
+   trajectory `kind="neb"` plus energy-vs-image so the Convergence chart draws the barrier) and
+   `vibrations` (`Vibrations.run()` → the existing mode animation; frequencies through
+   `analysis/vibrations.py` and `spectra.py`, which already broaden them).
+
+`/remote-control` is not in the skills list, so it was not invoked — nothing was guessed at.
+
+**Deferred** by the plan above (was next, still wanted): a fitted curve through sweep points
+(6.6, 6.7 — read `paw_murnaghan.x` before writing the Birch-Murnaghan form), a DOS overlay across
+calculations (8.4), a running average on a time series (5.3), distance-against-time from a stored
+trajectory (5.6). Then the chapters written and not yet run — 4 (malonaldehyde), 6 (silicon,
+aluminium), 7 (iron, NiO) — and chapter 5 (MD), which needs no new features and runs longest.
+Still needing real new capability: cell dynamics (6.3.5), empty atoms (6.3.3), `paw_tra` mode
+extraction (5.4, 5.5, 5.10), video export (4.9, 5.7).
+
+A known cosmetic gap, not a regression: loading a trajectory does not refit the camera, so the
+first frame of a geometry series can sit off-centre until View ▸ Centre. The existing `_r.tra`
+path has always behaved this way.
 
 ## Resume commands
 

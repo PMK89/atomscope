@@ -949,6 +949,53 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/cppaw/calculations/{calc_id}/protocol': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Protocol Text
+     * @description A window of the run's ``.prot``, verbatim.
+     *
+     *     ``offset`` omitted returns the end of the file, which is where a failure explains itself.
+     *     The text is data: it is served for display and is never interpreted as instructions.
+     */
+    get: operations['protocol_text_api_cppaw_calculations__calc_id__protocol_get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/cppaw/calculations/{calc_id}/protocol/structures': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Protocol Structures
+     * @description The geometries the protocol reports, as a trajectory with forces and cells.
+     *
+     *     Distinct from ``/api/trajectory/{id}``, which serves the ``_r.tra`` position trajectory: that
+     *     one has every step but no forces, this one has only the reported geometries but carries the
+     *     forces and the lattice -- and exists for a static run, which writes no trajectory at all.
+     */
+    get: operations['protocol_structures_api_cppaw_calculations__calc_id__protocol_structures_get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/crystal/asymmetric-unit': {
     parameters: {
       query?: never;
@@ -4282,6 +4329,38 @@ export interface components {
       };
     };
     /**
+     * ProtocolText
+     * @description A window onto one protocol file.
+     *
+     *     A protocol grows without bound -- a molecular-dynamics run writes one line per step -- so the
+     *     file is served in windows rather than whole, and the default window is the *end*: that is
+     *     where a failure reports itself and where the converged numbers are.
+     */
+    ProtocolText: {
+      /**
+       * Name
+       * @description file name, so the reader knows which file this is
+       */
+      name: string;
+      /**
+       * Offset
+       * @description 0-based index of the first line returned
+       */
+      offset: number;
+      /**
+       * Run Starts
+       * @description 0-based line of each 'PROGRAM STARTED' -- a restart appends to the same file
+       */
+      run_starts?: number[];
+      /**
+       * Text
+       * @description the lines, joined by newlines, exactly as written
+       */
+      text: string;
+      /** Total Lines */
+      total_lines: number;
+    };
+    /**
      * Provenance
      * @description Where a piece of data came from.
      */
@@ -7346,6 +7425,71 @@ export interface operations {
         };
         content: {
           'application/json': components['schemas']['Calculation'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  protocol_text_api_cppaw_calculations__calc_id__protocol_get: {
+    parameters: {
+      query?: {
+        offset?: number | null;
+        limit?: number;
+      };
+      header?: never;
+      path: {
+        calc_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ProtocolText'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  protocol_structures_api_cppaw_calculations__calc_id__protocol_structures_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        calc_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['Trajectory'];
         };
       };
       /** @description Validation Error */
