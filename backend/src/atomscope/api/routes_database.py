@@ -74,18 +74,27 @@ def _state(request: Request) -> AppState:
 
 def _row(row: Any) -> DatabaseRow:
     kvp = dict(row.key_value_pairs)
+    # `data` always carries the identity; the key-value pairs carry it only when ase.db would
+    # accept the text (see atomscope.project.database), so read through to data for the truth --
+    # falling back to the key-value pairs for a database written before `identity` existed, which
+    # a user's own project may well be. Rebuild fills it in.
+    identity: dict[str, str] = dict(getattr(row, "data", {}).get("identity", {}))
+    for key in ("calculation_id", "name", "backend", "status", "sweep", "parent"):
+        value = kvp.pop(key, None)
+        if key not in identity and value is not None:
+            identity[key] = str(value)
     return DatabaseRow(
         id=int(row.id),
-        calculation_id=kvp.pop("calculation_id", None),
-        name=kvp.pop("name", None),
+        calculation_id=identity.get("calculation_id"),
+        name=identity.get("name"),
         formula=row.formula,
         natoms=int(row.natoms),
         # a row written without a calculator has no energy at all, not a zero
         energy=float(row.energy) if "energy" in row else None,
         charge=float(row.charge) if row.charge else None,
         magmom=float(row.magmom) if "magmom" in row else None,
-        backend=kvp.pop("backend", None),
-        status=kvp.pop("status", None),
+        backend=identity.get("backend"),
+        status=identity.get("status"),
         keys={k: v for k, v in kvp.items() if k not in ABOVE},
     )
 

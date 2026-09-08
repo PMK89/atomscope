@@ -15,6 +15,19 @@ goes in ``data``, which ASE does not index but does carry.
 
 Selection strings are passed to ASE untouched. Its syntax is the user-facing query language here
 and reimplementing it would only be a worse version of it.
+
+One ``ase.db`` rule shapes what a row can hold: it refuses a *string* key-value pair whose text
+``bool``, ``int`` or ``float`` can parse, so that ``select(k='1')`` is never ambiguous with
+``select(k=1)``. There is no escape hatch. That bites two ways here, and both are handled below
+with ASE's own :func:`str_represents` rather than a guess at its rule:
+
+* a numeric parameter that arrives as a string (``epwpsi='30'``) is stored as the number, which is
+  what one would want to select on anyway;
+* a calculation id is twelve hex characters, and some of those look numeric -- ``391313492996``
+  parses as an int and ``31719629e335`` as a float. Both are real ids this went wrong on. The id
+  is therefore always written to ``data``, where nothing type-checks it, and additionally as a
+  key-value pair when ASE will take it, so that ``select(calculation_id=...)`` works for the ids
+  it can.
 """
 
 from __future__ import annotations
@@ -23,6 +36,10 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 from ase.calculators.singlepoint import SinglePointCalculator
+from ase.db.core import (  # noqa: PLC2701 -- ASE's own rules, not a guess at them
+    convert_str_to_int_float_bool_or_str,
+    str_represents,
+)
 
 from atomscope.ase_bridge import to_atoms
 from atomscope.ase_bridge.convert import INITIAL_MAGMOMS_PROPERTY as INITIAL_MAGMOMS
@@ -48,11 +65,23 @@ def _reserved() -> frozenset[str]:
     return frozenset(reserved_keys)
 
 
+def as_kvp(value: str) -> Any:
+    """``value`` as ``ase.db`` itself would read it: a number, a bool, or the string unchanged.
+
+    ASE's own converter, not an ordering of our own -- ``bool`` subclasses ``int`` in Python, so
+    asking "is this an int?" first answers yes for ``'True'``. The exact original is kept in
+    ``data['values']`` regardless, so reading it as a number here loses nothing.
+    """
+    return convert_str_to_int_float_bool_or_str(value)  # type: ignore[no-untyped-call]
+
+
 def scalar_values(values: dict[str, object]) -> dict[str, Any]:
-    """The parameters ASE can index: bools, numbers and non-empty strings, under legal key names.
+    """The parameters ASE can index: bools, numbers and strings, under legal key names.
 
     A parameter whose value is a list or a nested dict (a k-point path, an orbital projection) is
-    left to ``data``; there is nothing sensible to select on it with.
+    left to ``data``; there is nothing sensible to select on it with. A string that spells a
+    number or a bool is stored as that value, both because ASE refuses such strings outright and
+    because a cutoff is better selected on with ``epwpsi>30`` than with a string comparison.
     """
     reserved = _reserved()
     out: dict[str, Any] = {}
@@ -62,7 +91,7 @@ def scalar_values(values: dict[str, object]) -> dict[str, Any]:
         if isinstance(value, bool | int | float):
             out[key] = value
         elif isinstance(value, str) and value.strip():
-            out[key] = value
+            out[key] = as_kvp(value)
     return out
 
 
@@ -132,20 +161,29 @@ class ProjectDatabase:
         updated row would keep stale keys and quietly answer a query with them.
         """
         atoms = self._atoms(calc, structure)
-        kvp: dict[str, Any] = {
+        kvp: dict[str, Any] = dict(scalar_values(calc.values))
+        # An identity has to come back exactly as it went in, so these are never converted to the
+        # number they resemble -- they are simply left out of the key-value pairs when ASE will
+        # not take them, and read back from `data`, which always carries them.
+        identity: dict[str, str] = {
             "calculation_id": calc.id,
             "name": calc.name,
             "backend": calc.backend_id,
             "status": calc.status,
-            **scalar_values(calc.values),
         }
         if calc.sweep is not None:
-            kvp["sweep"] = calc.sweep.label
+            identity["sweep"] = calc.sweep.label
             kvp["sweep_x"] = calc.sweep.x
         if calc.parent_calculation_id is not None:
-            kvp["parent"] = calc.parent_calculation_id
+            identity["parent"] = calc.parent_calculation_id
+        for key, text in identity.items():
+            if text and not any(
+                str_represents(text, t)  # type: ignore[no-untyped-call]
+                for t in (bool, int, float)
+            ):
+                kvp[key] = text
 
-        data: dict[str, Any] = {"values": calc.values}
+        data: dict[str, Any] = {"values": calc.values, "identity": identity}
         if calc.results is not None:
             data["properties"] = {
                 name: {"value": q.value, "unit": str(q.unit)}

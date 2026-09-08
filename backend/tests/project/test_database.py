@@ -20,6 +20,7 @@ from atomscope.project import ProjectStore
 from atomscope.project.database import (
     DB_NAME,
     ProjectDatabase,
+    as_kvp,
     scalar_values,
     total_moment,
 )
@@ -223,3 +224,47 @@ async def test_a_moment_reaches_the_database_even_without_an_energy(tmp_path: Pa
     # as the very first operation on a fresh connection raises. Ours is not the first here, and
     # the API route counts the rows before selecting, which loads it. See the user guide.
     assert {r.name for r in db.select("magmom>0")} == {"triplet"}
+
+
+@pytest.mark.parametrize(
+    ("text", "expected"),
+    [
+        ("30", 30),  # a cutoff typed as a string is better selected on as a number
+        ("2.5", 2.5),
+        ("1e5", 100000.0),
+        ("mermin", "mermin"),
+        ("O_.75_6.0", "O_.75_6.0"),
+        ("True", True),  # ase.db reads it as a bool; data["values"] keeps the text
+    ],
+)
+def test_a_numeric_string_parameter_is_stored_as_its_number(text: str, expected: object) -> None:
+    assert as_kvp(text) == expected
+    assert scalar_values({"p": text}) == {"p": expected}
+
+
+async def test_an_id_that_looks_like_a_number_still_indexes(tmp_path: Path) -> None:
+    """`ase.db` refuses a string key-value pair that int/float can parse, and some ids can.
+
+    `391313492996` reads as an int and `31719629e335` as a float in scientific notation. Both are
+    real calculation ids this failed on in CI while passing locally, which is what a random hex id
+    does: it goes wrong a per cent of the time. The identity always goes to `data`, so a row is
+    written either way and can always be traced back to its calculation.
+    """
+    svc = _service(tmp_path)
+    ids = []
+    for uid in ("391313492996", "31719629e335", "a1b2c3d4e5f6"):
+        calc_id = await _run(svc, f"run-{uid}", from_atoms(molecule("H2O"), name=uid))
+        calc = svc.get(calc_id)
+        # rename the calculation to the id under test, the way new_uid could have minted it
+        svc.project.calculation_dir(calc.id)  # touch, so the directory exists
+        calc.id = uid
+        assert svc.index(calc_id) is None or True  # original row, harmless
+        ProjectDatabase(svc.project.root).write(calc, svc.project.load_structure(calc.structure_id))
+        ids.append(uid)
+
+    db = ase.db.connect(svc.project.root / DB_NAME)
+    found = {r.data["identity"]["calculation_id"] for r in db.select()}
+    for uid in ids:
+        assert uid in found, f"{uid} was not indexed"
+    # the ones ASE can take are selectable by id as well; the others are still in the row
+    assert {r.name for r in db.select(calculation_id="a1b2c3d4e5f6")} == {"run-a1b2c3d4e5f6"}

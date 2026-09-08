@@ -3,6 +3,7 @@
 import time
 from pathlib import Path
 
+import ase.db
 from ase.build import bulk, molecule
 from fastapi.testclient import TestClient
 
@@ -116,3 +117,26 @@ def test_export_reports_a_bad_destination_rather_than_failing_silently(tmp_path:
         )
         assert r.status_code == 400
         assert "unknown exclusion" in r.json()["detail"]
+
+
+def test_a_database_written_before_identity_existed_still_reads(tmp_path: Path) -> None:
+    """A user's project may hold rows from an earlier version; they must not read back blank."""
+    with TestClient(create_app()) as c:
+        c.post("/api/project/create", json={"path": str(tmp_path / "p"), "name": "d"})
+        _run(c, "water", from_atoms(molecule("H2O"), name="h2o"))
+
+        db = ase.db.connect(tmp_path / "p" / "atomscope.db")
+        row = next(iter(db.select()))
+        data = dict(row.data)
+        identity = data.pop("identity")
+        del db[row.id]
+        # written the old way: identity in the key-value pairs only
+        db.write(row.toatoms(), key_value_pairs={**row.key_value_pairs, **identity}, data=data)
+
+        back = c.get("/api/database").json()["rows"][0]
+        assert back["name"] == "water"
+        assert back["backend"] == "ase_builtin"
+        assert back["status"] == "completed"
+        assert back["calculation_id"] == identity["calculation_id"]
+        # and the identity is not duplicated into the parameter column
+        assert "name" not in back["keys"] and "calculation_id" not in back["keys"]
