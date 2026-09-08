@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from dataclasses import dataclass
+
 from atomscope.backends.cppaw.deck import Block, format_deck
 
 Values = dict[str, object]
@@ -193,6 +195,26 @@ def cntl_text(root_name: str, v: Values) -> str:
     return format_deck(build_cntl(root_name, v))
 
 
+@dataclass(frozen=True)
+class PlaneSpec:
+    """The cut a contour/rubbersheet is taken on: two spanning vectors and a point on the plane.
+
+    ``paw_wave.x`` orthogonalises the second vector against the first itself, so the two need not
+    be perpendicular. ``centre_bohr`` is the point the cut is centred on -- the corner CP-PAW
+    actually wants is derived from it, because its own ``C=`` does not work (see ``wcntl_text``).
+    """
+
+    centre_bohr: tuple[float, float, float]
+    vectors_bohr: tuple[tuple[float, float, float], tuple[float, float, float]]
+
+    def corner_bohr(self) -> tuple[float, float, float]:
+        """The plane's origin: the centre stepped back by half of each spanning vector."""
+        u, v = self.vectors_bohr
+        return tuple(  # type: ignore[return-value]
+            self.centre_bohr[i] - 0.5 * (u[i] + v[i]) for i in range(3)
+        )
+
+
 def wcntl_text(
     root_name: str,
     wave_file: str,
@@ -201,9 +223,16 @@ def wcntl_text(
     box_bohr: tuple[
         tuple[float, float, float], tuple[float, float, float], tuple[float, float, float]
     ],
+    *,
+    plane: PlaneSpec | None = None,
 ) -> str:
     """Control file for ``paw_wave.x``: view box in Bohr, cube output; the large DX file is
-    suppressed."""
+    suppressed.
+
+    With ``plane``, a ``!PLANE`` block is added and ``paw_wave.x`` additionally writes
+    ``<stem>_c.gnu`` and ``<stem>_r.gnu`` -- the contour and rubbersheet cuts, which carry the
+    same numbers in two layouts.
+    """
     root = Block("__ROOT__")
     w = Block("WCNTL")
     root.children.append(w)
@@ -224,4 +253,11 @@ def wcntl_text(
     vb = w.ensure_child("VIEWBOX")
     vb.set("O", list(origin_bohr))
     vb.set("T", [float(x) for row in box_bohr for x in row])  # three edge vectors
+    if plane is not None:
+        pl = w.ensure_child("PLANE")
+        # `O`, never `C`. paw_wave.f90:353 reads C into PLANER0 and then applies the centring
+        # correction to BOXR0 -- the viewbox origin -- so C behaves as a corner *and* perturbs the
+        # cube's box. See docs/cppaw-analysis.md 7.7; the corner is computed here instead.
+        pl.set("O", list(plane.corner_bohr()))
+        pl.set("T", [float(x) for row in plane.vectors_bohr for x in row])
     return format_deck(root)

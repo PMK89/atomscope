@@ -14,6 +14,7 @@ from pydantic import Field
 
 from atomscope.api.state import AppState
 from atomscope.backends.cppaw.analysis import OrbitalEntry
+from atomscope.backends.cppaw.gnuplane import PlaneField
 from atomscope.backends.cppaw.plugin import CppawPlugin
 from atomscope.backends.cppaw.protocol_view import DEFAULT_LINES, ProtocolText
 from atomscope.backends.cppaw.tools import BandOptions, DosOptions, OrbitalExportOptions
@@ -116,6 +117,31 @@ async def request_bands(calc_id: str, body: BandOptions, request: Request) -> Ca
 def get_bands(calc_id: str, request: Request) -> BandStructure:
     svc, calc, plugin = _cppaw(request, calc_id)
     return _result(plugin.bands_result, _work(svc, calc))
+
+
+class PlaneList(StrictModel):
+    planes: list[str] = Field(description="cut names; ask for one at ./planes/{name}")
+
+
+@router.get("/{calc_id}/planes", response_model=PlaneList)
+def planes(calc_id: str, request: Request) -> PlaneList:
+    """The contour/rubbersheet cuts this calculation wrote, if any."""
+    svc, calc, plugin = _cppaw(request, calc_id)
+    return PlaneList(planes=_result(plugin.planes, _work(svc, calc)))
+
+
+@router.get("/{calc_id}/planes/{name}", response_model=PlaneField)
+def plane(calc_id: str, name: str, request: Request) -> PlaneField:
+    """One cut: a scalar field on a plane, from which both a contour and a rubbersheet are drawn.
+
+    ``name`` addresses a file the calculation itself wrote; it is resolved by exact match against
+    that directory listing, never joined as a caller-supplied path.
+    """
+    svc, calc, plugin = _cppaw(request, calc_id)
+    work = _work(svc, calc)
+    if name not in plugin.planes(work):
+        raise HTTPException(status.HTTP_404_NOT_FOUND, f"no plane {name!r}")
+    return _result(lambda w: plugin.plane(w, name), work)
 
 
 @router.get("/{calc_id}/protocol", response_model=ProtocolText)

@@ -35,6 +35,7 @@ from atomscope.backends.cppaw.cntl import (
     parse_orbital_bands,
 )
 from atomscope.backends.cppaw.dos import read_dos, read_fermi_level
+from atomscope.backends.cppaw.gnuplane import PlaneField, find_planes, read_plane
 from atomscope.backends.cppaw.protocol_view import (
     DEFAULT_LINES,
     ProtocolText,
@@ -83,6 +84,37 @@ Vec3 = tuple[float, float, float]
 def _v3(row: object) -> Vec3:
     seq = list(row)  # type: ignore[call-overload]
     return (float(seq[0]), float(seq[1]), float(seq[2]))
+
+
+def plane_through_atoms(
+    structure: Structure, box: tuple[Vec3, Vec3, Vec3]
+) -> tuple[Vec3, Vec3, Vec3]:
+    """Centre and two spanning vectors (Bohr) of the cut a field is worth looking at.
+
+    The molecule's own plane, where it has one: the two leading principal axes of the atomic
+    positions span the plane the atoms lie closest to, which for a planar molecule *is* its plane.
+    Cutting along the first two cell vectors instead goes wrong whenever the cell is not
+    axis-aligned -- the course's water cell is fcc-shaped, so its first two vectors span a
+    diagonal that catches a hydrogen and misses the oxygen entirely.
+
+    Falls back to the first two box vectors when the positions single out no plane: fewer than
+    three atoms, or a spread so isotropic that the third axis is comparable to the second. A bulk
+    crystal with one atom in the cell is exactly that case.
+    """
+    centre_ang = structure.positions().mean(axis=0)
+    centre: Vec3 = (
+        float(centre_ang[0] / Bohr),
+        float(centre_ang[1] / Bohr),
+        float(centre_ang[2] / Bohr),
+    )
+    pos = structure.positions()
+    if len(pos) >= 3:
+        # the cut should cover about as much ground as the cell does, whichever way it points
+        scale = float(np.mean([float(np.linalg.norm(v)) for v in box]))
+        _, singular, axes = np.linalg.svd(pos - pos.mean(axis=0), full_matrices=True)
+        if len(singular) >= 3 and singular[1] > 1e-6 and singular[2] < 0.1 * singular[1]:
+            return centre, _v3(axes[0] * scale), _v3(axes[1] * scale)
+    return centre, box[0], box[1]
 
 
 class CppawPlugin:
@@ -301,6 +333,16 @@ class CppawPlugin:
                 "--box",
                 *[f"{x:.6f}" for x in origin],
                 *[f"{x:.6f}" for row in vectors for x in row],
+            ]
+            # A contour/rubbersheet cut through the atoms, which is where a field is worth
+            # looking at -- a plane through the middle of a large cell is mostly vacuum. Cheap:
+            # paw_wave.x writes both gnu files during the run it is already doing for the cube.
+            centre, u, v = plane_through_atoms(structure, vectors)
+            argv += [
+                "--plane",
+                *[f"{x:.6f}" for x in centre],
+                *[f"{x:.6f}" for x in u],
+                *[f"{x:.6f}" for x in v],
             ]
         env = self.settings.env()
         if resources.cores > 1:
@@ -557,6 +599,19 @@ class CppawPlugin:
         except (OSError, ValueError):
             symbols = None
         return protocol_structures(work_dir, "case", symbols=symbols)
+
+    def planes(self, work_dir: Path) -> list[str]:
+        """Names of the contour/rubbersheet cuts in the work directory."""
+        return [p.name.removesuffix("_c.gnu").removesuffix("_r.gnu") for p in find_planes(work_dir)]
+
+    def plane(self, work_dir: Path, name: str) -> PlaneField:
+        """One cut. The contour and rubbersheet files carry the same numbers, so either does."""
+        for suffix in ("_c.gnu", "_r.gnu"):
+            path = work_dir / f"{name}{suffix}"
+            if path.is_file():
+                return read_plane(path, name=name)
+        msg = f"no plane {name!r} in this calculation"
+        raise FileNotFoundError(msg)
 
     def default_band_path(self, work_dir: Path) -> list[KPathPoint]:
         return default_kpath(self._structure_from_inputs(work_dir.parent / "input"))

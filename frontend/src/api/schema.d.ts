@@ -949,6 +949,49 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/cppaw/calculations/{calc_id}/planes': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Planes
+     * @description The contour/rubbersheet cuts this calculation wrote, if any.
+     */
+    get: operations['planes_api_cppaw_calculations__calc_id__planes_get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/cppaw/calculations/{calc_id}/planes/{name}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Plane
+     * @description One cut: a scalar field on a plane, from which both a contour and a rubbersheet are drawn.
+     *
+     *     ``name`` addresses a file the calculation itself wrote; it is resolved by exact match against
+     *     that directory listing, never joined as a caller-supplied path.
+     */
+    get: operations['plane_api_cppaw_calculations__calc_id__planes__name__get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/cppaw/calculations/{calc_id}/protocol': {
     parameters: {
       query?: never;
@@ -4243,6 +4286,74 @@ export interface components {
       structure: components['schemas']['Structure'];
     };
     /**
+     * PlaneField
+     * @description A scalar field sampled on a plane: what a contour or a rubbersheet is drawn from.
+     */
+    PlaneField: {
+      /** Name */
+      name: string;
+      /** Nx */
+      nx: number;
+      /** Ny */
+      ny: number;
+      /**
+       * Values
+       * @description `values[ix][iy]`, as written (atomic units)
+       */
+      values: number[][];
+      view?: components['schemas']['PlaneView'];
+      /**
+       * X
+       * @description Å, `nx` values, ascending; the plane's first axis
+       */
+      x: number[];
+      /**
+       * Y
+       * @description Å, `ny` values, ascending; the plane's second axis
+       */
+      y: number[];
+      /** Z Max */
+      z_max: number;
+      /** Z Min */
+      z_min: number;
+    };
+    /** PlaneList */
+    PlaneList: {
+      /**
+       * Planes
+       * @description cut names; ask for one at ./planes/{name}
+       */
+      planes: string[];
+    };
+    /**
+     * PlaneView
+     * @description The view the file suggests for a rubbersheet, which is where its defaults come from.
+     */
+    PlaneView: {
+      /**
+       * Rot X
+       * @description degrees; gnuplot's first `set view` angle
+       * @default 30
+       */
+      rot_x: number;
+      /**
+       * Rot Z
+       * @description degrees; gnuplot's second `set view` angle
+       * @default 20
+       */
+      rot_z: number;
+      /**
+       * Scale
+       * @default 1.8
+       */
+      scale: number;
+      /**
+       * Scale Z
+       * @default 1
+       */
+      scale_z: number;
+    };
+    /**
      * PointGroupResult
      * @description Molecular point group; ``order`` is 0 for the infinite groups of a linear molecule.
      */
@@ -7425,6 +7536,69 @@ export interface operations {
         };
         content: {
           'application/json': components['schemas']['Calculation'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  planes_api_cppaw_calculations__calc_id__planes_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        calc_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['PlaneList'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  plane_api_cppaw_calculations__calc_id__planes__name__get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        calc_id: string;
+        name: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['PlaneField'];
         };
       };
       /** @description Validation Error */

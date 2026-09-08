@@ -297,6 +297,61 @@ test('water: the protocol as text, and the geometries it reports', async ({ page
   await page.screenshot({ path: join(SHOTS, 'water-protocol-geometries.png') });
 });
 
+test('water: the density as a contour map and as a rubbersheet', async ({ page, request }) => {
+  const base = process.env['PLAYWRIGHT_BASE_URL'] ?? 'http://127.0.0.1:5173';
+  const project = join(RUNS, 'course');
+  test.skip(!existsSync(project), 'run scripts/course/run.py water-orbitals first');
+
+  await request.post(`${base}/api/project/close`);
+  expect(
+    (await request.post(`${base}/api/project/open`, { data: { path: project } })).ok(),
+  ).toBeTruthy();
+
+  await page.goto('/');
+  await page.getByRole('button', { name: /water-orbitals completed/ }).click();
+  await page.getByRole('tab', { name: 'Analysis' }).click();
+  await page.getByRole('button', { name: 'Planes', exact: true }).click();
+
+  const panel = page.locator('.analysis-panel');
+  const contour = panel.locator('svg.contour-plot');
+  await expect(contour).toBeVisible({ timeout: 20_000 });
+  // a 60x60 cut is 59x59 filled cells, and the isolines are drawn over them
+  await expect(contour.locator('rect')).toHaveCount(59 * 59 + 1);
+  expect(await contour.locator('line').count()).toBeGreaterThan(50);
+  await expect(panel).toContainText('60×60');
+  await page.screenshot({ path: join(SHOTS, 'water-contour.png') });
+
+  // turning the lines off leaves the filled map alone
+  await panel.getByText('Contour lines').click();
+  await expect(contour.locator('line')).toHaveCount(0);
+  await panel.getByText('Contour lines').click();
+
+  // a density has a cusp at the nucleus, so on a linear scale the picture is one bright point;
+  // the log scale is what makes the bonds visible, and it must change what is drawn
+  const distinctFills = async (): Promise<number> =>
+    contour.locator('rect').evaluateAll((els) => {
+      const seen = new Set(els.map((e) => e.getAttribute('fill')));
+      return seen.size;
+    });
+  const linear = await distinctFills();
+  await panel.locator('#plane-scale').selectOption('log');
+  const log = await distinctFills();
+  // on a linear scale the cusp compresses almost every cell into the bottom colour; the log
+  // scale is what spreads the field over the palette, which is the whole reason it is offered
+  expect(log).toBeGreaterThan(linear * 2);
+  await page.screenshot({ path: join(SHOTS, 'water-contour-log.png') });
+  await panel.locator('#plane-scale').selectOption('linear');
+
+  // the sheet is the same field, so it takes the same scale -- a cusp flattens it just as badly
+  await panel.locator('#plane-scale').selectOption('log');
+  await panel.getByRole('button', { name: 'Rubbersheet' }).click();
+  const sheet = panel.locator('.rubber-sheet canvas');
+  await expect(sheet).toBeVisible({ timeout: 20_000 });
+  await expect(panel).toContainText('light azimuth');
+  await expect(panel).toContainText('relief');
+  await page.screenshot({ path: join(SHOTS, 'water-rubbersheet.png') });
+});
+
 test('iron: the cutoff convergence over the basis-set size it cost', async ({ page, request }) => {
   const base = process.env['PLAYWRIGHT_BASE_URL'] ?? 'http://127.0.0.1:5173';
   const project = join(RUNS, 'course');

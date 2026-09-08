@@ -875,3 +875,26 @@ button {
   width: auto;
   flex: 0 0 auto;
 }
+
+/* A field cut. The contour is an SVG that scales with the panel; the rubbersheet is a live
+   canvas, so it gets a fixed box and its own cursor. */
+.contour-plot {
+  width: 100%;
+  height: auto;
+  display: block;
+  margin: 6px 0;
+}
+.rubber-sheet {
+  width: 100%;
+  margin: 6px 0;
+  border: 1px solid var(--border, #d8dce3);
+  border-radius: 3px;
+  cursor: grab;
+  touch-action: none;
+}
+.rubber-sheet:active {
+  cursor: grabbing;
+}
+.rubber-sheet canvas {
+  display: block;
+}

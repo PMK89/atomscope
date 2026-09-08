@@ -127,21 +127,27 @@ Progress:
    run a different CP-PAW). A 52 meV Fermi difference I first saw was **not** real — the two runs
    had different inputs.
 
-3. **Contour and rubbersheet plots (Fig 3.4 and the ch. 3 graphics)** — IN PROGRESS.
-   Done: the `_c.gnu`/`_r.gnu` parser (`backends/cppaw/gnuplane.py`), verified on real files
-   generated through the container — 60×60, ±3 Å for a 6 Å cell, contour view `0,0` and
-   rubbersheet `30,20` exactly as the writer says, and the two files' numbers byte-identical, so
-   reading one of each pair is enough. Both findings are in `cppaw-analysis.md` §7.7: the format
-   read off `MAKEGNU` rather than inferred, and **`!PLANE C=` is broken upstream** — it assigns
-   `PLANER0` then applies the centring correction to `BOXR0`, so `C` acts as a corner and
-   perturbs the cube box as a side effect. Atomscope must always write `O=` computed as
-   `-(v1+v2)/2`. Measured: with `O=` the water density reads oxygen 5.378 e/Bohr³ at the plane
-   centre and both hydrogens 0.2453 (equal, as the symmetry requires); with `C=` the oxygen lands
-   at the corner and the cut through the molecule reads as near-vacuum.
-   Still to do: emit the `!PLANE` block (extend `wcntl_text` in `runner.py`), a route serving a
-   `PlaneField`, contour rendering (marching squares, SVG, beside `ui/charts/area.ts`), and the
-   rubbersheet as an interactive Three.js height field with light azimuth/elevation and vertical
-   exaggeration as sliders.
+3. **Contour and rubbersheet plots (Fig 3.4 and the ch. 3 graphics)** — DONE.
+   `paw_wave.x` writes `_c.gnu` and `_r.gnu` whenever its `.wcntl` carries a `!PLANE`, so both
+   come free with the cube export the run already does. `backends/cppaw/gnuplane.py` reads them,
+   `PlaneSpec`/`wcntl_text` writes the block, and Analysis ▸ Planes draws the field as a filled
+   contour (marching squares in `ui/charts/contour.ts`) or as an interactive Three.js height field
+   (`ui/analysis/RubberSheet.tsx`) with light azimuth/elevation and relief as sliders.
+   Three findings, each measured (details in `cppaw-analysis.md` §7.7):
+   * **`!PLANE C=` is broken upstream** — `paw_wave.f90:353` reads it into `PLANER0` and then
+     applies the centring correction to `BOXR0`, so `C` acts as a corner *and* perturbs the cube
+     box. Atomscope always writes `O=` computed as `-(u+v)/2`.
+   * **The first two cell vectors are the wrong plane.** The course's water cell is fcc-shaped, so
+     they span a diagonal that catches a hydrogen (0.66 e/Bohr³) and misses the oxygen. The
+     default is now the two leading principal axes of the atom positions (`plane_through_atoms`),
+     which for a planar molecule *is* its plane — the density then peaks at 3.75 e/Bohr³ on the
+     oxygen, and water's 1b1 HOMO (`case_orb_b4k1s1`) nearly vanishes in the cut (±0.05 against
+     ±0.65 for the lower orbitals) because it is a p orbital perpendicular to that plane. That is
+     the textbook answer and it is worth keeping as a regression signal.
+   * **A linear colour scale is useless for a density**, which has a cusp at every nucleus: the
+     whole picture is one bright point. The scale selector (linear / symmetric about zero / log,
+     six decades) is shared by both views, and the log map is what makes the bonds visible.
+   Both files of a pair carry identical numbers, so only one of each is read.
 
 4. **Density and orbitals against the tutorial** — a verification unit. Check what the ch. 3/4
    text says the orbitals look like (1b1, 3a1, 1b2 …) against the isosurfaces, and whether

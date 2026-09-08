@@ -32,8 +32,9 @@ import {
 } from './charts/LineChart';
 import { channelOrbitals, channels, homoIndex, lumoIndex, stepIndex } from './analysis/orbitals';
 import { ProtocolView } from './analysis/ProtocolView';
+import { PlanesView } from './analysis/PlanesView';
 
-type Section = 'convergence' | 'orbitals' | 'dos' | 'bands' | 'protocol';
+type Section = 'convergence' | 'orbitals' | 'dos' | 'bands' | 'planes' | 'protocol';
 
 const SERIES_COLORS = ['#2f6fdb', '#e07a3c', '#3cb371', '#9b59b6', '#c0392b'];
 const SPIN_COLORS = ['#2f6fdb', '#c0392b'];
@@ -315,7 +316,7 @@ export function AnalysisPanel({ onError }: { onError: (m: string) => void }): JS
   return (
     <div className="panel analysis-panel">
       <div className="tabs">
-        {(['convergence', 'orbitals', 'dos', 'bands', 'protocol'] as const).map((s) => (
+        {(['convergence', 'orbitals', 'dos', 'bands', 'planes', 'protocol'] as const).map((s) => (
           <button
             key={s}
             className={section === s ? 'tab active' : 'tab'}
@@ -329,7 +330,9 @@ export function AnalysisPanel({ onError }: { onError: (m: string) => void }): JS
                   ? 'Orbitals'
                   : s === 'protocol'
                     ? 'Protocol'
-                    : 'Convergence'}
+                    : s === 'planes'
+                      ? 'Planes'
+                      : 'Convergence'}
           </button>
         ))}
       </div>
@@ -634,6 +637,16 @@ export function AnalysisPanel({ onError }: { onError: (m: string) => void }): JS
           )}
         </>
       )}
+      {section === 'planes' && (
+        <>
+          {!isCppaw ? (
+            <p className="muted">Field cuts come from CP-PAW&apos;s paw_wave.x.</p>
+          ) : (
+            <PlanesView calcId={selected.id} />
+          )}
+        </>
+      )}
+
       {section === 'protocol' && (
         <>
           {!isCppaw ? (

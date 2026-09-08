@@ -49,6 +49,8 @@ export type DosSeries = components['schemas']['DosSeries'];
 export type DosOptions = components['schemas']['DosOptions'];
 export type BandStructure = components['schemas']['BandStructure'];
 export type ProtocolText = components['schemas']['ProtocolText'];
+export type PlaneField = components['schemas']['PlaneField'];
+export type PlaneList = components['schemas']['PlaneList'];
 export type BandOptions = components['schemas']['BandOptions'];
 export type KPathPoint = components['schemas']['KPathPoint'];
 export type KPath = components['schemas']['KPath'];
@@ -443,6 +445,12 @@ export const api = {
         `/api/cppaw/calculations/${encodeURIComponent(id)}/protocol${query ? `?${query}` : ''}`,
       );
     },
+    planes: (id: string) =>
+      request<PlaneList>(`/api/cppaw/calculations/${encodeURIComponent(id)}/planes`),
+    plane: (id: string, name: string) =>
+      request<PlaneField>(
+        `/api/cppaw/calculations/${encodeURIComponent(id)}/planes/${encodeURIComponent(name)}`,
+      ),
     protocolStructures: (id: string) =>
       request<Trajectory>(`/api/cppaw/calculations/${encodeURIComponent(id)}/protocol/structures`),
   },

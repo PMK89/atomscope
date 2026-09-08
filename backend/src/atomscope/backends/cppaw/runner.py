@@ -27,7 +27,7 @@ import sys
 import time
 from pathlib import Path
 
-from atomscope.backends.cppaw.cntl import wcntl_text
+from atomscope.backends.cppaw.cntl import PlaneSpec, wcntl_text
 
 SOFT_STOP_GRACE = 90.0
 POLL_INTERVAL = 0.2
@@ -116,7 +116,16 @@ def make_cubes(args: argparse.Namespace, work: Path, root: str) -> None:
         stem = Path(wave_file).stem
         cube_file = f"{stem}.cub"
         wcntl = work / f"{stem}.wcntl"
-        wcntl.write_text(wcntl_text(root, wave_file, cube_file, origin, vectors))
+        plane = None
+        if args.plane:
+            # Centre and both spanning vectors come from the plugin, which picks the plane the
+            # atoms actually lie in (see plane_through_atoms).
+            pl = args.plane
+            plane = PlaneSpec(
+                centre_bohr=(pl[0], pl[1], pl[2]),
+                vectors_bohr=((pl[3], pl[4], pl[5]), (pl[6], pl[7], pl[8])),
+            )
+        wcntl.write_text(wcntl_text(root, wave_file, cube_file, origin, vectors, plane=plane))
         print(f"[atomscope] paw_wave.x {wcntl.name} -> {cube_file}", flush=True)
         with (work / f"{stem}.wave.out").open("wb") as wout:
             rc = subprocess.call([args.wave, wcntl.name], stdout=wout, stderr=subprocess.STDOUT)
@@ -137,6 +146,14 @@ def main(argv: list[str]) -> int:  # noqa: PLR0911
     )
     ap.add_argument("--wave", default=None)
     ap.add_argument("--cube", action="append", default=[], help="KIND=WAVEFILE")
+    ap.add_argument(
+        "--plane",
+        type=float,
+        nargs=9,
+        default=None,
+        metavar="F",
+        help="centre and two spanning vectors (Bohr) of a contour/rubbersheet cut; adds !PLANE",
+    )
     ap.add_argument(
         "--box", nargs=12, type=float, default=None, help="origin and three edge vectors (Bohr)"
     )

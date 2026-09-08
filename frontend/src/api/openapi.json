@@ -4116,6 +4116,111 @@
         "title": "PerceiveRequest",
         "type": "object"
       },
+      "PlaneField": {
+        "additionalProperties": false,
+        "description": "A scalar field sampled on a plane: what a contour or a rubbersheet is drawn from.",
+        "properties": {
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "nx": {
+            "title": "Nx",
+            "type": "integer"
+          },
+          "ny": {
+            "title": "Ny",
+            "type": "integer"
+          },
+          "values": {
+            "description": "`values[ix][iy]`, as written (atomic units)",
+            "items": {
+              "items": {
+                "type": "number"
+              },
+              "type": "array"
+            },
+            "title": "Values",
+            "type": "array"
+          },
+          "view": {
+            "$ref": "#/components/schemas/PlaneView"
+          },
+          "x": {
+            "description": "\u00c5, `nx` values, ascending; the plane's first axis",
+            "items": {
+              "type": "number"
+            },
+            "title": "X",
+            "type": "array"
+          },
+          "y": {
+            "description": "\u00c5, `ny` values, ascending; the plane's second axis",
+            "items": {
+              "type": "number"
+            },
+            "title": "Y",
+            "type": "array"
+          },
+          "z_max": {
+            "title": "Z Max",
+            "type": "number"
+          },
+          "z_min": {
+            "title": "Z Min",
+            "type": "number"
+          }
+        },
+        "required": ["name", "nx", "ny", "x", "y", "values", "z_min", "z_max"],
+        "title": "PlaneField",
+        "type": "object"
+      },
+      "PlaneList": {
+        "additionalProperties": false,
+        "properties": {
+          "planes": {
+            "description": "cut names; ask for one at ./planes/{name}",
+            "items": {
+              "type": "string"
+            },
+            "title": "Planes",
+            "type": "array"
+          }
+        },
+        "required": ["planes"],
+        "title": "PlaneList",
+        "type": "object"
+      },
+      "PlaneView": {
+        "additionalProperties": false,
+        "description": "The view the file suggests for a rubbersheet, which is where its defaults come from.",
+        "properties": {
+          "rot_x": {
+            "default": 30.0,
+            "description": "degrees; gnuplot's first `set view` angle",
+            "title": "Rot X",
+            "type": "number"
+          },
+          "rot_z": {
+            "default": 20.0,
+            "description": "degrees; gnuplot's second `set view` angle",
+            "title": "Rot Z",
+            "type": "number"
+          },
+          "scale": {
+            "default": 1.8,
+            "title": "Scale",
+            "type": "number"
+          },
+          "scale_z": {
+            "default": 1.0,
+            "title": "Scale Z",
+            "type": "number"
+          }
+        },
+        "title": "PlaneView",
+        "type": "object"
+      },
       "PointGroupResult": {
         "additionalProperties": false,
         "description": "Molecular point group; ``order`` is 0 for the infinite groups of a linear molecule.",
@@ -9499,6 +9604,97 @@
           }
         },
         "summary": "Export Orbitals",
+        "tags": ["cppaw"]
+      }
+    },
+    "/api/cppaw/calculations/{calc_id}/planes": {
+      "get": {
+        "description": "The contour/rubbersheet cuts this calculation wrote, if any.",
+        "operationId": "planes_api_cppaw_calculations__calc_id__planes_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "calc_id",
+            "required": true,
+            "schema": {
+              "title": "Calc Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlaneList"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Planes",
+        "tags": ["cppaw"]
+      }
+    },
+    "/api/cppaw/calculations/{calc_id}/planes/{name}": {
+      "get": {
+        "description": "One cut: a scalar field on a plane, from which both a contour and a rubbersheet are drawn.\n\n``name`` addresses a file the calculation itself wrote; it is resolved by exact match against\nthat directory listing, never joined as a caller-supplied path.",
+        "operationId": "plane_api_cppaw_calculations__calc_id__planes__name__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "calc_id",
+            "required": true,
+            "schema": {
+              "title": "Calc Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "name",
+            "required": true,
+            "schema": {
+              "title": "Name",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlaneField"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Plane",
         "tags": ["cppaw"]
       }
     },
