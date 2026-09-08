@@ -34,7 +34,7 @@ from atomscope.backends.cppaw.cntl import (
     force_stage_values,
     parse_orbital_bands,
 )
-from atomscope.backends.cppaw.dos import read_dos
+from atomscope.backends.cppaw.dos import read_dos, read_fermi_level
 from atomscope.backends.cppaw.results import centred_cube, collect, geometry_from_run
 from atomscope.backends.cppaw.schema import PRESETS, SCHEMA
 from atomscope.backends.cppaw.setups import SetupsLibrary
@@ -517,8 +517,19 @@ class CppawPlugin:
         return read_dos(work_dir, "case", homo_energy=info.homo_energy, n_spins=info.n_spins)
 
     def bands_result(self, work_dir: Path) -> BandStructure:
+        # Which reference level a band structure is read against decides whether each band counts
+        # as filled, and the two candidates are not interchangeable. A variable-occupation run
+        # reports its self-consistent Fermi level in the protocol; a DOS run has one in .dprot.
+        # A fixed-occupation run has neither, and there ``homo_energy`` -- the top of the filled
+        # states -- is the level, which for an insulator is what the course draws anyway.
+        info = electronic_info(work_dir, "case")
         return read_bands(
-            work_dir, "case", homo_energy=electronic_info(work_dir, "case").homo_energy
+            work_dir,
+            "case",
+            # `or`, not `??`: a run that died after DYNOCC's first print leaves the
+            # uninitialised 0.0 behind, and a level drawn at zero would be a lie.
+            fermi_level=info.fermi_level or read_fermi_level(work_dir / "case.dprot"),
+            homo_energy=info.homo_energy,
         )
 
     def default_band_path(self, work_dir: Path) -> list[KPathPoint]:

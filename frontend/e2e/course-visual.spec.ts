@@ -243,6 +243,20 @@ test('silicon: the band structure along the fcc path', async ({ page, request })
   await expect(chart.locator('polyline')).toHaveCount(10);
   // the high-symmetry points the path was built from
   await expect(chart).toContainText('L');
+
+  // Fig. 6.4: four filled bands drawn apart from the six empty ones, and no band cut by the
+  // level -- silicon is a semiconductor. Two colours on the chart, two entries in the legend.
+  const strokes = await chart
+    .locator('polyline')
+    .evaluateAll((els) => [...new Set(els.map((e) => e.getAttribute('stroke')))]);
+  expect(strokes).toHaveLength(2);
+  const legend = page.locator('.analysis-panel .chart-legend').last();
+  await expect(legend).toHaveText(/fully occupied/);
+  await expect(legend).toHaveText(/empty/);
+  await expect(legend).not.toHaveText(/partially filled/);
+  // silicon uses fixed occupations, so the level is the top of the filled states, labelled so
+  await expect(chart).toContainText('HOMO');
+
   await page.screenshot({ path: join(SHOTS, 'silicon-bands.png') });
 });
 

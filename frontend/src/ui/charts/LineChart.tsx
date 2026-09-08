@@ -29,6 +29,12 @@ export interface ChartSeries {
   /** hide from the legend (e.g. many bands) */
   quiet?: boolean;
   /**
+   * Legend entry this series belongs to. Series sharing a group produce a single entry captioned
+   * by the group, so a family too numerous to name one by one can still be named: twenty band
+   * curves in three occupation classes make three entries. A group therefore overrides `quiet`.
+   */
+  legendGroup?: string;
+  /**
    * Lower edge of a filled area, same length as `y`. Present means "fill between `baseline` and
    * `y`" -- a stacked density of states passes the running cumulative total here.
    */
@@ -42,6 +48,13 @@ export interface ChartSeries {
 
 export interface ChartMarker {
   x: number;
+  label?: string;
+  color?: string;
+}
+
+/** A horizontal line at `y`, labelled at the right edge: the Fermi level of a band structure. */
+export interface ChartYMarker {
+  y: number;
   label?: string;
   color?: string;
 }
@@ -68,6 +81,7 @@ export interface LineChartProps {
   /** custom x ticks (band-structure labels); default nice ticks */
   xTicks?: { value: number; label: string }[];
   markers?: ChartMarker[];
+  yMarkers?: ChartYMarker[];
   /** draw a horizontal line at y = 0 */
   zeroLine?: boolean;
   title?: string;
@@ -92,6 +106,7 @@ export function LineChart({
   xDomain,
   xTicks,
   markers = [],
+  yMarkers = [],
   zeroLine = false,
   title,
   xReversed = false,
@@ -159,15 +174,27 @@ export function LineChart({
             return { s, x: s.x[i]!, y: s.y[i]! };
           });
 
-  // `quiet` exists for series there is no point naming one by one -- twenty band curves, say
-  const named = drawn.filter((s) => !s.quiet && s.label);
+  // `quiet` exists for series there is no point naming one by one -- twenty band curves, say.
+  // A `legendGroup` names such a family instead, and one entry stands for all of its members.
+  const named = ((): { key: string; label: string; color: string }[] => {
+    const out: { key: string; label: string; color: string }[] = [];
+    const seen = new Set<string>();
+    for (const s of drawn) {
+      if (!s.legendGroup && (s.quiet || !s.label)) continue;
+      const key = s.legendGroup ?? s.id;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      out.push({ key, label: s.legendGroup ?? s.label, color: s.color });
+    }
+    return out;
+  })();
 
   return (
     <>
       {named.length > 1 && (
         <p className="chart-legend">
           {named.map((s) => (
-            <span key={s.id}>
+            <span key={s.key}>
               <i style={{ background: s.color }} />
               {s.label}
             </span>
@@ -222,6 +249,25 @@ export function LineChart({
         {zeroLine && !logY && yDom[0] < 0 && yDom[1] > 0 && (
           <line x1={plot.x0} x2={plot.x1} y1={sy(0)} y2={sy(0)} className="chart-axis" />
         )}
+        {yMarkers
+          .filter((m) => m.y >= yDom[0] && m.y <= yDom[1])
+          .map((m, i) => (
+            <g key={`ym${i}`}>
+              <line
+                x1={plot.x0}
+                x2={plot.x1}
+                y1={sy(m.y)}
+                y2={sy(m.y)}
+                className="chart-marker"
+                style={m.color ? { stroke: m.color } : undefined}
+              />
+              {m.label && (
+                <text x={plot.x1 - 3} y={sy(m.y) - 3} textAnchor="end" className="chart-tick">
+                  {m.label}
+                </text>
+              )}
+            </g>
+          ))}
         {markers
           .filter((m) => m.x >= xd[0] && m.x <= xd[1])
           .map((m, i) => (

@@ -267,12 +267,18 @@ interpolated onto the path.
 
 > **Two things to know today.**
 >
-> 1. The chart draws one curve per band, all in one colour. The course's
->    Fig. 6.4 distinguishes the occupied bands from the empty ones, which needs
->    a Fermi level along the path that `paw_bands.x` does not report; the
->    eigenvalues themselves are exact. Read the numbers from Analysis ▸ Orbitals
->    (the eigenvalues of the self-consistent mesh), from the protocol's
->    `ABSOLUTE GAP` line, or from `GET /api/cppaw/calculations/{id}/bands`.
+> 1. Each band is coloured by how full it is, as Fig. 6.4 draws it: dark where
+>    the band lies wholly below the reference level, faint where it lies wholly
+>    above, and picked out in green where the level cuts through it. Silicon
+>    gives four filled bands and no cut band — it is a semiconductor. The
+>    reference level is labelled on the chart: `E_F` where the run computed a
+>    Fermi level, `HOMO` where it did not. Silicon uses fixed occupations, so
+>    there is no Fermi level to report and the level shown is the top of the
+>    filled states — which for an insulator is the same classification, since a
+>    band that never reaches the valence-band maximum is full either way. Read
+>    the numbers themselves from Analysis ▸ Orbitals (the eigenvalues of the
+>    self-consistent mesh), from the protocol's `ABSOLUTE GAP` line, or from
+>    `GET /api/cppaw/calculations/{id}/bands`.
 > 2. `paw_bands.x` also has a `diagonalize` mode, which re-diagonalises the
 >    Hamiltonian at each k-point instead of interpolating. It is slower and
 >    more accurate — but a CP-PAW build older than the option rejects it with

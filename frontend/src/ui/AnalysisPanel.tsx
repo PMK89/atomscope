@@ -24,13 +24,20 @@ import { useSelectionStore } from '../state/selectionStore';
 import { useStructureStore } from '../state/structureStore';
 import { coopsForBonds } from './coopRequests';
 import { useVolumetricStore } from '../state/volumetricStore';
-import { LineChart, type ChartMarker, type ChartSeries } from './charts/LineChart';
+import {
+  LineChart,
+  type ChartMarker,
+  type ChartSeries,
+  type ChartYMarker,
+} from './charts/LineChart';
 import { channelOrbitals, channels, homoIndex, lumoIndex, stepIndex } from './analysis/orbitals';
 
 type Section = 'convergence' | 'orbitals' | 'dos' | 'bands';
 
 const SERIES_COLORS = ['#2f6fdb', '#e07a3c', '#3cb371', '#9b59b6', '#c0392b'];
 const SPIN_COLORS = ['#2f6fdb', '#c0392b'];
+/** Figs. 6.4/6.9: filled bands dark, the ones the Fermi level crosses picked out, empty faint. */
+const BAND_PALETTE = { occupied: '#333', partial: '#3cb371', empty: '#9aa6b8' };
 
 function seriesColor(i: number): string {
   return SERIES_COLORS[i % SERIES_COLORS.length]!;
@@ -285,9 +292,16 @@ export function AnalysisPanel({ onError }: { onError: (m: string) => void }): JS
   );
 
   const bandChartSeries: ChartSeries[] = useMemo(
-    () => (bands ? bandSeries(bands, SPIN_COLORS) : []),
+    () => (bands ? bandSeries(bands, BAND_PALETTE) : []),
     [bands],
   );
+
+  /** The level every band is classified against, named for which of the two it is. */
+  const bandMarkers: ChartYMarker[] = useMemo(() => {
+    const level = bands?.fermi_level ?? bands?.homo_energy;
+    if (level == null) return [];
+    return [{ y: level, label: bands?.fermi_level != null ? 'E_F' : 'HOMO' }];
+  }, [bands]);
 
   if (!selected) {
     return (
@@ -604,9 +618,7 @@ export function AnalysisPanel({ onError }: { onError: (m: string) => void }): JS
                   series={bandChartSeries}
                   xTicks={bands.labels.map((l) => ({ value: l.distance, label: l.label }))}
                   markers={bands.labels.map((l) => ({ x: l.distance }))}
-                  {...(bands.fermi_level != null || bands.homo_energy != null
-                    ? { zeroLine: false }
-                    : {})}
+                  yMarkers={bandMarkers}
                   xLabel="k"
                   yLabel="E [eV]"
                   title="Band structure"

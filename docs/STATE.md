@@ -47,7 +47,7 @@ CP-PAW's own output is copied byte for byte.
 ## The CP-PAW hands-on course
 
 `docs/course/inventory.md` is the map by exercise; **`docs/course/figures.md` is the map by
-figure** — all 35, one row each, with what draws it today: **17 SHOWS · 8 PARTIAL · 5 MISSING ·
+figure** — all 35, one row each, with what draws it today: **19 SHOWS · 6 PARTIAL · 5 MISSING ·
 5 n/a** (the counts are derived, see the file). That file answers "can the whole course be
 replicated and visualized", and its gaps table is grouped by the work each needs rather than by
 chapter, because one change closes several rows. `scripts/course/exercises.py` holds the exercises as structures plus schema
@@ -82,9 +82,21 @@ analysis tool dies with `Fortran runtime error: Missing comma between descriptor
 (`env -i ~/cp-paw/bin/fast/paw_bands.x case.bcntl` reproduces it). The API server has
 always run the check at startup; `scripts/course/run.py` now does too.
 
+Band curves are now coloured by occupation (Figs 6.4, 6.9), which needed a reference level the
+band tool does not provide. Two sources, in that order: a variable-occupation run reports a
+converged `CHEMICAL POTENTIAL` in its protocol (iron: 17.504 eV) and that is a real Fermi level;
+a DOS run has one in `.dprot`. A fixed-occupation run has neither, and there the top of the filled
+states is the level — the chart labels which of the two it drew, because they are not the same
+thing: CP-PAW's `HOMO-ENERGY` is the highest eigenvalue with occupation above 1e-6
+(`paw_waves2.f90`), so for a smeared metal it lies *above* E_F. Classification uses a 1 meV
+tolerance, which is load-bearing rather than cosmetic: the eigenvalue tables print three decimals
+and the band file five, so silicon's valence bands read 0.17 meV under their own HOMO and a strict
+comparison draws a semiconductor as a metal. Aluminium has no k-path run, so 6.9's two halves are
+verified separately — the three-class rule on the real silicon bands with the level moved into
+band 2, the metallic level on iron's real protocol.
+
 **Next**, in the order that closes the most figures per unit of work (from `figures.md`'s gaps
-table): band curves coloured by occupation (6.4, 6.9 — needs a Fermi level along the path, which
-`paw_bands.x` does not report), a fitted curve through sweep points (6.6, 6.7 — read
+table): a fitted curve through sweep points (6.6, 6.7 — read
 `paw_murnaghan.x` before writing the Birch-Murnaghan form), a DOS overlay across calculations
 (8.4), a running average on a time series (5.3), and distance-against-time from a stored
 trajectory (5.6). Then the chapters that are written and not yet run — 4 (malonaldehyde), 6
@@ -534,4 +546,4 @@ run against current code -- Playwright above all -- use the private-server recip
      `fix_angle`, `fix_dihedral` and `ignore_atoms` are silently skipped there, and an ignored
      atom has no ASE meaning either (it is an Open Babel notion). Open Babel treats a torsion
      constraint as a restraint: it holds within a few degrees, not exactly.
-   - Smaller items: NMR/UV-Vis/CD have parsers and spectrum builders but no route or UI (AV-SPEC-004/006/007); force-field IR intensities are qualitative because topological charge models have no charge flux; `resources` is hard-coded `{cores: 1, mpi: false}` in `CalculationPanel.tsx`, so the CP-PAW MPI path is unreachable from the UI; units render as raw tags; DOS and band results are not reloaded when a project is reopened; calculation renames are silently discarded (no rename endpoint); `ase_builtin` reads an `optimizer` key that its schema does not declare and tags `pressure` as eV rather than eV/A^3; `mode: "diagonalize"` bands still fail on the installed CP-PAW binaries (2025-05-07), which needs a rebuild -- the API now reports that instead of serving the previous run's file.
+   - Smaller items: NMR/UV-Vis/CD have parsers and spectrum builders but no route or UI (AV-SPEC-004/006/007); force-field IR intensities are qualitative because topological charge models have no charge flux; `resources` is hard-coded `{cores: 1, mpi: false}` in `CalculationPanel.tsx`, so the CP-PAW MPI path is unreachable from the UI; units render as raw tags; calculation renames are silently discarded (no rename endpoint); `ase_builtin` reads an `optimizer` key that its schema does not declare and tags `pressure` as eV rather than eV/A^3; `mode: "diagonalize"` bands still fail on the installed CP-PAW binaries (2025-05-07), which needs a rebuild -- the API now reports that instead of serving the previous run's file.

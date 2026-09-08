@@ -23,6 +23,7 @@ outputs in ``tests/fixtures/cppaw``):
 * ``EIGENVALUES [EV] FOR K-POINT n [AND SPIN s]`` blocks with rows ``offset: e1 e2 ...`` in eV
   (the prefix is the band offset of the row), and the
   scalar lines ``BAND INDEX OF HOMO[ FOR SPIN s]``, ``SMALLEST DIRECT GAP``, ``ABSOLUTE GAP``,
+  ``CHEMICAL POTENTIAL`` (the Fermi level, variable occupations only),
   and the two plane-wave counts (``NUMBER OF (GLOBAL) PLANE WAVES FOR WAVE FUNCTION`` and
   ``#(G-VECTORS FOR DENSITY)``).
 
@@ -48,6 +49,13 @@ _EIG_HEAD = re.compile(r"^EIGENVALUES \[EV\] FOR K-POINT\s+(\d+)(?:\s+AND SPIN\s
 _EIG_ROW = re.compile(r"^\s*(\d+):\s+(.*)$")
 _HOMO = re.compile(r"^BAND INDEX OF HOMO(?: FOR SPIN\s+(\d+))?\.*:\s*(\d+)")
 _GAP = re.compile(r"^(SMALLEST DIRECT GAP|ABSOLUTE GAP)\.*:\s*([-\d.]+)\s*EV")
+#: The Fermi level of a variable-occupation run. ``DYNOCC`` reports it once per iteration under
+#: OCCUPATIONS, and only when the occupations are dynamical with a fixed electron count -- a
+#: fixed-occupation run (silicon, the molecules) has no chemical potential and prints none. This
+#: is the only place a self-consistent E_F appears: ``HOMO-ENERGY`` is the highest eigenvalue with
+#: occupation above 1e-6, which for a smeared metal lies above E_F rather than at it, and the
+#: ``FERMI LEVEL`` line belongs to ``paw_dos.x``, not to the ground state.
+_CHEMICAL_POTENTIAL = re.compile(r"^CHEMICAL POTENTIAL\.*:\s*([-+\d.Ee]+)\s*EV")
 _PLANE_WAVES = re.compile(
     r"^(NUMBER OF \(GLOBAL\) PLANE WAVES FOR WAVE FUNCTION|#\(G-VECTORS FOR DENSITY\))"
     r"\.*:\s*(\d+)"
@@ -119,6 +127,8 @@ class ProtocolData:
     homo_band_index_by_spin: dict[int, int] = field(default_factory=dict)  # spin (1-based) -> band
     direct_gap_ev: float | None = None
     absolute_gap_ev: float | None = None
+    #: eV; the last reported value, i.e. the converged one (see _CHEMICAL_POTENTIAL).
+    chemical_potential_ev: float | None = None
     #: How large the basis actually was. The tutorial's ch. 8 asks for these beside every energy
     #: in its convergence tables, because a cutoff or a cell is only meaningful together with the
     #: number of plane waves it produced.
@@ -240,6 +250,9 @@ def parse_protocol_text(text: str) -> ProtocolData:  # noqa: PLR0912, PLR0915
                 data.plane_waves_wavefunction = int(pw.group(2))
             else:
                 data.plane_waves_density = int(pw.group(2))
+        cp = _CHEMICAL_POTENTIAL.match(stripped)
+        if cp:
+            data.chemical_potential_ev = float(cp.group(1))
         gm = _GAP.match(stripped)
         if gm:
             if gm.group(1).startswith("SMALLEST"):

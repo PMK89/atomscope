@@ -1204,10 +1204,16 @@ ASE's default high-symmetry path for the lattice, shown above the button.
 `Compute bands` writes a `.bcntl`, runs `paw_bands.x` and reads the resulting
 `.dat` files.
 
-> One caveat today: the chart draws every band in the same colour. The course's
-> band-structure figures separate the occupied bands from the empty ones, which
-> needs a Fermi level along the path — `paw_bands.x` reports eigenvalues only
-> (see [§10](#10-limits-and-known-problems)). A band structure already computed
+The bands are coloured by occupation, the way the course's figures draw them:
+filled bands dark, empty bands faint, and any band the reference level cuts
+through picked out in green. The level is drawn across the chart and labelled
+for which one it is — `E_F` for a run that computed a Fermi level (variable
+occupations, i.e. metals), `HOMO` for a fixed-occupation run, which has no
+Fermi level and where the top of the filled states is the reference instead.
+Both come from the self-consistent mesh rather than from the path, because
+`paw_bands.x` reports eigenvalues only; for an insulator the two agree, and for
+a metal the label tells you which you are looking at
+(see [§10](#10-limits-and-known-problems)). A band structure already computed
 > **is** re-loaded when you reopen the project, as a DOS is; neither has to be
 > recomputed, and recomputing a DOS would overwrite the control file and lose
 > any COOP it had been asked for.
@@ -1516,10 +1522,14 @@ area, so undo can fire from inside the Cartesian editor.
 Things you will notice, with their current status. None of them has a
 workaround hidden from you.
 
-* **Band curves are all one colour.** The chart draws one curve per band, but
-  the course's figures distinguish occupied bands from empty ones, and
-  `paw_bands.x` reports eigenvalues without a Fermi level along the path. Read
-  the gap from the eigenvalues (Analysis ▸ Orbitals, or the protocol).
+* **A band structure's reference level comes from the mesh, not the path.**
+  `paw_bands.x` reports eigenvalues only, so the level each band is classified
+  against is the one the self-consistent run computed: the protocol's
+  `CHEMICAL POTENTIAL` for variable occupations, else the top of the filled
+  states. The chart labels which it is. A band is called cut by the level only
+  if it crosses by more than a milli-electronvolt, because the two numbers are
+  printed to different precisions and a filled band can read a fraction of a
+  meV above its own maximum.
 * **`diagonalize` band mode fails** on a CP-PAW installation whose
   `paw_bands.x` predates that option — the tool stops with
   `BANDS: MODE UNKNOWN … DIAG`, and the previous (interpolated) result is

@@ -32,7 +32,13 @@ def parse_band_text(text: str) -> tuple[list[float], list[list[float]]]:
     return xs, rows
 
 
-def read_bands(work: Path, root: str, *, homo_energy: float | None = None) -> BandStructure:
+def read_bands(
+    work: Path,
+    root: str,
+    *,
+    fermi_level: float | None = None,
+    homo_energy: float | None = None,
+) -> BandStructure:
     sidecar = work / band_sidecar(root)
     if not sidecar.is_file():
         msg = f"{sidecar.name} not found: no band structure has been requested"
@@ -77,7 +83,13 @@ def read_bands(work: Path, root: str, *, homo_energy: float | None = None) -> Ba
         else:
             labels.append(KPathLabel(label=a.label, distance=start))
         labels.append(KPathLabel(label=b.label, distance=end))
-    return BandStructure(k_distance=xs, labels=labels, energies=energies, homo_energy=homo_energy)
+    return BandStructure(
+        k_distance=xs,
+        labels=labels,
+        energies=energies,
+        fermi_level=fermi_level,
+        homo_energy=homo_energy,
+    )
 
 
 __all__ = ["parse_band_text", "read_bands"]

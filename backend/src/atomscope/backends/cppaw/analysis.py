@@ -38,6 +38,9 @@ class OrbitalEntry(StrictModel):
 class ElectronicInfo:
     eigenvalues: list[Eigenvalues] = field(default_factory=list)
     homo_by_spin: dict[int, int] = field(default_factory=dict)
+    #: eV; the self-consistent Fermi level, for the runs that have one. ``None`` for a
+    #: fixed-occupation run, where ``homo_energy`` is the top of the filled states instead.
+    fermi_level: float | None = None
 
     @property
     def n_spins(self) -> int:
@@ -71,7 +74,11 @@ def electronic_info(work: Path, root: str) -> ElectronicInfo:
         return ElectronicInfo()
     data = parse_protocol_text(last_run(prot.read_text(errors="replace")))
     eigs = data.eigenvalues[-1] if data.eigenvalues else []
-    return ElectronicInfo(eigenvalues=eigs, homo_by_spin=dict(data.homo_band_index_by_spin))
+    return ElectronicInfo(
+        eigenvalues=eigs,
+        homo_by_spin=dict(data.homo_band_index_by_spin),
+        fermi_level=data.chemical_potential_ev,
+    )
 
 
 def orbital_label(band: int, homo: int | None) -> str:

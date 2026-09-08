@@ -42,12 +42,12 @@ figure's own presentation is not yet drawn · `MISSING` needs capability we do n
 | 6.1 | 6.2 | DOS of silicon: total as an outline, the projections as filled regions | `paw_dos.x` → xmgrace | Analysis ▸ DOS, stacked under the total's outline | SHOWS |
 | 6.2 | 6.3.3 | the same DOS computed with "empty atoms" filling the interstitial volume | extra sites in the `.strc` | — | MISSING |
 | 6.3 | 6.3.4 | the fcc Brillouin zone and its high-symmetry points | reproduced from a textbook | — (no Brillouin-zone view; the k-path *labels* are on the band chart) | n/a |
-| 6.4 | 6.3.4 | band structure of silicon, occupied bands drawn differently from empty ones | `paw_bands.x` → xmgrace | Analysis ▸ Bands — curves draw, all one colour | PARTIAL |
+| 6.4 | 6.3.4 | band structure of silicon, occupied bands drawn differently from empty ones | `paw_bands.x` → xmgrace | Analysis ▸ Bands — filled bands dark, empty faint, the reference level drawn and labelled | SHOWS |
 | 6.5 | 6.3.5 | the sawtooth: total energy against volume at a fixed plane-wave cutoff | a table of runs → xmgrace | Sweeps panel, energy against the swept parameter | SHOWS |
 | 6.6 | 6.3.6 | energy against scaled lattice constant, with a cubic polynomial through it | `xmgrace` fit | Sweeps panel draws the points; no fitted curve | PARTIAL |
 | 6.7 | 6.3.7 | the same points with a Birch-Murnaghan equation of state fitted | `paw_murnaghan.x` | Sweeps panel draws the points; no fitted curve, no bulk modulus | PARTIAL |
 | 6.8 | 6.4 | DOS of aluminium against the free-electron-gas √E curve | `paw_dos.x` + an analytic curve | Analysis ▸ DOS, stacked — without the analytic √E curve beside it | PARTIAL |
-| 6.9 | 6.4 | band structure of aluminium, full bands separated from partly filled ones | `paw_bands.x` → xmgrace | Analysis ▸ Bands — curves draw, all one colour | PARTIAL |
+| 6.9 | 6.4 | band structure of aluminium, full bands separated from partly filled ones | `paw_bands.x` → xmgrace | Analysis ▸ Bands — bands the level cuts drawn as a third class; aluminium not run (see below) | SHOWS |
 | 7.1 | 7.1 | spin-resolved DOS of α-iron, majority against minority | `paw_dos.x` → xmgrace | Analysis ▸ DOS, stacked per spin, mirrored about zero | SHOWS |
 | 7.2 | 7.2 | the rock-salt cell inside the fcc cell, and the magnetic cell | a viewer screenshot | viewport with the unit-cell box; supercell builder | SHOWS |
 | 7.3 | 7.2 | DOS of NiO, total and angular-momentum projected, per spin | `paw_dos.x` → xmgrace | Analysis ▸ DOS, stacked per angular momentum, per spin | SHOWS |
@@ -59,7 +59,7 @@ figure's own presentation is not yet drawn · `MISSING` needs capability we do n
 
 Totals, derived with
 `awk -F'|' 'NR>2 && NF>=7 {gsub(/ /,"",$7); print $7}' docs/course/figures.md | sort | uniq -c`:
-**17 SHOWS · 8 PARTIAL · 5 MISSING · 5 n/a.**
+**19 SHOWS · 6 PARTIAL · 5 MISSING · 5 n/a.**
 
 ## What the gaps actually are
 
@@ -67,7 +67,6 @@ Grouped by the work they need rather than by chapter, because one change closes 
 
 | Gap | Figures | Size |
 |-----|---------|------|
-| band curves coloured by occupation | 6.4, 6.9 | needs the Fermi level per band point; `paw_bands.x` gives eigenvalues only |
 | a fitted curve through sweep points (cubic, then Birch-Murnaghan) | 6.6, 6.7 | numpy on `SweepResult`; the course's own tool is `paw_murnaghan.x` |
 | running average over a time series | 5.3 | a chart option |
 | a distance (or angle) against time, from a stored trajectory | 5.6 | pure function of the trajectory plus two atom indices |
@@ -118,6 +117,24 @@ A row saying `SHOWS` is a claim until someone has looked at the picture. `fronte
 course project in the running application, asserts what has to be on the chart and writes the
 picture to `.scratch/course-shots/`. Seven pass today, covering Figs 4.8, 5.1, 5.2, 6.4, 8.1, 8.2,
 8.5 and the DOS shape shared by 3.1/4.2/4.6/6.1/7.1/7.3.
+
+Fig. **6.9 is a metal**, and no metallic band structure has been run: the aluminium and iron
+chapters compute a DOS but no k-path, so nothing on disk has both a Fermi level and a band
+structure. The two halves of the figure are therefore verified separately, each against something
+real. The classification is exercised on the real silicon bands with the level moved into band 2,
+which produces the three classes the figure draws (1 full, 2 cut, 7 empty). The metallic
+*reference level* is exercised on the real iron run, whose protocol reports a converged
+`CHEMICAL POTENTIAL` of 17.504 eV — so when an aluminium k-path is eventually run, the level will
+be a genuine E_F rather than a stand-in. What has not been seen is the two together in one
+picture.
+
+That distinction matters, and it is why the chart labels its level. `HOMO-ENERGY` is *not* a Fermi
+level: CP-PAW defines it as the highest eigenvalue with occupation above 1e-6
+(`paw_waves2.f90`), which for a smeared metal lies above E_F, not at it. A fixed-occupation run
+(silicon, the molecules) reports no chemical potential at all, and there the top of the filled
+states is the honest reference — and for an insulator it gives the same classification anyway,
+since a band that never reaches the valence-band maximum is full either way. The chart says which
+of the two it drew.
 
 Figs **7.1 and 7.3 are spin-polarized** stacks, and no polarized course run
 exists yet (`iron-ferromagnet` and `nio` are written but not run), so those two
