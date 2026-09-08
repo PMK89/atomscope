@@ -7,7 +7,15 @@
     "strict": true,
     "skipLibCheck": true,
     "noEmit": true,
-    "allowImportingTsExtensions": true
+    "allowImportingTsExtensions": true,
+    // vite.config.ts runs in Node, so it needs Node's globals -- and only those. Without these,
+    // the project auto-includes every `node_modules/@types` TypeScript finds while walking up the
+    // filesystem, which reaches outside the repository entirely: that is how `pnpm typecheck`
+    // passed on a developer machine with an unrelated `~/node_modules/@types/node` while CI, which
+    // has no such thing, failed with "Cannot find name 'process'". `@types/node` is a declared
+    // devDependency now, so it resolves from here on both.
+    "types": ["node"],
+    "typeRoots": ["./node_modules/@types"]
   },
   "include": ["vite.config.ts"]
 }
