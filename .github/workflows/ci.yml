@@ -29,7 +29,16 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: pnpm
-          cache-dependency-path: frontend/pnpm-lock.yaml
+      # `cache: pnpm` on setup-node cannot be used here: it locates the store by running
+      # `pnpm store path` from the repository root, where frontend/.npmrc -- which points the
+      # store at .pnpm-store inside the project -- does not apply. It therefore caches a
+      # directory that `pnpm install` never creates, and its post-job save step fails the whole
+      # job with "Path(s) specified in the action for caching do(es) not exist". Cache the store
+      # that is actually used.
+      - uses: actions/cache@v4
+        with:
+          path: .pnpm-store
+          key: pnpm-${{ runner.os }}-${{ hashFiles('frontend/pnpm-lock.yaml') }}
+          restore-keys: pnpm-${{ runner.os }}-
       - run: cd frontend && pnpm install --frozen-lockfile
       - run: cd frontend && pnpm typecheck && pnpm lint && pnpm test && pnpm build
