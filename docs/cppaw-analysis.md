@@ -1658,6 +1658,70 @@ O and H, isolated-molecule cell, `NSPIN=2`, `EMPTY=15`) is unmodified.
 | Force trajectory | `si2_ftra/` (single point + `!ANALYSE !TRA FORCE=T E=T !END !END`, 60 steps) and `si2_force/` (`!RDYN FRIC=1.0 STOP=T`, `NEWSTRC=T`, `NWRITE=1`, 5 steps) | | `si2_f.tra`/`si2_e.tra` are written (59 records, NSIZE 8); `_e.tra` holds `[T, EKINC, EKINP, ETOT, ECONS, ...]` = `[0, 0.0716, 0, -7.8689, -7.7973, ...]`; **`_f.tra` is all zeros in both runs** although the ATOMLIST of `si2_force` shows `(-189.17, -0.02, -0.03)` mH/a₀. With `FRIC=1.0` the displaced Si atom moved 1.46593 → 1.46584 Å in 5 steps. |
 | Input error | `si2_broken/` | STRC without `!SPECIES` | exit code **1**; stdout: `ERROR STOP ERROR STOP IN MPE__STOPALL` + gfortran backtrace, then the message; `.prot` ends with `NO ATOM TYPES !STRUCTURE!SPECIES SPECIFIED. ... STOP IN STRCIN_SPECIES` and has no `PROGRAM FINISHED` line. |
 
+### 7.6 The container image, measured against the host installation (2026-09-09)
+
+The project ships a dockerised CP-PAW (`cp-paw/docker-compose.yml`, images `cp-paw-backend`,
+`cp-paw-worker`, `cp-paw-frontend`). The compose stack was **not** started: it publishes ports
+8000 and 8080, i.e. binds `0.0.0.0`, and an externally reachable service needs explicit
+permission. The existing `cp-paw-backend:latest` image was run directly instead, with only a bind
+mount of a scratch directory, `--network none`, and `--user $(id -u):$(id -g)` so the files it
+writes belong to the user rather than to root.
+
+The tools live at `/app/bin/fast/`, the full set, linked against the image's own
+`libgfortran.so.5`. Three measurements, each against the same input as the host run:
+
+| Tool | Host | Container | Verdict |
+| --- | --- | --- | --- |
+| `paw_fast.x` (water, `START=T`) | `TOTAL ENERGY: -17.2996974 H` | `-17.2996974 H` | identical |
+| `paw_dos.x` (water-orbitals `case.pdos`) | `FERMI LEVEL: -7.14823 EV` | `-7.14823 EV` | identical |
+| `paw_wave.x` (`case_density.wv` → cube) | `case_density.cub` | byte-identical | identical |
+
+An earlier comparison appeared to show a 52 meV Fermi-level difference. It did not: the two runs
+had different inputs (`START=F` plus a `!DENSITY` request against `START=T` from scratch). Feeding
+*the same* `.pdos` to both gives the same number to the last digit.
+
+The container is in one respect **better** than the host installation: §7.1's start-up abort
+cannot happen there. `paw_dos.x` runs cleanly in the container while the same tool on this
+workstation dies with `Missing comma between descriptors` unless `health_check` has already found
+an older runtime. The image ships a matching libgfortran, so there is nothing to hunt for.
+
+The whole `-m cppaw` suite passes through the container: 6 passed, 1 skipped, the skip being the
+parallel test guarding on `ppaw_fast.x`/mpirun. Container mode is deliberately serial — the
+parallel binary would need mpirun *inside* the image, which is a different problem.
+
+Atomscope uses it by setting `ATOMSCOPE_CPPAW_IMAGE=cp-paw-backend:latest`. Rather than teach
+every call site about containers, `CppawSettings.find` hands out one generated `sh` wrapper per
+tool (see `backends/cppaw/settings.py`, `ContainerRuntime`); each `exec`s `docker run` with the
+caller's working directory as the only visible path and passes arguments through `"$@"`, so no
+argument is re-parsed by a shell and `shell=False` still holds everywhere. A configured container
+is never silently replaced by the host installation: that would run a different CP-PAW than was
+asked for, and the difference would surface as an unexplained energy.
+
+### 7.7 `!WCNTL !PLANE`: `C=` is broken upstream, use `O=`
+
+`paw_wave.x` writes `_c.gnu` (contour) and `_r.gnu` (rubbersheet) whenever its `.wcntl` carries a
+`!PLANE` block — both at once, from `MAKEGNU` (`src/Tools/Wave/paw_wave.f90:1493`). The plane
+takes `T=` (two spanning 3-vectors, the second automatically orthogonalised against the first)
+and either `O=` (corner) or `C=` (nominally centre).
+
+**`C=` does not centre the plane.** At `paw_wave.f90:353` the value is read into `PLANER0` and the
+centring correction is then applied to `BOXR0` — the *viewbox* origin — instead of to `PLANER0`.
+So `C` behaves as a corner, and it perturbs the cube's box as a side effect. Measured on the
+water density: with `!PLANE C=0 0 0` the oxygen core (the field maximum) lands at the plane's
+corner, at label `(-3.00, -3.00) Å`, and the plane through the molecule reads as near-vacuum.
+
+With `!PLANE O=` set to `-(v1+v2)/2` — computed by the caller — the same cut is correct: oxygen
+5.378 e/Bohr³ at the plane centre, both hydrogens 0.2453 e/Bohr³ (equal, as the symmetry of the
+relaxed molecule requires), vacuum 4.3e-6. Atomscope therefore always writes `O=` and never `C=`.
+
+The file format, read off the writer rather than inferred: a header of lowercase `key= value`
+assignments (`xmin`…`zmax`, plus the suggested view `rot_x`, `rot_z`, `scale`, `scale_z` — the
+contour gets `0,0` and the rubbersheet `30,20`), then `# DATA SECTION` and `N1*N2` rows of
+`x y z` with x in the outer loop. The grid is fixed at 60×60 (`N1`/`N2` parameters). Lengths are
+Bohr. An earlier header line reads `DATA SECTION TO BE CHANGED BY THE USER` and is *not* the
+data — the marker must exclude it. The two files' numbers are byte-identical, so reading one of
+each pair suffices.
+
 ## 8. Known traps
 
 Sources: the third-party audit of the earlier web workbench (`~/cp-paw/docs/third_party_audit_report.md`), the workbench code (`~/cp-paw/backend/app/protocol.py`, `restarts.py`, ...), the manual, the Fortran sources and the probes of section 7. Status: **VERIFIED** = reproduced here or read in the source at the cited line; **MANUAL** = stated by the manual; **AUDIT** = reported by the audit, consistent with the source.

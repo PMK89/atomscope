@@ -110,29 +110,39 @@ is one commit, pushed, with CI watched. Done so far:
    has every step and no forces, this has only the reported geometries but carries forces and the
    lattice — and exists for a static run, which writes no `.tra` at all.
 
-Still to do, in this order:
+Progress:
 
-2. **Docker CP-PAW — verify, do not deploy.** `/home/pmk/cp-paw` is the user's own web app around
-   CP-PAW (`backend/`, `frontend/`, `worker/`; upstream Fortran in `src/`), and its compose file
-   publishes 8000 and 8080, i.e. binds 0.0.0.0 — an externally accessible service, which needs
-   explicit permission. So **do not `docker compose up`** and do not rebuild (the images exist,
-   1.99 GB). Instead `docker run --rm` the existing `cp-paw-backend:latest` with only a bind mount
-   of a scratch work directory, run a course `case.cntl`, and compare the final energy with the
-   native run. Test an *analysis* tool too (`paw_dos.x`), not just `paw_fast.x`: the libgfortran
-   discovery that `health_check()` does natively will behave differently in the container. If it
-   works, the Atomscope change is a bounded `executable_prefix: list[str]` on the CP-PAW settings
-   that `runner.py` prepends to the argv — argument array, `shell=False`, posture unchanged.
-3. **Contour and rubbersheet plots (Fig 3.4 and the ch. 3 graphics).** `paw_wave.x` writes
-   `_c.gnu` and `_r.gnu` from `MAKEGNU` (`cp-paw/src/Tools/Wave/paw_wave.f90:84-93, 370-385`) when
-   the `.wcntl` asks for a plane — read that file for the control keys rather than guessing, and
-   cross-check `data/manual-schema.json`. The parser spec is `asecppaw`'s `readGnuFile`
-   (`~/ase-cp-paw/src/asecppaw/tools/base.py:457`): a `DATA SECTION` marker that is not `USER`,
-   then whitespace `x y z`, x and y de-duplicated monotonically, `z.reshape(len(x), len(y))`.
-   Note it returns `[x, x, z]` for `_c.gnu` — check a real file before copying that. Render the
-   contour as SVG (marching squares beside `ui/charts/area.ts`) and the rubbersheet as a Three.js
-   height field with light azimuth/elevation and vertical exaggeration as sliders, matching
-   `rubberSheet(lightSource=(270,45), vert_exag=0.1)`. The `cppawColors` map is data — copy it and
-   record it in `docs/provenance.md` (asecppaw is GPL-3.0, as is Atomscope).
+2. **Docker CP-PAW — verified, and usable** — DONE. Measurements and reasoning in
+   `docs/cppaw-analysis.md` §7.6. The compose stack was *not* started (it publishes 8000/8080,
+   i.e. binds 0.0.0.0, which needs permission); the existing `cp-paw-backend:latest` image was run
+   directly with only a scratch bind mount, `--network none` and the user's own uid. `paw_fast.x`
+   gives the identical energy (−17.2996974 H), `paw_dos.x` the identical Fermi level (−7.14823 eV)
+   on the same `.pdos`, and `paw_wave.x` a **byte-identical** cube. The whole `-m cppaw` suite
+   passes through the container (6 passed, 1 skipped — the parallel test). The container is
+   *better* than the host install in one way: §7.1's start-up abort cannot happen there, because
+   the image ships a matching libgfortran. Enabled with
+   `ATOMSCOPE_CPPAW_IMAGE=cp-paw-backend:latest`; `ContainerRuntime` in
+   `backends/cppaw/settings.py` generates one `sh` wrapper per tool, so no call site changed and
+   `shell=False` still holds. Serial only, and it never falls back to the host install (that would
+   run a different CP-PAW). A 52 meV Fermi difference I first saw was **not** real — the two runs
+   had different inputs.
+
+3. **Contour and rubbersheet plots (Fig 3.4 and the ch. 3 graphics)** — IN PROGRESS.
+   Done: the `_c.gnu`/`_r.gnu` parser (`backends/cppaw/gnuplane.py`), verified on real files
+   generated through the container — 60×60, ±3 Å for a 6 Å cell, contour view `0,0` and
+   rubbersheet `30,20` exactly as the writer says, and the two files' numbers byte-identical, so
+   reading one of each pair is enough. Both findings are in `cppaw-analysis.md` §7.7: the format
+   read off `MAKEGNU` rather than inferred, and **`!PLANE C=` is broken upstream** — it assigns
+   `PLANER0` then applies the centring correction to `BOXR0`, so `C` acts as a corner and
+   perturbs the cube box as a side effect. Atomscope must always write `O=` computed as
+   `-(v1+v2)/2`. Measured: with `O=` the water density reads oxygen 5.378 e/Bohr³ at the plane
+   centre and both hydrogens 0.2453 (equal, as the symmetry requires); with `C=` the oxygen lands
+   at the corner and the cut through the molecule reads as near-vacuum.
+   Still to do: emit the `!PLANE` block (extend `wcntl_text` in `runner.py`), a route serving a
+   `PlaneField`, contour rendering (marching squares, SVG, beside `ui/charts/area.ts`), and the
+   rubbersheet as an interactive Three.js height field with light azimuth/elevation and vertical
+   exaggeration as sliders.
+
 4. **Density and orbitals against the tutorial** — a verification unit. Check what the ch. 3/4
    text says the orbitals look like (1b1, 3a1, 1b2 …) against the isosurfaces, and whether
    `paw_wave.x` can be asked for the *density* and not only a wave function. Record the orbital
