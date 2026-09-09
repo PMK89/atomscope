@@ -33,6 +33,7 @@ import { SurfacesPanel } from '../ui/SurfacesPanel';
 import { AxesLayer } from '../renderer/layers/AxesLayer';
 import { DipoleLayer } from '../renderer/layers/DipoleLayer';
 import { HBondLayer } from '../renderer/layers/HBondLayer';
+import { PolygonLayer } from '../renderer/layers/PolygonLayer';
 import { LabelLayer } from '../renderer/layers/LabelLayer';
 import { RibbonLayer } from '../renderer/layers/RibbonLayer';
 import { UnitCellLayer } from '../renderer/layers/UnitCellLayer';
@@ -101,6 +102,14 @@ export function defaultRegistry(): PluginRegistry {
     name: 'Hydrogen bonds',
     description: 'Dashed lines between donors and acceptors within the cut-offs.',
     create: () => new HBondLayer(),
+  });
+  registry.registerLayer({
+    id: 'polygons',
+    name: 'Coordination polyhedra',
+    description:
+      'The solid whose corners are an atom\u2019s neighbours, around every site with four or more' +
+      ' of them: a crystal as tetrahedra or octahedra rather than as bonds.',
+    create: () => new PolygonLayer(),
   });
   // the built-in schemes share one implementation (`renderer/atomColors.ts`), which is what the
   // dispatch inside it is; what the registry owns is the list, so a contributed scheme needs no

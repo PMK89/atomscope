@@ -832,6 +832,23 @@ ball-and-stick, which Avogadro does with two engines at once, is not possible.
 `Show atoms (wireframe)` draws the atoms of the `Wireframe` style as dots, or
 leaves the bare lines, which is what the style is for on a large structure.
 
+**Coordination polyhedra** draw, around each atom that qualifies, the solid
+whose corners are that atom's neighbours: a tetrahedron on a four-coordinate
+site, an octahedron on a six-coordinate one. It is how a crystal is usually
+drawn when the coordination matters more than the bonds — periclase as four
+octahedra, a silicate as corner-sharing tetrahedra.
+
+Which atoms qualify is Avogadro's rule: hydrogen, carbon, nitrogen, oxygen and
+sulphur never get one whatever their coordination, and every other element
+needs four or more neighbours. That is what keeps the picture readable — the
+solids land on the metal sites and the ligands are their corners. Each solid
+takes its central atom's colour, and `Opacity` starts at 0.75 so the atoms it
+is built from still show through.
+
+The corners are the atom's *bonded* neighbours, so a site whose coordination is
+completed across a periodic boundary is drawn from the neighbours inside the
+cell only.
+
 **Ribbon colours.** When the ribbon is coloured by secondary structure, the
 three colours Avogadro exposes are settable: `Helix colour`, `Sheet colour` and
 `Loop colour`, starting at its own red, yellow and green. The loop colour

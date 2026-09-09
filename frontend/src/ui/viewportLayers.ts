@@ -2,6 +2,7 @@
 import type { Renderer } from '../renderer/Renderer';
 import { LabelLayer } from '../renderer/layers/LabelLayer';
 import { HBondLayer } from '../renderer/layers/HBondLayer';
+import { PolygonLayer } from '../renderer/layers/PolygonLayer';
 import { RibbonLayer, type SecondaryStructureData } from '../renderer/layers/RibbonLayer';
 import { UnitCellLayer } from '../renderer/layers/UnitCellLayer';
 import { VectorLayer } from '../renderer/layers/VectorLayer';
@@ -40,6 +41,12 @@ export function syncExtraLayers(
   secondary: SecondaryStructureData | null = null,
   hiddenAtoms: ReadonlySet<number> | null = null,
 ): void {
+  const polygons = renderer.getLayer('polygons');
+  if (polygons instanceof PolygonLayer) {
+    polygons.visible = view.showPolygons;
+    polygons.setSettings({ opacity: view.polygonOpacity });
+    polygons.setHidden(hiddenAtoms);
+  }
   const hbonds = renderer.getLayer('hbonds');
   if (hbonds instanceof HBondLayer) {
     hbonds.visible = view.showHBonds;

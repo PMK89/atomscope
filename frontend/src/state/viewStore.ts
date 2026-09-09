@@ -5,6 +5,7 @@ import {
   type ResiduePalette,
 } from '../renderer/atomColors';
 import { NO_STYLES, type StyleAssignment } from '../renderer/atomStyles';
+import { DEFAULT_POLYGON_SETTINGS } from '../renderer/layers/PolygonLayer';
 import {
   DEFAULT_STRUCTURE_SETTINGS,
   type Quality,
@@ -104,6 +105,11 @@ export interface ViewState {
   setRibbonStyle: (style: RibbonStyle) => void;
   setRibbonScale: (scale: number) => void;
   /** Hydrogen bonds, drawn from the displayed geometry. */
+  /** Coordination polyhedra (Avogadro's Polygon engine). */
+  showPolygons: boolean;
+  polygonOpacity: number;
+  togglePolygons: () => void;
+  setPolygonOpacity: (opacity: number) => void;
   showHBonds: boolean;
   hbondDistance: number;
   hbondAngle: number;
@@ -199,6 +205,8 @@ export const DISPLAY_TYPE_DEFAULTS = {
   ribbonColorScheme: 'secondary',
   cartoonColors: AVOGADRO_CARTOON_COLORS,
   ribbonNitrogens: false,
+  showPolygons: false,
+  polygonOpacity: DEFAULT_POLYGON_SETTINGS.opacity,
   showHBonds: false,
   hbondDistance: DEFAULT_HBOND_SETTINGS.maxDistance,
   hbondAngle: DEFAULT_HBOND_SETTINGS.minAngle,
@@ -251,6 +259,10 @@ export const useViewStore = create<ViewState>((set) => ({
       bondLabelShift: bondShift ?? s.bondLabelShift,
       labelPrecision: precision ?? s.labelPrecision,
     })),
+  showPolygons: false,
+  polygonOpacity: DEFAULT_POLYGON_SETTINGS.opacity,
+  togglePolygons: () => set((st) => ({ showPolygons: !st.showPolygons })),
+  setPolygonOpacity: (polygonOpacity) => set({ polygonOpacity }),
   showHBonds: false,
   hbondDistance: DEFAULT_HBOND_SETTINGS.maxDistance,
   hbondAngle: DEFAULT_HBOND_SETTINGS.minAngle,

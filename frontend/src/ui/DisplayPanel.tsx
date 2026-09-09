@@ -532,6 +532,34 @@ export function DisplayPanel(): JSX.Element {
         </div>
       </div>
 
+      <h3>Coordination polyhedra</h3>
+      <Toggle
+        id="display-polygons"
+        label="Enabled"
+        checked={view.showPolygons}
+        onChange={view.togglePolygons}
+      />
+      <p className="muted">
+        The solid whose corners are an atom&apos;s neighbours, around every site with four or more
+        of them — a crystal as tetrahedra or octahedra rather than as bonds. Hydrogen, carbon,
+        nitrogen, oxygen and sulphur never get one, so the polyhedra land on the metal sites.
+      </p>
+      <div className="form-row">
+        <label htmlFor="display-polygon-opacity">Opacity</label>
+        <div className="range-with-value">
+          <input
+            id="display-polygon-opacity"
+            type="range"
+            min="0.05"
+            max="1"
+            step="0.05"
+            value={view.polygonOpacity}
+            onChange={(e) => view.setPolygonOpacity(Number(e.target.value))}
+          />
+          <span className="range-value">{view.polygonOpacity.toFixed(2)}</span>
+        </div>
+      </div>
+
       <h3>Ribbons</h3>
       <Toggle
         id="display-ribbon"
