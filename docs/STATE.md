@@ -215,6 +215,16 @@ Progress:
    A calculator is built *per image*: ASE evaluates band images independently, and sharing one
    silently returns the previous image's forces.
 
+A latent bug CI found, worth remembering: `ProjectDatabase.row_for` only queried the
+`calculation_id` key-value pair, but `write` deliberately omits an identity from the kvps whenever
+`ase.db` refuses it — which it does for any string its own reader turns into a number, and a
+random hex id sometimes is one (`391313492996` parses as an int, `31719629e335` as a float). For
+those calculations the lookup returned `None` and both callers failed *quietly*: `write` appended
+a second row instead of replacing the first, and `forget` deleted nothing. It fired only for ids
+that happen to look numeric, so locally it looked like flakiness and only CI's luck exposed it.
+`row_for` now falls back to reading `data["identity"]`, and the regression test is parametrised
+over four such ids — verified to fail on three of them without the fix.
+
 `/remote-control` is not in the skills list, so it was not invoked — nothing was guessed at.
 
 **Deferred** by the plan above (was next, still wanted): a fitted curve through sweep points

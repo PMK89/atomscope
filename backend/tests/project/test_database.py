@@ -268,3 +268,47 @@ async def test_an_id_that_looks_like_a_number_still_indexes(tmp_path: Path) -> N
         assert uid in found, f"{uid} was not indexed"
     # the ones ASE can take are selectable by id as well; the others are still in the row
     assert {r.name for r in db.select(calculation_id="a1b2c3d4e5f6")} == {"run-a1b2c3d4e5f6"}
+
+
+@pytest.mark.parametrize("numeric_id", ["391313492996", "31719629e335", "True", "0x10"])
+async def test_an_id_that_looks_like_a_number_is_still_one_row(
+    tmp_path: Path, numeric_id: str
+) -> None:
+    """``ase.db`` refuses a string key-value pair its own reader would turn into a number.
+
+    Those identities are kept in ``data`` instead, which ASE cannot query -- so a lookup that
+    only queried the key-value pairs found nothing, and both callers failed quietly: ``write``
+    appended a second row instead of replacing the first, and ``forget`` deleted nothing. It
+    fired only for ids that happen to look numeric, which made it look like flakiness.
+    """
+    svc = _service(tmp_path)
+    calc_id = await _run(svc, "water", from_atoms(molecule("H2O"), name="h2o"))
+    calc = svc.get(calc_id)
+    structure = svc.project.load_structure(calc.structure_id)
+
+    db = ProjectDatabase(svc.project.root)
+    renamed = calc.model_copy(update={"id": numeric_id})
+
+    db.write(renamed, structure)
+    assert db.row_for(numeric_id) is not None
+    # writing again replaces the row rather than adding a second one
+    db.write(renamed, structure)
+    # distinct rows, not the sum of two lookups: an id ASE *does* accept is carried in the
+    # key-value pairs and in `data`, so it matches both
+    with db.connect() as conn:
+        assert len(_rows_for(conn, numeric_id)) == 1
+
+    db.forget(numeric_id)
+    assert db.row_for(numeric_id) is None
+
+
+def _rows_for(conn: object, calculation_id: str) -> set[int]:
+    """Every row standing for this calculation, however its identity was stored."""
+    found: set[int] = set()
+    for row in conn.select():  # type: ignore[attr-defined]
+        identity = (row.data or {}).get("identity") or {}
+        if identity.get("calculation_id") == calculation_id:
+            found.add(int(row.id))
+        elif row.get("calculation_id") == calculation_id:
+            found.add(int(row.id))
+    return found

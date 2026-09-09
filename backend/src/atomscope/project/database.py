@@ -145,12 +145,30 @@ class ProjectDatabase:
         return ase.db.connect(self.path)  # type: ignore[no-untyped-call]
 
     def row_for(self, calculation_id: str) -> int | None:
-        """The row id standing for a calculation, if it has one."""
+        """The row id standing for a calculation, if it has one.
+
+        Two lookups, and the second is not optional. ``write`` leaves an identity out of the
+        key-value pairs whenever ``ase.db`` refuses it -- which it does for any string its own
+        reader would turn into a number, and a random hex id is sometimes exactly that
+        (``391313492996`` parses as an int, ``31719629e335`` as a float). Those rows carry the
+        identity only in ``data``, which ASE cannot query, so they have to be found by reading.
+
+        Without the fallback this returned ``None`` for such a calculation, and both callers did
+        the wrong thing quietly: ``write`` appended a second row instead of replacing the first,
+        and ``forget`` deleted nothing. It fired only for ids that happen to look numeric, so it
+        looked like flakiness rather than a bug.
+        """
         if not self.path.exists():
             return None
         with self.connect() as db:
             for row in db.select(calculation_id=calculation_id):
                 return int(row.id)
+            # ...and again for the rows whose identity ASE would not index
+            if not as_kvp(calculation_id) == calculation_id:
+                for row in db.select():
+                    identity = (row.data or {}).get("identity") or {}
+                    if identity.get("calculation_id") == calculation_id:
+                        return int(row.id)
         return None
 
     def write(self, calc: Calculation, structure: Structure) -> int:
