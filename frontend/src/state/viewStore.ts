@@ -6,6 +6,7 @@ import {
 } from '../renderer/atomColors';
 import { NO_STYLES, type StyleAssignment } from '../renderer/atomStyles';
 import { DEFAULT_POLYGON_SETTINGS } from '../renderer/layers/PolygonLayer';
+import { DEFAULT_RING_SETTINGS } from '../renderer/layers/RingLayer';
 import {
   DEFAULT_STRUCTURE_SETTINGS,
   type Quality,
@@ -105,6 +106,11 @@ export interface ViewState {
   setRibbonStyle: (style: RibbonStyle) => void;
   setRibbonScale: (scale: number) => void;
   /** Hydrogen bonds, drawn from the displayed geometry. */
+  /** Filled ring planes (Avogadro's Ring engine). */
+  showRings: boolean;
+  ringOpacity: number;
+  toggleRings: () => void;
+  setRingOpacity: (opacity: number) => void;
   /** Coordination polyhedra (Avogadro's Polygon engine). */
   showPolygons: boolean;
   polygonOpacity: number;
@@ -205,6 +211,8 @@ export const DISPLAY_TYPE_DEFAULTS = {
   ribbonColorScheme: 'secondary',
   cartoonColors: AVOGADRO_CARTOON_COLORS,
   ribbonNitrogens: false,
+  showRings: false,
+  ringOpacity: DEFAULT_RING_SETTINGS.opacity,
   showPolygons: false,
   polygonOpacity: DEFAULT_POLYGON_SETTINGS.opacity,
   showHBonds: false,
@@ -259,6 +267,10 @@ export const useViewStore = create<ViewState>((set) => ({
       bondLabelShift: bondShift ?? s.bondLabelShift,
       labelPrecision: precision ?? s.labelPrecision,
     })),
+  showRings: false,
+  ringOpacity: DEFAULT_RING_SETTINGS.opacity,
+  toggleRings: () => set((st) => ({ showRings: !st.showRings })),
+  setRingOpacity: (ringOpacity) => set({ ringOpacity }),
   showPolygons: false,
   polygonOpacity: DEFAULT_POLYGON_SETTINGS.opacity,
   togglePolygons: () => set((st) => ({ showPolygons: !st.showPolygons })),

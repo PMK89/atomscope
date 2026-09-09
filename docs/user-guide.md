@@ -832,6 +832,12 @@ ball-and-stick, which Avogadro does with two engines at once, is not possible.
 `Show atoms (wireframe)` draws the atoms of the `Wireframe` style as dots, or
 leaves the bare lines, which is what the style is for on a large structure.
 
+**Ring planes** fill in each perceived ring, coloured by its size — red for
+three, green for four, blue for five, magenta for six, yellow above that — which
+is how an aromatic system reads at a glance in a large structure. The rings are
+the smallest set of smallest rings, so naphthalene is two six-rings rather than
+two plus the twelve-membered perimeter they add up to.
+
 **Coordination polyhedra** draw, around each atom that qualifies, the solid
 whose corners are that atom's neighbours: a tetrahedron on a four-coordinate
 site, an octahedron on a six-coordinate one. It is how a crystal is usually

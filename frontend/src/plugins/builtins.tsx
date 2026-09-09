@@ -34,6 +34,7 @@ import { AxesLayer } from '../renderer/layers/AxesLayer';
 import { DipoleLayer } from '../renderer/layers/DipoleLayer';
 import { HBondLayer } from '../renderer/layers/HBondLayer';
 import { PolygonLayer } from '../renderer/layers/PolygonLayer';
+import { RingLayer } from '../renderer/layers/RingLayer';
 import { LabelLayer } from '../renderer/layers/LabelLayer';
 import { RibbonLayer } from '../renderer/layers/RibbonLayer';
 import { UnitCellLayer } from '../renderer/layers/UnitCellLayer';
@@ -102,6 +103,12 @@ export function defaultRegistry(): PluginRegistry {
     name: 'Hydrogen bonds',
     description: 'Dashed lines between donors and acceptors within the cut-offs.',
     create: () => new HBondLayer(),
+  });
+  registry.registerLayer({
+    id: 'rings',
+    name: 'Ring planes',
+    description: 'Each perceived ring filled in, coloured by its size.',
+    create: () => new RingLayer(),
   });
   registry.registerLayer({
     id: 'polygons',

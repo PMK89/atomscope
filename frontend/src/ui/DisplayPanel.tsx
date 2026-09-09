@@ -532,6 +532,33 @@ export function DisplayPanel(): JSX.Element {
         </div>
       </div>
 
+      <h3>Ring planes</h3>
+      <Toggle
+        id="display-rings"
+        label="Enabled"
+        checked={view.showRings}
+        onChange={view.toggleRings}
+      />
+      <p className="muted">
+        Each perceived ring filled in, coloured by its size — red for three, green for four, blue
+        for five, magenta for six and yellow above that.
+      </p>
+      <div className="form-row">
+        <label htmlFor="display-ring-opacity">Ring opacity</label>
+        <div className="range-with-value">
+          <input
+            id="display-ring-opacity"
+            type="range"
+            min="0.05"
+            max="1"
+            step="0.05"
+            value={view.ringOpacity}
+            onChange={(e) => view.setRingOpacity(Number(e.target.value))}
+          />
+          <span className="range-value">{view.ringOpacity.toFixed(2)}</span>
+        </div>
+      </div>
+
       <h3>Coordination polyhedra</h3>
       <Toggle
         id="display-polygons"

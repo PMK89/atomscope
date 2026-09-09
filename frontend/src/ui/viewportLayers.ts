@@ -3,6 +3,7 @@ import type { Renderer } from '../renderer/Renderer';
 import { LabelLayer } from '../renderer/layers/LabelLayer';
 import { HBondLayer } from '../renderer/layers/HBondLayer';
 import { PolygonLayer } from '../renderer/layers/PolygonLayer';
+import { RingLayer } from '../renderer/layers/RingLayer';
 import { RibbonLayer, type SecondaryStructureData } from '../renderer/layers/RibbonLayer';
 import { UnitCellLayer } from '../renderer/layers/UnitCellLayer';
 import { VectorLayer } from '../renderer/layers/VectorLayer';
@@ -41,6 +42,12 @@ export function syncExtraLayers(
   secondary: SecondaryStructureData | null = null,
   hiddenAtoms: ReadonlySet<number> | null = null,
 ): void {
+  const rings = renderer.getLayer('rings');
+  if (rings instanceof RingLayer) {
+    rings.visible = view.showRings;
+    rings.setSettings({ opacity: view.ringOpacity });
+    rings.setHidden(hiddenAtoms);
+  }
   const polygons = renderer.getLayer('polygons');
   if (polygons instanceof PolygonLayer) {
     polygons.visible = view.showPolygons;
