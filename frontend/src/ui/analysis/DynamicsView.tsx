@@ -130,23 +130,28 @@ export function DynamicsView({ calcId }: { calcId: string }): React.ReactElement
     setTerms((list) => [...list, { kind: kindForCount, atoms: picked, scale: 1 }]);
   };
 
+  const load = (
+    <button
+      onClick={() =>
+        void useTrajectoryStore
+          .getState()
+          .loadFromCalculation(calcId)
+          .then(() => setError(null))
+          .catch((e: unknown) => setError(e instanceof Error ? e.message : String(e)))
+      }
+    >
+      Load trajectory
+    </button>
+  );
+
   if (!trajectory) {
     return (
       <div className="dynamics-view">
         <p className="muted">
-          No trajectory loaded. Load this calculation&apos;s trajectory from the Calculation panel
-          to plot a temperature or an internal coordinate against time.
+          No trajectory loaded. Load this calculation&apos;s trajectory to plot a temperature or an
+          internal coordinate against time.
         </p>
-        <button
-          onClick={() =>
-            void useTrajectoryStore
-              .getState()
-              .loadFromCalculation(calcId)
-              .catch((e: unknown) => setError(e instanceof Error ? e.message : String(e)))
-          }
-        >
-          Load trajectory
-        </button>
+        {load}
         {error && <p className="form-error">{error}</p>}
       </div>
     );
@@ -160,6 +165,9 @@ export function DynamicsView({ calcId }: { calcId: string }): React.ReactElement
         {trajectory.name} · {trajectory.nFrames} frames · {trajectory.nAtoms} atoms
         {time === null && ' · no time axis'}
       </p>
+      {/* the store holds one trajectory, which need not be this calculation's: the player and
+          this chart share it, so switching calculation does not switch the curve by itself */}
+      <div className="term-actions">{load}</div>
 
       <div className="form-row">
         <label htmlFor="dynamics-kind">Series</label>

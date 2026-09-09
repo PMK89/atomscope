@@ -1347,10 +1347,12 @@ CP-PAW's `paw_tra` is run for, and the formulas are that tool's, so the plots
 are the ones the course's chapters 5.7 and 5.8 are built on.
 
 The trajectory is whichever one is loaded — the same frames the player under the
-viewport steps through — so `Load trajectory` here is the same button the
-`Calculation ▸ Results` panel offers. Clicking anywhere on the chart shows that
-frame in the viewport, which is how a feature in the curve is turned into a
-geometry.
+viewport steps through — and the store holds one at a time, which need not be
+the selected calculation's. `Load trajectory` therefore stays on offer even
+with a curve on screen, and replaces it with the selected calculation's; it is
+the same button `Calculation ▸ Results` has. Clicking anywhere on the chart
+shows that frame in the viewport, which is how a feature in the curve is turned
+into a geometry.
 
 **Group temperature.** `Series ▸ Temperature of a group`, then `Atoms`:
 

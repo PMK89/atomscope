@@ -204,3 +204,11 @@ test('calls the mode running average window frames when there is no time axis', 
   expect(screen.getByLabelText('Running average τ (frames)')).toBeInTheDocument();
   expect(screen.getByText('frame')).toBeInTheDocument();
 });
+
+test('keeps the loader on offer once a curve is up', () => {
+  // the store holds one trajectory, which need not be the selected calculation's, so switching
+  // calculation must not leave the previous curve with no way to replace it
+  loadCopper();
+  render(<DynamicsView calcId="calc-1" />);
+  expect(screen.getByRole('button', { name: 'Load trajectory' })).toBeInTheDocument();
+});
