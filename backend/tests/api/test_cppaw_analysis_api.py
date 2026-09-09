@@ -136,6 +136,18 @@ def test_cppaw_analysis_tools_over_api(tmp_path: Path) -> None:  # noqa: PLR0915
         orbs = c.get(f"/api/cppaw/calculations/{cid}/orbitals").json()["orbitals"]
         exported = {o["band"] for o in orbs if o["kpoint"] == 1 and o["grid_id"]}
         assert exported == {3, 4}
+
+        # ---- the planar cuts paw_wave.x wrote alongside those cubes. Only a run through the real
+        # binary proves the `!PLANE` block is accepted: the runner reports a paw_wave.x failure and
+        # carries on, so a green job says nothing about the cuts on its own.
+        names = c.get(f"/api/cppaw/calculations/{cid}/planes").json()["planes"]
+        assert sorted(names) == ["case_orb_b3k1s1", "case_orb_b4k1s1"], (
+            base_dir / "case_orb_b3k1s1.wave.out"
+        ).read_text()
+        cut = c.get(f"/api/cppaw/calculations/{cid}/planes/case_orb_b4k1s1").json()
+        assert cut["nx"] > 1 and cut["ny"] > 1
+        assert len(cut["values"]) == cut["nx"] and len(cut["values"][0]) == cut["ny"]
+        assert cut["z_min"] < cut["z_max"]
         # the main run's files were not touched by the restart
         assert (base_dir / "case.prot").read_text().count("PROGRAM STARTED") == 1
         # invalid requests are rejected without starting a job

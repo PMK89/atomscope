@@ -651,15 +651,30 @@ explicitly with `-m "not cppaw"`. Run them before touching anything in
 cd backend && python -m pytest -q -m cppaw
 ```
 
-**Playwright end-to-end** — `frontend/e2e/` has three specs (smoke, a full
-calculation flow, surfaces). They drive a real browser against real servers, so
-`make dev-backend` and `make dev-frontend` must be running, and they use
-`workers: 1, fullyParallel: false` because the backend holds one project at a
-time. `PLAYWRIGHT_BASE_URL` points them at a different frontend. Most specs create
-their project in a temporary directory under `.scratch/`; `surfaces.spec.ts`
-writes into `frontend/test-results/`, which is currently **tracked in git**, so
-running the suite dirties the working tree — check out that directory again
-before committing.
+**Playwright end-to-end** — `frontend/e2e/` has thirteen specs. They drive a
+real browser against real servers, so `make dev-backend` and `make dev-frontend`
+must be running, and they use `workers: 1, fullyParallel: false` because the
+backend holds one project at a time. `PLAYWRIGHT_BASE_URL` points them at a
+different frontend. Most specs create their project in a temporary directory
+under `.scratch/`; `surfaces.spec.ts` writes into `frontend/test-results/`,
+which is currently **tracked in git**, so running the suite dirties the working
+tree — check out that directory again before committing.
+
+Five of the thirteen are out of the default suite, because they are slow, they
+photograph something, or they need a project the default suite does not build
+(`OUT_OF_SUITE` in `playwright.config.ts`). Three selections exist:
+
+| Command | Specs | Count |
+| --- | --- | --- |
+| `pnpm exec playwright test` | the other eight | 40, ~57 s |
+| `ATOMSCOPE_COURSE=1 pnpm exec playwright test` | `course-visual`, `database`, `neb`, `vibrations` | 13, ~90 s |
+| `ATOMSCOPE_PERF=1 pnpm exec playwright test` | `perf` | see [`performance.md`](performance.md) |
+
+`source env.sh` first, always: without `PLAYWRIGHT_BROWSERS_PATH` the launcher
+looks in `~/.cache/ms-playwright`, finds nothing, and every test fails at
+`browserType.launch`. `course-visual.spec.ts` writes its pictures to
+`.scratch/course-shots/` and `neb.spec.ts` builds a project in
+`.scratch/neb-proj`.
 
 Two practices that are not optional in this repository:
 

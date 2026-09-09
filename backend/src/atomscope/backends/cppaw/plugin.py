@@ -501,6 +501,15 @@ class CppawPlugin:
                 *[f"{x:.6f}" for x in origin],
                 *[f"{x:.6f}" for row in vectors for x in row],
             ]
+            # The same cut as the density run makes (see `run_spec`), so an orbital exported from
+            # the Orbitals tab is a contour and a rubbersheet too, not only an isosurface.
+            centre, u, v = plane_through_atoms(structure, vectors)
+            argv += [
+                "--plane",
+                *[f"{x:.6f}" for x in centre],
+                *[f"{x:.6f}" for x in u],
+                *[f"{x:.6f}" for x in v],
+            ]
             return RunSpec(
                 argv=argv,
                 cwd=work_dir,

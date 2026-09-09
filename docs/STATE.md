@@ -2,7 +2,7 @@
 
 Branch: main; this file is updated in the commit that checkpoints the work, so `git log -1 -- docs/STATE.md` is the last checkpoint. Phases 0-1 done; Phase 2 (editor tools), 3 (volumetric, trajectories, vectors), 4-5 (CP-PAW setup/execution/forces), 6 (CP-PAW analysis: DOS, bands, orbitals), crystallography, molecular mechanics and wavefunction surfaces are merged and working. Parity matrix at `8c51b48`, derived (see ROADMAP for the command): 229 IMPLEMENTED, 16 PARTIAL, 66 NOT STARTED, 1 BLOCKED of 312 rows.
 
-Tests: `pytest -q -m "not cppaw"` -> 570 passed, `-m cppaw` -> 7 passed (102 s, real binaries), 1 skipped; `pytest -q -m cppaw` -> 7 passed (93 s, runs the real binaries -- **CP-PAW is found through `$PAWDIR`, which the user's own shell sets (`~/cp-paw`), not `env.sh`**; `$ATOMSCOPE_CPPAW_DIR` overrides it); `pnpm vitest run` -> 575 passed; `pnpm exec playwright test` -> 40 passed in ~57 s (plus `ATOMSCOPE_COURSE=1` for the seven course pictures and the database spec, 8 tests, ~28 s) (against private servers, see below; `make test-e2e` points at the user's 5173, which is stale). **`source env.sh` before Playwright**: without `PLAYWRIGHT_BROWSERS_PATH` it looks in `~/.cache/ms-playwright`, finds nothing, and every test fails at `browserType.launch`. `ruff check`, `mypy` and `pnpm typecheck` are clean. No known failing tests. **Type-check the frontend with `pnpm typecheck` (`tsc -b --noEmit`), never with `pnpm exec tsc --noEmit`:** the root `tsconfig.json` is a solution file with `files: []`, so a bare `tsc --noEmit` checks nothing and exits 0.
+Tests: `pytest -q -m "not cppaw"` -> **650 passed, 1 skipped** (92 s); `pytest -q -m cppaw` -> **7 passed** (94 s, runs the real binaries -- **CP-PAW is found through `$PAWDIR`, which the user's own shell sets (`~/cp-paw`), not `env.sh`**; `$ATOMSCOPE_CPPAW_DIR` overrides it, and `ATOMSCOPE_CPPAW_IMAGE` runs them in a container instead); `pnpm vitest run` -> **606 passed** in 91 files; `pnpm exec playwright test` -> **40 passed** in ~56 s; `ATOMSCOPE_COURSE=1 pnpm exec playwright test` -> **13 passed** in ~37 s (course pictures, database, NEB, vibrations; needs `.scratch/course-runs` and writes `.scratch/course-shots/` and `.scratch/neb-proj`) (both against private servers, see below; `make test-e2e` points at the user's 5173, which is stale). **`source env.sh` before Playwright**: without `PLAYWRIGHT_BROWSERS_PATH` it looks in `~/.cache/ms-playwright`, finds nothing, and every test fails at `browserType.launch`. `ruff check`, `ruff format --check`, `mypy` (200 files) and `pnpm typecheck` are clean. No known failing tests. **Type-check the frontend with `pnpm typecheck` (`tsc -b --noEmit`), never with `pnpm exec tsc --noEmit`:** the root `tsconfig.json` is a solution file with `files: []`, so a bare `tsc --noEmit` checks nothing and exits 0.
 
 ## Inspecting the course project, and shipping it
 
@@ -225,6 +225,33 @@ that happen to look numeric, so locally it looked like flakiness and only CI's l
 `row_for` now falls back to reading `data["identity"]`, and the regression test is parametrised
 over four such ids — verified to fail on three of them without the fix.
 
+Three things closed after the seven units, all found by asking what the checks did *not* cover:
+
+* **Orbital exports were not writing their planar cuts.** `--plane` was added to the main run's
+  argv but not to the orbital-export argv, so `PlanesView`'s own message ("written alongside the
+  cube whenever a density or an orbital is exported") was false for an orbital exported from the
+  Orbitals tab. Both paths now pass the plane. This is also the first coverage of the `!PLANE`
+  block through the real `paw_wave.x` via the runner: `test_cppaw_analysis_api.py` now asserts
+  `/planes` lists `case_orb_b3k1s1` and `case_orb_b4k1s1` and that the field loads. That
+  assertion matters because **the runner reports a `paw_wave.x` failure and carries on**, so a
+  green job proves nothing about the cuts on its own — verified by reverting the fix, which fails
+  the test with the `paw_wave.x` log attached.
+* **A narrowed axis range drew the curve over the axes.** `mergeEnds` frames the plot without
+  dropping points (deliberately — the slope at the edge should be the real one), but `LineChart`
+  had no `clipPath`, so the out-of-frame part was painted across the tick labels and the axis.
+  The data marks (sticks, fills, polylines, point markers) are now inside a clip of the plot
+  rect. `yMarkers`/`markers` are *not* clipped and should stay that way: both already filter
+  themselves to the visible domain, and their labels sit deliberately just inside the frame.
+* **Stale doc claims.** `docs/course/figures.md` said seven course pictures pass (ten do) and
+  linked `../testing.md`, which never existed — it now points at the developer guide. The
+  developer guide said `frontend/e2e/` has three specs (thirteen, five of them out of the default
+  suite) and now carries the table of the three Playwright selections.
+* **The user guide did not mention any of the night's six surfaces.** Written, each in the
+  section it belongs to, against the real labels read out of the components rather than from
+  memory: the graph controls (§8.1), `Render with ASE…` (§5), `Planes` (§8.4d), `Protocol`
+  (§8.4e), the `Path`/NEB panel (§8.9), and `ATOMSCOPE_CPPAW_IMAGE` (§1.4, including that
+  container mode is serial-only and why).
+
 `/remote-control` is not in the skills list, so it was not invoked — nothing was guessed at.
 
 **Deferred** by the plan above (was next, still wanted): a fitted curve through sweep points
@@ -252,6 +279,13 @@ make test          # backend pytest + frontend vitest -- note `test-backend` is 
 make lint typecheck
 make dev-backend   # 127.0.0.1:8765 ; make dev-frontend -> 127.0.0.1:5173
 ```
+
+**Read the CI result before starting the next unit.** Two pushes in the 2026-09-08/09 night went
+red (`3158dde` typecheck, `843b038` backend) and both times it was found only after the following
+unit was already built, because `gh run watch` had been backgrounded and read late. The fix is
+ordering, not another local check: `gh run watch --exit-status` (or read the backgrounded task)
+*before* the next edit. Also note `pnpm build` and `pnpm vitest run` do **not** type-check test
+files -- only `pnpm typecheck` does, which is exactly what `3158dde` tripped over.
 
 8765 and 5173 are usually already held by the user's own long-running servers (they are stale and
 do not reload); starting ours there fails with `address already in use`. For anything that has to

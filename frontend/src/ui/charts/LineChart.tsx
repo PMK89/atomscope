@@ -2,7 +2,7 @@
  * Minimal inline-SVG line chart: axes, nice ticks, several series, optional log y axis,
  * vertical markers (Fermi level, high-symmetry points) and a hover readout.
  */
-import { useMemo, useRef, useState } from 'react';
+import { useId, useMemo, useRef, useState } from 'react';
 
 import {
   DEFAULT_CHART_SETTINGS,
@@ -157,6 +157,10 @@ export function LineChart({
     [series, logY],
   );
   const filled = useMemo(() => drawn.filter((s) => s.baseline !== undefined), [drawn]);
+  // Axis ranges narrower than the data are a frame, not a filter (see `mergeEnds`): the points
+  // outside stay in the polyline so its slope at the edge is the real one, and this clip is what
+  // keeps them from being drawn over the axes and the tick labels.
+  const clipId = useId();
   const plot = {
     x0: MARGIN.left,
     x1: width - MARGIN.right,
@@ -331,50 +335,55 @@ export function LineChart({
               )}
             </g>
           ))}
-        {sticks.map((s, i) => (
-          <line
-            key={`stick${i}`}
-            x1={sx(s.x)}
-            x2={sx(s.x)}
-            y1={sy(Math.max(yDom[0], Math.min(0, yDom[1])))}
-            y2={sy(s.y)}
-            className={s.active ? 'chart-stick active' : 'chart-stick'}
-            style={s.color ? { stroke: s.color } : undefined}
-          />
-        ))}
-        {filled.flatMap((s) =>
-          areaSpans(s.x, s.y, s.baseline!, s.fillSplitX).map((span, i) => (
-            <path
-              key={`${s.id}-fill${i}`}
-              d={areaPath(span, sx, sy)}
-              fill={s.color}
-              fillOpacity={span.solid ? 0.85 : 0.35}
-              stroke="none"
+        <clipPath id={clipId}>
+          <rect x={plot.x0} y={plot.y1} width={plot.x1 - plot.x0} height={plot.y0 - plot.y1} />
+        </clipPath>
+        <g clipPath={`url(#${clipId})`}>
+          {sticks.map((s, i) => (
+            <line
+              key={`stick${i}`}
+              x1={sx(s.x)}
+              x2={sx(s.x)}
+              y1={sy(Math.max(yDom[0], Math.min(0, yDom[1])))}
+              y2={sy(s.y)}
+              className={s.active ? 'chart-stick active' : 'chart-stick'}
+              style={s.color ? { stroke: s.color } : undefined}
             />
-          )),
-        )}
-        {drawn.map((s) => (
-          <polyline
-            key={s.id}
-            fill="none"
-            stroke={s.color}
-            strokeWidth={settings.lineWidth}
-            strokeDasharray={s.dashed ? '4 3' : undefined}
-            points={s.x.map((x, i) => `${sx(x).toFixed(1)},${sy(s.y[i]!).toFixed(1)}`).join(' ')}
-          />
-        ))}
-        {settings.markers &&
-          drawn.flatMap((s) =>
-            s.x.map((x, i) => (
-              <circle
-                key={`${s.id}-m${i}`}
-                cx={sx(x)}
-                cy={sy(s.y[i]!)}
-                r={Math.max(1.2, settings.lineWidth)}
+          ))}
+          {filled.flatMap((s) =>
+            areaSpans(s.x, s.y, s.baseline!, s.fillSplitX).map((span, i) => (
+              <path
+                key={`${s.id}-fill${i}`}
+                d={areaPath(span, sx, sy)}
                 fill={s.color}
+                fillOpacity={span.solid ? 0.85 : 0.35}
+                stroke="none"
               />
             )),
           )}
+          {drawn.map((s) => (
+            <polyline
+              key={s.id}
+              fill="none"
+              stroke={s.color}
+              strokeWidth={settings.lineWidth}
+              strokeDasharray={s.dashed ? '4 3' : undefined}
+              points={s.x.map((x, i) => `${sx(x).toFixed(1)},${sy(s.y[i]!).toFixed(1)}`).join(' ')}
+            />
+          ))}
+          {settings.markers &&
+            drawn.flatMap((s) =>
+              s.x.map((x, i) => (
+                <circle
+                  key={`${s.id}-m${i}`}
+                  cx={sx(x)}
+                  cy={sy(s.y[i]!)}
+                  r={Math.max(1.2, settings.lineWidth)}
+                  fill={s.color}
+                />
+              )),
+            )}
+        </g>
         <line x1={plot.x0} x2={plot.x1} y1={plot.y0} y2={plot.y0} className="chart-axis" />
         <line x1={plot.x0} x2={plot.x0} y1={plot.y0} y2={plot.y1} className="chart-axis" />
         {xLabel && (

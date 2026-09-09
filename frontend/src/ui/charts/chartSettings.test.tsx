@@ -79,6 +79,30 @@ describe('chart settings', () => {
     expect(Math.min(...ticksAfter.map(Number).filter(Number.isFinite))).toBeLessThan(50);
   });
 
+  it('keeps a curve narrowed out of the frame from being drawn over the axes', () => {
+    // A range narrower than the data is a frame, not a filter: the points outside stay in the
+    // polyline, so the slope at the edge is the real one. Without a clip they would be painted
+    // across the tick labels and the axis, which reads as a broken chart.
+    store.getState().set('t', { yMax: 50 });
+    const { container } = render(<LineChart series={SERIES} settingsId="t" />);
+    const svg = container.querySelector('svg')!;
+    const clip = svg.querySelector('clipPath > rect')!;
+    const group = svg.querySelector('g[clip-path]')!;
+    expect(group.querySelectorAll('polyline')).toHaveLength(2);
+
+    // the clip is the plot area itself, and the points that left it are still in the line
+    const top = Number(clip.getAttribute('y'));
+    const bottom = top + Number(clip.getAttribute('height'));
+    const ys = group
+      .querySelectorAll('polyline')[0]!
+      .getAttribute('points')!
+      .split(' ')
+      .map((pt) => Number(pt.split(',')[1]));
+    expect(ys).toHaveLength(3);
+    expect(Math.min(...ys)).toBeLessThan(top); // y=100 and y=200 are above the frame
+    expect(bottom).toBeGreaterThan(top);
+  });
+
   it('switches to a log axis, and drops the non-positive points it cannot draw', () => {
     const withZero: ChartSeries[] = [
       { id: 'z', label: 'z', x: [0, 1, 2], y: [0, 10, 100], color: '#000' },

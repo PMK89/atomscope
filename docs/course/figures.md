@@ -139,10 +139,12 @@ would be invisible in a unit test but obvious in the picture:
 ## Which SHOWS rows have been photographed
 
 A row saying `SHOWS` is a claim until someone has looked at the picture. `frontend/e2e/course-visual.spec.ts`
-(`ATOMSCOPE_COURSE=1 pnpm exec playwright test`, see [`../testing.md`](../testing.md)) opens the
-course project in the running application, asserts what has to be on the chart and writes the
-picture to `.scratch/course-shots/`. Seven pass today, covering Figs 4.8, 5.1, 5.2, 6.4, 8.1, 8.2,
-8.5 and the DOS shape shared by 3.1/4.2/4.6/6.1/7.1/7.3.
+(`ATOMSCOPE_COURSE=1 pnpm exec playwright test`, see
+[`../developer-guide.md`](../developer-guide.md) §8) opens the course project in the running
+application, asserts what has to be on the chart and writes the picture to
+`.scratch/course-shots/`. Ten pass today, covering Figs 4.8, 5.1, 5.2, 6.4, 8.1, 8.2, 8.5, the
+planar cuts of §"Field cuts", the graph controls, the protocol view, and the DOS shape shared by
+3.1/4.2/4.6/6.1/7.1/7.3.
 
 Fig. **6.9 is a metal**, and no metallic band structure has been run: the aluminium and iron
 chapters compute a DOS but no k-path, so nothing on disk has both a Fermi level and a band

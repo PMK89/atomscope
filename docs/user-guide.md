@@ -115,6 +115,17 @@ probes the runtime once and, if the binaries fail because the system
 retries with a compatible `libgfortran` found under `~/miniconda3/pkgs`
 (override with `ATOMSCOPE_CPPAW_LIBRARY_PATH`).
 
+**CP-PAW in a container.** Set `ATOMSCOPE_CPPAW_IMAGE` to a container image
+holding the tools under `/app/bin/fast` and the plugin runs them through
+`docker run` instead of from disk: the working directory is mounted at `/work`,
+the container gets no network and your own user id, and every tool is reached
+through a small generated wrapper. The results are the same — a density cube
+computed this way and one computed on the host are byte for byte identical.
+Because a containerised run cannot start MPI on the host, the parallel
+executable is *not* offered in this mode and every run is serial; the backend
+list reports the image name where it would otherwise report the executable's
+hash. Use it when the host `libgfortran` hunt above fails, or to pin a version.
+
 ---
 
 ## 2. The application window
@@ -640,6 +651,36 @@ uses. Two formats have nothing to serialize for a bare molecule and report it:
 VASP POSCAR needs a unit cell, and Quantum ESPRESSO input needs
 pseudopotentials.
 
+**Render with ASE.** `File ▸ Render with ASE…` is a second route to a picture,
+and a different one: instead of photographing the viewport it hands the
+structure to ASE's own writers, which is what the course scripts and
+`ase-cppaw`'s `simplePOV` do. Use it when you want a figure that matches those,
+or a format the viewport cannot produce. Five formats:
+
+| | |
+|---|---|
+| `png` | matplotlib raster |
+| `eps` | vector, for print |
+| `pov` | a POV-Ray scene plus its `.ini`; render it with `povray water.ini` |
+| `x3d` | 3D scene |
+| `html` | a self-contained page with the structure in it |
+
+The fields are ASE's own parameters, exposed at the same depth the API takes
+them: `rotation` is ASE's rotation string (`90x,20y`), and `auto` reproduces
+`simplePOV`'s choice of turning the structure's principal axes towards the
+camera; `unit cell` draws it hidden, behind the atoms or in front; `Bonds`
+draws them or leaves the atoms bare; `scale` is px/Å. POV-Ray adds `canvas
+width`, `camera distance` and `Transparent background`, which the raster
+formats have no use for. `write to` takes a path on this machine and, left
+empty, writes into the application's scratch directory and tells you where —
+these files are written by the backend, not downloaded through the browser.
+POV-Ray itself is not required to write the scene, only to render it.
+
+`POST /api/io/export/image` is the route behind it, and
+`GET /api/io/image-formats` lists what it can write. The reply says where each
+file went and whether a raster was actually produced — a `.pov` is a scene
+description, so it reports the scene without claiming to have rendered it.
+
 ---
 
 ## 6. Visualization
@@ -1102,7 +1143,9 @@ viewport.
 ## 8. Analysis
 
 The `Analysis` tab works on the calculation selected in the project panel and
-has four sections.
+has six sections: `Convergence`, `Orbitals`, `DOS`, `Bands`, `Planes` and
+`Protocol`. A section that has nothing to show for the selected calculation
+says so rather than disappearing.
 
 ### 8.1 Convergence
 
@@ -1115,6 +1158,29 @@ temperature, and the friction each of the two thermostats is applying.
 
 Charts with more than one curve name them in a legend above the plot, and
 hovering anywhere on a chart reads out every curve's value at that x.
+
+**Graph properties.** Every chart carries a `▸ Graph` button that opens the
+controls the older `ase-cppaw` scripts exposed as gnuplot settings:
+
+* `x from` / `x to` / `y from` / `y to` — axis ends. Leave one empty and that
+  end still comes from the data, so fixing a maximum does not quietly fix the
+  minimum as well.
+* `Mark each point` — a dot per sample, which is how you tell a dense curve
+  from an interpolated one.
+* `Legend` — off gives the bare plot, for a figure with its own caption.
+* `Logarithmic y axis` — offered only when every curve on that chart is
+  positive, because a log axis cannot place a zero or a negative. On a chart
+  that has one anyway (the convergence chart), the non-positive samples are
+  dropped from the line rather than clamped.
+* `line` — stroke weight, 0.5 to 4.
+* `Reset` — back to that chart's defaults; it is greyed out until something
+  differs, and the button reads `Graph *` while anything does.
+
+The settings belong to the chart, not to the panel, so the DOS and the band
+structure each remember their own, and they are kept in the browser between
+sessions. An axis range is a frame rather than a filter: points outside it stay
+in the curve and are clipped at the edge of the plot, so the slope where the
+curve leaves the frame is the real one.
 
 The frictions are on a chart of their own because they are dimensionless and
 indexed by time, and the energies are in eV and indexed by iteration; together
@@ -1341,6 +1407,58 @@ directory written as `~`, because an export is made to be shared and
 `~/cp-paw/bin/fast/paw_fast.x` says everything the record was for without naming a user. The
 code's own output is copied byte for byte and never rewritten.
 
+### 8.4d Planes: contour maps and rubbersheets
+
+`Planes` draws a scalar field on a flat cut through the structure, the way the
+course's gnuplot scripts do. `paw_wave.x` writes the cut alongside every
+density or orbital cube it makes, so the section fills itself as soon as a cube
+exists — there is nothing extra to run, and a calculation that has no cube says
+so instead of showing an empty frame. The cut is placed through the atoms, not
+through the middle of the cell: the two leading principal axes of the atomic
+positions span it, which for a planar molecule is the molecular plane, and for
+a structure that singles out no plane the first two cell vectors are used
+instead. A cut through the middle of a large cell would be mostly vacuum.
+
+Two drawings of the same data, chosen with the buttons:
+
+* `Contour` — a filled colour map with optional isolines. `levels` sets how
+  many (1–60) and `Contour lines` draws the lines on top of the fill.
+* `Rubbersheet` — the same field as a surface in 3D, height for value, which is
+  what the course uses for a density. Drag to orbit, wheel to zoom. `relief ×`
+  exaggerates the height, and `light azimuth` / `light elevation` move the lamp;
+  a shallow lamp is what makes a shoulder in the density readable.
+
+`scale` applies to both and matters more than it looks:
+
+| | for |
+|---|---|
+| `linear` | a field with one sign and no cusp |
+| `symmetric about zero` | a wavefunction, so that + and − get the same colour distance from white |
+| `logarithmic` | a density, whose nuclear cusps otherwise use the whole palette and leave the bonding region flat |
+
+The colour stops are the ones the older `ase-cppaw` scripts used, so a cut here
+and a cut from those scripts are comparable by eye. Under the plot is the grid
+size and the physical extent of the cut.
+
+### 8.4e Protocol
+
+`Protocol` shows the backend's own log — for CP-PAW the `.prot` file — as raw
+text, unparsed and unmodified, which is where you look when a run did something
+the charts cannot express. It is paged rather than loaded whole, because a long
+molecular-dynamics protocol is larger than a browser wants in one string:
+`Start`, `← Earlier`, `Later →` and `End` move through it, the select chooses
+how many lines a page holds, and the line above the text says which lines you
+are on out of how many. When a calculation has been continued, the line also
+says how many runs are appended in the one file.
+
+`Show reported geometries` reads the geometries the run printed as it went and
+loads them as a trajectory, so the structure the protocol was talking about can
+be stepped through in the viewport with the player. These are the run's own
+reported positions, not an interpolation. A run prints its starting geometry
+before it has an energy for it, so the energies are aligned to the *end* of the
+list; a geometry with no energy of its own is labelled without one rather than
+being given its neighbour's.
+
 ### 8.5 Crystallography
 
 ![The Crystal tab](images/crystal-panel.png)
@@ -1475,6 +1593,36 @@ an imported output appear in the same `Spectrum` box.
 
 Files arrive through the browser's own download, so they land wherever it puts
 downloads rather than in the project.
+
+### 8.9 Reaction paths (NEB)
+
+The `Path` panel runs a nudged elastic band between two structures: the one in
+the viewport is one end, and `other end` picks the other from the project's
+stored structures. Both ends must hold the same atoms in the same order — a
+band between different molecules is not a reaction, and the panel refuses it by
+name rather than producing a curve.
+
+* `calculator` — which of the ASE built-ins does the forces (EMT, Lennard-Jones,
+  Morse). This is the only place the choice matters much: a band is many
+  single-point evaluations, so a DFT band is not something to start by accident.
+* `images` — how many structures the band holds including both ends, at least 3.
+  The starting guess is ASE's IDPP interpolation, not a straight line, so bonds
+  do not pass through each other on the way.
+* `force convergence` / `maximum steps` — the optimizer's own stopping rules.
+* `Climbing image` — pulls the highest image onto the saddle instead of leaving
+  it wherever the spring forces balance. Off, the barrier is a lower bound; on,
+  it is the barrier.
+
+`Run NEB` relaxes the band and then reports it: the barrier in eV, which image
+carries it, how many steps it took, and whether it converged — a band that ran
+out of steps says so, and its barrier is still shown, because a non-converged
+number you can see beats a blank panel. The chart plots ΔE against distance
+travelled along the band rather than against image number, so an interpolation
+that bunched its images does not distort the shape of the curve. It takes the
+same `▸ Graph` controls as every other chart.
+
+The relaxed band is loaded as a trajectory, so the player steps through the
+reaction itself in the viewport.
 
 ---
 
