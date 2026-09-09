@@ -1926,6 +1926,7 @@ example…**, which copies one of the scripts Atomscope ships into the project.
 | `load(id)` | another structure of the project, by id |
 | `list_structures()` | `[{'id': ..., 'name': ...}]` for everything in the project |
 | `save(atoms, name=...)` | hand a structure back; returns the id it will have |
+| `context().project_root` | the open project's directory, for reading what a calculation produced |
 | `value(key, x)` | record a named result for the panel; numpy scalars and arrays are fine |
 
 The conversion both ways is lossless, so bonds, labels, residues, formal
@@ -1936,6 +1937,11 @@ for atom.
 
 `save` always makes a **new** structure: a script cannot overwrite the
 structure it was run on by accident.
+
+A calculation's own files are under `calculations/<id>/` in that directory, and
+its energy is at `results.properties.energy.value` (eV) inside
+`calculation.json` — which is how a script totals up a whole project. [Tutorial
+4](tutorials/04-hands-on-course.md) does exactly that.
 
 The **input** control chooses what `atoms` is. The default is the structure on
 screen, which is saved into the project on the way (that is how the script

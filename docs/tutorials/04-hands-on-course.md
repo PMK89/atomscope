@@ -379,17 +379,41 @@ gas for a molecule, the hindered translator/rotor for something that hops
 between sites.
 
 **Python, in the application** (§9). The `Scripts` tab runs Python with the
-structure on screen as an `ase.Atoms`. This is what fills the gaps of §11, and
-it is how the course's arithmetic gets done. An adsorption energy from three
-finished calculations:
+structure on screen as an `ase.Atoms`, and `context().project_root` is the open
+project — so a script can read what every calculation in it produced. Each one
+keeps a `calculation.json`, and its energy is at
+`results.properties.energy.value`, in eV:
 
 ```python
-from atomscope.scripting import value
+import json
 
-# the three energies, read off the Analysis tab of each calculation
-e_total, e_slab, e_molecule = -1234.5, -1200.0, -33.9
-value('adsorption energy / eV', e_total - e_slab - e_molecule)
+from atomscope.scripting import context, value
+
+project = context().project_root
+energies = {}
+for path in sorted(project.glob('calculations/*/calculation.json')):
+    calc = json.loads(path.read_text())
+    energy = ((calc.get('results') or {}).get('properties') or {}).get('energy')
+    if energy is not None:
+        energies[calc['name']] = energy['value']
+
+value('calculations with an energy', len(energies))
+for name in sorted(energies)[:3]:
+    value(name, energies[name])
 ```
+
+Run against the course project that is 29 calculations and their totals — the
+whole course as one table, which is what the convergence chapters keep asking
+you to build by hand. The same three lines give an adsorption energy:
+
+```python
+value(
+    'adsorption energy / eV',
+    energies['slab + CO'] - energies['clean slab'] - energies['CO'],
+)
+```
+
+with the names being whatever you called the three runs.
 
 The distance-against-time plot of Fig. 5.6, which §11 lists as missing, is a
 few lines against the stored trajectory. CP-PAW writes its own binary format,
@@ -408,12 +432,17 @@ frames = read_position_trajectory(next(work.glob('*_r.tra')), n_atoms=len(atoms)
 # the proton transfer: one O-H distance against time
 positions = np.array(frames.positions_ang)      # (steps, atoms, 3), in angstrom
 distance = np.linalg.norm(positions[:, 3] - positions[:, 0], axis=1)
-value('time / fs', frames.times_fs)
-value('O-H distance / A', distance)
+
+value('frames', len(distance))
+value('shortest O-H / A', distance.min())
+for t, d in zip(frames.times_fs, distance):
+    print(f'{t:10.4f} {d:8.4f}')      # two columns, in the output pane
 ```
 
-Print those two columns and paste them into whatever you plot with, or fit them
-in the script itself. The per-atom-group temperature of Figs 5.4 and 5.5 is the
+`value()` is for the numbers you want at a glance; a series of a few hundred
+rows belongs in `print`, which the output pane shows in a monospace column you
+can copy straight into whatever you plot with. Or fit it in the script — scipy
+is right there. The per-atom-group temperature of Figs 5.4 and 5.5 is the
 same shape: sum ½*m*v² over the carbons and over the hydrogens separately,
 divide by (3/2)*N*k_B, and average over a window. A script is not a substitute
 for a panel, but it is the difference between "not possible" and "not yet a

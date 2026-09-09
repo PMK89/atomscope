@@ -2,7 +2,7 @@
 
 Branch: main; this file is updated in the commit that checkpoints the work, so `git log -1 -- docs/STATE.md` is the last checkpoint. Phases 0-1 done; Phase 2 (editor tools), 3 (volumetric, trajectories, vectors), 4-5 (CP-PAW setup/execution/forces), 6 (CP-PAW analysis: DOS, bands, orbitals), crystallography, molecular mechanics and wavefunction surfaces are merged and working. Parity matrix at `8104e7e`, derived (see ROADMAP for the command): 238 IMPLEMENTED, 17 PARTIAL, 53 NOT STARTED, 3 DECLINED, 1 BLOCKED of 312 rows.
 
-Tests: `pytest -q -m "not cppaw"` -> **716 passed, 1 skipped** (109 s); `pytest -q -m cppaw` -> **7 passed** (94 s, runs the real binaries -- **CP-PAW is found through `$PAWDIR`, which the user's own shell sets (`~/cp-paw`), not `env.sh`**; `$ATOMSCOPE_CPPAW_DIR` overrides it, and `ATOMSCOPE_CPPAW_IMAGE` runs them in a container instead); `pnpm vitest run` -> **715 passed** in 102 files; `pnpm exec playwright test` -> **44 passed** in ~1.2 min; `ATOMSCOPE_COURSE=1 pnpm exec playwright test` -> **14 passed** in ~41 s (course pictures, database, NEB, vibrations; reads `.scratch/course-runs` and `.scratch/neb-proj` -- **`neb.spec.ts` skips itself when `.scratch/neb-proj` is missing**, rebuild it with `../.venv/bin/python ../scripts/make_neb_project.py` from `backend/`; writes `.scratch/course-shots/`) (both against private servers, see below; `make test-e2e` points at the user's 5173, which is stale). **`source env.sh` before Playwright**: without `PLAYWRIGHT_BROWSERS_PATH` it looks in `~/.cache/ms-playwright`, finds nothing, and every test fails at `browserType.launch`. `ruff check`, `ruff format --check`, `mypy` (200 files) and `pnpm typecheck` are clean. One flake, and it is the *same click* as the two races already written up below: `smoke.spec.ts` "Export writes a file..." failed once in a full run (2.2 min) on the second Save, and then passed 10/10 alone with `-g "Export writes a file" --repeat-each 10`. The failure artifact was overwritten by those reruns, so which of the two signatures it was is **not** established -- next time it appears, read `frontend/test-results/*Export*/error-context.md` **before** rerunning anything. Do not read a passing rerun as evidence: the write-up below explains why the e2e is only a detector. **Type-check the frontend with `pnpm typecheck` (`tsc -b --noEmit`), never with `pnpm exec tsc --noEmit`:** the root `tsconfig.json` is a solution file with `files: []`, so a bare `tsc --noEmit` checks nothing and exits 0.
+Tests: `pytest -q -m "not cppaw"` -> **717 passed, 1 skipped** (109 s); `pytest -q -m cppaw` -> **7 passed** (94 s, runs the real binaries -- **CP-PAW is found through `$PAWDIR`, which the user's own shell sets (`~/cp-paw`), not `env.sh`**; `$ATOMSCOPE_CPPAW_DIR` overrides it, and `ATOMSCOPE_CPPAW_IMAGE` runs them in a container instead); `pnpm vitest run` -> **715 passed** in 102 files; `pnpm exec playwright test` -> **44 passed** in ~1.2 min; `ATOMSCOPE_COURSE=1 pnpm exec playwright test` -> **14 passed** in ~41 s (course pictures, database, NEB, vibrations; reads `.scratch/course-runs` and `.scratch/neb-proj` -- **`neb.spec.ts` skips itself when `.scratch/neb-proj` is missing**, rebuild it with `../.venv/bin/python ../scripts/make_neb_project.py` from `backend/`; writes `.scratch/course-shots/`) (both against private servers, see below; `make test-e2e` points at the user's 5173, which is stale). **`source env.sh` before Playwright**: without `PLAYWRIGHT_BROWSERS_PATH` it looks in `~/.cache/ms-playwright`, finds nothing, and every test fails at `browserType.launch`. `ruff check`, `ruff format --check`, `mypy` (200 files) and `pnpm typecheck` are clean. One flake, and it is the *same click* as the two races already written up below: `smoke.spec.ts` "Export writes a file..." failed once in a full run (2.2 min) on the second Save, and then passed 10/10 alone with `-g "Export writes a file" --repeat-each 10`. The failure artifact was overwritten by those reruns, so which of the two signatures it was is **not** established -- next time it appears, read `frontend/test-results/*Export*/error-context.md` **before** rerunning anything. Do not read a passing rerun as evidence: the write-up below explains why the e2e is only a detector. **Type-check the frontend with `pnpm typecheck` (`tsc -b --noEmit`), never with `pnpm exec tsc --noEmit`:** the root `tsconfig.json` is a solution file with `files: []`, so a bare `tsc --noEmit` checks nothing and exits 0.
 
 ## Inspecting the course project, and shipping it
 
@@ -351,6 +351,74 @@ A known cosmetic gap, not a regression: loading a trajectory does not refit the 
 first frame of a geometry series can sit off-centre until View ▸ Centre. The existing `_r.tra`
 path has always behaved this way.
 
+## Scripting, surface chemistry, thermochemistry and the course tutorial (asked for 2026-09-09)
+
+The user asked for four things in one message: the Python scripting subsystem, ASE's surface
+chemistry and thermodynamics "implemented and tested", and a tutorial leading to all the
+calculations of the hands-on course. Done in four commits, each CI-green:
+
+1. `72b409f` + `4f7e625` -- **the scripting subsystem** (`atomscope.scripting`, the `Scripts`
+   tab). A script is a `.py` file in the project's `scripts/`, run by `sys.executable -m
+   atomscope.scripting.runner` through the job manager: argv array, no shell, validated absolute
+   interpreter, explicit cwd and env (`MPLBACKEND=Agg`, or a script importing pyplot hangs the
+   job), and the SIGTERM cascade, so `while True: pass` is cancellable. `atoms` is predefined;
+   `save`, `value`, `load`, `list_structures`, `context` come from `atomscope.scripting`. Results
+   travel as `result.json` and are validated with pydantic -- the server never `exec`s anything,
+   and `scripting.api` reads no file at import time so importing the service cannot be made to
+   touch a run directory. Scripts get their **own JobManager** (`state.script_jobs`,
+   max_parallel 2): the calculation manager runs one job at a time and an interactive Run must
+   not queue behind an hour of CP-PAW. Closes AV-PLUG-004/008/009; 007 is PARTIAL (an editor and
+   Run, not a live interpreter -- every run is a fresh process, which is what makes cancelling
+   and traceback reporting simple); AV-PLUG-005/006 and AV-VIS-028 are **DECLINED** with the
+   reason in the matrix (a subprocess cannot receive mouse events or paint into WebGL).
+2. `ae33ddd` -- **thermochemistry** (`analysis/thermo.py`, `POST /api/analysis/thermo`, a section
+   under the modes in the Spectra panel): ideal gas, harmonic, hindered translator/rotor.
+   `CrystalThermo` declared unavailable (no phonon DOS source).
+3. `8104e7e` -- **named surfaces and adsorbates** (`crystal/surfaces.py`): ASE's eleven layered
+   builders, `add_adsorbate`, `add_vacuum`, and `Structure.surface` so the **named adsorption
+   sites survive a save**.
+4. `9f0c859` -- **tutorial 4** through the whole course, and `New sweep…` in the Sweeps panel,
+   without which chapters 8.2-8.4 and 6.3.6 could not be done in the application at all.
+
+**Four findings worth carrying forward.**
+
+- **`from_atoms` crashed on any Atoms grown by `extend`.** `Atoms.extend` -- which is `+=`,
+  `append` and `ase.build.add_adsorbate` -- copies neither `info` nor the other object's per-atom
+  arrays, so the result carries the *first* object's uid/label/formal-charge lists against more
+  atoms, and reading them positionally raised `IndexError`. Reachable from the Scripts panel with
+  one `atoms += other`. Per-atom data, atomic properties, bonds and residues that cannot belong
+  to the atoms present are now dropped (`convert._per_atom`), which is what
+  `crystal._common.new_atoms` already did deliberately.
+- **`add_adsorbate` caches `'top layer atom index'` into `adsorbate_info`** on first use. Carrying
+  only cell+sites would place a second adsorbate above the *first adsorbate*, since that atom is
+  then the highest. It is a field of `SurfaceInfo`; the test adds O on fcc and O on hcp *through
+  JSON* and asserts equal z.
+- **ASE's `_clean_vib_energies` refuses an imaginary energy but passes a negative real one**
+  straight through, so a saddle point would give a plausible-looking free energy.
+  `frequencies_cm` reports an imaginary mode as a negative wavenumber, so `thermo.energies_ev`
+  moves the sign into the imaginary part before ASE sees it.
+- **ASE's own `CH3_THERMO["gibbs"]` is dead data** -- never asserted in `ase/test`, and 1 meV
+  from the H and S that file does assert. Recorded in `docs/ase-analysis.md` §5.9.
+
+**Discipline.** `pnpm lint` is now part of the pre-push list: `useExample` read as a React hook
+to `rules-of-hooks` and cost one red CI (`4f7e625` is the fix). And the e2e caught what the unit
+tests could not, twice: the schema's numeric type names are `number`/`integer`, not `float`/`int`
+(the New-sweep parameter list was empty against the real backend), and the Scripts panel's poll
+effect depended on the run record, so every tick re-armed it and clobbered the next run.
+
+**Declared not done, in the tutorial's §11 and in `docs/course/inventory.md`:** empty atoms
+(6.3.3) and cell dynamics (6.3.5), neither in the CP-PAW schema; `paw_tra` mode extraction
+(5.7/5.8, Figs 5.4-5.6), for which the tutorial gives a script that does it today; a DOS overlay
+across calculations (Fig. 8.4) and the free-electron curve beside aluminium's DOS (Fig. 6.8); and
+video export (Figs 4.9, 5.7). Two inventory rows were **stale and are corrected**: 3.4 (contour
+plots) is DONE -- `Analysis ▸ Planes` has drawn them since the planes work -- and chapter 5's MD
+plus 5.11's playback are READY.
+
+Every code example in tutorial 4 was **run**, not written from memory: the project-totalling
+script through the real runner against the course project (29 calculations with an energy), and
+the trajectory reader against `.scratch/course-runs/eggbox-0/work/case_r.tra`. Five UI labels in
+the first draft were wrong and were corrected against the components.
+
 ## Resume commands
 
 ```bash
@@ -618,7 +686,14 @@ run against current code -- Playwright above all -- use the private-server recip
   this checkpoint; nothing of ours is listening.
 
 ## Next actions
-1. Renderer parity gaps left: ring and polygon engines (AV-VIS-021/022, both LOW) and QTAIM.
+0. The gaps this session's tutorial declares (§11 of `docs/tutorials/04-hands-on-course.md`), in
+   the order they would close: `paw_tra` mode extraction as a panel (per-atom-group temperature,
+   an internal coordinate against time -- the tutorial shows the script that does it today), a
+   DOS overlay across calculations (Fig. 8.4), empty atoms and cell dynamics in the CP-PAW schema
+   (6.3.3, 6.3.5). Also a sweep over *structures* rather than a parameter, which is the one shape
+   `New sweep…` cannot build (chapter 8.5 needs the `sweep water-cell-size` runner).
+1. Renderer parity gaps left: QTAIM (AV-VIS-027). The ring and polygon engines (AV-VIS-021/022)
+   are done.
    Everything else the renderer owes is done -- cut/copy/paste, the label engine, the Display tab
    (which is where the label content and the selection's own display type are chosen), cartoon and
    ribbon rendering with DSSP, hydrogen bonds, isosurfaces coloured by a second grid, the

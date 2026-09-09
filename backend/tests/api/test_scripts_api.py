@@ -8,6 +8,7 @@ cancellation reaching a runaway script.
 
 from __future__ import annotations
 
+import json
 import time
 from pathlib import Path
 
@@ -155,6 +156,42 @@ def test_a_script_can_load_another_structure_and_list_them(tmp_path: Path) -> No
         assert run["status"] == "completed", _log(c, run["id"], "stderr")
         assert run["values"]["names"] == ["copper", "water"]
         assert run["values"]["cu"] == "Cu"
+
+
+def test_a_script_can_read_what_a_calculation_produced(tmp_path: Path) -> None:
+    """`context().project_root` is the open project, which is how a script totals a project up.
+
+    Documented in user-guide §9.2 and used by tutorial 4, so the path and the place the energy
+    sits are pinned here: a calculation keeps `calculations/<id>/calculation.json`, and its
+    energy is `results.properties.energy.value` in eV.
+    """
+    with TestClient(create_app()) as c:
+        _project(c, tmp_path)
+        # a calculation.json of the shape the service writes, with one finished energy
+        calc_dir = tmp_path / "p" / "calculations" / "abc123"
+        calc_dir.mkdir(parents=True)
+        (calc_dir / "calculation.json").write_text(
+            json.dumps(
+                {
+                    "id": "abc123",
+                    "name": "iron reference",
+                    "results": {"properties": {"energy": {"value": -599.2178, "unit": "eV"}}},
+                }
+            )
+        )
+        run = _run(
+            c,
+            "import json\n"
+            "from atomscope.scripting import context, value\n"
+            "project = context().project_root\n"
+            "for path in sorted(project.glob('calculations/*/calculation.json')):\n"
+            "    calc = json.loads(path.read_text())\n"
+            "    energy = ((calc.get('results') or {}).get('properties') or {}).get('energy')\n"
+            "    if energy is not None:\n"
+            "        value(calc['name'], energy['value'])\n",
+        )
+        assert run["status"] == "completed", _log(c, run["id"], "stderr")
+        assert run["values"] == {"iron reference": -599.2178}
 
 
 def test_a_script_cannot_reach_outside_the_structures_directory(tmp_path: Path) -> None:

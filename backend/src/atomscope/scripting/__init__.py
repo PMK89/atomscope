@@ -9,6 +9,7 @@ lives in :mod:`atomscope.scripting.service` and the child process entry point in
 from atomscope.scripting.api import (
     RunContext,
     ScriptApiError,
+    context,
     input_atoms,
     list_structures,
     load,
@@ -19,6 +20,7 @@ from atomscope.scripting.api import (
 __all__ = [
     "RunContext",
     "ScriptApiError",
+    "context",
     "input_atoms",
     "list_structures",
     "load",
