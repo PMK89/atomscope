@@ -260,6 +260,45 @@ test('silicon: the band structure along the fcc path', async ({ page, request })
   await page.screenshot({ path: join(SHOTS, 'silicon-bands.png') });
 });
 
+test('water: the graph controls change the chart they belong to', async ({ page, request }) => {
+  const base = process.env['PLAYWRIGHT_BASE_URL'] ?? 'http://127.0.0.1:5173';
+  const project = join(RUNS, 'course');
+  test.skip(!existsSync(project), 'run scripts/course/run.py water-relax first');
+
+  await request.post(`${base}/api/project/close`);
+  expect(
+    (await request.post(`${base}/api/project/open`, { data: { path: project } })).ok(),
+  ).toBeTruthy();
+
+  await page.goto('/');
+  await page.getByRole('button', { name: /water-relax completed/ }).click();
+  await page.getByRole('tab', { name: 'Analysis' }).click();
+
+  const panel = page.locator('.analysis-panel');
+  const chart = panel.locator('svg[aria-label="Total energy"]');
+  await expect(chart).toBeVisible({ timeout: 20_000 });
+
+  // the controls are folded away until asked for -- a chart buried under its own knobs is worse
+  // than a chart with none
+  const toggle = panel.locator('.chart-settings-toggle').nth(1);
+  await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+  await toggle.click();
+  await expect(toggle).toHaveAttribute('aria-expanded', 'true');
+
+  const body = panel.locator('.chart-settings-body').first();
+  await expect(chart.locator('circle')).toHaveCount(0);
+  await body.getByText('Mark each point').click();
+  expect(await chart.locator('circle').count()).toBeGreaterThan(2);
+
+  // the settings belong to this chart, not to the panel: the convergence chart beside it is
+  // untouched
+  await expect(panel.locator('svg[aria-label="Convergence"]').locator('circle')).toHaveCount(0);
+
+  await page.screenshot({ path: join(SHOTS, 'chart-settings.png') });
+  await body.getByRole('button', { name: 'Reset' }).click();
+  await expect(chart.locator('circle')).toHaveCount(0);
+});
+
 test('water: the protocol as text, and the geometries it reports', async ({ page, request }) => {
   const base = process.env['PLAYWRIGHT_BASE_URL'] ?? 'http://127.0.0.1:5173';
   const project = join(RUNS, 'course');

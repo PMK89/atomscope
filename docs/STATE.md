@@ -149,14 +149,28 @@ Progress:
      six decades) is shared by both views, and the log map is what makes the bonds visible.
    Both files of a pair carry identical numbers, so only one of each is read.
 
-4. **Density and orbitals against the tutorial** — a verification unit. Check what the ch. 3/4
-   text says the orbitals look like (1b1, 3a1, 1b2 …) against the isosurfaces, and whether
-   `paw_wave.x` can be asked for the *density* and not only a wave function. Record the orbital
-   indices actually verified in `figures.md`.
-5. **Graph property controls.** The spec the user pointed at is `plotDict.setParameters`
-   (`~/ase-cp-paw/src/asecppaw/visualize.py:687`) — read it before designing, and keep to what it
-   exposes. One `ChartSettings` popover on `LineChart`, state per chart id, so every Analysis
-   chart gets it at once.
+4. **Density and orbitals against the tutorial** — DONE, recorded in `figures.md` under
+   "Field cuts, and what they confirm about the orbitals". The planar cuts confirm the orbital
+   assignments independently of the isosurface: water's band 4 (the HOMO) reads ±0.05 in the
+   molecular plane and ±0.209 perpendicular to it, which is the 1b₁ lone pair — a p orbital
+   normal to the molecular plane. Band 2 is exactly antisymmetric (±0.562) in the plane, i.e.
+   1b₂. The density peaks at 3.75 e/Bohr³ on the oxygen. The isosurface path itself was already
+   covered by the `water: the HOMO is drawn on the molecule` e2e test.
+
+5. **Graph property controls** — DONE. The spec was `asecppaw`'s `plotDefault`
+   (`globals.py:35`) and `plotDict.setParameters`: `figArgs`, an `axArgs` carrying
+   title/labels/limits, marker and colour lists, a legend location and a `pltStyle`. What survives
+   into a chart already drawn in a panel is the part a reader reaches for, and that is what
+   `LineChart` now grows when given a `settingsId`: axis ranges (each end independently, empty
+   meaning "from the data"), a log y axis, a marker per sample, line weight and the legend.
+   Folded away behind a "Graph" toggle, `*` when anything is changed, Reset to clear. State lives
+   in `state/chartSettingsStore.ts` keyed by chart, persisted in `localStorage` inside try/catch,
+   so a chart looks the way it was left across a tab switch or a reload. All seven Analysis charts
+   have ids (`analysis.convergence`, `.energy`, `.temperature`, `.friction`, `.dos`, `.coop`,
+   `.bands`). The per-chart log control hides itself where the panel already forces log, so the
+   two cannot contradict each other. Titles and labels stay fixed: the chart is named by the panel
+   it sits in.
+
 6. **ASE image export with parameter parity.** `POST /api/export/image` → `ase.io.write`, with the
    kwargs mirrored in a pydantic model at ASE's own defaults (`rotation`, `radii`, `colors`,
    `scale`, `show_unit_cell`, `bbox`; for pov also `canvas_width`, `camera_dist`, `camera_type`,

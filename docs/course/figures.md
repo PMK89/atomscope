@@ -77,6 +77,32 @@ Grouped by the work they need rather than by chapter, because one change closes 
 | an analytic reference curve on a chart (free-electron √E) | 6.8 | `asecppaw`'s `makeFunction` does this; a chart option for us |
 | a Brillouin-zone view | 6.3 | not needed to reproduce the course, but it is the one 3D view we have no equivalent of |
 
+## Field cuts, and what they confirm about the orbitals
+
+The course cuts a field on a plane and draws it twice, as a contour map and as a rubbersheet.
+`paw_wave.x` produces both from one `!PLANE` block, and Analysis ▸ Planes draws them (the
+rubbersheet as a scene you can turn, so its view and light are a drag and three sliders rather
+than numbers in a gnuplot script).
+
+Choosing the plane is not a detail. Cutting along the first two cell vectors — the obvious
+default — is wrong for the course's water cell, which is fcc-shaped: that plane catches a
+hydrogen at 0.66 e/Bohr³ and misses the oxygen entirely. Cutting along the two leading principal
+axes of the atom positions gives the molecule's own plane, and the density then peaks at
+3.75 e/Bohr³ on the oxygen.
+
+That cut also confirms the orbitals are what the chapter says they are, without needing to trust
+the isosurface:
+
+| Band | In the molecular plane | Perpendicular to it | Reading |
+| --- | --- | --- | --- |
+| 1 | −0.653 … +0.407 | | 2a₁, no node through the atoms |
+| 2 | −0.562 … +0.562, exactly balanced | −0.280 … +0.280 | 1b₂, one node |
+| 4 (HOMO) | **±0.05** | **±0.209** | 1b₁ — a p orbital *perpendicular* to the molecular plane, so it nearly vanishes in it |
+
+The HOMO being four times larger out of the plane than in it is the textbook signature of water's
+1b₁ lone pair, and it is worth keeping as a regression signal: a plane chosen wrongly, or a sign
+lost in the parser, would break it.
+
 ## The DOS convention
 
 Read out of `asecppaw/dos_plot.py`, because seven figures have this shape and getting it wrong

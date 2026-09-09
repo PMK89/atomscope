@@ -898,3 +898,35 @@ button {
 .rubber-sheet canvas {
   display: block;
 }
+
+/* Per-chart display controls, folded away so a chart is not buried under its own knobs. */
+.chart-settings {
+  margin: 2px 0 0;
+}
+.chart-settings-toggle {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 0.78rem;
+  color: var(--muted, #6b7280);
+  cursor: pointer;
+}
+.chart-settings-toggle:hover {
+  color: var(--fg, #111);
+}
+.chart-settings-body {
+  border: 1px solid var(--border, #d8dce3);
+  border-radius: 3px;
+  padding: 4px 6px;
+  margin: 3px 0 6px;
+}
+.chart-settings-body .form-grid {
+  display: grid;
+  grid-template-columns: auto 1fr auto 1fr;
+  gap: 3px 5px;
+  align-items: center;
+}
+.chart-settings-body .form-grid input {
+  width: 100%;
+  min-width: 3.5rem;
+}

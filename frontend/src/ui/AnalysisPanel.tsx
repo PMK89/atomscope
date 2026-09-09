@@ -358,12 +358,14 @@ export function AnalysisPanel({ onError }: { onError: (m: string) => void }): JS
                 xLabel="step"
                 yLabel="eV"
                 title="Convergence"
+                settingsId="analysis.convergence"
               />
               <LineChart
                 series={convergence.filter((s) => s.id === 'energy')}
                 xLabel="step"
                 yLabel="total energy [eV]"
                 title="Total energy"
+                settingsId="analysis.energy"
               />
               {temperature && (
                 <LineChart
@@ -379,6 +381,7 @@ export function AnalysisPanel({ onError }: { onError: (m: string) => void }): JS
                   xLabel={`time [${temperature.x_unit}]`}
                   yLabel="T [K]"
                   title="Temperature"
+                  settingsId="analysis.temperature"
                 />
               )}
               {friction.length > 0 && (
@@ -387,6 +390,7 @@ export function AnalysisPanel({ onError }: { onError: (m: string) => void }): JS
                   xLabel="time [ps]"
                   yLabel="friction"
                   title="Thermostat friction"
+                  settingsId="analysis.friction"
                 />
               )}
             </>
@@ -563,6 +567,7 @@ export function AnalysisPanel({ onError }: { onError: (m: string) => void }): JS
                     xLabel="E [eV]"
                     yLabel="DOS [states/eV]"
                     title="Density of states"
+                    settingsId="analysis.dos"
                     height={240}
                   />
                   {dosCharts.coop.length > 0 && (
@@ -574,6 +579,7 @@ export function AnalysisPanel({ onError }: { onError: (m: string) => void }): JS
                         xLabel="E [eV]"
                         yLabel="COOP"
                         title="Crystal-orbital overlap population"
+                        settingsId="analysis.coop"
                         height={200}
                       />
                       <p className="muted">
@@ -628,6 +634,7 @@ export function AnalysisPanel({ onError }: { onError: (m: string) => void }): JS
                   xLabel="k"
                   yLabel="E [eV]"
                   title="Band structure"
+                  settingsId="analysis.bands"
                   height={260}
                 />
               ) : (

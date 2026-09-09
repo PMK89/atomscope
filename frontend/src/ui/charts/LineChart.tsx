@@ -4,6 +4,12 @@
  */
 import { useMemo, useRef, useState } from 'react';
 
+import {
+  DEFAULT_CHART_SETTINGS,
+  canLogY,
+  useChartSettingsStore,
+} from '../../state/chartSettingsStore';
+import { ChartSettingsPanel } from './ChartSettings';
 import { areaPath, areaSpans } from './area';
 import {
   extent,
@@ -68,6 +74,23 @@ export interface ChartStick {
   active?: boolean;
 }
 
+/**
+ * A domain with only the ends the user actually fixed replaced.
+ *
+ * Returns `undefined` when nothing is fixed and the caller passed no domain either, which is the
+ * signal to derive the whole range from the data.
+ */
+function mergeEnds(
+  base: Domain | undefined,
+  data: Domain | null,
+  lo: number | null,
+  hi: number | null,
+): Domain | undefined {
+  if (lo === null && hi === null) return base;
+  const from = base ?? data ?? [0, 1];
+  return [lo ?? from[0], hi ?? from[1]];
+}
+
 export interface LineChartProps {
   series: ChartSeries[];
   width?: number;
@@ -91,6 +114,12 @@ export interface LineChartProps {
   sticks?: ChartStick[];
   /** called with the data-space x of a click inside the plot area */
   onPick?: (x: number) => void;
+  /**
+   * Give the chart a stable id and it grows a "Graph" control: axis ranges, a log axis, markers,
+   * line weight and the legend, remembered per chart. What the caller passes as `logY`,
+   * `xDomain` and `yDomain` becomes the default the controls start from.
+   */
+  settingsId?: string;
 }
 
 const MARGIN = { top: 12, right: 12, bottom: 34, left: 52 };
@@ -101,9 +130,9 @@ export function LineChart({
   height = 200,
   xLabel,
   yLabel,
-  logY = false,
-  yDomain,
-  xDomain,
+  logY: logYProp = false,
+  yDomain: yDomainProp,
+  xDomain: xDomainProp,
   xTicks,
   markers = [],
   yMarkers = [],
@@ -112,9 +141,16 @@ export function LineChart({
   xReversed = false,
   sticks = [],
   onPick,
+  settingsId,
 }: LineChartProps): JSX.Element {
   const svgRef = useRef<SVGSVGElement>(null);
   const [hover, setHover] = useState<number | null>(null);
+  const settings = useChartSettingsStore((s) =>
+    settingsId === undefined
+      ? DEFAULT_CHART_SETTINGS
+      : (s.byChart[settingsId] ?? DEFAULT_CHART_SETTINGS),
+  );
+  const logY = settings.logY || logYProp;
 
   const drawn = useMemo(
     () => (logY ? series.map((s) => ({ ...s, ...positiveOnly(s.x, s.y) })) : series),
@@ -134,6 +170,11 @@ export function LineChart({
       sticks.map((s) => s.y),
       sticks.length ? [0] : [],
     );
+  // The stored settings win over the props, which stand in as the defaults they start from. A
+  // limit left empty means "from the data", so only the ends actually set are overridden.
+  const xDomain = mergeEnds(xDomainProp, extent(xs), settings.xMin, settings.xMax);
+  const yDomain = mergeEnds(yDomainProp, extent(ys), settings.yMin, settings.yMax);
+
   const xd: Domain = xDomain ?? padDomain(extent(xs) ?? [0, 1], 0);
   const yd: Domain = yDomain ?? padDomain(extent(ys) ?? (logY ? [1e-3, 1] : [0, 1]));
   const yDom: Domain = logY && !(yd[0] > 0) ? [Math.max(yd[1] * 1e-6, 1e-12), yd[1] || 1] : yd;
@@ -191,7 +232,10 @@ export function LineChart({
 
   return (
     <>
-      {named.length > 1 && (
+      {settingsId !== undefined && (
+        <ChartSettingsPanel chartId={settingsId} allowLogY={!logYProp && canLogY(drawn)} />
+      )}
+      {settings.legend && named.length > 1 && (
         <p className="chart-legend">
           {named.map((s) => (
             <span key={s.key}>
@@ -314,11 +358,23 @@ export function LineChart({
             key={s.id}
             fill="none"
             stroke={s.color}
-            strokeWidth={1.5}
+            strokeWidth={settings.lineWidth}
             strokeDasharray={s.dashed ? '4 3' : undefined}
             points={s.x.map((x, i) => `${sx(x).toFixed(1)},${sy(s.y[i]!).toFixed(1)}`).join(' ')}
           />
         ))}
+        {settings.markers &&
+          drawn.flatMap((s) =>
+            s.x.map((x, i) => (
+              <circle
+                key={`${s.id}-m${i}`}
+                cx={sx(x)}
+                cy={sy(s.y[i]!)}
+                r={Math.max(1.2, settings.lineWidth)}
+                fill={s.color}
+              />
+            )),
+          )}
         <line x1={plot.x0} x2={plot.x1} y1={plot.y0} y2={plot.y0} className="chart-axis" />
         <line x1={plot.x0} x2={plot.x0} y1={plot.y0} y2={plot.y1} className="chart-axis" />
         {xLabel && (
