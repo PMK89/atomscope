@@ -5,7 +5,7 @@ Status legend: DONE / IN PROGRESS / PLANNED. Feature-level parity tracking is in
 Session state, resume commands and known problems are in `docs/STATE.md`.
 
 **Counts are derived, never typed from memory.** At `12a03ac`:
-**230 IMPLEMENTED / 16 PARTIAL / 65 NOT STARTED / 1 BLOCKED of 312**, and the only row still open
+**233 IMPLEMENTED / 16 PARTIAL / 62 NOT STARTED / 1 BLOCKED of 312**, and the only row still open
 at HIGH or CRITICAL is AV-SURF-006. Re-derive both before trusting either:
 
 ```bash

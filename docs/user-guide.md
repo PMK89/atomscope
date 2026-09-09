@@ -156,7 +156,9 @@ hash. Use it when the host `libgfortran` hunt above fails, or to pin a version.
 `Help`.
 `Settings ▸ Preferences…` holds the settings that are about the program rather
 than the structure: rendering `Quality` (low / automatic by size / high
-tessellation), `Depth cueing` (distant atoms fade into the background),
+tessellation), `Depth cueing` (distant atoms fade into the background, in
+Avogadro's four levels — `None`, `Some`, `Mid`, `Lots` — which move the fog
+band nearer the camera at both ends as they rise),
 projection, background — the white/grey/black presets, or `Custom…` for a
 colour well that takes any colour, which depth cueing then fades towards — and
 the list of calculation backends with what each one found on this machine. They are stored **with the open project**, not globally,
@@ -821,6 +823,21 @@ Nothing is clamped: an atom may be drawn thinner than its own sticks, which is
 the bottom end of the atom-radius slider doing something rather than nothing.
 At the defaults the spheres of two bonded atoms nearly meet — an O–H bond shows
 about 0.17 Å of stick — which is what ball-and-stick looks like in Avogadro.
+
+`Opacity` makes the atoms and bonds transparent. It is one setting for the
+whole structure rather than one per display type, because Atomscope draws them
+all from one layer — so a transparent space-filling shell over opaque
+ball-and-stick, which Avogadro does with two engines at once, is not possible.
+
+`Show atoms (wireframe)` draws the atoms of the `Wireframe` style as dots, or
+leaves the bare lines, which is what the style is for on a large structure.
+
+`View ▸ Reset display types` puts all of this back to the defaults — style,
+radii, opacity, colours, per-atom assignments, labels, ribbons, hydrogen bonds,
+vectors, dipole, unit cell and axes. It deliberately leaves the camera, the
+projection, the background, the render quality and the depth cueing alone:
+those are preferences rather than display types, and losing your view because
+you wanted default radii back would be a surprise.
 
 ### 6.1 Isosurfaces
 

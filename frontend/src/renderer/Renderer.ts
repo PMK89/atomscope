@@ -41,6 +41,33 @@ declare global {
   }
 }
 
+/** Avogadro names four bands of its 0-9 `fogLevel`; these are their middles. */
+export type FogLevel = 'none' | 'some' | 'mid' | 'lots';
+
+export const FOG_LEVELS: Record<FogLevel, number> = { none: 0, some: 2, mid: 5, lots: 8 };
+
+/**
+ * Where the fog band starts and ends, from Avogadro's own formula
+ * (`glwidget.cpp:772-773`):
+ *
+ *     GL_FOG_START = distanceToCenter - (fogLevel / 8) * radius
+ *     GL_FOG_END   = distanceToCenter + ((10 - fogLevel) / 8 * 2) * radius
+ *
+ * A higher level starts the fog nearer the camera *and* ends it nearer, which is what makes it
+ * denser. With no structure to measure there is no radius, and the band falls back to the
+ * distance itself -- what this did before the levels existed.
+ */
+export function fogBand(
+  distance: number,
+  radius: number | undefined,
+  level: FogLevel,
+): { near: number; far: number } {
+  if (radius === undefined || !(radius > 0)) return { near: distance, far: distance * 2.2 };
+  const l = FOG_LEVELS[level];
+  const near = Math.max(0.01, distance - (l / 8) * radius);
+  return { near, far: Math.max(near + 0.01, distance + ((10 - l) / 8) * 2 * radius) };
+}
+
 export class Renderer {
   readonly scene = new Scene();
   readonly gl: WebGLRenderer;
@@ -105,26 +132,37 @@ export class Renderer {
   /**
    * Depth cueing: distant atoms fade into the background, which is what tells the eye which end
    * of a large molecule is nearer. The band follows the camera, so it works at any zoom.
+   *
+   * Avogadro's `fogLevel` runs 0-9 and its settings dialog names four bands of it -- None for 0,
+   * Some for 1-3, Mid for 4-6, Lots for 7-9 (`settingsdialog.cpp:118-142`). The four names are
+   * what is offered here, at the middle level of each band.
    */
-  setFog(enabled: boolean): void {
-    if (enabled === !!this.scene.fog) return;
-    this.scene.fog = enabled
-      ? new Fog(
-          this.scene.background instanceof Color ? this.scene.background.getHex() : 0xffffff,
-          1,
-          100,
-        )
-      : null;
+  private fogLevel: FogLevel = 'none';
+
+  setFog(level: FogLevel): void {
+    this.fogLevel = level;
+    const wanted = FOG_LEVELS[level];
+    if ((wanted === 0) === !this.scene.fog) {
+      this.scene.fog =
+        wanted === 0
+          ? null
+          : new Fog(
+              this.scene.background instanceof Color ? this.scene.background.getHex() : 0xffffff,
+              1,
+              100,
+            );
+    }
     this.invalidate();
   }
 
-  /** Put the fog band around whatever the camera is looking at, just before rendering. */
+  /** Put the fog band (see `fogBand`) around whatever the camera is looking at, before rendering. */
   private updateFog(): void {
     const fog = this.scene.fog;
     if (!(fog instanceof Fog)) return;
     const distance = this.camera.position.distanceTo(this.controller.pivot);
-    fog.near = distance;
-    fog.far = distance * 2.2;
+    const { near, far } = fogBand(distance, this.extent()?.radius, this.fogLevel);
+    fog.near = near;
+    fog.far = far;
   }
 
   /** Push a new structure snapshot to all layers. */

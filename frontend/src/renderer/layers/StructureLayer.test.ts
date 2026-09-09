@@ -509,3 +509,39 @@ test('an assigned display type beats the selection style and the global one', ()
   expect(meshes(layer)[1]!.count).toBe(2);
   layer.dispose();
 });
+
+test('opacity makes the structure transparent, and survives a rebuild', () => {
+  const layer = new StructureLayer();
+  layer.update(ctx(doc()));
+  const material = (meshes(layer)[0] as InstancedMesh).material as { transparent: boolean };
+  expect(material.transparent).toBe(false);
+
+  layer.setSettings({ opacity: 0.4 });
+  expect(material.transparent).toBe(true);
+  // depth writing has to go with it, or a sphere hides the ones behind it while still letting
+  // the background through
+  expect((material as unknown as { depthWrite: boolean }).depthWrite).toBe(false);
+  expect(meshes(layer)[0]!.renderOrder).toBeGreaterThan(0);
+
+  // an edit rebuilds the meshes, and a fresh mesh starts at renderOrder 0
+  layer.update(ctx(setElement(doc(), 2, 'N')));
+  expect(meshes(layer)[0]!.renderOrder).toBeGreaterThan(0);
+  layer.dispose();
+});
+
+test('the wireframe atoms can be switched off, as Avogadro switches its dots off', () => {
+  const layer = new StructureLayer();
+  layer.setSettings({ style: 'wireframe' });
+  layer.update(ctx(doc()));
+  const m = new Matrix4();
+  meshes(layer)[0]!.getMatrixAt(0, m);
+  expect(m.elements[0]).toBeGreaterThan(0);
+
+  layer.setSettings({ wireframeAtoms: false });
+  layer.update(ctx(doc()));
+  meshes(layer)[0]!.getMatrixAt(0, m);
+  expect(m.elements[0]).toBe(0);
+  // the bonds are still there: bare lines are the point of the engine
+  expect(meshes(layer)).toHaveLength(2);
+  layer.dispose();
+});

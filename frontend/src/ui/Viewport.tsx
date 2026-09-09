@@ -156,6 +156,8 @@ export function Viewport(): JSX.Element {
       radiusBasis: view.radiusBasis,
       bondRadius: view.bondRadius,
       stickRadius: view.stickRadius,
+      opacity: view.opacity,
+      wireframeAtoms: view.wireframeAtoms,
       selectionStyle: view.selectionStyle,
       multipleBonds: view.multipleBonds,
       cellRepeat: view.cellRepeat,

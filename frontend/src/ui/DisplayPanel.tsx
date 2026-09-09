@@ -341,11 +341,32 @@ export function DisplayPanel(): JSX.Element {
           ))}
         </select>
       </div>
+      <div className="form-row">
+        <label htmlFor="display-opacity">Opacity</label>
+        <div className="range-with-value">
+          <input
+            id="display-opacity"
+            type="range"
+            min="0"
+            max="1"
+            step="0.05"
+            value={view.opacity}
+            onChange={(e) => view.setOpacity(Number(e.target.value))}
+          />
+          <span className="range-value">{view.opacity.toFixed(2)}</span>
+        </div>
+      </div>
       <Toggle
         id="display-multiple-bonds"
         label="Show multiple bonds"
         checked={view.multipleBonds}
         onChange={view.toggleMultipleBonds}
+      />
+      <Toggle
+        id="display-wireframe-atoms"
+        label="Show atoms (wireframe)"
+        checked={view.wireframeAtoms}
+        onChange={view.toggleWireframeAtoms}
       />
       <Toggle
         id="display-hydrogens"

@@ -11,7 +11,7 @@ import {
   type RadiusBasis,
   type StructureStyle,
 } from '../renderer/layers/StructureLayer';
-import type { Projection } from '../renderer/Renderer';
+import type { FogLevel, Projection } from '../renderer/Renderer';
 import type { AtomLabelContent, BondLabelContent } from '../renderer/labels';
 import type { RibbonStyle } from '../model/ribbon';
 import type { RibbonColorScheme } from '../renderer/layers/RibbonLayer';
@@ -40,9 +40,10 @@ export interface ViewState {
   backgroundColor: string;
   /** Renderer quality and depth cueing (Settings > Preferences). */
   quality: Quality;
-  fog: boolean;
+  /** Depth cueing, in Avogadro's four named levels. */
+  fog: FogLevel;
   setQuality: (q: ViewState['quality']) => void;
-  setFog: (on: boolean) => void;
+  setFog: (level: FogLevel) => void;
   setStyle: (s: StructureStyle) => void;
   setProjection: (p: Projection) => void;
   toggleHydrogens: () => void;
@@ -103,6 +104,10 @@ export interface ViewState {
   bondRadius: number;
   /** The `stick` style's own radius, which Avogadro keeps separate from `bondRadius`. */
   stickRadius: number;
+  /** Opacity of the atoms and bonds (Avogadro's per-engine `m_alpha`). */
+  opacity: number;
+  /** Draw the atoms of the wireframe style as dots ("Show Atoms" in Avogadro). */
+  wireframeAtoms: boolean;
   /** Draw double and triple bonds as two or three sticks. */
   multipleBonds: boolean;
   toggleMultipleBonds: () => void;
@@ -124,6 +129,8 @@ export interface ViewState {
   setRadiusBasis: (basis: RadiusBasis) => void;
   setBondRadius: (radius: number) => void;
   setStickRadius: (radius: number) => void;
+  setOpacity: (opacity: number) => void;
+  toggleWireframeAtoms: () => void;
   setSelectionStyle: (style: StructureStyle | null) => void;
   toggleVectors: () => void;
   setVectorField: (field: string) => void;
@@ -133,7 +140,56 @@ export interface ViewState {
   toggleUnitCell: () => void;
   setCellRepeat: (repeat: [number, number, number]) => void;
   toggleAxes: () => void;
+  /**
+   * Avogadro's View > Reset Display Types: put the display types and their settings back to the
+   * defaults. Deliberately not the camera, the projection, the background, the render quality or
+   * the depth cueing -- those are the application's preferences in Avogadro too, not part of an
+   * engine set, and losing your view because you wanted default radii back would be a surprise.
+   */
+  resetDisplayTypes: () => void;
 }
+
+/**
+ * What `resetDisplayTypes` restores. Written out rather than derived from the initial state so
+ * that adding a setting is a deliberate decision about whether a reset should touch it.
+ */
+export const DISPLAY_TYPE_DEFAULTS = {
+  style: 'ball-and-stick',
+  atomScale: DEFAULT_STRUCTURE_SETTINGS.atomScale,
+  radiusBasis: DEFAULT_STRUCTURE_SETTINGS.radiusBasis,
+  bondRadius: DEFAULT_STRUCTURE_SETTINGS.bondRadius,
+  stickRadius: DEFAULT_STRUCTURE_SETTINGS.stickRadius,
+  opacity: DEFAULT_STRUCTURE_SETTINGS.opacity,
+  wireframeAtoms: DEFAULT_STRUCTURE_SETTINGS.wireframeAtoms,
+  // no vdwScale: Avogadro's sphere engine has an opacity and nothing else, so the space-filling
+  // radius is the van der Waals radius itself and there is no scale to reset
+  multipleBonds: true,
+  showHydrogens: true,
+  colorScheme: 'element',
+  residuePalette: 'amino',
+  customColor: '#4aa3ff',
+  selectionStyle: null,
+  atomStyles: NO_STYLES,
+  atomColorOverrides: NO_ATOM_COLORS,
+  showLabels: false,
+  atomLabels: 'symbol_index',
+  bondLabels: 'none',
+  labelColor: '#222222',
+  labelSize: 0.55,
+  labelShift: [0, 0, 0],
+  showRibbon: false,
+  ribbonStyle: 'cartoon',
+  ribbonScale: 1,
+  ribbonColorScheme: 'secondary',
+  showHBonds: false,
+  hbondDistance: DEFAULT_HBOND_SETTINGS.maxDistance,
+  hbondAngle: DEFAULT_HBOND_SETTINGS.minAngle,
+  showVectors: false,
+  showDipole: false,
+  showUnitCell: true,
+  cellRepeat: [1, 1, 1],
+  showAxes: true,
+} as const satisfies Partial<ViewState>;
 
 export const useViewStore = create<ViewState>((set) => ({
   style: 'ball-and-stick',
@@ -144,7 +200,7 @@ export const useViewStore = create<ViewState>((set) => ({
   customColor: '#4aa3ff',
   setCustomColor: (customColor) => set({ customColor }),
   quality: 'auto',
-  fog: false,
+  fog: 'none',
   setQuality: (quality) => set({ quality }),
   setFog: (fog) => set({ fog }),
   projection: 'perspective',
@@ -193,6 +249,8 @@ export const useViewStore = create<ViewState>((set) => ({
   radiusBasis: DEFAULT_STRUCTURE_SETTINGS.radiusBasis,
   bondRadius: DEFAULT_STRUCTURE_SETTINGS.bondRadius,
   stickRadius: DEFAULT_STRUCTURE_SETTINGS.stickRadius,
+  opacity: DEFAULT_STRUCTURE_SETTINGS.opacity,
+  wireframeAtoms: DEFAULT_STRUCTURE_SETTINGS.wireframeAtoms,
   multipleBonds: true,
   toggleMultipleBonds: () => set((s) => ({ multipleBonds: !s.multipleBonds })),
   selectionStyle: null,
@@ -204,6 +262,8 @@ export const useViewStore = create<ViewState>((set) => ({
   setRadiusBasis: (radiusBasis) => set({ radiusBasis }),
   setBondRadius: (bondRadius) => set({ bondRadius }),
   setStickRadius: (stickRadius) => set({ stickRadius }),
+  setOpacity: (opacity) => set({ opacity }),
+  toggleWireframeAtoms: () => set((st) => ({ wireframeAtoms: !st.wireframeAtoms })),
   setSelectionStyle: (selectionStyle) => set({ selectionStyle }),
   toggleLabels: () => set((s) => ({ showLabels: !s.showLabels })),
   setAtomLabels: (atomLabels) => set({ atomLabels, showLabels: true }),
@@ -232,6 +292,7 @@ export const useViewStore = create<ViewState>((set) => ({
       ],
     }),
   toggleAxes: () => set((s) => ({ showAxes: !s.showAxes })),
+  resetDisplayTypes: () => set({ ...DISPLAY_TYPE_DEFAULTS }),
 }));
 
 export const BACKGROUND_HEX: Record<ViewState['background'], number> = {

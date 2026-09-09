@@ -1,5 +1,5 @@
 import { applyPersisted, pickPersisted } from './viewSettingsSync';
-import { useViewStore } from './viewStore';
+import { DISPLAY_TYPE_DEFAULTS, useViewStore } from './viewStore';
 
 test('pickPersisted keeps plain settings and skips fitRequest', () => {
   const s = useViewStore.getState();
@@ -99,4 +99,34 @@ test('settings that say nothing about radii do not force the old basis', () => {
   useViewStore.setState({ radiusBasis: 'vdw' });
   applyPersisted({ background: 'black' });
   expect(useViewStore.getState().radiusBasis).toBe('vdw');
+});
+
+test('resetting the display types leaves the camera and the preferences alone', () => {
+  // Avogadro's View > Reset Display Types restores the engine set, not the application's
+  // preferences -- losing your background and projection because you wanted default radii back
+  // would be a surprise.
+  useViewStore.setState({
+    style: 'vdw',
+    atomScale: 0.9,
+    radiusBasis: 'covalent',
+    opacity: 0.3,
+    showLabels: true,
+    background: 'black',
+    projection: 'orthographic',
+    quality: 'high',
+    fog: 'lots',
+  });
+  useViewStore.getState().resetDisplayTypes();
+
+  const s = useViewStore.getState();
+  expect(s.style).toBe('ball-and-stick');
+  expect(s.atomScale).toBe(DISPLAY_TYPE_DEFAULTS.atomScale);
+  expect(s.radiusBasis).toBe('vdw');
+  expect(s.opacity).toBe(1);
+  expect(s.showLabels).toBe(false);
+  // untouched
+  expect(s.background).toBe('black');
+  expect(s.projection).toBe('orthographic');
+  expect(s.quality).toBe('high');
+  expect(s.fog).toBe('lots');
 });

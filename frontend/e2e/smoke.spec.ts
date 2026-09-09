@@ -504,7 +504,8 @@ test('Settings > Preferences changes the rendering and lists the backends', asyn
   // the backend list comes from the server, so at least the built-in ASE backend is there
   await expect(dialog.getByText(/ASE|available/).first()).toBeVisible();
 
-  await dialog.getByLabel('Depth cueing').check();
+  // depth cueing carries Avogadro's four named levels of its 0-9 fogLevel, not an on/off
+  await dialog.getByLabel('Depth cueing').selectOption('mid');
   await dialog.getByLabel('Background').selectOption('black');
   await dialog.getByRole('button', { name: 'Close' }).click();
   await page.screenshot({ path: '../.scratch/dev/settings.png' });

@@ -75,7 +75,9 @@ test('import a cube and render an isosurface', async ({ page, request }) => {
   await page.screenshot({ path: join(dir, 'surface.png') });
 
   // changing opacity keeps the surface visible; deleting removes it
-  await page.getByLabel('Opacity').fill('0.5');
+  // scoped: the Display tab has an Opacity of its own (the structure's), and every panel is
+  // mounted at once
+  await page.locator('.surfaces-panel').getByLabel('Opacity').fill('0.5');
   await page.waitForTimeout(300);
   expect(await bluePixels(page)).toBeGreaterThan(before + 200);
 

@@ -8,6 +8,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { api, type BackendInfo } from '../api/client';
 import { useToolStore } from '../editor/toolStore';
+import type { FogLevel } from '../renderer/Renderer';
 import type { Quality } from '../renderer/layers/StructureLayer';
 import { BACKGROUND_HEX, useViewStore } from '../state/viewStore';
 import { dialogKeyHandler } from './dialogKeys';
@@ -73,12 +74,17 @@ export function SettingsDialog(): JSX.Element | null {
         </div>
         <div className="form-row">
           <label htmlFor="settings-fog">Depth cueing</label>
-          <input
+          <select
             id="settings-fog"
-            type="checkbox"
-            checked={view.fog}
-            onChange={(e) => view.setFog(e.target.checked)}
-          />
+            value={view.fog}
+            onChange={(e) => view.setFog(e.target.value as FogLevel)}
+          >
+            {/* Avogadro's four named levels of its 0-9 fogLevel */}
+            <option value="none">None</option>
+            <option value="some">Some</option>
+            <option value="mid">Mid</option>
+            <option value="lots">Lots</option>
+          </select>
         </div>
         <div className="form-row">
           <label htmlFor="settings-projection">Projection</label>

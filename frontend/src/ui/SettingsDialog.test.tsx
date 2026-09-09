@@ -7,7 +7,7 @@ import { SettingsDialog } from './SettingsDialog';
 
 beforeEach(() => {
   vi.restoreAllMocks();
-  useViewStore.setState({ quality: 'auto', fog: false });
+  useViewStore.setState({ quality: 'auto', fog: 'none' });
   useToolStore.getState().setSettingsDialogOpen(true);
 });
 
@@ -16,11 +16,12 @@ test('the rendering settings go to the view store, which is what persists them',
   render(<SettingsDialog />);
 
   fireEvent.change(screen.getByLabelText('Quality'), { target: { value: 'high' } });
-  fireEvent.click(screen.getByLabelText('Depth cueing'));
+  fireEvent.change(screen.getByLabelText('Depth cueing'), { target: { value: 'mid' } });
   fireEvent.change(screen.getByLabelText('Background'), { target: { value: 'black' } });
 
   expect(useViewStore.getState().quality).toBe('high');
-  expect(useViewStore.getState().fog).toBe(true);
+  // Avogadro names four bands of its 0-9 fogLevel; the setting carries the name
+  expect(useViewStore.getState().fog).toBe('mid');
   expect(useViewStore.getState().background).toBe('black');
   await waitFor(() => expect(api.backends.list).toHaveBeenCalled());
 });

@@ -52,6 +52,18 @@ export interface StructureLayerSettings {
    * and it is more than twice as thick -- sharing one number made licorice look like wireframe.
    */
   stickRadius: number;
+  /**
+   * Opacity of the atoms and bonds, Avogadro's per-engine `m_alpha`. One number for the whole
+   * structure because Atomscope draws every display type from one layer (see AV-VIS-001): its
+   * ball-and-stick opacity and its van der Waals opacity are the same control here.
+   */
+  opacity: number;
+  /**
+   * Draw an atom in the `wireframe` style at all. Avogadro's wireframe engine has a "Show Atoms"
+   * checkbox (`showDotsCheckBox`, on by default) that draws them as dots; off leaves the bare
+   * lines, which is the point of the engine for a large structure.
+   */
+  wireframeAtoms: boolean;
   showHydrogens: boolean;
   /** Draw double and triple bonds as two or three parallel sticks. */
   multipleBonds: boolean;
@@ -93,6 +105,8 @@ export const DEFAULT_STRUCTURE_SETTINGS: StructureLayerSettings = {
   vdwScale: 1.0,
   bondRadius: 0.1,
   stickRadius: 0.25,
+  opacity: 1,
+  wireframeAtoms: true,
   showHydrogens: true,
   multipleBonds: true,
   cellRepeat: [1, 1, 1],
@@ -201,6 +215,26 @@ export class StructureLayer implements DisplayLayer {
 
   setSettings(patch: Partial<StructureLayerSettings>): void {
     this.settings = { ...this.settings, ...patch };
+    this.applyOpacity();
+  }
+
+  /**
+   * Transparent atoms and bonds. Depth writing has to go with them or a sphere hides the ones
+   * behind it while still letting the background through, and the meshes render after the opaque
+   * layers -- the same treatment the isosurfaces get (AV-VIS-030).
+   */
+  private applyOpacity(): void {
+    const opacity = Math.min(1, Math.max(0, this.settings.opacity));
+    const transparent = opacity < 1;
+    if (this.material.transparent !== transparent || this.material.opacity !== opacity) {
+      this.material.transparent = transparent;
+      this.material.opacity = opacity;
+      this.material.depthWrite = !transparent;
+      this.material.needsUpdate = true;
+    }
+    // never conditional on the material having changed: the meshes are rebuilt on an edit, and a
+    // fresh one starts at renderOrder 0
+    for (const mesh of this.pickables) mesh.renderOrder = transparent ? 5 : 0;
   }
 
   /**
@@ -465,6 +499,8 @@ export class StructureLayer implements DisplayLayer {
       this.bondMeshBonds = bonds;
       this.object.add(bondMesh);
     }
+    // fresh meshes start opaque and at renderOrder 0
+    this.applyOpacity();
   }
 
   /**
@@ -568,7 +604,8 @@ export class StructureLayer implements DisplayLayer {
       case 'stick':
         return this.settings.stickRadius;
       case 'wireframe':
-        return this.settings.bondRadius * 0.35;
+        // Avogadro's wireframe engine draws the atoms as dots, or not at all
+        return this.settings.wireframeAtoms ? this.settings.bondRadius * 0.35 : 0;
       default: {
         // No lower clamp against the bond radius: Avogadro has none, and clamping made an atom
         // smaller than its sticks impossible -- which is half of what the atom radius is for.
