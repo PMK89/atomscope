@@ -1366,10 +1366,20 @@ into a geometry.
 The velocities come from central differences of the positions, which is exact
 for a Verlet propagator, and displacements are taken across the shortest
 periodic image so a trajectory whose positions have been wrapped into the cell
-does not read a boundary crossing as a velocity of one cell per step. The group
-gets g = 3N degrees of freedom, as `paw_tra` does — it says so itself, and warns
-that ignoring the three of the centre of mass underestimates the temperature
-slightly. A trajectory whose frames carry no time says so instead of plotting a
+does not read a boundary crossing as a velocity of one cell per step.
+
+The group gets **g = 3N** degrees of freedom. That is `paw_tra`'s choice, and
+it is also what CP-PAW's own protocol reports (`ATOMS__TEMPERATURE` divides by
+`NFREE`, which is `3·NAT` less any constraints) and what ASE's
+`get_temperature()` returns — so the number here, the `Temperature` curve on
+the `Convergence` tab, and a script's own reading of the same trajectory all
+agree. Against the *physical* count it is low, by 3N/(3N−3) once the centre of
+mass is discounted, or 3N/(3N−6) for a free molecule: 27/21 for malonaldehyde,
+9/3 for a single water. `paw_tra` prints the same warning and names both
+counts. It is not corrected here, because the point of the panel is to
+reproduce the figures.
+
+A trajectory whose frames carry no time says so instead of plotting a
 meaningless curve (a geometry optimisation is that case), and one stored every
 Nth step says that its temperature is a lower bound, because a central
 difference over such frames is an average over 2N steps.

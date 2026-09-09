@@ -354,10 +354,13 @@ export function DynamicsView({ calcId }: { calcId: string }): React.ReactElement
         />
       )}
       <p className="muted">
-        The temperature uses g = 3N degrees of freedom for the group, as <code>paw_tra</code>
-        does; ignoring the three of the centre of mass underestimates it slightly. The running
-        average is <code>paw_tra</code>&apos;s retardation: exponential with time constant τ, and τ
-        = 0 leaves the series raw. Clicking the chart shows that frame in the viewport.
+        The temperature uses g = 3N degrees of freedom for the group, which is what{' '}
+        <code>paw_tra</code> does — and what CP-PAW itself reports for an unconstrained run, and
+        what ASE&apos;s <code>get_temperature()</code> returns, so the three agree. Against the
+        *physical* count it is low by 3N/(3N−3), or 3N/(3N−6) for a free molecule: 27/21 for
+        malonaldehyde, and 9/3 for a water molecule. The running average is <code>paw_tra</code>
+        &apos;s retardation: exponential with time constant τ, and τ = 0 leaves the series raw.
+        Clicking the chart shows that frame in the viewport.
       </p>
     </div>
   );

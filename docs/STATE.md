@@ -445,6 +445,14 @@ Worth keeping:
   all-atom temperature must reproduce ASE's own `get_temperature()` frame by frame. It does, on a
   fixture with **wrapped** positions -- which is the test that proves the minimum-image treatment.
   Ratio 1.0000 to 5 dp before the Float32 floor bites.
+- **g = 3N is not just `paw_tra`'s convention, it is everyone's here.** CP-PAW's own reported
+  temperature (`paw_atoms.f90:ATOMS__TEMPERATURE`) divides by `NFREE`, and
+  `paw_constraints.f90:CONSTRAINTS__NFREE` returns `3*NAT` when there are no constraints
+  (`3*NAT - NC` when there are); ASE's `get_temperature()` uses `3N` too. So `Dynamics ▸ All
+  atoms`, the `Convergence ▸ Temperature` curve and a script's own reading agree. What `paw_tra`
+  warns about is the *physical* count: the docs used to call the gap "slight", which is true for a
+  crystal and wrong for a molecule -- 3N/(3N-6) is 27/21 for malonaldehyde and 9/3 for one water.
+  All three places now give the factor instead.
 - **The Float32 floor.** `TrajectoryData.positions` is Float32 (shared with the renderer), ~3e-7 A
   on a position; a central difference over 2 fs turns that into ~1e-5 relative on a velocity, so
   0.002 K on 230 K. Every golden's last digit is spent on that, not on the formulas.
@@ -742,6 +750,9 @@ run against current code -- Playwright above all -- use the private-server recip
   `ATOMSCOPE_DATA_DIR=../.scratch/e2e-data python -m atomscope.api.server --host 127.0.0.1 --port 8791`,
   `ATOMSCOPE_API_URL=http://127.0.0.1:8791 pnpm dev --host 127.0.0.1 --port 5191`,
   then `PLAYWRIGHT_BASE_URL=http://127.0.0.1:5191 pnpm exec playwright test`.
+  Redirect their output **inside the project** -- `> ../.scratch/e2e-backend.log 2>&1`,
+  `> .scratch/e2e-frontend.log 2>&1` -- not to `/tmp`: the write boundary is PROJECT_ROOT, and a
+  log is a file created like any other.
   Give the private backend a data directory of its own: `env.sh` points `ATOMSCOPE_DATA_DIR` at
   `app-data/`, which is where the recent-files list lives, and `e2e/recent.spec.ts` ends by
   clearing it -- pointed at `app-data/` it would wipe the list the person using Atomscope built up.

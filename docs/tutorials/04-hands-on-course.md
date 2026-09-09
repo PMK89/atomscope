@@ -234,8 +234,11 @@ runs `paw_tra` for, and it works on whichever trajectory is loaded:
   any of these into a velocity.
 
 The temperature uses g = 3N degrees of freedom for the group, exactly as
-`paw_tra` does — it says so itself, and warns that ignoring the three of the
-centre of mass underestimates the result slightly.
+`paw_tra` does — and as CP-PAW's own protocol does, so this number and the
+`Temperature` curve on the `Convergence` tab agree. Against the physical count
+it is low by 3N/(3N−6) for a free molecule, which for malonaldehyde's nine
+atoms is 27/21; `paw_tra` prints the same warning, and the figures are drawn
+with the uncorrected number.
 
 ## 7. Chapter 6: solids, silicon and aluminium
 
