@@ -3,7 +3,8 @@
  * hollow sites on Al(100) with EMT, whose barrier ASE documents as about 0.40 eV.
  *
  * Out of the shared suite (it needs a project with both endpoints in it and takes a few seconds
- * of real optimisation); run with ATOMSCOPE_NEB=1.
+ * of real optimisation); run with ATOMSCOPE_COURSE=1. The project is built by
+ * `scripts/make_neb_project.py` -- without it this test skips rather than fails.
  */
 import { test, expect } from '@playwright/test';
 import { existsSync } from 'node:fs';

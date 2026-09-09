@@ -663,13 +663,13 @@ or a format the viewport cannot produce. Five formats:
 | `eps` | vector, for print |
 | `pov` | a POV-Ray scene plus its `.ini`; render it with `povray water.ini` |
 | `x3d` | 3D scene |
-| `html` | a self-contained page with the structure in it |
+| `html` | a web page with the structure in it — ASE's writer links x3dom.js and x3dom.css from x3dom.org, so it needs the network to display |
 
 The fields are ASE's own parameters, exposed at the same depth the API takes
 them: `rotation` is ASE's rotation string (`90x,20y`), and `auto` reproduces
 `simplePOV`'s choice of turning the structure's principal axes towards the
-camera; `unit cell` draws it hidden, behind the atoms or in front; `Bonds`
-draws them or leaves the atoms bare; `scale` is px/Å. POV-Ray adds `canvas
+camera; `unit cell` draws it hidden, behind the atoms or in front; `Draw the
+bonds the viewport shows` does that or leaves the atoms bare; `scale` is px/Å. POV-Ray adds `canvas
 width`, `camera distance` and `Transparent background`, which the raster
 formats have no use for. `write to` takes a path on this machine and, left
 empty, writes into the application's scratch directory and tells you where —
@@ -1602,9 +1602,10 @@ stored structures. Both ends must hold the same atoms in the same order — a
 band between different molecules is not a reaction, and the panel refuses it by
 name rather than producing a curve.
 
-* `calculator` — which of the ASE built-ins does the forces (EMT, Lennard-Jones,
-  Morse). This is the only place the choice matters much: a band is many
-  single-point evaluations, so a DFT band is not something to start by accident.
+* `calculator` — what does the forces: `EMT (metals)`, `Open Babel force
+  field`, `Lennard-Jones` or `Morse`. These are the cheap ones on purpose — a
+  band is many single-point evaluations, and none of them needs an external
+  program. CP-PAW is deliberately **not** offered here.
 * `images` — how many structures the band holds including both ends, at least 3.
   The starting guess is ASE's IDPP interpolation, not a straight line, so bonds
   do not pass through each other on the way.

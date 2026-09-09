@@ -667,14 +667,26 @@ photograph something, or they need a project the default suite does not build
 | Command | Specs | Count |
 | --- | --- | --- |
 | `pnpm exec playwright test` | the other eight | 40, ~57 s |
-| `ATOMSCOPE_COURSE=1 pnpm exec playwright test` | `course-visual`, `database`, `neb`, `vibrations` | 13, ~90 s |
+| `ATOMSCOPE_COURSE=1 pnpm exec playwright test` | `course-visual`, `database`, `neb`, `vibrations` | 13, ~40 s |
 | `ATOMSCOPE_PERF=1 pnpm exec playwright test` | `perf` | see [`performance.md`](performance.md) |
 
 `source env.sh` first, always: without `PLAYWRIGHT_BROWSERS_PATH` the launcher
 looks in `~/.cache/ms-playwright`, finds nothing, and every test fails at
 `browserType.launch`. `course-visual.spec.ts` writes its pictures to
-`.scratch/course-shots/` and `neb.spec.ts` builds a project in
-`.scratch/neb-proj`.
+`.scratch/course-shots/` and reads the course project under
+`.scratch/course-runs/`.
+
+`neb.spec.ts` **requires** `.scratch/neb-proj` and *skips itself* when it is
+missing, so a lost scratch directory turns it into a test that quietly stops
+testing. Rebuild it with
+
+```bash
+cd backend && ../.venv/bin/python ../scripts/make_neb_project.py
+```
+
+which relaxes both ends of ASE's own NEB tutorial system (Au hopping between
+hollow sites on Al(100), EMT) and saves them as the two structures the spec
+picks by name.
 
 Two practices that are not optional in this repository:
 
