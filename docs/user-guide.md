@@ -832,6 +832,12 @@ ball-and-stick, which Avogadro does with two engines at once, is not possible.
 `Show atoms (wireframe)` draws the atoms of the `Wireframe` style as dots, or
 leaves the bare lines, which is what the style is for on a large structure.
 
+**Label placement and precision.** The atom labels and the bond labels have
+separate `Shift x/y/z` offsets, because lifting an atom label clear of its
+sphere should not also lift every bond label off its bond. `Length decimals`
+is how many decimals a bond-length label carries — 0 to 8, three by default,
+which is what Avogadro quotes.
+
 `View ▸ Reset display types` puts all of this back to the defaults — style,
 radii, opacity, colours, per-atom assignments, labels, ribbons, hydrogen bonds,
 vectors, dipole, unit cell and axes. It deliberately leaves the camera, the
@@ -912,6 +918,16 @@ no dataset. Nothing is blocked while it runs — you can keep rotating, editing
 or reading elsewhere in the window, which is why there is no modal progress
 dialog like Avogadro's. When it finishes, the field is a project dataset like
 any other, and `Add surface` meshes it.
+
+`Draw as` chooses `Fill`, `Lines` or `Points`: the filled surface, its
+triangulation (which is how you see how coarse a surface is, and what a coarser
+`Step` costs you), or its vertices alone, which stays readable where a filled
+surface would hide everything inside it. `Draw box` outlines the grid the
+surface came from — one box per grid, however many surfaces of it are drawn.
+
+A new surface starts at 0.75 opacity rather than opaque, as it does in
+Avogadro: a solid surface hides the molecule it belongs to, which is rarely
+what you want to see first.
 
 ### 6.2 Trajectories
 

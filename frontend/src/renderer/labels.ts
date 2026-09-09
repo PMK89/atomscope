@@ -114,11 +114,19 @@ export function bondLabel(doc: StructureDoc, index: number, content: BondLabelCo
 }
 
 /** The distance between two points, formatted as a bond-length label. */
+/** Decimals on a bond-length label. Avogadro's `lengthPrecision`, 0-8 with a default of 3. */
+export const LENGTH_PRECISION = { min: 0, max: 8, default: 3 } as const;
+
 export function distanceLabel(
   a: readonly [number, number, number],
   b: readonly [number, number, number],
+  precision: number = LENGTH_PRECISION.default,
 ): string {
-  return Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]).toFixed(2);
+  const decimals = Math.min(
+    LENGTH_PRECISION.max,
+    Math.max(LENGTH_PRECISION.min, Math.round(precision)),
+  );
+  return Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]).toFixed(decimals);
 }
 
 /** "+2" / "-" / "2-" the way chemists write a formal charge. */

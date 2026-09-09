@@ -62,7 +62,7 @@ test('bond labels are placed at the bond midpoint', () => {
   layer.setSettings({ atoms: 'none', bonds: 'length' });
   layer.update(ctx(water()));
 
-  expect(layer.labels()).toEqual(['1.00', '1.00']);
+  expect(layer.labels()).toEqual(['1.000', '1.000']);
   const sprite = layer.object.children[0]!;
   expect(sprite.position.y).toBeCloseTo(0.4);
   expect(sprite.position.z).toBeCloseTo(0.3);
@@ -110,11 +110,11 @@ test('a bond length label is measured on the frame being displayed', () => {
   layer.visible = true;
   layer.setSettings({ atoms: 'none', bonds: 'length' });
   layer.update(ctx(water()));
-  expect(layer.labels()).toEqual(['1.00', '1.00']);
+  expect(layer.labels()).toEqual(['1.000', '1.000']);
 
   // stretch the first O-H in a displayed frame: the label must follow, not stay at equilibrium
   layer.update(ctx(water(), new Float32Array([0, 0, 0, 0, 1.6, 1.2, 0, -0.8, 0.6])));
-  expect(layer.labels()).toEqual(['2.00', '1.00']);
+  expect(layer.labels()).toEqual(['2.000', '1.000']);
   layer.dispose();
 });
 
@@ -127,5 +127,39 @@ test('turning the layer off releases the sprites', () => {
   layer.visible = false;
   layer.update(ctx(water()));
   expect(layer.object.children.length).toBe(0);
+  layer.dispose();
+});
+
+test('the bond labels have their own displacement, as Avogadro gives them', () => {
+  // Avogadro carries xBondDispl/yBondDispl/zBondDispl beside the atom ones. Sharing one offset
+  // means lifting an atom label clear of its sphere also lifts every bond label off its bond.
+  const layer = new LabelLayer();
+  layer.visible = true;
+  layer.setSettings({ atoms: 'symbol', bonds: 'length' });
+  layer.update(ctx(water()));
+  const at = (label: string): { x: number; y: number; z: number } => {
+    const i = layer.labels().indexOf(label);
+    const p = layer.object.children[i]!.position;
+    return { x: p.x, y: p.y, z: p.z };
+  };
+  const bondBefore = at('1.000');
+  const atomBefore = at('O');
+
+  layer.setSettings({ shift: [1, 0, 0], bondShift: [0, 0, 2] });
+  layer.update(ctx(water()));
+  // the atom label moved along x only, the bond label along z only
+  expect(at('O').x).toBeCloseTo(atomBefore.x + 1);
+  expect(at('O').z).toBeCloseTo(atomBefore.z);
+  expect(at('1.000').z).toBeCloseTo(bondBefore.z + 2);
+  expect(at('1.000').x).toBeCloseTo(bondBefore.x);
+  layer.dispose();
+});
+
+test('the bond-length precision reaches the drawn label', () => {
+  const layer = new LabelLayer();
+  layer.visible = true;
+  layer.setSettings({ atoms: 'none', bonds: 'length', lengthPrecision: 1 });
+  layer.update(ctx(water()));
+  expect(layer.labels()).toEqual(['1.0', '1.0']);
   layer.dispose();
 });

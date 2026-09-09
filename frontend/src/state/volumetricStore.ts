@@ -4,7 +4,7 @@
  */
 import { create } from 'zustand';
 import { api, type GridStats, type VolumetricGrid } from '../api/client';
-import type { SurfaceSpec } from '../renderer/layers/IsosurfaceLayer';
+import type { SurfaceRenderMode, SurfaceSpec } from '../renderer/layers/IsosurfaceLayer';
 import type { GridGeometry } from '../renderer/marchingCubes';
 
 export interface LoadedGrid {
@@ -31,6 +31,10 @@ export interface SurfaceDef {
   colorGridId: string | null;
   /** colour scale bounds, or null to use the range found on the surface */
   colorRange: [number, number] | null;
+  /** Fill, Lines (the triangulation) or Points (the vertices) -- Avogadro's `renderCombo`. */
+  renderMode: SurfaceRenderMode;
+  /** draw the bounding box of the grid the surface came from (Avogadro's `drawBoxCheck`) */
+  drawBox: boolean;
 }
 
 export const DENSITY_COLOR = '#3d7be0';
@@ -59,12 +63,16 @@ export function defaultSurface(grid: LoadedGrid): SurfaceDef {
     isovalue: grid.stats.suggested_isovalue,
     color: signed ? POSITIVE_COLOR : DENSITY_COLOR,
     negativeColor: NEGATIVE_COLOR,
-    opacity: 1,
+    // 0.75, as Avogadro's surface engine defaults its `m_alpha`: an opaque surface hides the
+    // molecule it belongs to, which is usually not what you want to see first
+    opacity: 0.75,
     visible: true,
     pair: signed,
     step: n > LARGE_GRID_POINTS ? 2 : 1,
     colorGridId: null,
     colorRange: null,
+    renderMode: 'fill',
+    drawBox: false,
   };
 }
 
@@ -87,6 +95,8 @@ export function surfaceSpecs(
     opacity: def.opacity,
     visible: def.visible,
     colorSource,
+    renderMode: def.renderMode,
+    drawBox: def.drawBox,
   };
   const positive: SurfaceSpec = {
     ...base,

@@ -7,6 +7,7 @@ import { api, type GridRef, type VolumetricGrid } from '../api/client';
 import { useCalculationStore } from '../state/calculationStore';
 import { useProjectStore } from '../state/projectStore';
 import { symmetricRange } from '../renderer/gridSampling';
+import type { SurfaceRenderMode } from '../renderer/layers/IsosurfaceLayer';
 import { SurfaceGenerator } from './SurfaceGenerator';
 import {
   isDensityKind,
@@ -405,6 +406,27 @@ function SurfaceCard({
           onChange={(e) => update(def.id, { opacity: Number(e.target.value) })}
         />
       </div>
+      <div className="form-row">
+        <label htmlFor={id('render')}>Draw as</label>
+        <select
+          id={id('render')}
+          value={def.renderMode}
+          onChange={(e) => update(def.id, { renderMode: e.target.value as SurfaceRenderMode })}
+        >
+          {/* Avogadro's surface renderCombo */}
+          <option value="fill">Fill</option>
+          <option value="lines">Lines</option>
+          <option value="points">Points</option>
+        </select>
+      </div>
+      <label className="check">
+        <input
+          type="checkbox"
+          checked={def.drawBox}
+          onChange={(e) => update(def.id, { drawBox: e.target.checked })}
+        />
+        Draw box
+      </label>
       {grid.stats.has_negative && !isDensityKind(grid.meta.kind) && (
         <div className="form-row">
           <label htmlFor={id('pair')}>± pair</label>

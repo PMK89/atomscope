@@ -283,3 +283,81 @@ test('a grid reloaded under the same id repaints the surface', async () => {
   ]).toEqual([1, 0, 0]);
   layer.dispose();
 });
+
+/**
+ * The three ways Avogadro's surface engine draws a mesh (`renderCombo`: Fill, Lines, Points) and
+ * its `drawBoxCheck`.
+ */
+test('Fill, Lines and Points draw the same surface three ways', async () => {
+  const mesher = controllableMesher();
+  const layer = new IsosurfaceLayer('g', new Float32Array(8), geometry, mesher);
+  layer.setSurfaces([spec(0.1)]);
+  mesher.release();
+  await flush();
+
+  const mesh = layer.object.children.find((c) => c.name === 's1')!;
+  const points = layer.object.children.find((c) => c.name === 's1-points')!;
+  const material = (): { wireframe: boolean } =>
+    (mesh as unknown as { material: { wireframe: boolean } }).material;
+
+  // fill is the default, as Avogadro's m_renderMode 0 is
+  expect(mesh.visible).toBe(true);
+  expect(points.visible).toBe(false);
+  expect(material().wireframe).toBe(false);
+
+  layer.setSurfaces([{ ...spec(0.1), renderMode: 'lines' }]);
+  expect(material().wireframe).toBe(true);
+  expect(mesh.visible).toBe(true);
+  expect(points.visible).toBe(false);
+
+  layer.setSurfaces([{ ...spec(0.1), renderMode: 'points' }]);
+  expect(mesh.visible).toBe(false);
+  expect(points.visible).toBe(true);
+  // the points share the mesh's geometry rather than copying the vertices
+  expect((points as unknown as { geometry: unknown }).geometry).toBe(
+    (mesh as unknown as { geometry: unknown }).geometry,
+  );
+  layer.dispose();
+});
+
+test('the drawn box is the grid bounding box, once for the whole grid', async () => {
+  const mesher = controllableMesher();
+  const layer = new IsosurfaceLayer('g', new Float32Array(8), geometry, mesher);
+  layer.setSurfaces([spec(0.1)]);
+  mesher.release();
+  await flush();
+  expect(layer.object.children.filter((c) => c.name === 'g-box')).toHaveLength(0);
+
+  layer.setSurfaces([{ ...spec(0.1), drawBox: true }]);
+  const boxes = layer.object.children.filter((c) => c.name === 'g-box');
+  expect(boxes).toHaveLength(1);
+  expect(boxes[0]!.visible).toBe(true);
+  // twelve edges of a cuboid, two endpoints each
+  const position = (
+    boxes[0] as unknown as { geometry: { getAttribute: (n: string) => { count: number } } }
+  ).geometry.getAttribute('position');
+  expect(position.count).toBe(24);
+
+  // two surfaces of one grid share the box: drawing it twice would only make it brighter
+  layer.setSurfaces([
+    { ...spec(0.1), drawBox: true },
+    { ...spec(0.2), id: 's2', drawBox: true },
+  ]);
+  expect(layer.object.children.filter((c) => c.name === 'g-box')).toHaveLength(1);
+
+  // and it goes away with the request
+  layer.setSurfaces([spec(0.1)]);
+  expect(layer.object.children.find((c) => c.name === 'g-box')!.visible).toBe(false);
+  layer.dispose();
+});
+
+test('a hidden surface does not keep the box on screen', async () => {
+  const mesher = controllableMesher();
+  const layer = new IsosurfaceLayer('g', new Float32Array(8), geometry, mesher);
+  layer.setSurfaces([{ ...spec(0.1), drawBox: true, visible: false }]);
+  mesher.release();
+  await flush();
+  const box = layer.object.children.find((c) => c.name === 'g-box');
+  expect(box === undefined || !box.visible).toBe(true);
+  layer.dispose();
+});

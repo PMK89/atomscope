@@ -11,6 +11,7 @@ import {
   atomLabel,
   atomLabelOffset,
   bondLabel,
+  LENGTH_PRECISION,
   distanceLabel,
   partialCharges,
   residueOfAtom,
@@ -27,6 +28,14 @@ export interface LabelLayerSettings {
   size: number;
   /** Offset in Angstrom, applied in world space after the per-atom radius offset. */
   shift: [number, number, number];
+  /**
+   * Displacement of the *bond* labels, which Avogadro keeps separate from the atom labels'
+   * (`xBondDisplSpinBox` and its two siblings). Sharing one offset means moving an atom label
+   * clear of its sphere also moves every bond label off its bond.
+   */
+  bondShift: [number, number, number];
+  /** Decimals on a bond-length label -- Avogadro's `lengthPrecision`. */
+  lengthPrecision: number;
   /** Match the structure layer: a hidden atom must not keep its label. */
   hideHydrogens: boolean;
   /** Atoms scoped out of every display type, which the structure layer does not draw either. */
@@ -41,6 +50,8 @@ export const DEFAULT_LABEL_SETTINGS: LabelLayerSettings = {
   color: '#222222',
   size: 0.55,
   shift: [0, 0, 0],
+  bondShift: [0, 0, 0],
+  lengthPrecision: LENGTH_PRECISION.default,
   hideHydrogens: false,
   hiddenAtoms: null,
   lift: 'small',
@@ -135,7 +146,9 @@ export class LabelLayer implements DisplayLayer {
         // lengths are measured on the positions being displayed, so an animated normal mode shows
         // the bond stretching instead of the equilibrium value
         const text =
-          bonds === 'length' ? distanceLabel(at(bond.a), at(bond.b)) : bondLabel(s, i, bonds);
+          bonds === 'length'
+            ? distanceLabel(at(bond.a), at(bond.b), this.settings.lengthPrecision)
+            : bondLabel(s, i, bonds);
         if (!text) continue;
         if (full()) return out;
         out.push({ text, atom: -1, bond: i });
@@ -159,6 +172,7 @@ export class LabelLayer implements DisplayLayer {
 
   private place(s: StructureDoc, wanted: Wanted[], at: PositionOf): void {
     const [dx, dy, dz] = this.settings.shift;
+    const [bx, by, bz] = this.settings.bondShift;
     this.sprites.forEach((sprite, k) => {
       const w = wanted[k];
       if (!w) return;
@@ -170,7 +184,7 @@ export class LabelLayer implements DisplayLayer {
         const bond = s.bonds[w.bond]!;
         const a = at(bond.a);
         const b = at(bond.b);
-        sprite.position.set((a[0] + b[0]) / 2 + dx, (a[1] + b[1]) / 2 + dy, (a[2] + b[2]) / 2 + dz);
+        sprite.position.set((a[0] + b[0]) / 2 + bx, (a[1] + b[1]) / 2 + by, (a[2] + b[2]) / 2 + bz);
       }
     });
   }

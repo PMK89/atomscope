@@ -105,7 +105,8 @@ test('the Display tab drives the labels drawn into the scene', async ({ page }) 
   await expect.poll(labels).toEqual(['O', 'H', 'H']);
 
   await page.getByLabel('Bonds', { exact: true }).selectOption('length');
-  await expect.poll(labels).toEqual(['O', 'H', 'H', '0.96', '0.96']);
+  // three decimals: Avogadro's default lengthPrecision, settable in the Display tab
+  await expect.poll(labels).toEqual(['O', 'H', 'H', '0.958', '0.958']);
 
   // the style controls reach the renderer too
   await page.getByLabel('Colour', { exact: true }).fill('#ff0000');

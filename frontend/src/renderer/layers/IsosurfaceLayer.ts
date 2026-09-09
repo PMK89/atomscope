@@ -10,8 +10,12 @@ import {
   DoubleSide,
   FrontSide,
   Group,
+  LineSegments,
+  LineBasicMaterial,
   Mesh,
   MeshStandardMaterial,
+  Points,
+  PointsMaterial,
 } from 'three';
 import { wrap, type Remote } from 'comlink';
 import type { MarchingCubesWorkerApi } from '../../workers/marchingCubes.worker';
@@ -28,6 +32,9 @@ export interface ColorSource {
   range: [number, number] | null;
 }
 
+/** Avogadro's surface `renderCombo`. */
+export type SurfaceRenderMode = 'fill' | 'lines' | 'points';
+
 /** One rendered surface. `inside: 'below'` is the negative lobe of a signed field. */
 export interface SurfaceSpec {
   id: string;
@@ -37,6 +44,15 @@ export interface SurfaceSpec {
   color: string;
   opacity: number;
   visible: boolean;
+  /**
+   * How the mesh is drawn: Avogadro's surface engine `renderCombo` -- Fill, Lines or Points
+   * (`m_renderMode`, default 0 = Fill). Lines is the triangulation itself, which is how you see
+   * how coarse a surface is; points is the vertices alone, which stays readable where a filled
+   * surface would hide everything inside it.
+   */
+  renderMode?: SurfaceRenderMode;
+  /** Draw the bounding box of the grid the surface came from (Avogadro's `drawBoxCheck`). */
+  drawBox?: boolean;
   /** paint the surface with a second grid (electrostatic potential on a density, say) */
   colorSource?: ColorSource | null;
 }
@@ -101,6 +117,12 @@ interface PaintCache {
 
 interface Entry {
   mesh: Mesh<BufferGeometry, MeshStandardMaterial>;
+  /**
+   * The same vertices as `mesh`, drawn as points. A second object rather than a material flag
+   * because three.js draws points from a `Points`, not from a `Mesh`; it shares the geometry, so
+   * it costs no extra memory and has to be re-pointed whenever the geometry is replaced.
+   */
+  points: Points<BufferGeometry, PointsMaterial>;
   key: string;
   /** colour source of the last painting, so a range change repaints without re-meshing */
   colorKey: string;
@@ -125,18 +147,62 @@ export class IsosurfaceLayer implements DisplayLayer {
   private readonly ready: Promise<void>;
   private disposed = false;
 
+  /** The grid's own bounding box, drawn on request; one for the layer, shared by its surfaces. */
+  private box: LineSegments<BufferGeometry, LineBasicMaterial> | null = null;
+
   constructor(
     readonly id: string,
     values: Float32Array,
-    geometry: GridGeometry,
+    private readonly geometry: GridGeometry,
     private readonly mesher: Mesher = worker(),
   ) {
     this.ready = Promise.resolve(this.mesher.loadGrid(id, values, geometry));
   }
 
+  /**
+   * The twelve edges of the grid's bounding box -- Avogadro's `drawBoxCheck`. It is a property of
+   * the grid rather than of one surface, so the layer draws one box when any of its surfaces asks
+   * for it: two surfaces of the same grid have the same box, and drawing it twice only makes it
+   * brighter.
+   */
+  private setBoxVisible(visible: boolean): void {
+    if (!visible) {
+      if (this.box) this.box.visible = false;
+      return;
+    }
+    if (!this.box) {
+      const { origin, axes, shape } = this.geometry;
+      // the far corner of the sampled volume: (shape - 1) steps along each axis
+      const span = axes.map(
+        (a, d) => a.map((c) => c * (shape[d]! - 1)) as [number, number, number],
+      );
+      const corner = (i: number, j: number, k: number): [number, number, number] => {
+        const f = [i, j, k];
+        return [0, 1, 2].map(
+          (c) => origin[c]! + f.reduce((sum, on, d) => sum + (on ? span[d]![c]! : 0), 0),
+        ) as [number, number, number];
+      };
+      const corners = [0, 1].flatMap((i) => [0, 1].flatMap((j) => [0, 1].map((k) => [i, j, k])));
+      const points: number[] = [];
+      for (const [i, j, k] of corners as [number, number, number][]) {
+        // one edge per axis from each corner whose index along that axis is 0
+        if (i === 0) points.push(...corner(0, j, k), ...corner(1, j, k));
+        if (j === 0) points.push(...corner(i, 0, k), ...corner(i, 1, k));
+        if (k === 0) points.push(...corner(i, j, 0), ...corner(i, j, 1));
+      }
+      const g = new BufferGeometry();
+      g.setAttribute('position', new BufferAttribute(new Float32Array(points), 3));
+      this.box = new LineSegments(g, new LineBasicMaterial({ color: 0x888888 }));
+      this.box.name = `${this.id}-box`;
+      this.object.add(this.box);
+    }
+    this.box.visible = true;
+  }
+
   /** Reconcile the rendered meshes with `specs` (added, changed or removed surfaces). */
   setSurfaces(specs: SurfaceSpec[]): void {
     const seen = new Set<string>();
+    this.setBoxVisible(specs.some((spec) => spec.visible && spec.drawBox));
     for (const spec of specs) {
       seen.add(spec.id);
       let entry = this.entries.get(spec.id);
@@ -144,8 +210,13 @@ export class IsosurfaceLayer implements DisplayLayer {
         const mesh = new Mesh(new BufferGeometry(), new MeshStandardMaterial({ roughness: 0.4 }));
         mesh.name = spec.id;
         this.object.add(mesh);
+        const points = new Points(mesh.geometry, new PointsMaterial({ size: 0.06 }));
+        points.name = `${spec.id}-points`;
+        points.visible = false;
+        this.object.add(points);
         entry = {
           mesh,
+          points,
           key: '',
           colorKey: '',
           sampled: null,
@@ -155,7 +226,7 @@ export class IsosurfaceLayer implements DisplayLayer {
         };
         this.entries.set(spec.id, entry);
       }
-      this.applyMaterial(entry.mesh, spec);
+      this.applyMaterial(entry, spec);
       const key = meshKey(spec);
       if (key !== entry.key) {
         entry.key = key;
@@ -174,12 +245,17 @@ export class IsosurfaceLayer implements DisplayLayer {
       entry.pending = null;
       this.onWarning?.(id, null);
       this.object.remove(entry.mesh);
+      this.object.remove(entry.points);
+      // one geometry, shared with the points, so it is disposed once
       entry.mesh.geometry.dispose();
       entry.mesh.material.dispose();
+      entry.points.material.dispose();
     }
   }
 
-  private applyMaterial(mesh: Mesh<BufferGeometry, MeshStandardMaterial>, spec: SurfaceSpec): void {
+  private applyMaterial(entry: Entry, spec: SurfaceSpec): void {
+    const { mesh, points } = entry;
+    const mode = spec.renderMode ?? 'fill';
     const m = mesh.material;
     // with vertex colours the material colour multiplies them, so it has to be white
     m.vertexColors = !!spec.colorSource;
@@ -189,9 +265,20 @@ export class IsosurfaceLayer implements DisplayLayer {
     m.opacity = spec.opacity;
     m.depthWrite = !transparent;
     m.side = transparent ? DoubleSide : FrontSide;
+    // Lines is the triangulation of the same mesh, which three.js draws from the material
+    m.wireframe = mode === 'lines';
     m.needsUpdate = true;
     mesh.renderOrder = transparent ? 10 : 0;
-    mesh.visible = spec.visible;
+    mesh.visible = spec.visible && mode !== 'points';
+
+    const pm = points.material;
+    pm.vertexColors = m.vertexColors;
+    pm.color = m.color;
+    pm.transparent = transparent;
+    pm.opacity = spec.opacity;
+    pm.needsUpdate = true;
+    points.renderOrder = mesh.renderOrder;
+    points.visible = spec.visible && mode === 'points';
   }
 
   /**
@@ -224,6 +311,7 @@ export class IsosurfaceLayer implements DisplayLayer {
         geometry.setIndex(new BufferAttribute(mesh.indices, 1));
         entry.mesh.geometry.dispose();
         entry.mesh.geometry = geometry;
+        entry.points.geometry = geometry;
         entry.colorKey = colorKey(spec);
         this.paint(entry, spec);
         this.onWarning?.(spec.id, coarsenedMessage(spec, mesh));
@@ -244,7 +332,7 @@ export class IsosurfaceLayer implements DisplayLayer {
     if (!spec.colorSource || !position) {
       entry.sampled = null;
       geometry.deleteAttribute('color');
-      this.applyMaterial(entry.mesh, spec);
+      this.applyMaterial(entry, spec);
       return;
     }
     const source = spec.colorSource;
@@ -261,7 +349,7 @@ export class IsosurfaceLayer implements DisplayLayer {
       'color',
       new BufferAttribute(colorsFromValues(cache.values, low, high), 3),
     );
-    this.applyMaterial(entry.mesh, spec);
+    this.applyMaterial(entry, spec);
     this.onRange?.(spec.id, [cache.min, cache.max]);
     this.onChange?.();
   }
@@ -273,6 +361,12 @@ export class IsosurfaceLayer implements DisplayLayer {
   dispose(): void {
     this.disposed = true;
     this.setSurfaces([]);
+    if (this.box) {
+      this.object.remove(this.box);
+      this.box.geometry.dispose();
+      this.box.material.dispose();
+      this.box = null;
+    }
     void this.mesher.unloadGrid(this.id);
   }
 }

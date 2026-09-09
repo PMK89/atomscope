@@ -43,7 +43,13 @@ export function syncExtraLayers(
   const hbonds = renderer.getLayer('hbonds');
   if (hbonds instanceof HBondLayer) {
     hbonds.visible = view.showHBonds;
-    hbonds.setSettings({ maxDistance: view.hbondDistance, minAngle: view.hbondAngle });
+    hbonds.setSettings({
+      maxDistance: view.hbondDistance,
+      minAngle: view.hbondAngle,
+      // Avogadro's width is a GL line width in pixels (1-3); a dash here is a cylinder, so the
+      // three steps map to radii that read as the same three thicknesses
+      width: 0.03 * view.hbondWidth,
+    });
     hbonds.setHidden(hiddenAtoms);
   }
   const ribbon = renderer.getLayer('ribbon');
@@ -88,6 +94,8 @@ export function syncExtraLayers(
       color: view.labelColor,
       size: view.labelSize,
       shift: view.labelShift,
+      bondShift: view.bondLabelShift,
+      lengthPrecision: view.labelPrecision,
     });
   }
 }

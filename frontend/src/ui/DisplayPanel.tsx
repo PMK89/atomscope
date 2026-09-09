@@ -11,7 +11,7 @@ import { useState } from 'react';
 import { dipoleFromCharges } from '../model/dipole';
 import { useColorSchemes } from '../plugins/enabled';
 import type { RibbonStyle } from '../model/ribbon';
-import { ATOM_LABEL_OPTIONS, BOND_LABEL_OPTIONS } from '../renderer/labels';
+import { ATOM_LABEL_OPTIONS, BOND_LABEL_OPTIONS, LENGTH_PRECISION } from '../renderer/labels';
 import {
   assignAtomColor,
   assignedColorCount,
@@ -452,6 +452,38 @@ export function DisplayPanel(): JSX.Element {
           ))}
         </div>
       </div>
+      <div className="form-row">
+        <label htmlFor="display-bond-label-shift-x">Bond shift x/y/z (Å)</label>
+        <div className="form-vector">
+          {(['x', 'y', 'z'] as const).map((axis, i) => (
+            <input
+              key={axis}
+              id={i === 0 ? 'display-bond-label-shift-x' : undefined}
+              aria-label={`Bond label shift ${axis}`}
+              type="number"
+              step="0.1"
+              value={view.bondLabelShift[i]}
+              onChange={(e) => {
+                const bondShift = [...view.bondLabelShift] as [number, number, number];
+                bondShift[i] = Number(e.target.value);
+                view.setLabelStyle({ bondShift });
+              }}
+            />
+          ))}
+        </div>
+      </div>
+      <div className="form-row">
+        <label htmlFor="display-label-precision">Length decimals</label>
+        <input
+          id="display-label-precision"
+          type="number"
+          min={LENGTH_PRECISION.min}
+          max={LENGTH_PRECISION.max}
+          step="1"
+          value={view.labelPrecision}
+          onChange={(e) => view.setLabelStyle({ precision: Number(e.target.value) })}
+        />
+      </div>
 
       <h3>Hydrogen bonds</h3>
       <Toggle
@@ -483,6 +515,21 @@ export function DisplayPanel(): JSX.Element {
           value={view.hbondAngle}
           onChange={(e) => view.setHBondCutoffs({ angle: Number(e.target.value) })}
         />
+      </div>
+      <div className="form-row">
+        <label htmlFor="display-hbond-width">Width</label>
+        <div className="range-with-value">
+          <input
+            id="display-hbond-width"
+            type="range"
+            min="1"
+            max="3"
+            step="1"
+            value={view.hbondWidth}
+            onChange={(e) => view.setHBondCutoffs({ width: Number(e.target.value) })}
+          />
+          <span className="range-value">{view.hbondWidth}</span>
+        </div>
       </div>
 
       <h3>Ribbons</h3>

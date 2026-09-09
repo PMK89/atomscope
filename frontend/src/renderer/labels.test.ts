@@ -1,6 +1,13 @@
 import { expect, test } from 'vitest';
 import { makeAtom, makeBond, normalizeStructure, type StructureDoc } from '../model/structure';
-import { atomLabel, bondLabel, formatCharge, partialCharges, residueOfAtom } from './labels';
+import {
+  atomLabel,
+  bondLabel,
+  distanceLabel,
+  formatCharge,
+  partialCharges,
+  residueOfAtom,
+} from './labels';
 
 const doc = (): StructureDoc =>
   normalizeStructure({
@@ -47,8 +54,9 @@ test('bond label content options', () => {
   expect(bondLabel(s, 0, 'none')).toBe('');
   expect(bondLabel(s, 0, 'index')).toBe('1');
   expect(bondLabel(s, 1, 'order')).toBe('2');
-  expect(bondLabel(s, 0, 'length')).toBe('1.01');
-  expect(bondLabel(s, 1, 'length')).toBe('1.50');
+  // three decimals, which is Avogadro's default `lengthPrecision`
+  expect(bondLabel(s, 0, 'length')).toBe('1.010');
+  expect(bondLabel(s, 1, 'length')).toBe('1.500');
 });
 
 test('partial charges are only used when they cover every atom', () => {
@@ -66,4 +74,22 @@ test('residues map to their atoms', () => {
   const map = residueOfAtom(doc());
   expect(map.get(1)).toEqual({ name: 'ALA', number: 7 });
   expect(map.has(2)).toBe(false);
+});
+
+test('the bond-length precision is settable, as Avogadro settable it', () => {
+  const s = normalizeStructure({
+    name: 'x',
+    charge: 0,
+    atoms: [makeAtom('C', [0, 0, 0]), makeAtom('C', [1.2345678, 0, 0])],
+    bonds: [makeBond(0, 1)],
+  });
+  const a = s.atoms[0]!.position;
+  const b = s.atoms[1]!.position;
+  expect(distanceLabel(a, b)).toBe('1.235'); // the default, Avogadro's 3
+  expect(distanceLabel(a, b, 0)).toBe('1');
+  expect(distanceLabel(a, b, 8)).toBe('1.23456780');
+  // out of Avogadro's 0-8 range is clamped rather than handed to toFixed, which would throw
+  expect(distanceLabel(a, b, -3)).toBe('1');
+  expect(distanceLabel(a, b, 42)).toBe('1.23456780');
+  expect(distanceLabel(a, b, 2.4)).toBe('1.23');
 });

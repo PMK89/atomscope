@@ -12,7 +12,7 @@ import {
   type StructureStyle,
 } from '../renderer/layers/StructureLayer';
 import type { FogLevel, Projection } from '../renderer/Renderer';
-import type { AtomLabelContent, BondLabelContent } from '../renderer/labels';
+import { LENGTH_PRECISION, type AtomLabelContent, type BondLabelContent } from '../renderer/labels';
 import type { RibbonStyle } from '../model/ribbon';
 import type { RibbonColorScheme } from '../renderer/layers/RibbonLayer';
 import { DEFAULT_HBOND_SETTINGS } from '../model/hbonds';
@@ -73,6 +73,10 @@ export interface ViewState {
   labelColor: string;
   labelSize: number;
   labelShift: [number, number, number];
+  /** Displacement of the bond labels, which Avogadro keeps separate from the atom labels'. */
+  bondLabelShift: [number, number, number];
+  /** Decimals on a bond-length label (Avogadro's `lengthPrecision`). */
+  labelPrecision: number;
   toggleLabels: () => void;
   setAtomLabels: (content: AtomLabelContent) => void;
   setBondLabels: (content: BondLabelContent) => void;
@@ -80,6 +84,8 @@ export interface ViewState {
     color?: string;
     size?: number;
     shift?: [number, number, number];
+    bondShift?: [number, number, number];
+    precision?: number;
   }) => void;
   /** Protein ribbons: off by default, since only a protein has them. */
   showRibbon: boolean;
@@ -95,8 +101,10 @@ export interface ViewState {
   showHBonds: boolean;
   hbondDistance: number;
   hbondAngle: number;
+  /** Dash thickness of a hydrogen bond, Avogadro's `widthSlider` (1-3, default 2). */
+  hbondWidth: number;
   toggleHBonds: () => void;
-  setHBondCutoffs: (patch: { distance?: number; angle?: number }) => void;
+  setHBondCutoffs: (patch: { distance?: number; angle?: number; width?: number }) => void;
   /** Structure engine settings that the Display panel exposes. */
   atomScale: number;
   /** Which radius `atomScale` is a fraction of; Avogadro's ball-and-stick defaults to vdW. */
@@ -177,6 +185,8 @@ export const DISPLAY_TYPE_DEFAULTS = {
   labelColor: '#222222',
   labelSize: 0.55,
   labelShift: [0, 0, 0],
+  bondLabelShift: [0, 0, 0],
+  labelPrecision: LENGTH_PRECISION.default,
   showRibbon: false,
   ribbonStyle: 'cartoon',
   ribbonScale: 1,
@@ -184,6 +194,7 @@ export const DISPLAY_TYPE_DEFAULTS = {
   showHBonds: false,
   hbondDistance: DEFAULT_HBOND_SETTINGS.maxDistance,
   hbondAngle: DEFAULT_HBOND_SETTINGS.minAngle,
+  hbondWidth: 2,
   showVectors: false,
   showDipole: false,
   showUnitCell: true,
@@ -222,20 +233,26 @@ export const useViewStore = create<ViewState>((set) => ({
   labelColor: '#222222',
   labelSize: 0.55,
   labelShift: [0, 0, 0],
-  setLabelStyle: ({ color, size, shift }) =>
+  bondLabelShift: [0, 0, 0],
+  labelPrecision: LENGTH_PRECISION.default,
+  setLabelStyle: ({ color, size, shift, bondShift, precision }) =>
     set((s) => ({
       labelColor: color ?? s.labelColor,
       labelSize: size ?? s.labelSize,
       labelShift: shift ?? s.labelShift,
+      bondLabelShift: bondShift ?? s.bondLabelShift,
+      labelPrecision: precision ?? s.labelPrecision,
     })),
   showHBonds: false,
   hbondDistance: DEFAULT_HBOND_SETTINGS.maxDistance,
   hbondAngle: DEFAULT_HBOND_SETTINGS.minAngle,
+  hbondWidth: 2,
   toggleHBonds: () => set((s) => ({ showHBonds: !s.showHBonds })),
-  setHBondCutoffs: ({ distance, angle }) =>
+  setHBondCutoffs: ({ distance, angle, width }) =>
     set((s) => ({
       hbondDistance: distance ?? s.hbondDistance,
       hbondAngle: angle ?? s.hbondAngle,
+      hbondWidth: width ?? s.hbondWidth,
     })),
   showRibbon: false,
   ribbonStyle: 'cartoon',
