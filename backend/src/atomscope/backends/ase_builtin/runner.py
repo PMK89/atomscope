@@ -129,7 +129,12 @@ def main(argv: list[str]) -> int:  # noqa: PLR0915
             friction=p["friction"] / units.fs,
             rng=rng,
         )
-        step = 0
+        # ASE calls an observer once at the initial configuration and then after each step, so
+        # the first call is t = 0 -- and it repeats the frame taken before this branch, which is
+        # dropped rather than kept as the same geometry at two different times. Without this the
+        # whole time axis is one step too late and the first finite-difference velocity is zero.
+        traj.frames.clear()
+        step = -1
 
         def record_md() -> None:
             nonlocal step

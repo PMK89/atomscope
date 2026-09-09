@@ -58,6 +58,13 @@ async def test_end_to_end_run(tmp_path: Path, task: str) -> None:
         assert res.trajectory.frames[-1].energy <= res.trajectory.frames[0].energy + 1e-8
     if task == "md":
         assert res.trajectory.frames[-1].temperature is not None
+        # every frame carries a time, starting at zero and evenly spaced: a time series over the
+        # trajectory (per-group temperature, an internal coordinate) needs the whole axis
+        times = [f.time for f in res.trajectory.frames]
+        assert times[0] == 0.0
+        assert all(t is not None for t in times)
+        assert times == sorted(times) and len(set(times)) == len(times)
+        assert res.trajectory.frames[0].temperature is not None
     assert (work / "progress.log").read_text().startswith("initial energy")
 
 
