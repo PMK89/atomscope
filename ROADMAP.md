@@ -72,8 +72,7 @@ corners of the box. A DOS already computed is read back when a project is reopen
 Remaining: `mode: diagonalize` bands fail on the binaries installed here (2025-05-07) and need a
 CP-PAW rebuild — the API reports that rather than serving the previous run's file; band results
 are still not reloaded on reopening (the DOS now is); `paw_tra` mode extraction (ch. 5.10);
-contour/slice plots (ch. 3.4); a Birch-Murnaghan fit for ch. 6.3.7 — the course's own tool for
-that is `paw_murnaghan.x`, worth reading before writing one.
+contour/slice plots (ch. 3.4).
 
 ## Phase 7 — ASE workflows — DONE (core)
 ASE built-in calculators, BFGS/L-BFGS/FIRE, Langevin MD, CP-PAW forces through `CppawCalculator`

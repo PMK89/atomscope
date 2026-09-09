@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, expect, test, vi } from 'vitest';
 import { api } from '../api/client';
 import { SweepPanel } from './SweepPanel';
@@ -25,6 +25,8 @@ const curve = (energies: (number | null)[], convergedFrom: number | null, counts
       calculation_id: `c${i}`,
       status: e === null ? 'draft' : 'completed',
       energy_ev: e,
+      // a periodic point carries its own cell volume, which is what an EOS is a function of
+      volume_a3: e === null ? null : 40 + 2 * i,
       properties:
         e === null
           ? {}
@@ -120,4 +122,159 @@ test('leaves the basis-set panel out when the counts were never collected', asyn
 
   expect(await screen.findByText('Convergence')).toBeVisible();
   expect(screen.queryByText('Basis-set size')).toBeNull();
+});
+
+/**
+ * The fitted curves (Figs 6.6, 6.7). The fit itself is the server's -- checked against the
+ * course's own `paw_murnaghan.x` output in `tests/analysis/test_eos.py` -- so these check that
+ * the panel asks for the right one, draws it on the right axes, and says what it found.
+ */
+const cubicFit = {
+  kind: 'cubic',
+  curve: { x: [7.8, 10, 12.2], y: [-471.0, -471.06, -471.04] },
+  residuals_ev: [0.001, -0.002, 0.001],
+  rms_ev: 0.0014,
+  murnaghan: null,
+  cubic: { coefficients: [1, 2, 3, 4], x_min: 10.4, y_min: -471.061, extrapolated: false },
+};
+
+const murnaghanFit = {
+  kind: 'murnaghan',
+  curve: { x: [39.6, 42, 44.4], y: [-471.0, -471.06, -471.04] },
+  residuals_ev: [0.001, -0.002, 0.001],
+  rms_ev: 0.0014,
+  cubic: null,
+  murnaghan: {
+    e0_ev: -471.0612,
+    v0_a3: 42.0,
+    b0_gpa: 91.84,
+    bp: 5.3237,
+    lattice_constant_a: null,
+    extrapolated: false,
+  },
+};
+
+const withSweep = (c = curve([-471.0, -471.05, -471.06], 10)): void => {
+  vi.spyOn(api.sweeps, 'list').mockResolvedValue([summary] as never);
+  vi.spyOn(api.sweeps, 'get').mockResolvedValue(c as never);
+};
+
+test('no fit is asked for until one is chosen', async () => {
+  withSweep();
+  const fit = vi.spyOn(api.sweeps, 'fit').mockResolvedValue(cubicFit as never);
+  render(<SweepPanel onError={(m) => void errors.push(m)} />);
+  expect(await screen.findByRole('img', { name: 'Convergence' })).toBeInTheDocument();
+  expect(fit).not.toHaveBeenCalled();
+  // one curve on the energy chart, no fit over it
+  expect(
+    screen.getByRole('img', { name: 'Convergence' }).querySelectorAll('polyline'),
+  ).toHaveLength(1);
+});
+
+test('the cubic is drawn on the sweep own axes, because that is what it fits (Fig. 6.6)', async () => {
+  withSweep();
+  const fit = vi.spyOn(api.sweeps, 'fit').mockResolvedValue(cubicFit as never);
+  render(<SweepPanel onError={(m) => void errors.push(m)} />);
+  await screen.findByRole('img', { name: 'Convergence' });
+
+  fireEvent.change(screen.getByLabelText('Fitted curve'), { target: { value: 'cubic' } });
+  await waitFor(() => expect(fit).toHaveBeenCalledWith('s1', 'cubic', undefined));
+
+  const chart = screen.getByRole('img', { name: 'Convergence' });
+  // the points and the fit, on one set of axes -- and no second chart, the cubic has no volume
+  await waitFor(() => expect(chart.querySelectorAll('polyline')).toHaveLength(2));
+  expect(screen.queryByRole('img', { name: 'Equation of state' })).toBeNull();
+  // the fit is dashed so the measured points stay the solid line
+  expect(chart.querySelector('polyline[stroke-dasharray]')).not.toBeNull();
+  // and its minimum is stated in the sweep's own units rather than left to the eye
+  await waitFor(() =>
+    expect(screen.getByText(/Minimum at Lattice parameter/)).toHaveTextContent('10.400'),
+  );
+  expect(errors).toEqual([]);
+});
+
+test('the equation of state gets its own chart against volume (Fig. 6.7)', async () => {
+  withSweep();
+  const fit = vi.spyOn(api.sweeps, 'fit').mockResolvedValue(murnaghanFit as never);
+  render(<SweepPanel onError={(m) => void errors.push(m)} />);
+  await screen.findByRole('img', { name: 'Convergence' });
+
+  fireEvent.change(screen.getByLabelText('Fitted curve'), { target: { value: 'murnaghan' } });
+  await waitFor(() => expect(fit).toHaveBeenCalledWith('s1', 'murnaghan', undefined));
+
+  const chart = await screen.findByRole('img', { name: 'Equation of state' });
+  expect(chart.querySelectorAll('polyline')).toHaveLength(2);
+  // against volume, not against the percentage the sweep varied
+  expect(chart).toHaveTextContent('cell volume [Å³]');
+  // the convergence chart keeps its single curve: the EOS does not belong on those axes
+  expect(
+    screen.getByRole('img', { name: 'Convergence' }).querySelectorAll('polyline'),
+  ).toHaveLength(1);
+  // the bulk modulus leads, because that is what the exercise asks for
+  const readout = screen.getAllByRole('status').map((n) => n.textContent ?? '');
+  expect(readout.some((t) => t.includes('B₀ = 91.84 GPa'))).toBe(true);
+  expect(readout.some((t) => t.includes('B′ = 5.324'))).toBe(true);
+  expect(errors).toEqual([]);
+});
+
+test('a lattice constant is asked of the server, not computed in the browser', async () => {
+  withSweep();
+  const fit = vi.spyOn(api.sweeps, 'fit').mockResolvedValue({
+    ...murnaghanFit,
+    murnaghan: { ...murnaghanFit.murnaghan, lattice_constant_a: 5.4434 },
+  } as never);
+  render(<SweepPanel onError={(m) => void errors.push(m)} />);
+  await screen.findByRole('img', { name: 'Convergence' });
+  fireEvent.change(screen.getByLabelText('Fitted curve'), { target: { value: 'murnaghan' } });
+
+  // the -vbl field only exists for this fit, because only this fit has a use for it
+  const vbl = await screen.findByLabelText('Cell volume / a³');
+  fireEvent.change(vbl, { target: { value: '0.25' } });
+  await waitFor(() => expect(fit).toHaveBeenCalledWith('s1', 'murnaghan', 0.25));
+  await waitFor(() =>
+    expect(
+      screen.getAllByRole('status').some((n) => n.textContent?.includes('a₀ = 5.4434 Å')),
+    ).toBe(true),
+  );
+});
+
+test('a nonsense -vbl is refused without asking the server', async () => {
+  withSweep();
+  const fit = vi.spyOn(api.sweeps, 'fit').mockResolvedValue(murnaghanFit as never);
+  render(<SweepPanel onError={(m) => void errors.push(m)} />);
+  await screen.findByRole('img', { name: 'Convergence' });
+  fireEvent.change(screen.getByLabelText('Fitted curve'), { target: { value: 'murnaghan' } });
+  await waitFor(() => expect(fit).toHaveBeenCalled());
+  fit.mockClear();
+
+  fireEvent.change(await screen.findByLabelText('Cell volume / a³'), { target: { value: '0' } });
+  expect(await screen.findByText(/has to be a positive number/)).toBeVisible();
+  expect(fit).not.toHaveBeenCalled();
+});
+
+test('an extrapolated equilibrium says the sweep did not bracket it', async () => {
+  withSweep();
+  vi.spyOn(api.sweeps, 'fit').mockResolvedValue({
+    ...murnaghanFit,
+    murnaghan: { ...murnaghanFit.murnaghan, v0_a3: 60, extrapolated: true },
+  } as never);
+  render(<SweepPanel onError={(m) => void errors.push(m)} />);
+  await screen.findByRole('img', { name: 'Convergence' });
+  fireEvent.change(screen.getByLabelText('Fitted curve'), { target: { value: 'murnaghan' } });
+  expect(await screen.findByText(/widen the sweep/)).toBeVisible();
+});
+
+test('a fit that cannot be made is reported in place, not as an application error', async () => {
+  withSweep();
+  vi.spyOn(api.sweeps, 'fit').mockRejectedValue(
+    new Error('some finished points have no cell volume, so they are not periodic'),
+  );
+  render(<SweepPanel onError={(m) => void errors.push(m)} />);
+  await screen.findByRole('img', { name: 'Convergence' });
+  fireEvent.change(screen.getByLabelText('Fitted curve'), { target: { value: 'murnaghan' } });
+
+  expect(await screen.findByText(/they are not periodic/)).toBeVisible();
+  expect(screen.queryByRole('img', { name: 'Equation of state' })).toBeNull();
+  // the banner is for things the user cannot act on; "not periodic" is an answer
+  expect(errors).toEqual([]);
 });

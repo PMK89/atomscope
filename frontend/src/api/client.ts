@@ -39,6 +39,9 @@ export type OrbitalList = components['schemas']['OrbitalList'];
 export type DosSpectrum = components['schemas']['DosSpectrum'];
 export type SweepSummary = components['schemas']['SweepSummary'];
 export type SweepCurve = components['schemas']['SweepCurve'];
+export type SweepFit = components['schemas']['SweepFit'];
+/** The literal is inline on `SweepFit.kind`: pydantic's `Literal` is not a named schema. */
+export type FitKind = SweepFit['kind'];
 export type DatabaseRow = components['schemas']['DatabaseRow'];
 export type DatabaseSelection = components['schemas']['DatabaseSelection'];
 export type ReindexResult = components['schemas']['ReindexResult'];
@@ -412,6 +415,16 @@ export const api = {
     /** Runs every point that has not run, one after another; resolves when the last one ends. */
     run: (id: string) =>
       request<SweepCurve>(`/api/sweeps/${encodeURIComponent(id)}/run`, { method: 'POST' }),
+    /**
+     * A fitted curve through the finished points (Figs 6.6, 6.7). `cubic` fits the sweep's own x;
+     * `murnaghan` fits the equation of state against each point's cell volume. `volumePerA3` is
+     * `paw_murnaghan.x`'s `-vbl`, and is what lets a volume be reported as a lattice constant.
+     */
+    fit: (id: string, kind: FitKind, volumePerA3?: number) =>
+      request<SweepFit>(
+        `/api/sweeps/${encodeURIComponent(id)}/fit?kind=${kind}` +
+          (volumePerA3 === undefined ? '' : `&volume_per_a3=${volumePerA3}`),
+      ),
   },
   /** The project's ASE database: finished calculations, selected by chemistry and parameter. */
   database: {

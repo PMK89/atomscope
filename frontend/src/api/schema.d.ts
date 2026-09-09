@@ -2224,6 +2224,34 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/sweeps/{sweep_id}/fit': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Fit
+     * @description A fitted curve through the finished points of a sweep (ch. 6.3.6/6.3.7, Figs 6.6 and 6.7).
+     *
+     *     ``cubic`` fits the sweep's own x, which is what the tutorial fits in `xmgrace`. ``murnaghan``
+     *     fits Murnaghan's equation of state against the *cell volume* of each point, because that is
+     *     what an equation of state is a function of -- a lattice scan's x is a percentage, and fitting
+     *     an equation of state to a percentage would give a bulk modulus in the wrong units.
+     *
+     *     ``volume_per_a3`` is `paw_murnaghan.x`'s ``-vbl``, the cell's volume over the cube of its
+     *     lattice constant, and is what lets the equilibrium volume be reported as a lattice constant.
+     */
+    get: operations['fit_api_sweeps__sweep_id__fit_get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/sweeps/{sweep_id}/run': {
     parameters: {
       query?: never;
@@ -2903,6 +2931,32 @@ export interface components {
       structure_id: string;
     };
     /**
+     * CubicParameters
+     * @description A cubic in the sweep's own x, and the minimum it puts there.
+     */
+    CubicParameters: {
+      /**
+       * Coefficients
+       * @description highest power first, as `numpy.polyfit` returns
+       */
+      coefficients: number[];
+      /**
+       * Extrapolated
+       * @description `x_min` lies outside the x that were computed
+       */
+      extrapolated: boolean;
+      /**
+       * X Min
+       * @description where the cubic has its minimum, when it has one
+       */
+      x_min?: number | null;
+      /**
+       * Y Min
+       * @description eV at `x_min`
+       */
+      y_min?: number | null;
+    };
+    /**
      * DatabaseRow
      * @description One indexed calculation, as much of it as a results table needs.
      */
@@ -3305,6 +3359,19 @@ export interface components {
        * @default 0.001
        */
       symprec: number;
+    };
+    /**
+     * FitCurve
+     * @description The fitted function, sampled for drawing.
+     */
+    FitCurve: {
+      /** X */
+      x: number[];
+      /**
+       * Y
+       * @description eV
+       */
+      y: number[];
     };
     /**
      * FixAngle
@@ -4020,6 +4087,42 @@ export interface components {
       lines: string[];
       /** Stream */
       stream: string;
+    };
+    /**
+     * MurnaghanParameters
+     * @description What the equation of state is for. Everything is per the cell that was swept.
+     */
+    MurnaghanParameters: {
+      /**
+       * B0 Gpa
+       * @description bulk modulus at the equilibrium volume
+       */
+      b0_gpa: number;
+      /**
+       * Bp
+       * @description pressure derivative of the bulk modulus, dimensionless
+       */
+      bp: number;
+      /**
+       * E0 Ev
+       * @description energy at the equilibrium volume
+       */
+      e0_ev: number;
+      /**
+       * Extrapolated
+       * @description the equilibrium volume lies outside the volumes that were computed, so it is an extrapolation and the sweep should be widened
+       */
+      extrapolated: boolean;
+      /**
+       * Lattice Constant A
+       * @description (v0 / volume_per_a3)^(1/3), only when the caller said how the cell's volume relates to its lattice constant
+       */
+      lattice_constant_a?: number | null;
+      /**
+       * V0 A3
+       * @description equilibrium volume, Å³
+       */
+      v0_a3: number;
     };
     /** NanotubeRequest */
     NanotubeRequest: {
@@ -5454,6 +5557,30 @@ export interface components {
       tolerance_ev: number;
     };
     /**
+     * SweepFit
+     * @description A fitted curve through sweep points, with the parameters that make it worth fitting.
+     */
+    SweepFit: {
+      cubic?: components['schemas']['CubicParameters'] | null;
+      curve: components['schemas']['FitCurve'];
+      /**
+       * Kind
+       * @enum {string}
+       */
+      kind: 'cubic' | 'murnaghan';
+      murnaghan?: components['schemas']['MurnaghanParameters'] | null;
+      /**
+       * Residuals Ev
+       * @description fitted minus computed, one per input point
+       */
+      residuals_ev: number[];
+      /**
+       * Rms Ev
+       * @description root mean square of the residuals
+       */
+      rms_ev: number;
+    };
+    /**
      * SweepMembership
      * @description This calculation is one point of a sweep: several runs that differ in one way.
      *
@@ -5505,6 +5632,11 @@ export interface components {
        * @enum {string}
        */
       status: 'draft' | 'ready' | 'queued' | 'running' | 'completed' | 'failed' | 'cancelled';
+      /**
+       * Volume A3
+       * @description cell volume of the point's own structure; None when it is not periodic. An equation of state is a function of this, not of the sweep's x -- which for a lattice scan is a percentage
+       */
+      volume_a3?: number | null;
       /** X */
       x: number;
     };
@@ -9995,6 +10127,40 @@ export interface operations {
         };
         content: {
           'application/json': components['schemas']['SweepCurve'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  fit_api_sweeps__sweep_id__fit_get: {
+    parameters: {
+      query?: {
+        kind?: 'cubic' | 'murnaghan';
+        volume_per_a3?: number | null;
+      };
+      header?: never;
+      path: {
+        sweep_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['SweepFit'];
         };
       };
       /** @description Validation Error */

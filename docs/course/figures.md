@@ -44,8 +44,8 @@ figure's own presentation is not yet drawn · `MISSING` needs capability we do n
 | 6.3 | 6.3.4 | the fcc Brillouin zone and its high-symmetry points | reproduced from a textbook | — (no Brillouin-zone view; the k-path *labels* are on the band chart) | n/a |
 | 6.4 | 6.3.4 | band structure of silicon, occupied bands drawn differently from empty ones | `paw_bands.x` → xmgrace | Analysis ▸ Bands — filled bands dark, empty faint, the reference level drawn and labelled | SHOWS |
 | 6.5 | 6.3.5 | the sawtooth: total energy against volume at a fixed plane-wave cutoff | a table of runs → xmgrace | Sweeps panel, energy against the swept parameter | SHOWS |
-| 6.6 | 6.3.6 | energy against scaled lattice constant, with a cubic polynomial through it | `xmgrace` fit | Sweeps panel draws the points; no fitted curve | PARTIAL |
-| 6.7 | 6.3.7 | the same points with a Birch-Murnaghan equation of state fitted | `paw_murnaghan.x` | Sweeps panel draws the points; no fitted curve, no bulk modulus | PARTIAL |
+| 6.6 | 6.3.6 | energy against scaled lattice constant, with a cubic polynomial through it | `xmgrace` fit | Sweeps panel, `Fitted curve ▸ cubic`: the curve over the points and the minimum stated | SHOWS |
+| 6.7 | 6.3.7 | the same points with Murnaghan's equation of state fitted | `paw_murnaghan.x` | Sweeps panel, `Fitted curve ▸ Murnaghan`: its own chart against volume, with B₀, B′, V₀ and a₀ | SHOWS |
 | 6.8 | 6.4 | DOS of aluminium against the free-electron-gas √E curve | `paw_dos.x` + an analytic curve | Analysis ▸ DOS, stacked — without the analytic √E curve beside it | PARTIAL |
 | 6.9 | 6.4 | band structure of aluminium, full bands separated from partly filled ones | `paw_bands.x` → xmgrace | Analysis ▸ Bands — bands the level cuts drawn as a third class; aluminium not run (see below) | SHOWS |
 | 7.1 | 7.1 | spin-resolved DOS of α-iron, majority against minority | `paw_dos.x` → xmgrace | Analysis ▸ DOS, stacked per spin, mirrored about zero | SHOWS |
@@ -59,7 +59,7 @@ figure's own presentation is not yet drawn · `MISSING` needs capability we do n
 
 Totals, derived with
 `awk -F'|' 'NR>2 && NF>=7 {gsub(/ /,"",$7); print $7}' docs/course/figures.md | sort | uniq -c`:
-**19 SHOWS · 6 PARTIAL · 5 MISSING · 5 n/a.**
+**21 SHOWS · 4 PARTIAL · 5 MISSING · 5 n/a.**
 
 ## What the gaps actually are
 
@@ -67,7 +67,6 @@ Grouped by the work they need rather than by chapter, because one change closes 
 
 | Gap | Figures | Size |
 |-----|---------|------|
-| a fitted curve through sweep points (cubic, then Birch-Murnaghan) | 6.6, 6.7 | numpy on `SweepResult`; the course's own tool is `paw_murnaghan.x` |
 | running average over a time series | 5.3 | a chart option |
 | a distance (or angle) against time, from a stored trajectory | 5.6 | pure function of the trajectory plus two atom indices |
 | DOS overlay across several calculations | 8.4 | a second calculation selector on the Analysis panel |

@@ -61,7 +61,7 @@ we do not have · `TODO` not started.
 | 6.3.4 | Solids: silicon | band structure | Si | `paw_bands` | Γ–X–W–L–Γ–K band structure | band-structure plot | TODO |
 | 6.3.5 | Solids: silicon | lattice constant by cell dynamics | Si | cell relaxation | the optimized lattice constant | **cell dynamics not in the schema** | BLOCKED |
 | 6.3.6 | Solids: silicon | k-point convergence | Si | a sweep over R | energy against k-point density | Sweeps panel (same sweep as 8.4) | DONE |
-| 6.3.7 | Solids: silicon | E(V), pressure, bulk modulus | Si | a sweep over volumes | Birch-Murnaghan fit | **no E(V) fit** | BLOCKED |
+| 6.3.7 | Solids: silicon | E(V), pressure, bulk modulus | Si | a sweep over volumes | Murnaghan fit | Sweeps panel fits it (`Fitted curve ▸ Murnaghan`), validated against the course's own printed parameters | DONE |
 | 6.4.2 | Solids: aluminium | electronic structure of a metal | Al, fcc | Mermin occupations, k-points | DOS and bands of a metal, Fermi level | DOS, bands, electron temperature | READY |
 | 7.2.2 | Magnetism | ferromagnetic iron | Fe, bcc | spin-polarized | spin-resolved DOS, moment | spin DOS, spin density | READY |
 | 7.3 | Magnetism | antiferromagnetic NiO | NiO, rock salt doubled along (111) | spin-polarized, `!ORBPOT` then the same run without it | the AFM ordering and its gap | `orbital_potentials` | READY |
@@ -164,8 +164,11 @@ Ordered by how many exercises each unblocks.
    either a schema value or **the structure**, because a cell-size or volume sweep moves the
    lattice and no schema value can express that. The plot and the API route are done too:
    `/api/sweeps` and a **Sweeps** panel that states where the curve settled instead of leaving it
-   to be read off by eye. 8.2, 8.3, 8.4 and 6.3.6 are now a matter of writing the exercise down;
-   6.3.7 additionally wants a Birch-Murnaghan fit.
+   to be read off by eye. 8.2, 8.3, 8.4, 6.3.6 and 6.3.7 are now a matter of writing the exercise
+   down: the fits both chapters read their answer off are in the panel (`Fitted curve`), and
+   **it is Murnaghan's equation of state, not Birch-Murnaghan** -- `paw_murnaghan.f90` and the
+   course both cite Murnaghan, PNAS 30, 244 (1944), and the two give different bulk moduli for
+   the same points (93 against 95 GPa on the course's own silicon data).
 2. ~~COOP~~ — done, and `!ORB` weights with it, which unblocks 4.7.4 as well. The orbital types
    come from the course's own cheat sheet (app. A.4): S, PX, PY, PZ, DXY, DXZ, DYZ, D3Z2-R2,
    DX2-Y2, SP, SP2, SP3. `NNZ` points a hybrid at a neighbour, which is what makes a local frame.

@@ -2,7 +2,7 @@
 
 Branch: main; this file is updated in the commit that checkpoints the work, so `git log -1 -- docs/STATE.md` is the last checkpoint. Phases 0-1 done; Phase 2 (editor tools), 3 (volumetric, trajectories, vectors), 4-5 (CP-PAW setup/execution/forces), 6 (CP-PAW analysis: DOS, bands, orbitals), crystallography, molecular mechanics and wavefunction surfaces are merged and working. Parity matrix at `8c51b48`, derived (see ROADMAP for the command): 229 IMPLEMENTED, 16 PARTIAL, 66 NOT STARTED, 1 BLOCKED of 312 rows.
 
-Tests: `pytest -q -m "not cppaw"` -> **650 passed, 1 skipped** (92 s); `pytest -q -m cppaw` -> **7 passed** (94 s, runs the real binaries -- **CP-PAW is found through `$PAWDIR`, which the user's own shell sets (`~/cp-paw`), not `env.sh`**; `$ATOMSCOPE_CPPAW_DIR` overrides it, and `ATOMSCOPE_CPPAW_IMAGE` runs them in a container instead); `pnpm vitest run` -> **606 passed** in 91 files; `pnpm exec playwright test` -> **40 passed** in ~56 s; `ATOMSCOPE_COURSE=1 pnpm exec playwright test` -> **13 passed** in ~37 s (course pictures, database, NEB, vibrations; reads `.scratch/course-runs` and `.scratch/neb-proj` -- **`neb.spec.ts` skips itself when `.scratch/neb-proj` is missing**, rebuild it with `../.venv/bin/python ../scripts/make_neb_project.py` from `backend/`; writes `.scratch/course-shots/`) (both against private servers, see below; `make test-e2e` points at the user's 5173, which is stale). **`source env.sh` before Playwright**: without `PLAYWRIGHT_BROWSERS_PATH` it looks in `~/.cache/ms-playwright`, finds nothing, and every test fails at `browserType.launch`. `ruff check`, `ruff format --check`, `mypy` (200 files) and `pnpm typecheck` are clean. No known failing tests. **Type-check the frontend with `pnpm typecheck` (`tsc -b --noEmit`), never with `pnpm exec tsc --noEmit`:** the root `tsconfig.json` is a solution file with `files: []`, so a bare `tsc --noEmit` checks nothing and exits 0.
+Tests: `pytest -q -m "not cppaw"` -> **666 passed, 1 skipped** (100 s); `pytest -q -m cppaw` -> **7 passed** (94 s, runs the real binaries -- **CP-PAW is found through `$PAWDIR`, which the user's own shell sets (`~/cp-paw`), not `env.sh`**; `$ATOMSCOPE_CPPAW_DIR` overrides it, and `ATOMSCOPE_CPPAW_IMAGE` runs them in a container instead); `pnpm vitest run` -> **613 passed** in 91 files; `pnpm exec playwright test` -> **40 passed** in ~56 s; `ATOMSCOPE_COURSE=1 pnpm exec playwright test` -> **13 passed** in ~37 s (course pictures, database, NEB, vibrations; reads `.scratch/course-runs` and `.scratch/neb-proj` -- **`neb.spec.ts` skips itself when `.scratch/neb-proj` is missing**, rebuild it with `../.venv/bin/python ../scripts/make_neb_project.py` from `backend/`; writes `.scratch/course-shots/`) (both against private servers, see below; `make test-e2e` points at the user's 5173, which is stale). **`source env.sh` before Playwright**: without `PLAYWRIGHT_BROWSERS_PATH` it looks in `~/.cache/ms-playwright`, finds nothing, and every test fails at `browserType.launch`. `ruff check`, `ruff format --check`, `mypy` (200 files) and `pnpm typecheck` are clean. No known failing tests. **Type-check the frontend with `pnpm typecheck` (`tsc -b --noEmit`), never with `pnpm exec tsc --noEmit`:** the root `tsconfig.json` is a solution file with `files: []`, so a bare `tsc --noEmit` checks nothing and exits 0.
 
 ## Inspecting the course project, and shipping it
 
@@ -254,10 +254,31 @@ Three things closed after the seven units, all found by asking what the checks d
 
 `/remote-control` is not in the skills list, so it was not invoked — nothing was guessed at.
 
-**Deferred** by the plan above (was next, still wanted): a fitted curve through sweep points
-(6.6, 6.7 — read `paw_murnaghan.x` before writing the Birch-Murnaghan form), a DOS overlay across
-calculations (8.4), a running average on a time series (5.3), distance-against-time from a stored
-trajectory (5.6). Then the chapters written and not yet run — 4 (malonaldehyde), 6 (silicon,
+**Sweep fits are done** (6.6, 6.7). `backend/src/atomscope/analysis/eos.py` +
+`GET /api/sweeps/{id}/fit` + `Fitted curve` in the Sweeps panel.
+
+**It is Murnaghan, not Birch-Murnaghan.** The note that said "read `paw_murnaghan.x` before
+writing the Birch-Murnaghan form" paid for itself immediately: `paw_murnaghan.f90` and the course
+both cite F. D. Murnaghan, PNAS 30, 244 (1944). The two are different functions and give
+different bulk moduli for the same points (93 against 95 GPa on the course's silicon data), and
+five docs had the wrong name — now corrected.
+
+`ase.eos.murnaghan` is the same function `paw_murnaghan.f90` prints; expanding ASE's form, its two
+constant terms collapse to CP-PAW's. Verified numerically rather than trusted: at the parameters
+the course prints, `ase.eos.murnaghan` reproduces the course's printed residuals to 1e-5 H while
+`birchmurnaghan` is out by 4.5e-4, which is the test that tells them apart (and the fit test also
+fails on B₀ if the EOS is swapped — checked by swapping it). **Our fit is slightly better than the
+tool's** (mean square residual 7.55e-8 vs 7.93e-8 H² on the same points): `paw_murnaghan.f90`
+minimizes with quenched dynamics and stops on a gradient tolerance, so its B′ is off by ~4%. E0
+and V0 agree to the printed digits. The test asserts "no worse than the tool", not five-decimal
+agreement.
+
+`SweepPoint` gained `volume_a3`, read from the calculation's own `input/structure.json` (**not**
+`project.load_structure`: a volume sweep's per-point structure is stored with the calculation, not
+in the project store — that cost one debugging round).
+
+**Deferred** (was next, still wanted): a DOS overlay across calculations (8.4), a running average
+on a time series (5.3), distance-against-time from a stored trajectory (5.6). Then the chapters written and not yet run — 4 (malonaldehyde), 6 (silicon,
 aluminium), 7 (iron, NiO) — and chapter 5 (MD), which needs no new features and runs longest.
 Still needing real new capability: cell dynamics (6.3.5), empty atoms (6.3.3), `paw_tra` mode
 extraction (5.4, 5.5, 5.10), video export (4.9, 5.7).

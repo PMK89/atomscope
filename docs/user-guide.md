@@ -1315,8 +1315,49 @@ beside every energy. It is left out when the counts were never collected — a
 run finished before the parser read them has to be re-collected
 (`scripts/course/sweep.py --recollect`).
 
+**Fitted curves.** Two of the course's exercises read their answer off a fit
+rather than off the points (Figs 6.6 and 6.7), and `Fitted curve` offers both.
+
+`cubic` fits a cubic polynomial in whatever the sweep varied — the tutorial
+does this in `xmgrace` — and draws it dashed over the measured points on the
+same axes, with its minimum stated in the sweep's own units. A sweep that only
+falls away without turning is told it has no minimum rather than being given
+one off the end.
+
+`Murnaghan equation of state` fits E(V) and reports what the exercise is
+actually after: the bulk modulus B₀ in GPa, its pressure derivative B′, the
+equilibrium volume V₀ and energy E₀. It gets a **chart of its own, against cell
+volume**, because that is the variable an equation of state is a function of —
+a lattice scan's x is a percentage, and fitting an equation of state to a
+percentage would give a bulk modulus in the wrong units. Each point's volume
+comes from its own cell, so this needs a sweep whose points are periodic; a
+sweep of molecules is told so and can still take the cubic.
+
+`Cell volume / a³` is `paw_murnaghan.x`'s `-vbl`: 1 for a conventional cubic
+cell, 0.25 for the two-atom primitive cell of a face-centred lattice, which is
+what the course's silicon exercise uses. Give it and the equilibrium volume is
+also reported as a lattice constant; leave it empty and no lattice constant is
+derived, because the relation between a volume and a lattice constant is a
+property of the lattice and not something to infer from the volume.
+
+Both fits need at least four points, which is what determines four parameters —
+the same floor `paw_murnaghan.x` enforces. Everything is reported per the cell
+that was swept, and an equilibrium volume that falls outside the volumes you
+actually computed is flagged as an extrapolation rather than presented as an
+answer: that means the sweep never bracketed the minimum and should be widened.
+
+It is Murnaghan's equation of state — F. D. Murnaghan, PNAS 30, 244 (1944),
+whose assumption is that the bulk modulus depends linearly on pressure — and
+not the Birch-Murnaghan form, which is a different function and gives a
+different bulk modulus for the same points. The fit is checked against the
+parameters and per-point residuals `paw_murnaghan.x` prints for the course's own
+silicon data, and reproduces them; it lands on a slightly *better* least-squares
+fit than the tool does, because `paw_murnaghan.f90` minimizes with quenched
+dynamics and stops on a gradient tolerance.
+
 Sweeps are created over the API (`POST /api/sweeps`) or by
-`scripts/course/sweep.py`; the panel runs and reads them.
+`scripts/course/sweep.py`; the panel runs and reads them. `GET
+/api/sweeps/{id}/fit?kind=…` is the fit.
 
 ### 8.4b The project database
 

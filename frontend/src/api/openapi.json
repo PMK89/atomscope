@@ -1113,6 +1113,52 @@
         "title": "CreateSweepRequest",
         "type": "object"
       },
+      "CubicParameters": {
+        "additionalProperties": false,
+        "description": "A cubic in the sweep's own x, and the minimum it puts there.",
+        "properties": {
+          "coefficients": {
+            "description": "highest power first, as `numpy.polyfit` returns",
+            "items": {
+              "type": "number"
+            },
+            "title": "Coefficients",
+            "type": "array"
+          },
+          "extrapolated": {
+            "description": "`x_min` lies outside the x that were computed",
+            "title": "Extrapolated",
+            "type": "boolean"
+          },
+          "x_min": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "where the cubic has its minimum, when it has one",
+            "title": "X Min"
+          },
+          "y_min": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "eV at `x_min`",
+            "title": "Y Min"
+          }
+        },
+        "required": ["coefficients", "extrapolated"],
+        "title": "CubicParameters",
+        "type": "object"
+      },
       "DatabaseRow": {
         "additionalProperties": false,
         "description": "One indexed calculation, as much of it as a results table needs.",
@@ -1958,6 +2004,30 @@
         },
         "required": ["structure"],
         "title": "FillRequest",
+        "type": "object"
+      },
+      "FitCurve": {
+        "additionalProperties": false,
+        "description": "The fitted function, sampled for drawing.",
+        "properties": {
+          "x": {
+            "items": {
+              "type": "number"
+            },
+            "title": "X",
+            "type": "array"
+          },
+          "y": {
+            "description": "eV",
+            "items": {
+              "type": "number"
+            },
+            "title": "Y",
+            "type": "array"
+          }
+        },
+        "required": ["x", "y"],
+        "title": "FitCurve",
         "type": "object"
       },
       "FixAngle": {
@@ -3483,6 +3553,52 @@
         },
         "required": ["stream", "lines"],
         "title": "LogResponse",
+        "type": "object"
+      },
+      "MurnaghanParameters": {
+        "additionalProperties": false,
+        "description": "What the equation of state is for. Everything is per the cell that was swept.",
+        "properties": {
+          "b0_gpa": {
+            "description": "bulk modulus at the equilibrium volume",
+            "title": "B0 Gpa",
+            "type": "number"
+          },
+          "bp": {
+            "description": "pressure derivative of the bulk modulus, dimensionless",
+            "title": "Bp",
+            "type": "number"
+          },
+          "e0_ev": {
+            "description": "energy at the equilibrium volume",
+            "title": "E0 Ev",
+            "type": "number"
+          },
+          "extrapolated": {
+            "description": "the equilibrium volume lies outside the volumes that were computed, so it is an extrapolation and the sweep should be widened",
+            "title": "Extrapolated",
+            "type": "boolean"
+          },
+          "lattice_constant_a": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "(v0 / volume_per_a3)^(1/3), only when the caller said how the cell's volume relates to its lattice constant",
+            "title": "Lattice Constant A"
+          },
+          "v0_a3": {
+            "description": "equilibrium volume, \u00c5\u00b3",
+            "title": "V0 A3",
+            "type": "number"
+          }
+        },
+        "required": ["e0_ev", "v0_a3", "b0_gpa", "bp", "extrapolated"],
+        "title": "MurnaghanParameters",
         "type": "object"
       },
       "NanotubeRequest": {
@@ -6275,6 +6391,56 @@
         "title": "SweepCurve",
         "type": "object"
       },
+      "SweepFit": {
+        "additionalProperties": false,
+        "description": "A fitted curve through sweep points, with the parameters that make it worth fitting.",
+        "properties": {
+          "cubic": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CubicParameters"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "curve": {
+            "$ref": "#/components/schemas/FitCurve"
+          },
+          "kind": {
+            "enum": ["cubic", "murnaghan"],
+            "title": "Kind",
+            "type": "string"
+          },
+          "murnaghan": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/MurnaghanParameters"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "residuals_ev": {
+            "description": "fitted minus computed, one per input point",
+            "items": {
+              "type": "number"
+            },
+            "title": "Residuals Ev",
+            "type": "array"
+          },
+          "rms_ev": {
+            "description": "root mean square of the residuals",
+            "title": "Rms Ev",
+            "type": "number"
+          }
+        },
+        "required": ["kind", "curve", "residuals_ev", "rms_ev"],
+        "title": "SweepFit",
+        "type": "object"
+      },
       "SweepMembership": {
         "additionalProperties": false,
         "description": "This calculation is one point of a sweep: several runs that differ in one way.\n\nA convergence test, an energy-against-volume curve, a scan -- the tutorial's whole chapter 8\nis this shape. Membership is recorded on the member rather than in an object of its own, so\nthe sweep is a view over the calculations a project already holds: everything with this\n``sweep_id``, in order of ``x``.\n\nWhat varies is either one schema value (``key``) or the structure itself (``key`` is None) --\na cell-size or volume sweep changes the lattice, which no schema value can express. Either\nway ``x`` is the number the result is plotted against, and ``label``/``unit`` say what that\nnumber is, because for a structure sweep there is no parameter to ask.",
@@ -6354,6 +6520,18 @@
             "enum": ["draft", "ready", "queued", "running", "completed", "failed", "cancelled"],
             "title": "Status",
             "type": "string"
+          },
+          "volume_a3": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "cell volume of the point's own structure; None when it is not periodic. An equation of state is a function of this, not of the sweep's x -- which for a lattice scan is a percentage",
+            "title": "Volume A3"
           },
           "x": {
             "title": "X",
@@ -12633,6 +12811,74 @@
           }
         },
         "summary": "Get Sweep",
+        "tags": ["sweeps"]
+      }
+    },
+    "/api/sweeps/{sweep_id}/fit": {
+      "get": {
+        "description": "A fitted curve through the finished points of a sweep (ch. 6.3.6/6.3.7, Figs 6.6 and 6.7).\n\n``cubic`` fits the sweep's own x, which is what the tutorial fits in `xmgrace`. ``murnaghan``\nfits Murnaghan's equation of state against the *cell volume* of each point, because that is\nwhat an equation of state is a function of -- a lattice scan's x is a percentage, and fitting\nan equation of state to a percentage would give a bulk modulus in the wrong units.\n\n``volume_per_a3`` is `paw_murnaghan.x`'s ``-vbl``, the cell's volume over the cube of its\nlattice constant, and is what lets the equilibrium volume be reported as a lattice constant.",
+        "operationId": "fit_api_sweeps__sweep_id__fit_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "sweep_id",
+            "required": true,
+            "schema": {
+              "title": "Sweep Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "kind",
+            "required": false,
+            "schema": {
+              "default": "cubic",
+              "enum": ["cubic", "murnaghan"],
+              "title": "Kind",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "volume_per_a3",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Volume Per A3"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SweepFit"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Fit",
         "tags": ["sweeps"]
       }
     },

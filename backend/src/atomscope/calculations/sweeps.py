@@ -66,6 +66,12 @@ class SweepPoint(StrictModel):
     calculation_id: str
     status: CalculationStatus
     energy_ev: float | None = None
+    volume_a3: float | None = Field(
+        default=None,
+        description="cell volume of the point's own structure; None when it is not periodic."
+        " An equation of state is a function of this, not of the sweep's x -- which for a lattice"
+        " scan is a percentage",
+    )
     properties: dict[str, float] = Field(
         default_factory=dict,
         description="every scalar the run reported, so a sweep can be read against any of them",
@@ -153,6 +159,24 @@ def members(service: CalculationService, sweep_id: str) -> list[Calculation]:
     return sorted(found, key=lambda c: (c.sweep.x, c.sweep.index))  # type: ignore[union-attr]
 
 
+def _volume(service: CalculationService, calc: Calculation) -> float | None:
+    """The cell volume of the point's input structure, for an equation-of-state fit.
+
+    The input structure, not the result: a volume sweep is a set of *fixed* cells, and what the
+    fit is a function of is the volume that was imposed. A structure that has disappeared or is
+    not periodic simply has no volume here -- one missing point must not fail the whole curve.
+
+    Read from the calculation's own `input/structure.json` rather than from the project's
+    structures: a sweep point may carry a structure of its own -- which is exactly what a volume
+    sweep is -- and that copy is stored with the calculation, not in the project store.
+    """
+    try:
+        structure = service.input_structure(calc)
+    except Exception:  # noqa: BLE001 -- a deleted or unreadable structure is not a broken sweep
+        return None
+    return structure.cell.volume() if structure.cell is not None else None
+
+
 def sweep_result(service: CalculationService, sweep_id: str) -> SweepResult:
     """Read the curve back. Points that have not finished are kept, without an energy, so the
     plot shows the gap rather than closing over it."""
@@ -176,6 +200,7 @@ def sweep_result(service: CalculationService, sweep_id: str) -> SweepResult:
                 calculation_id=calc.id,
                 status=calc.status,
                 energy_ev=scalars.get("energy"),
+                volume_a3=_volume(service, calc),
                 properties=scalars,
             )
         )
