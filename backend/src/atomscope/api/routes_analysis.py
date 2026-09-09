@@ -25,6 +25,15 @@ from pydantic import Field
 from atomscope.analysis import spectra as spectra_mod
 from atomscope.analysis.broadening import auto_grid, broaden, to_transmittance
 from atomscope.analysis.neb import NebError, run_neb
+from atomscope.analysis.thermo import (
+    STANDARD_PRESSURE_PA,
+    Geometry,
+    HinderedParameters,
+    ThermoError,
+    ThermoModel,
+    ThermoTable,
+    thermo_table,
+)
 from atomscope.analysis.vibrations import VibrationError, compute_modes, make_engine
 from atomscope.backends.base import ScalarSeries
 from atomscope.chem import forcefield
@@ -72,6 +81,34 @@ class VibrationsRequest(StrictModel):
     charge_model: str = Field(
         default="gasteiger", description="Open Babel charge model for the approximate dipole"
     )
+
+
+class ThermoRequest(StrictModel):
+    """Vibrational frequencies plus what ASE cannot work out for itself."""
+
+    model: ThermoModel = "harmonic"
+    frequencies_cm: list[float] = Field(
+        description="the vibrational modes only, in cm^-1; a negative one is imaginary"
+    )
+    temperatures_k: list[float] = Field(min_length=1)
+    structure: Structure | None = Field(
+        default=None,
+        description="required by the ideal-gas model (mass and moments of inertia); for the "
+        "hindered model this is the adsorbate, not the slab",
+    )
+    potential_energy_ev: float = Field(
+        default=0.0, description="E_pot of the geometry the modes belong to; 0 gives corrections"
+    )
+    pressure_pa: float = Field(default=STANDARD_PRESSURE_PA, gt=0)
+    geometry: Geometry | None = Field(
+        default=None, description="overrides the detection from the moments of inertia"
+    )
+    symmetry_number: int = Field(
+        default=1, ge=1, description="rotational symmetry number; 1 overestimates the entropy"
+    )
+    spin: float = Field(default=0.0, ge=0, description="total electronic spin S (0.5 per radical)")
+    hindered: HinderedParameters | None = None
+    ignore_imaginary: bool = False
 
 
 class VibrationsResponse(StrictModel):
@@ -297,6 +334,32 @@ def vibrations(body: VibrationsRequest) -> VibrationsResponse:
         structure=structure,
         ir=spectra_mod.ir_spectrum(result),
     )
+
+
+@router.post("/thermo", response_model=ThermoTable)
+def thermochemistry(body: ThermoRequest) -> ThermoTable:
+    """Thermochemistry from vibrational frequencies (`analysis.thermo`).
+
+    Pure arithmetic on the frequencies, so it takes them rather than a structure and a
+    calculator: the Spectra panel posts the modes it already has, and a script imports
+    `atomscope.analysis.thermo` directly.
+    """
+    try:
+        return thermo_table(
+            body.model,
+            body.frequencies_cm,
+            body.temperatures_k,
+            structure=body.structure,
+            potential_energy_ev=body.potential_energy_ev,
+            pressure_pa=body.pressure_pa,
+            geometry=body.geometry,
+            symmetry_number=body.symmetry_number,
+            spin=body.spin,
+            hindered=body.hindered,
+            ignore_imaginary=body.ignore_imaginary,
+        )
+    except ThermoError as exc:
+        raise _bad(exc) from exc
 
 
 @router.post("/vibrations/spectrum", response_model=Spectrum)

@@ -86,6 +86,11 @@ export type OptimizeStepResponse = components['schemas']['OptimizeStepResponse']
 export type ForceFieldInfo = components['schemas']['ForceFieldInfo'];
 export type PointGroupResult = components['schemas']['PointGroupResult'];
 export type SecondaryStructureResult = components['schemas']['SecondaryStructureResult'];
+export type ThermoTable = components['schemas']['ThermoTable'];
+export type ThermoPoint = components['schemas']['ThermoPoint'];
+export type ThermoModel = ThermoTable['model'];
+export type ThermoGeometry = NonNullable<ThermoTable['geometry']>;
+export type HinderedParameters = components['schemas']['HinderedParameters'];
 export type Script = components['schemas']['Script'];
 /** `id` and the two collected fields have pydantic defaults, so OpenAPI calls them optional. */
 export type ScriptRun = components['schemas']['ScriptRun'] & {
@@ -235,6 +240,9 @@ export const api = {
     },
   },
   analysis: {
+    /** Thermochemistry from vibrational frequencies (ideal gas, harmonic, hindered). */
+    thermo: (body: Body<'/api/analysis/thermo', 'post'>) =>
+      request<ThermoTable>('/api/analysis/thermo', json(body)),
     vibrations: (body: Body<'/api/analysis/vibrations', 'post'>) =>
       request<VibrationsResponse>('/api/analysis/vibrations', json(body)),
     vibrationalSpectrum: (body: Body<'/api/analysis/vibrations/spectrum', 'post'>) =>

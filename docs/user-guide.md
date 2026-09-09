@@ -1725,6 +1725,69 @@ an imported output appear in the same `Spectrum` box.
 Files arrive through the browser's own download, so they land wherever it puts
 downloads rather than in the project.
 
+### 8.8a Thermochemistry
+
+Under the mode table, `Thermochemistry` turns the frequencies into the state
+functions at a temperature: zero-point energy, internal energy or enthalpy,
+entropy, and the free energy that decides which way a reaction goes. It is
+ASE's `ase.thermochemistry`, so a number computed here is the number ASE
+computes.
+
+**Which model.** The choice is about what the molecule is free to do, and it
+changes which quantities exist:
+
+| Model | For | Gives | Pressure |
+|---|---|---|---|
+| Harmonic | an adsorbate held on a surface | *U*, *S*, Helmholtz *F* | no |
+| Ideal gas | a molecule in the gas phase | *H*, *S*, Gibbs *G* | yes |
+| Hindered translator/rotor | an adsorbate that can hop and rotate | *U*, *S*, *F* | no |
+
+The harmonic model counts nothing but the vibrations, which is why it needs no
+structure and no pressure. The ideal-gas model adds translation and rotation, so
+it needs the molecule itself — its mass and its moments of inertia — and it is
+the only one whose answer depends on a pressure. The hindered model sits between
+the harmonic limit and a two-dimensional gas: give it the diffusion barrier
+between neighbouring sites, the barrier to rotation on a site, the site density
+and how many equivalent minima a full rotation has.
+
+**What you have to supply, because ASE cannot work it out.**
+
+* **σ, the rotational symmetry number** (ideal gas only). It is a property of
+  the point group, not of a set of coordinates: 1 for CO, 2 for H₂O and N₂, 3
+  for NH₃, 12 for CH₄ and for benzene. Left at 1 it overestimates the entropy —
+  by *R* ln σ, which for benzene is 0.214 eV of *T·S* at 1000 K.
+* **The spin** *S* (ideal gas only): 0 for a closed shell, ½ per unpaired
+  electron. It enters the electronic entropy.
+* **`E potential`**: the total energy of the geometry the modes belong to.
+  Leave it at 0 and every column is a *correction* to be added to an energy you
+  already have; put the calculation's own energy in and the columns are absolute.
+* Whether the molecule is **linear** is read off the moments of inertia, and the
+  mode analysis's own count is used when the modes came from `Compute modes` —
+  the answer decides whether 3*N*−5 or 3*N*−6 of them are vibrations.
+
+**Imaginary modes.** A negative frequency means the geometry is not a minimum,
+and a free energy computed there is meaningless — so it is refused, with the
+count, rather than returned. The checkbox that appears offers to drop them,
+which is right for a transition state whose one imaginary mode is the reaction
+coordinate and wrong for a geometry that simply has not been relaxed.
+
+**Reading the output.** The chart plots the free energy and *T·S* against
+temperature; the free energy falls as the entropy term grows, which is why a
+molecule that is bound at 300 K can desorb at 600 K. The table lists every
+temperature: the first row is the one you set as `T from` (298.15 K by default,
+which is where most tabulated numbers are), and entropies are in meV K⁻¹
+because in eV K⁻¹ they are all zeroes.
+
+An **adsorption free energy** is the difference of three of these:
+Δ*G* = *G*(slab+molecule) − *G*(slab) − *G*(molecule), with the harmonic model
+for the first two and the ideal gas for the third. Nothing computes that
+subtraction for you; the three tables are what it is made of.
+
+**Not offered: `CrystalThermo`.** ASE's fourth model needs a phonon density of
+states, which means force constants across a supercell, and nothing in Atomscope
+produces one yet. A panel that asked for a file you have no way to make would be
+worse than this sentence.
+
 ### 8.9 Reaction paths (NEB)
 
 The `Path` panel runs a nudged elastic band between two structures: the one in

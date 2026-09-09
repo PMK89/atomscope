@@ -27,6 +27,7 @@ import { useStructureStore } from '../state/structureStore';
 import { chartSize, chartSvgMarkup, svgDataUrl, svgToPngDataUrl } from './charts/chartExport';
 import { downloadDataUrl, fileBase, textDataUrl } from './download';
 import { OtherSpectra } from './OtherSpectra';
+import { ThermoSection } from './ThermoSection';
 import { useTrajectoryStore } from '../state/trajectoryStore';
 import { LineChart, type ChartSeries, type ChartStick } from './charts/LineChart';
 
@@ -319,6 +320,8 @@ export function SpectrumPanel({ onError }: { onError: (m: string) => void }): JS
           )}
         </>
       )}
+
+      {modes.length > 0 && <ThermoSection modes={modes} structure={doc} onError={onError} />}
 
       <h3>Spectra</h3>
       <div className="form-row">

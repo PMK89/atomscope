@@ -87,6 +87,30 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/analysis/thermo': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Thermochemistry
+     * @description Thermochemistry from vibrational frequencies (`analysis.thermo`).
+     *
+     *     Pure arithmetic on the frequencies, so it takes them rather than a structure and a
+     *     calculator: the Spectra panel posts the modes it already has, and a script imports
+     *     `atomscope.analysis.thermo` directly.
+     */
+    post: operations['thermochemistry_api_analysis_thermo_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/analysis/vibrations': {
     parameters: {
       query?: never;
@@ -3848,6 +3872,47 @@ export interface components {
       /** Version */
       version: string;
     };
+    /**
+     * HinderedParameters
+     * @description What `HinderedThermo` needs beyond the frequencies (ASE's own names in the docstrings).
+     */
+    HinderedParameters: {
+      /**
+       * Inertia Amu A2
+       * @description moment of inertia about the surface normal
+       */
+      inertia_amu_a2?: number | null;
+      /**
+       * Mass Amu
+       * @description adsorbate mass; taken from the structure when omitted
+       */
+      mass_amu?: number | null;
+      /**
+       * Rot Barrier Energy Ev
+       * @description barrier for rotation on the site
+       */
+      rot_barrier_energy_ev: number;
+      /**
+       * Rotational Minima
+       * @description equivalent minima in a full rotation
+       */
+      rotational_minima: number;
+      /**
+       * Site Density Cm2
+       * @description adsorption sites per cm^2 of surface (ASE's `sitedensity`)
+       */
+      site_density_cm2: number;
+      /**
+       * Symmetry Number
+       * @default 1
+       */
+      symmetry_number: number;
+      /**
+       * Trans Barrier Energy Ev
+       * @description barrier for diffusion between neighbouring sites
+       */
+      trans_barrier_energy_ev: number;
+    };
     /** Identifiers */
     Identifiers: {
       /** Inchi */
@@ -5981,6 +6046,138 @@ export interface components {
       wyckoffs: string[];
     };
     /**
+     * ThermoPoint
+     * @description The state functions at one temperature (and pressure, where the model has one).
+     */
+    ThermoPoint: {
+      /**
+       * Enthalpy Ev
+       * @description H(T) for the ideal-gas model
+       */
+      enthalpy_ev?: number | null;
+      /** Entropy Ev Per K */
+      entropy_ev_per_k: number;
+      /**
+       * Free Energy Ev
+       * @description Gibbs for the ideal gas, Helmholtz otherwise
+       */
+      free_energy_ev: number;
+      /**
+       * Internal Energy Ev
+       * @description U(T) - E_pot for the harmonic models
+       */
+      internal_energy_ev?: number | null;
+      /**
+       * Pressure Pa
+       * @description only the ideal-gas model depends on it
+       */
+      pressure_pa?: number | null;
+      /** Temperature K */
+      temperature_k: number;
+      /**
+       * Ts Ev
+       * @description T*S, the entropic part of the free energy at this point
+       */
+      ts_ev: number;
+    };
+    /**
+     * ThermoRequest
+     * @description Vibrational frequencies plus what ASE cannot work out for itself.
+     */
+    ThermoRequest: {
+      /**
+       * Frequencies Cm
+       * @description the vibrational modes only, in cm^-1; a negative one is imaginary
+       */
+      frequencies_cm: number[];
+      /**
+       * Geometry
+       * @description overrides the detection from the moments of inertia
+       */
+      geometry?: ('monatomic' | 'linear' | 'nonlinear') | null;
+      hindered?: components['schemas']['HinderedParameters'] | null;
+      /**
+       * Ignore Imaginary
+       * @default false
+       */
+      ignore_imaginary: boolean;
+      /**
+       * Model
+       * @default harmonic
+       * @enum {string}
+       */
+      model: 'ideal-gas' | 'harmonic' | 'hindered';
+      /**
+       * Potential Energy Ev
+       * @description E_pot of the geometry the modes belong to; 0 gives corrections
+       * @default 0
+       */
+      potential_energy_ev: number;
+      /**
+       * Pressure Pa
+       * @default 100000
+       */
+      pressure_pa: number;
+      /**
+       * Spin
+       * @description total electronic spin S (0.5 per radical)
+       * @default 0
+       */
+      spin: number;
+      /** @description required by the ideal-gas model (mass and moments of inertia); for the hindered model this is the adsorbate, not the slab */
+      structure?: components['schemas']['Structure'] | null;
+      /**
+       * Symmetry Number
+       * @description rotational symmetry number; 1 overestimates the entropy
+       * @default 1
+       */
+      symmetry_number: number;
+      /** Temperatures K */
+      temperatures_k: number[];
+    };
+    /**
+     * ThermoTable
+     * @description A model, the modes it used, and the state functions over a temperature range.
+     */
+    ThermoTable: {
+      /**
+       * Free Energy Kind
+       * @enum {string}
+       */
+      free_energy_kind: 'gibbs' | 'helmholtz';
+      /** Geometry */
+      geometry?: ('monatomic' | 'linear' | 'nonlinear') | null;
+      /**
+       * Model
+       * @enum {string}
+       */
+      model: 'ideal-gas' | 'harmonic' | 'hindered';
+      /**
+       * N Imaginary
+       * @description imaginary modes dropped
+       * @default 0
+       */
+      n_imaginary: number;
+      /**
+       * N Modes
+       * @description modes ASE kept after trimming to the geometry
+       */
+      n_modes: number;
+      /** Points */
+      points: components['schemas']['ThermoPoint'][];
+      /** Potential Energy Ev */
+      potential_energy_ev: number;
+      /** Spin */
+      spin?: number | null;
+      /** Symmetry Number */
+      symmetry_number?: number | null;
+      /**
+       * Zpe Ev
+       * @description zero-point vibrational energy
+       */
+      zpe_ev: number;
+    };
+    /**
      * Trajectory
      * @description A sequence of frames sharing the topology of ``structure_id``.
      */
@@ -6559,6 +6756,39 @@ export interface operations {
         };
         content: {
           'application/json': components['schemas']['Spectrum'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  thermochemistry_api_analysis_thermo_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['ThermoRequest'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ThermoTable'];
         };
       };
       /** @description Validation Error */

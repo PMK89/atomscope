@@ -675,6 +675,38 @@ External Python-package calculators: `psi4` is importable in this env; `gpaw`, `
 
 ---
 
+## 5.9 Thermochemistry (`ase/thermochemistry.py`) — implemented
+
+Four classes, of which three are wrapped in `atomscope.analysis.thermo` and one is not:
+
+* `IdealGasThermo(vib_energies, geometry, potentialenergy, atoms, symmetrynumber, spin, natoms,
+  ignore_imag_modes)` — `get_ZPE_correction()`, `get_enthalpy(T)`, `get_entropy(T, P)`,
+  `get_gibbs_energy(T, P)`. **`atoms` is required for the entropy**, not merely `natoms`:
+  `get_entropy` raises `RuntimeError('atoms, symmetrynumber, and spin must be specified...')`
+  because it needs the moments of inertia and the mass. It sorts the given energies by `abs` and
+  keeps the largest 3N-6 (nonlinear) or 3N-5 (linear); `geometry` is taken on trust.
+* `HarmonicThermo(vib_energies, potentialenergy, ignore_imag_modes)` — keeps every mode given, no
+  trimming, no structure: `get_internal_energy(T)`, `get_entropy(T)`, `get_helmholtz_energy(T)`.
+* `HinderedThermo(vib_energies, trans_barrier_energy, rot_barrier_energy, sitedensity,
+  rotationalminima, potentialenergy, mass, inertia, atoms, symmetrynumber)` — keeps 3N-3 when
+  `atoms` is given, otherwise `len-3`; needs either `atoms` or both `mass` and `inertia`.
+* `CrystalThermo(phonon_DOS, phonon_energies, potentialenergy, formula_units)` — **not wrapped**:
+  it needs a phonon density of states, i.e. force constants over a supercell (`ase.phonons`),
+  which no Atomscope backend produces.
+
+Two traps worth recording, both found by testing against ASE's own asserted numbers:
+
+* `_clean_vib_energies` refuses an *imaginary* energy (`np.iscomplex`) but passes a **negative
+  real** one straight through, producing a plausible-looking free energy from a saddle point.
+  `analysis.vibrations.frequencies_cm` reports an imaginary mode as a negative wavenumber, so
+  `analysis.thermo.energies_ev` moves the sign into the imaginary part before ASE sees it.
+* `ase/test/test_thermochemistry.py`'s `CH3_THERMO["gibbs"]` (8.678687641495167) is **dead
+  data** — it is never asserted, and it disagrees by 1 meV with the enthalpy and entropy that
+  same file does assert (10.610695269124156 - 1000*0.0019310086280219891 = 8.679686641102167).
+  The identity is pinned in `tests/analysis/test_thermo.py` instead of that number.
+
+`ase.phasediagram` (`PhaseDiagram`, `Pourbaix`) is a separate surface and is not wrapped.
+
 ## 6. Mapping Atomscope's structure model <-> `ase.Atoms`
 
 Principle: `ase.Atoms` is the *computational* view; Atomscope's structure model is the *chemical*

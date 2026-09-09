@@ -2786,6 +2786,74 @@
         "title": "HealthResponse",
         "type": "object"
       },
+      "HinderedParameters": {
+        "additionalProperties": false,
+        "description": "What `HinderedThermo` needs beyond the frequencies (ASE's own names in the docstrings).",
+        "properties": {
+          "inertia_amu_a2": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "moment of inertia about the surface normal",
+            "title": "Inertia Amu A2"
+          },
+          "mass_amu": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "adsorbate mass; taken from the structure when omitted",
+            "title": "Mass Amu"
+          },
+          "rot_barrier_energy_ev": {
+            "description": "barrier for rotation on the site",
+            "minimum": 0.0,
+            "title": "Rot Barrier Energy Ev",
+            "type": "number"
+          },
+          "rotational_minima": {
+            "description": "equivalent minima in a full rotation",
+            "minimum": 1.0,
+            "title": "Rotational Minima",
+            "type": "integer"
+          },
+          "site_density_cm2": {
+            "description": "adsorption sites per cm^2 of surface (ASE's `sitedensity`)",
+            "exclusiveMinimum": 0.0,
+            "title": "Site Density Cm2",
+            "type": "number"
+          },
+          "symmetry_number": {
+            "default": 1,
+            "minimum": 1.0,
+            "title": "Symmetry Number",
+            "type": "integer"
+          },
+          "trans_barrier_energy_ev": {
+            "description": "barrier for diffusion between neighbouring sites",
+            "minimum": 0.0,
+            "title": "Trans Barrier Energy Ev",
+            "type": "number"
+          }
+        },
+        "required": [
+          "trans_barrier_energy_ev",
+          "rot_barrier_energy_ev",
+          "site_density_cm2",
+          "rotational_minima"
+        ],
+        "title": "HinderedParameters",
+        "type": "object"
+      },
       "Identifiers": {
         "additionalProperties": false,
         "properties": {
@@ -6961,6 +7029,252 @@
         "title": "SymmetryInfo",
         "type": "object"
       },
+      "ThermoPoint": {
+        "additionalProperties": false,
+        "description": "The state functions at one temperature (and pressure, where the model has one).",
+        "properties": {
+          "enthalpy_ev": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "H(T) for the ideal-gas model",
+            "title": "Enthalpy Ev"
+          },
+          "entropy_ev_per_k": {
+            "title": "Entropy Ev Per K",
+            "type": "number"
+          },
+          "free_energy_ev": {
+            "description": "Gibbs for the ideal gas, Helmholtz otherwise",
+            "title": "Free Energy Ev",
+            "type": "number"
+          },
+          "internal_energy_ev": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "U(T) - E_pot for the harmonic models",
+            "title": "Internal Energy Ev"
+          },
+          "pressure_pa": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "only the ideal-gas model depends on it",
+            "title": "Pressure Pa"
+          },
+          "temperature_k": {
+            "title": "Temperature K",
+            "type": "number"
+          },
+          "ts_ev": {
+            "description": "T*S, the entropic part of the free energy at this point",
+            "title": "Ts Ev",
+            "type": "number"
+          }
+        },
+        "required": ["temperature_k", "entropy_ev_per_k", "free_energy_ev", "ts_ev"],
+        "title": "ThermoPoint",
+        "type": "object"
+      },
+      "ThermoRequest": {
+        "additionalProperties": false,
+        "description": "Vibrational frequencies plus what ASE cannot work out for itself.",
+        "properties": {
+          "frequencies_cm": {
+            "description": "the vibrational modes only, in cm^-1; a negative one is imaginary",
+            "items": {
+              "type": "number"
+            },
+            "title": "Frequencies Cm",
+            "type": "array"
+          },
+          "geometry": {
+            "anyOf": [
+              {
+                "enum": ["monatomic", "linear", "nonlinear"],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "overrides the detection from the moments of inertia",
+            "title": "Geometry"
+          },
+          "hindered": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/HinderedParameters"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "ignore_imaginary": {
+            "default": false,
+            "title": "Ignore Imaginary",
+            "type": "boolean"
+          },
+          "model": {
+            "default": "harmonic",
+            "enum": ["ideal-gas", "harmonic", "hindered"],
+            "title": "Model",
+            "type": "string"
+          },
+          "potential_energy_ev": {
+            "default": 0.0,
+            "description": "E_pot of the geometry the modes belong to; 0 gives corrections",
+            "title": "Potential Energy Ev",
+            "type": "number"
+          },
+          "pressure_pa": {
+            "default": 100000.0,
+            "exclusiveMinimum": 0.0,
+            "title": "Pressure Pa",
+            "type": "number"
+          },
+          "spin": {
+            "default": 0.0,
+            "description": "total electronic spin S (0.5 per radical)",
+            "minimum": 0.0,
+            "title": "Spin",
+            "type": "number"
+          },
+          "structure": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Structure"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "required by the ideal-gas model (mass and moments of inertia); for the hindered model this is the adsorbate, not the slab"
+          },
+          "symmetry_number": {
+            "default": 1,
+            "description": "rotational symmetry number; 1 overestimates the entropy",
+            "minimum": 1.0,
+            "title": "Symmetry Number",
+            "type": "integer"
+          },
+          "temperatures_k": {
+            "items": {
+              "type": "number"
+            },
+            "minItems": 1,
+            "title": "Temperatures K",
+            "type": "array"
+          }
+        },
+        "required": ["frequencies_cm", "temperatures_k"],
+        "title": "ThermoRequest",
+        "type": "object"
+      },
+      "ThermoTable": {
+        "additionalProperties": false,
+        "description": "A model, the modes it used, and the state functions over a temperature range.",
+        "properties": {
+          "free_energy_kind": {
+            "enum": ["gibbs", "helmholtz"],
+            "title": "Free Energy Kind",
+            "type": "string"
+          },
+          "geometry": {
+            "anyOf": [
+              {
+                "enum": ["monatomic", "linear", "nonlinear"],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Geometry"
+          },
+          "model": {
+            "enum": ["ideal-gas", "harmonic", "hindered"],
+            "title": "Model",
+            "type": "string"
+          },
+          "n_imaginary": {
+            "default": 0,
+            "description": "imaginary modes dropped",
+            "title": "N Imaginary",
+            "type": "integer"
+          },
+          "n_modes": {
+            "description": "modes ASE kept after trimming to the geometry",
+            "title": "N Modes",
+            "type": "integer"
+          },
+          "points": {
+            "items": {
+              "$ref": "#/components/schemas/ThermoPoint"
+            },
+            "title": "Points",
+            "type": "array"
+          },
+          "potential_energy_ev": {
+            "title": "Potential Energy Ev",
+            "type": "number"
+          },
+          "spin": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Spin"
+          },
+          "symmetry_number": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Symmetry Number"
+          },
+          "zpe_ev": {
+            "description": "zero-point vibrational energy",
+            "title": "Zpe Ev",
+            "type": "number"
+          }
+        },
+        "required": [
+          "model",
+          "free_energy_kind",
+          "potential_energy_ev",
+          "zpe_ev",
+          "n_modes",
+          "points"
+        ],
+        "title": "ThermoTable",
+        "type": "object"
+      },
       "Trajectory": {
         "additionalProperties": false,
         "description": "A sequence of frames sharing the topology of ``structure_id``.",
@@ -8267,6 +8581,46 @@
           }
         },
         "summary": "Spectrum",
+        "tags": ["analysis"]
+      }
+    },
+    "/api/analysis/thermo": {
+      "post": {
+        "description": "Thermochemistry from vibrational frequencies (`analysis.thermo`).\n\nPure arithmetic on the frequencies, so it takes them rather than a structure and a\ncalculator: the Spectra panel posts the modes it already has, and a script imports\n`atomscope.analysis.thermo` directly.",
+        "operationId": "thermochemistry_api_analysis_thermo_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ThermoRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ThermoTable"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Thermochemistry",
         "tags": ["analysis"]
       }
     },

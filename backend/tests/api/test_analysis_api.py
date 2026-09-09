@@ -6,10 +6,11 @@ from pathlib import Path
 from typing import Any
 
 import pytest
+from ase import Atoms
 from ase.build import add_adsorbate, fcc100
 from ase.calculators.emt import EMT
 from ase.constraints import FixAtoms
-from ase.optimize import BFGS
+from ase.optimize import BFGS, QuasiNewton
 from fastapi.testclient import TestClient
 
 from atomscope.api.app import create_app
@@ -302,3 +303,70 @@ def test_neb_over_the_api() -> None:
         )
         assert bad.status_code == 400
         assert "atoms" in bad.json()["detail"]
+
+
+def test_thermochemistry_over_the_api() -> None:
+    """The route on ASE's own N2 golden, and the two errors a user will actually hit."""
+    atoms = Atoms("N2", positions=[(0, 0, 0), (0, 0, 1.1)])
+    atoms.calc = EMT()
+    QuasiNewton(atoms, logfile=None).run(fmax=0.01)
+    structure = from_atoms(atoms, name="n2")
+    with TestClient(create_app()) as c:
+        r = c.post(
+            "/api/analysis/thermo",
+            json={
+                "model": "ideal-gas",
+                # 0.15264748 eV, ASE's relaxed N2 mode, as a wavenumber
+                "frequencies_cm": [1231.1673],
+                "temperatures_k": [298.15, 1000.0],
+                "structure": structure.model_dump(mode="json"),
+                "potential_energy_ev": float(atoms.get_potential_energy()),
+                "symmetry_number": 2,
+                "pressure_pa": 1e8,
+            },
+        )
+        assert r.status_code == 200, r.text
+        table = r.json()
+        assert table["free_energy_kind"] == "gibbs"
+        assert table["geometry"] == "linear"
+        assert table["n_modes"] == 1
+        assert table["zpe_ev"] == pytest.approx(0.07632373926263808, rel=1e-4)
+        assert len(table["points"]) == 2
+        assert table["points"][1]["enthalpy_ev"] == pytest.approx(0.6719935644272014, rel=1e-4)
+
+        # the harmonic model needs no structure at all
+        r = c.post(
+            "/api/analysis/thermo",
+            json={
+                "model": "harmonic",
+                "frequencies_cm": [77.4, 77.4, 140.5],
+                "temperatures_k": [298.15],
+                "potential_energy_ev": 4.120517148154894,
+            },
+        )
+        assert r.status_code == 200, r.text
+        assert r.json()["points"][0]["free_energy_ev"] == pytest.approx(4.0607, abs=2e-3)
+
+        # an imaginary mode is a 400 with the count in it, not a plausible-looking number
+        r = c.post(
+            "/api/analysis/thermo",
+            json={
+                "model": "harmonic",
+                "frequencies_cm": [-250.0, 100.0],
+                "temperatures_k": [300.0],
+            },
+        )
+        assert r.status_code == 400
+        assert "1 imaginary mode" in r.json()["detail"]
+
+        # and the ideal gas says what it is missing rather than guessing a geometry
+        r = c.post(
+            "/api/analysis/thermo",
+            json={
+                "model": "ideal-gas",
+                "frequencies_cm": [100.0, 200.0, 300.0],
+                "temperatures_k": [300.0],
+            },
+        )
+        assert r.status_code == 400
+        assert "needs the molecule" in r.json()["detail"]
