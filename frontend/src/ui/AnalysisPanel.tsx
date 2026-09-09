@@ -31,10 +31,11 @@ import {
   type ChartYMarker,
 } from './charts/LineChart';
 import { channelOrbitals, channels, homoIndex, lumoIndex, stepIndex } from './analysis/orbitals';
+import { DynamicsView } from './analysis/DynamicsView';
 import { ProtocolView } from './analysis/ProtocolView';
 import { PlanesView } from './analysis/PlanesView';
 
-type Section = 'convergence' | 'orbitals' | 'dos' | 'bands' | 'planes' | 'protocol';
+type Section = 'convergence' | 'dynamics' | 'orbitals' | 'dos' | 'bands' | 'planes' | 'protocol';
 
 const SERIES_COLORS = ['#2f6fdb', '#e07a3c', '#3cb371', '#9b59b6', '#c0392b'];
 const SPIN_COLORS = ['#2f6fdb', '#c0392b'];
@@ -316,7 +317,9 @@ export function AnalysisPanel({ onError }: { onError: (m: string) => void }): JS
   return (
     <div className="panel analysis-panel">
       <div className="tabs">
-        {(['convergence', 'orbitals', 'dos', 'bands', 'planes', 'protocol'] as const).map((s) => (
+        {(
+          ['convergence', 'dynamics', 'orbitals', 'dos', 'bands', 'planes', 'protocol'] as const
+        ).map((s) => (
           <button
             key={s}
             className={section === s ? 'tab active' : 'tab'}
@@ -324,15 +327,17 @@ export function AnalysisPanel({ onError }: { onError: (m: string) => void }): JS
           >
             {s === 'dos'
               ? 'DOS'
-              : s === 'bands'
-                ? 'Bands'
-                : s === 'orbitals'
-                  ? 'Orbitals'
-                  : s === 'protocol'
-                    ? 'Protocol'
-                    : s === 'planes'
-                      ? 'Planes'
-                      : 'Convergence'}
+              : s === 'dynamics'
+                ? 'Dynamics'
+                : s === 'bands'
+                  ? 'Bands'
+                  : s === 'orbitals'
+                    ? 'Orbitals'
+                    : s === 'protocol'
+                      ? 'Protocol'
+                      : s === 'planes'
+                        ? 'Planes'
+                        : 'Convergence'}
           </button>
         ))}
       </div>
@@ -397,6 +402,8 @@ export function AnalysisPanel({ onError }: { onError: (m: string) => void }): JS
           )}
         </>
       )}
+
+      {section === 'dynamics' && <DynamicsView calcId={selected.id} />}
 
       {section === 'orbitals' && (
         <>

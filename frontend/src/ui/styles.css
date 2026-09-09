@@ -1004,3 +1004,33 @@ button {
 .new-sweep h4 {
   margin: 0 0 4px;
 }
+
+/* Trajectory time series (Analysis ▸ Dynamics). The term table is a form, not a listing, so it
+   keeps the narrow numeric inputs the dock has room for rather than the orbital table's
+   right-aligned columns. */
+.mode-terms {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+}
+.mode-terms th,
+.mode-terms td {
+  padding: 0.1rem 0.2rem;
+  text-align: left;
+}
+.mode-terms tr.row-invalid td {
+  background: color-mix(in srgb, var(--error) 12%, transparent);
+}
+.dynamics-view .index-input {
+  width: 3.4rem;
+  font-size: 0.8rem;
+  margin-right: 2px;
+}
+/* the buttons and the derivative toggle sit in a row of their own, not the label/field grid */
+.dynamics-view .term-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  margin: 4px 0;
+}
