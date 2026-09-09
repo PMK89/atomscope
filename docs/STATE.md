@@ -2,7 +2,7 @@
 
 Branch: main; this file is updated in the commit that checkpoints the work, so `git log -1 -- docs/STATE.md` is the last checkpoint. Phases 0-1 done; Phase 2 (editor tools), 3 (volumetric, trajectories, vectors), 4-5 (CP-PAW setup/execution/forces), 6 (CP-PAW analysis: DOS, bands, orbitals), crystallography, molecular mechanics and wavefunction surfaces are merged and working. Parity matrix at `8c51b48`, derived (see ROADMAP for the command): 235 IMPLEMENTED, 16 PARTIAL, 60 NOT STARTED, 1 BLOCKED of 312 rows.
 
-Tests: `pytest -q -m "not cppaw"` -> **666 passed, 1 skipped** (100 s); `pytest -q -m cppaw` -> **7 passed** (94 s, runs the real binaries -- **CP-PAW is found through `$PAWDIR`, which the user's own shell sets (`~/cp-paw`), not `env.sh`**; `$ATOMSCOPE_CPPAW_DIR` overrides it, and `ATOMSCOPE_CPPAW_IMAGE` runs them in a container instead); `pnpm vitest run` -> **637 passed** in 92 files; `pnpm exec playwright test` -> **40 passed** in ~56 s; `ATOMSCOPE_COURSE=1 pnpm exec playwright test` -> **14 passed** in ~41 s (course pictures, database, NEB, vibrations; reads `.scratch/course-runs` and `.scratch/neb-proj` -- **`neb.spec.ts` skips itself when `.scratch/neb-proj` is missing**, rebuild it with `../.venv/bin/python ../scripts/make_neb_project.py` from `backend/`; writes `.scratch/course-shots/`) (both against private servers, see below; `make test-e2e` points at the user's 5173, which is stale). **`source env.sh` before Playwright**: without `PLAYWRIGHT_BROWSERS_PATH` it looks in `~/.cache/ms-playwright`, finds nothing, and every test fails at `browserType.launch`. `ruff check`, `ruff format --check`, `mypy` (200 files) and `pnpm typecheck` are clean. No known failing tests. **Type-check the frontend with `pnpm typecheck` (`tsc -b --noEmit`), never with `pnpm exec tsc --noEmit`:** the root `tsconfig.json` is a solution file with `files: []`, so a bare `tsc --noEmit` checks nothing and exits 0.
+Tests: `pytest -q -m "not cppaw"` -> **666 passed, 1 skipped** (100 s); `pytest -q -m cppaw` -> **7 passed** (94 s, runs the real binaries -- **CP-PAW is found through `$PAWDIR`, which the user's own shell sets (`~/cp-paw`), not `env.sh`**; `$ATOMSCOPE_CPPAW_DIR` overrides it, and `ATOMSCOPE_CPPAW_IMAGE` runs them in a container instead); `pnpm vitest run` -> **685 passed** in 98 files; `pnpm exec playwright test` -> **42 passed** in ~60 s; `ATOMSCOPE_COURSE=1 pnpm exec playwright test` -> **14 passed** in ~41 s (course pictures, database, NEB, vibrations; reads `.scratch/course-runs` and `.scratch/neb-proj` -- **`neb.spec.ts` skips itself when `.scratch/neb-proj` is missing**, rebuild it with `../.venv/bin/python ../scripts/make_neb_project.py` from `backend/`; writes `.scratch/course-shots/`) (both against private servers, see below; `make test-e2e` points at the user's 5173, which is stale). **`source env.sh` before Playwright**: without `PLAYWRIGHT_BROWSERS_PATH` it looks in `~/.cache/ms-playwright`, finds nothing, and every test fails at `browserType.launch`. `ruff check`, `ruff format --check`, `mypy` (200 files) and `pnpm typecheck` are clean. No known failing tests. **Type-check the frontend with `pnpm typecheck` (`tsc -b --noEmit`), never with `pnpm exec tsc --noEmit`:** the root `tsconfig.json` is a solution file with `files: []`, so a bare `tsc --noEmit` checks nothing and exits 0.
 
 ## Inspecting the course project, and shipping it
 
@@ -320,14 +320,26 @@ Done, four commits, each CI-green:
    `lengthPrecision`, H-bond width.
 4. cartoon helix/sheet/loop colours (Avogadro's red/yellow/green), ribbon `Include nitrogens`.
 
-**Still open in AV-VIS**, in the order they are worth doing: the Ring (021) and Polygon (022)
-engines, which are new renderers rather than settings -- Polygon is coordination polyhedra, which
-is worth having for the NiO and iron chapters, and Avogadro's own version skips H/C/N/O/S and
-draws only atoms with four or more neighbours (`polygonengine.cpp:65-100`); the Axes engine's
-Cartesian/Orthogonal/Custom modes with three vectors and an origin (023); then the LOW rows that
-need other subsystems -- Simple Wireframe (013), QTAIM (027), Python engines (028), Quick Render
-(033), the debug overlay (037) and GLSL shaders (040). AV-VIS-024's custom dipole vector stays
-deliberately declined.
+5. `PolygonLayer` -- coordination polyhedra (022), with Avogadro's own selection rule and the
+   convex hull of the neighbours instead of its triangle-per-triple spray. Verified on periclase.
+6. `RingLayer` + `model/rings.ts` -- filled ring planes (021), with SSSR perception written for
+   it: the independence check over GF(2) is what gives naphthalene two rings and cubane five.
+7. The axes engine's three types with vectors and an origin (023).
+
+**Two upstream bugs found by reading the source, both recorded beside the code.** Avogadro's
+Orthogonal axes mode never orthogonalises anything: `axesengine.cpp`'s `updateVectors` has no
+`break` before `default:`, so the case falls through and overwrites all three axes from spin boxes
+whose third row it has just disabled. And its polygon engine sprays a triangle per ordered triple
+of neighbours, which fills the interior of every polyhedron with hidden faces -- harmless while
+opaque, obvious once not.
+
+**Still open in AV-VIS**, all LOW and all needing another subsystem: Simple Wireframe (013),
+QTAIM (027), Python engines (028), Quick Render (033), the debug overlay (037) and GLSL shaders
+(040). Three things are deliberately declined and say so in the matrix: AV-VIS-024's custom
+dipole vector (an arbitrary arrow, not a property of the molecule), the cartoon engine's nine
+a/b/c cross-section numbers (the strip here is a splined ribbon, not a swept cross-section) and
+the axes engine's norm-preservation checkbox (it exists to keep separate length boxes in step,
+and there are none here).
 
 **Deferred** (was next, still wanted): a DOS overlay across calculations (8.4), a running average
 on a time series (5.3), distance-against-time from a stored trajectory (5.6). Then the chapters written and not yet run — 4 (malonaldehyde), 6 (silicon,
