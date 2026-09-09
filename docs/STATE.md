@@ -2,7 +2,7 @@
 
 Branch: main; this file is updated in the commit that checkpoints the work, so `git log -1 -- docs/STATE.md` is the last checkpoint. Phases 0-1 done; Phase 2 (editor tools), 3 (volumetric, trajectories, vectors), 4-5 (CP-PAW setup/execution/forces), 6 (CP-PAW analysis: DOS, bands, orbitals), crystallography, molecular mechanics and wavefunction surfaces are merged and working. Parity matrix at `8c51b48`, derived (see ROADMAP for the command): 233 IMPLEMENTED, 16 PARTIAL, 62 NOT STARTED, 1 BLOCKED of 312 rows.
 
-Tests: `pytest -q -m "not cppaw"` -> **666 passed, 1 skipped** (100 s); `pytest -q -m cppaw` -> **7 passed** (94 s, runs the real binaries -- **CP-PAW is found through `$PAWDIR`, which the user's own shell sets (`~/cp-paw`), not `env.sh`**; `$ATOMSCOPE_CPPAW_DIR` overrides it, and `ATOMSCOPE_CPPAW_IMAGE` runs them in a container instead); `pnpm vitest run` -> **613 passed** in 91 files; `pnpm exec playwright test` -> **40 passed** in ~56 s; `ATOMSCOPE_COURSE=1 pnpm exec playwright test` -> **14 passed** in ~41 s (course pictures, database, NEB, vibrations; reads `.scratch/course-runs` and `.scratch/neb-proj` -- **`neb.spec.ts` skips itself when `.scratch/neb-proj` is missing**, rebuild it with `../.venv/bin/python ../scripts/make_neb_project.py` from `backend/`; writes `.scratch/course-shots/`) (both against private servers, see below; `make test-e2e` points at the user's 5173, which is stale). **`source env.sh` before Playwright**: without `PLAYWRIGHT_BROWSERS_PATH` it looks in `~/.cache/ms-playwright`, finds nothing, and every test fails at `browserType.launch`. `ruff check`, `ruff format --check`, `mypy` (200 files) and `pnpm typecheck` are clean. No known failing tests. **Type-check the frontend with `pnpm typecheck` (`tsc -b --noEmit`), never with `pnpm exec tsc --noEmit`:** the root `tsconfig.json` is a solution file with `files: []`, so a bare `tsc --noEmit` checks nothing and exits 0.
+Tests: `pytest -q -m "not cppaw"` -> **666 passed, 1 skipped** (100 s); `pytest -q -m cppaw` -> **7 passed** (94 s, runs the real binaries -- **CP-PAW is found through `$PAWDIR`, which the user's own shell sets (`~/cp-paw`), not `env.sh`**; `$ATOMSCOPE_CPPAW_DIR` overrides it, and `ATOMSCOPE_CPPAW_IMAGE` runs them in a container instead); `pnpm vitest run` -> **637 passed** in 92 files; `pnpm exec playwright test` -> **40 passed** in ~56 s; `ATOMSCOPE_COURSE=1 pnpm exec playwright test` -> **14 passed** in ~41 s (course pictures, database, NEB, vibrations; reads `.scratch/course-runs` and `.scratch/neb-proj` -- **`neb.spec.ts` skips itself when `.scratch/neb-proj` is missing**, rebuild it with `../.venv/bin/python ../scripts/make_neb_project.py` from `backend/`; writes `.scratch/course-shots/`) (both against private servers, see below; `make test-e2e` points at the user's 5173, which is stale). **`source env.sh` before Playwright**: without `PLAYWRIGHT_BROWSERS_PATH` it looks in `~/.cache/ms-playwright`, finds nothing, and every test fails at `browserType.launch`. `ruff check`, `ruff format --check`, `mypy` (200 files) and `pnpm typecheck` are clean. No known failing tests. **Type-check the frontend with `pnpm typecheck` (`tsc -b --noEmit`), never with `pnpm exec tsc --noEmit`:** the root `tsconfig.json` is a solution file with `files: []`, so a bare `tsc --noEmit` checks nothing and exits 0.
 
 ## Inspecting the course project, and shipping it
 
@@ -294,6 +294,40 @@ out: input (same setup, `NPRO`, `LRHOX`, `R=30`, `EPWPSI`/`CDUAL`; the ch. 6.3 d
 CP-PAW's own default, `paw_ioroutines.f90:1082`), convergence (every point stops on `AUTOCONV`
 with kinetic energy 1e-6), and `paw_scanlat -u` (bookkeeping only). What is left is the build. This
 is why the fit is validated against the tutorial's *own* seven points and not against a rerun.
+
+## Avogadro display settings (asked for 2026-09-09)
+
+The user reported that ball and stick "doesn't look right" and asked for **all** of Avogadro 1's
+display settings. The reference source is at `/media/pmk/SysEx/cs/paw/avogadro/avogadro-master`
+(an external drive -- `.scratch/avogadro/verify.sh` records the path). **Treat it as authoritative
+over the parity matrix**, whose AV-VIS-003/004 notes were stale in exactly this area.
+
+The reported bug, found by reading `bsdyengine.cpp`: Avogadro draws ball-and-stick spheres at
+`pRadius(atom) * m_atomRadiusPercentage` with the basis defaulting to the **van der Waals** radius
+(`m_atomRadiusType(1)`, `pRadius(radiusVdW)`); Atomscope used the covalent radius, so every sphere
+was about half its size -- carbon at 0.27 A instead of 0.51.
+
+Done, four commits, each CI-green:
+
+1. `1346816` -- the radius basis (vdW default, covalent offered), no clamp against the bond radius
+   (Avogadro has none, and the clamp made the bottom third of the slider do nothing), the stick
+   style's own radius (0.25 vs ball-and-stick's 0.1), Avogadro's defaults (0.3 / 0.1) and slider
+   ranges. The vdW column of `elements.ts` now comes from **Open Babel**, the table Avogadro reads;
+   ASE's Bondi set had no value for 50 of 104 elements, every 3d and 4d transition metal included.
+2. opacity, wireframe dots, four named fog levels (`fogBand`, extracted so it is testable without
+   WebGL), `View > Reset display types`.
+3. surface Fill/Lines/Points + Draw box + 0.75 default opacity, separate bond-label displacement,
+   `lengthPrecision`, H-bond width.
+4. cartoon helix/sheet/loop colours (Avogadro's red/yellow/green), ribbon `Include nitrogens`.
+
+**Still open in AV-VIS**, in the order they are worth doing: the Ring (021) and Polygon (022)
+engines, which are new renderers rather than settings -- Polygon is coordination polyhedra, which
+is worth having for the NiO and iron chapters, and Avogadro's own version skips H/C/N/O/S and
+draws only atoms with four or more neighbours (`polygonengine.cpp:65-100`); the Axes engine's
+Cartesian/Orthogonal/Custom modes with three vectors and an origin (023); then the LOW rows that
+need other subsystems -- Simple Wireframe (013), QTAIM (027), Python engines (028), Quick Render
+(033), the debug overlay (037) and GLSL shaders (040). AV-VIS-024's custom dipole vector stays
+deliberately declined.
 
 **Deferred** (was next, still wanted): a DOS overlay across calculations (8.4), a running average
 on a time series (5.3), distance-against-time from a stored trajectory (5.6). Then the chapters written and not yet run — 4 (malonaldehyde), 6 (silicon,
