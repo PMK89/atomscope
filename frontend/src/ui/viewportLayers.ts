@@ -62,6 +62,8 @@ export function syncExtraLayers(
       scale: view.ribbonScale,
       colorScheme: view.ribbonColorScheme,
       residuePalette: view.residuePalette,
+      cartoonColors: view.cartoonColors,
+      useNitrogens: view.ribbonNitrogens,
     });
   }
   const vectors = renderer.getLayer('vectors');

@@ -563,7 +563,27 @@ export function DisplayPanel(): JSX.Element {
           <option value="residue">Residue</option>
         </select>
       </div>
+      <Toggle
+        id="display-ribbon-nitrogens"
+        label="Include nitrogens"
+        checked={view.ribbonNitrogens}
+        onChange={view.toggleRibbonNitrogens}
+      />
       {view.ribbonColorScheme === 'residue' && <PaletteRow id="display-ribbon-palette" />}
+      {view.ribbonColorScheme === 'secondary' &&
+        (['helix', 'sheet', 'loop'] as const).map((kind) => (
+          <div className="form-row" key={kind}>
+            <label htmlFor={`display-cartoon-${kind}`}>
+              {kind === 'loop' ? 'Loop colour' : `${kind[0]!.toUpperCase()}${kind.slice(1)} colour`}
+            </label>
+            <input
+              id={`display-cartoon-${kind}`}
+              type="color"
+              value={view.cartoonColors[kind]}
+              onChange={(e) => view.setCartoonColor(kind, e.target.value)}
+            />
+          </div>
+        ))}
       <div className="form-row">
         <label htmlFor="display-ribbon-scale">Width</label>
         <input

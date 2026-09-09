@@ -1,4 +1,4 @@
-import { expect, test } from 'vitest';
+import { describe, expect, it, test } from 'vitest';
 import { dot } from './geometry';
 import {
   SAMPLES_PER_RESIDUE,
@@ -7,6 +7,7 @@ import {
   sideVectors,
   stripGeometry,
   type GuideResidue,
+  withNitrogens,
 } from './ribbon';
 import type { Vec3 } from './structure';
 
@@ -85,4 +86,52 @@ test('two chains are two strips with no triangle between them', () => {
   expect(geometry.indices.length).toBe(2 * (a.length - 1) * 6);
   const half = geometry.positions.length / 3 / 2;
   expect(Math.max(...geometry.indices.slice(0, (a.length - 1) * 6))).toBeLessThan(half);
+});
+
+describe('withNitrogens', () => {
+  it('adds each backbone nitrogen before its own alpha carbon', () => {
+    const residues: GuideResidue[] = [
+      { ca: [1, 0, 0], o: [1, 1, 0], n: [0.5, 0, 0], kind: 'helix' },
+      { ca: [4, 0, 0], o: [4, 1, 0], n: [3.5, 0, 0], kind: 'sheet' },
+    ];
+    const out = withNitrogens(residues);
+    // two guide points per residue, the nitrogen first: N-CA is the backbone order
+    expect(out.map((r) => r.ca)).toEqual([
+      [0.5, 0, 0],
+      [1, 0, 0],
+      [3.5, 0, 0],
+      [4, 0, 0],
+    ]);
+    // each nitrogen point carries its own residue's kind and orienting oxygen, so the widths,
+    // the colours and the sheet arrowhead all keep working on the longer list
+    expect(out.map((r) => r.kind)).toEqual(['helix', 'helix', 'sheet', 'sheet']);
+    expect(out[2]!.o).toEqual([4, 1, 0]);
+  });
+
+  it('leaves a residue with no nitrogen alone', () => {
+    const residues: GuideResidue[] = [
+      { ca: [1, 0, 0], o: [1, 1, 0], kind: 'coil' },
+      { ca: [4, 0, 0], o: [4, 1, 0], n: [3.5, 0, 0], kind: 'coil' },
+    ];
+    // a deleted or hidden nitrogen is not a broken chain, only one fewer guide point
+    expect(withNitrogens(residues)).toHaveLength(3);
+  });
+
+  it('makes the spline follow the backbone more closely', () => {
+    // a kinked chain: through the alpha carbons alone the curve cuts the corner; through the
+    // nitrogens as well it stays nearer the backbone it is drawn for
+    const kinked: GuideResidue[] = [
+      { ca: [0, 0, 0], o: [0, 1, 0], n: [-0.5, 0, 0], kind: 'coil' },
+      { ca: [3, 0, 0], o: [3, 1, 0], n: [2.5, 0, 0], kind: 'coil' },
+      { ca: [3, 3, 0], o: [4, 3, 0], n: [3, 2.5, 0], kind: 'coil' },
+      { ca: [6, 3, 0], o: [6, 4, 0], n: [5.5, 3, 0], kind: 'coil' },
+    ];
+    const plain = chainFrames(kinked, 'backbone');
+    const withN = chainFrames(withNitrogens(kinked), 'backbone');
+    expect(withN.length).toBeGreaterThan(plain.length);
+    // the corner at (3,0) is where cutting shows: measure how near each curve gets to it
+    const nearest = (frames: ReturnType<typeof chainFrames>): number =>
+      Math.min(...frames.map((f) => Math.hypot(f.center[0] - 3, f.center[1] - 0)));
+    expect(nearest(withN)).toBeLessThanOrEqual(nearest(plain) + 1e-9);
+  });
 });

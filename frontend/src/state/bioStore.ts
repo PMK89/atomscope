@@ -37,6 +37,7 @@ export const useBioStore = create<BioState>((set, get) => ({
             kind: r.kind,
             ca: r.ca,
             o: r.o,
+            n: r.n,
           })),
           chains: result.chains,
         },

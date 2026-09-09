@@ -832,6 +832,16 @@ ball-and-stick, which Avogadro does with two engines at once, is not possible.
 `Show atoms (wireframe)` draws the atoms of the `Wireframe` style as dots, or
 leaves the bare lines, which is what the style is for on a large structure.
 
+**Ribbon colours.** When the ribbon is coloured by secondary structure, the
+three colours Avogadro exposes are settable: `Helix colour`, `Sheet colour` and
+`Loop colour`, starting at its own red, yellow and green. The loop colour
+covers both turns and coil — Atomscope tells those apart where Avogadro has one
+"loop", so one control drives the two of them.
+
+`Include nitrogens` splines the ribbon through the backbone nitrogens as well
+as the alpha carbons, which makes the curve hug the backbone more closely. Off
+by default, as it is in Avogadro.
+
 **Label placement and precision.** The atom labels and the bond labels have
 separate `Shift x/y/z` offsets, because lifting an atom label clear of its
 sphere should not also lift every bond label off its bond. `Length decimals`

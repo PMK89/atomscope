@@ -15,7 +15,11 @@ import {
 } from 'three';
 import type { Vec3 } from '../../model/structure';
 import {
+  AVOGADRO_CARTOON_COLORS,
   chainFrames,
+  kindColors,
+  withNitrogens,
+  type CartoonColors,
   stripGeometry,
   type GuideResidue,
   type RibbonStyle,
@@ -36,6 +40,8 @@ export interface ResidueAssignment {
   kind: GuideResidue['kind'];
   ca: string;
   o: string;
+  /** backbone nitrogen, used when "Include nitrogens" is on */
+  n?: string;
 }
 
 /** What the backend returned for the current document. */
@@ -53,6 +59,10 @@ export interface RibbonLayerSettings {
   /** Multiplies the widths the style defines. */
   scale: number;
   colorScheme: RibbonColorScheme;
+  /** The three colours Avogadro's cartoon engine exposes: helix, sheet and loop. */
+  cartoonColors: CartoonColors;
+  /** Spline through the backbone nitrogens as well as the alpha carbons. */
+  useNitrogens: boolean;
   /** Which residue table the `residue` scheme paints with; shared with the atom colours. */
   residuePalette: ResiduePalette;
 }
@@ -61,6 +71,8 @@ export const DEFAULT_RIBBON_SETTINGS: RibbonLayerSettings = {
   style: 'cartoon',
   scale: 1,
   colorScheme: 'secondary',
+  cartoonColors: AVOGADRO_CARTOON_COLORS,
+  useNitrogens: false,
   residuePalette: 'amino',
 };
 
@@ -177,12 +189,23 @@ export class RibbonLayer implements DisplayLayer {
           continue;
         }
         const color = colorOf(r.residue);
-        guide.push({ ca, o, kind: r.kind, ...(color ? { color } : {}) });
+        // a missing or hidden nitrogen is not a broken chain: the residue simply contributes its
+        // alpha carbon alone, as it does with the option off
+        const n = r.n ? at(r.n) : null;
+        guide.push({
+          ca,
+          o,
+          kind: r.kind,
+          ...(n ? { n } : {}),
+          ...(color ? { color } : {}),
+        });
       }
       if (guide.length > 1) chains.push(guide);
     }
 
-    const frames = chains.map((c) => this.scaled(chainFrames(c, this.settings.style)));
+    const colors = kindColors(this.settings.cartoonColors);
+    const guide = this.settings.useNitrogens ? chains.map(withNitrogens) : chains;
+    const frames = guide.map((c) => this.scaled(chainFrames(c, this.settings.style, colors)));
     const geometry = stripGeometry(frames);
     // the mesh is rebuilt whenever the positions change, so a key over the sizes is not enough
     const key = `${JSON.stringify(this.settings)}|${geometry.positions.length}`;

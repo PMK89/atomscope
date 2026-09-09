@@ -221,3 +221,32 @@ test('an equal hidden set does not rebuild the spline', () => {
   expect((layer.object.children[0] as Mesh).geometry.getAttribute('position')).toBe(positions);
   layer.dispose();
 });
+
+test('the cartoon colours are Avogadro defaults and are settable', () => {
+  const { doc, data } = protein();
+  const layer = new RibbonLayer();
+  layer.visible = true;
+  layer.setData(data);
+
+  const distinct = (): string[] => {
+    const mesh = layer.object.children[0] as Mesh;
+    const attribute = mesh.geometry.getAttribute('color');
+    const out = new Set<string>();
+    for (let i = 0; i < attribute.count; i++)
+      out.add(
+        [attribute.getX(i), attribute.getY(i), attribute.getZ(i)]
+          .map((v) => v.toFixed(3))
+          .join(','),
+      );
+    return [...out];
+  };
+
+  // Avogadro's cartoonengine.cpp:60-62 -- Qt::red, Qt::yellow, Qt::green
+  layer.update(ctx(doc));
+  expect(distinct()).toEqual(['1.000,0.000,0.000']);
+
+  layer.setSettings({ cartoonColors: { helix: '#0000ff', sheet: '#ffff00', loop: '#00ff00' } });
+  layer.update(ctx(doc));
+  expect(distinct()).toEqual(['0.000,0.000,1.000']);
+  layer.dispose();
+});

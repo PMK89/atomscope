@@ -18,9 +18,31 @@ export interface GuideResidue {
   ca: Vec3;
   /** carbonyl oxygen, which orients the ribbon */
   o: Vec3;
+  /** backbone nitrogen, used only by `withNitrogens` */
+  n?: Vec3;
   kind: SecondaryKind;
   /** the colour of this residue's part of the strip; the secondary-structure colour if absent */
   color?: Vec3;
+}
+
+/**
+ * The same chain with the backbone nitrogens as guide points too -- Avogadro's ribbon engine
+ * "Include Nitrogens" (`m_useNitrogens`, off by default), which splines through N and CA rather
+ * than CA alone and so follows the backbone more closely.
+ *
+ * Done by expanding the residue list rather than by interleaving inside the geometry: every N
+ * point carries its residue's kind and colour, so the widths, the colours and the sheet
+ * arrowhead all keep working unchanged. The N point reuses its residue's carbonyl oxygen to
+ * orient the strip, which is not the same vector as at the alpha carbon but is close enough to
+ * it that the sign carried along the chain still keeps the strip from twisting.
+ */
+export function withNitrogens(residues: GuideResidue[]): GuideResidue[] {
+  const out: GuideResidue[] = [];
+  for (const r of residues) {
+    if (r.n) out.push({ ...r, ca: r.n });
+    out.push(r);
+  }
+  return out;
 }
 
 /** A point of the smoothed backbone with the frame and width the strip uses there. */
@@ -44,13 +66,33 @@ const WIDTH: Record<RibbonStyle, Record<SecondaryKind, number>> = {
   cartoon: { helix: 1.1, sheet: 1.2, turn: 0.35, coil: 0.3 },
 };
 
-/** Avogadro's cartoon colours: helices red, sheets yellow, the rest pale. */
-export const KIND_COLOR: Record<SecondaryKind, [number, number, number]> = {
-  helix: [0.85, 0.25, 0.25],
-  sheet: [0.92, 0.82, 0.25],
-  turn: [0.45, 0.7, 0.9],
-  coil: [0.85, 0.85, 0.85],
-};
+/**
+ * Avogadro's cartoon colours (`cartoonengine.cpp:60-62`): `Qt::red`, `Qt::yellow`, `Qt::green`.
+ * It has one "loop" colour where this has both `turn` and `coil`, so the loop colour drives the
+ * two of them -- the split is finer than the reference's, not different from it.
+ */
+export const AVOGADRO_CARTOON_COLORS = {
+  helix: '#ff0000',
+  sheet: '#ffff00',
+  loop: '#00ff00',
+} as const;
+
+export type CartoonColors = { helix: string; sheet: string; loop: string };
+
+/** The per-kind colours the geometry uses, from the three Avogadro exposes. */
+export function kindColors(colors: CartoonColors): Record<SecondaryKind, Vec3> {
+  const rgb = (hex: string): Vec3 => {
+    const n = Number.parseInt(hex.replace('#', ''), 16);
+    return Number.isFinite(n) && hex.length === 7
+      ? [((n >> 16) & 255) / 255, ((n >> 8) & 255) / 255, (n & 255) / 255]
+      : [0.5, 0.5, 0.5];
+  };
+  const loop = rgb(colors.loop);
+  return { helix: rgb(colors.helix), sheet: rgb(colors.sheet), turn: loop, coil: loop };
+}
+
+/** The default per-kind colours, which are Avogadro's three. */
+export const KIND_COLOR: Record<SecondaryKind, Vec3> = kindColors(AVOGADRO_CARTOON_COLORS);
 
 /**
  * Side vectors along a chain: the carbonyl direction made perpendicular to the backbone, with the
@@ -96,7 +138,11 @@ const at = <T>(xs: T[], i: number): T => xs[Math.min(xs.length - 1, Math.max(0, 
  * Frames along one chain. A sheet tapers into an arrowhead over its last residue, which is what
  * makes a cartoon readable; every other run keeps its width.
  */
-export function chainFrames(residues: GuideResidue[], style: RibbonStyle): Frame[] {
+export function chainFrames(
+  residues: GuideResidue[],
+  style: RibbonStyle,
+  colors: Record<SecondaryKind, Vec3> = KIND_COLOR,
+): Frame[] {
   if (residues.length < 2) return [];
   const sides = sideVectors(residues);
   const widths = WIDTH[style];
@@ -129,7 +175,7 @@ export function chainFrames(residues: GuideResidue[], style: RibbonStyle): Frame
         up: normalize(cross(tangent, side), [0, 0, 1]),
         width: widths[kind] * arrowScale(residues, i, t, style),
         kind,
-        color: residues[i]!.color ?? KIND_COLOR[kind],
+        color: residues[i]!.color ?? colors[kind],
       });
     }
   }

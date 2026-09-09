@@ -13,7 +13,7 @@ import {
 } from '../renderer/layers/StructureLayer';
 import type { FogLevel, Projection } from '../renderer/Renderer';
 import { LENGTH_PRECISION, type AtomLabelContent, type BondLabelContent } from '../renderer/labels';
-import type { RibbonStyle } from '../model/ribbon';
+import { AVOGADRO_CARTOON_COLORS, type CartoonColors, type RibbonStyle } from '../model/ribbon';
 import type { RibbonColorScheme } from '../renderer/layers/RibbonLayer';
 import { DEFAULT_HBOND_SETTINGS } from '../model/hbonds';
 
@@ -93,6 +93,12 @@ export interface ViewState {
   ribbonScale: number;
   /** The ribbon engine's own colour map (Avogadro gives every engine one). */
   ribbonColorScheme: RibbonColorScheme;
+  /** The three colours Avogadro's cartoon engine exposes (helix, sheet, loop). */
+  cartoonColors: CartoonColors;
+  setCartoonColor: (kind: keyof CartoonColors, color: string) => void;
+  /** Spline the ribbon through the backbone nitrogens as well as the alpha carbons. */
+  ribbonNitrogens: boolean;
+  toggleRibbonNitrogens: () => void;
   setRibbonColorScheme: (scheme: RibbonColorScheme) => void;
   toggleRibbon: () => void;
   setRibbonStyle: (style: RibbonStyle) => void;
@@ -191,6 +197,8 @@ export const DISPLAY_TYPE_DEFAULTS = {
   ribbonStyle: 'cartoon',
   ribbonScale: 1,
   ribbonColorScheme: 'secondary',
+  cartoonColors: AVOGADRO_CARTOON_COLORS,
+  ribbonNitrogens: false,
   showHBonds: false,
   hbondDistance: DEFAULT_HBOND_SETTINGS.maxDistance,
   hbondAngle: DEFAULT_HBOND_SETTINGS.minAngle,
@@ -258,6 +266,11 @@ export const useViewStore = create<ViewState>((set) => ({
   ribbonStyle: 'cartoon',
   ribbonScale: 1,
   ribbonColorScheme: 'secondary',
+  cartoonColors: { ...AVOGADRO_CARTOON_COLORS },
+  setCartoonColor: (kind, color) =>
+    set((st) => ({ cartoonColors: { ...st.cartoonColors, [kind]: color } })),
+  ribbonNitrogens: false,
+  toggleRibbonNitrogens: () => set((st) => ({ ribbonNitrogens: !st.ribbonNitrogens })),
   setRibbonColorScheme: (ribbonColorScheme) => set({ ribbonColorScheme }),
   toggleRibbon: () => set((s) => ({ showRibbon: !s.showRibbon })),
   setRibbonStyle: (ribbonStyle) => set({ ribbonStyle }),
