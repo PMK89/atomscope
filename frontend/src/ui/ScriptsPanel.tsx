@@ -145,7 +145,7 @@ export function ScriptsPanel({ onError }: { onError: (m: string) => void }): JSX
       .catch(fail);
   };
 
-  const useExample = (id: string): void => {
+  const applyExample = (id: string): void => {
     const found = examples.find((e) => e.id === id);
     if (!found) return;
     // an example is read-only: it is copied into a project script of the same name
@@ -297,7 +297,7 @@ export function ScriptsPanel({ onError }: { onError: (m: string) => void }): JSX
             id="script-example"
             value=""
             onChange={(e) => {
-              useExample(e.target.value);
+              applyExample(e.target.value);
               e.currentTarget.value = '';
             }}
           >
