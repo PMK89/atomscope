@@ -141,9 +141,9 @@ A row saying `SHOWS` is a claim until someone has looked at the picture. `fronte
 (`ATOMSCOPE_COURSE=1 pnpm exec playwright test`, see
 [`../developer-guide.md`](../developer-guide.md) §8) opens the course project in the running
 application, asserts what has to be on the chart and writes the picture to
-`.scratch/course-shots/`. Ten pass today, covering Figs 4.8, 5.1, 5.2, 6.4, 8.1, 8.2, 8.5, the
-planar cuts of §"Field cuts", the graph controls, the protocol view, and the DOS shape shared by
-3.1/4.2/4.6/6.1/7.1/7.3.
+`.scratch/course-shots/`. Eleven pass today, covering Figs 4.8, 5.1, 5.2, 6.4, 6.6, 6.7, 8.1,
+8.2, 8.5, the planar cuts of §"Field cuts", the graph controls, the protocol view, and the DOS
+shape shared by 3.1/4.2/4.6/6.1/7.1/7.3.
 
 Fig. **6.9 is a metal**, and no metallic band structure has been run: the aluminium and iron
 chapters compute a DOS but no k-path, so nothing on disk has both a Fermi level and a band

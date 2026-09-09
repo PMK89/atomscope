@@ -552,14 +552,24 @@ EXERCISES = (
 )
 
 
-def silicon() -> Structure:
-    """Chapter 6.3: silicon in the diamond structure at its experimental lattice constant.
+#: Silicon's measured lattice constant, and the 100% point of the volume scan.
+SILICON_A = 5.431
+
+#: The percentages the course's `paw_scanlat -l` scans for ch. 6.3.7.
+SILICON_SCAN = (94.0, 96.0, 98.0, 100.0, 102.0, 104.0, 106.0)
+
+
+def silicon(a: float = SILICON_A) -> Structure:
+    """Chapter 6.3: silicon in the diamond structure, by default at its measured lattice constant.
 
     The course writes the two atoms at 0 and (1/4, 1/4, 1/4) *of the lattice constant*, which is
     Cartesian in units of LUNIT rather than fractional -- for fcc diamond that is a/4 along the
     body diagonal.
+
+    ``a`` is what `paw_scanlat -l` varies: the whole cell scales with it, positions included, so
+    the crystal stays diamond and only its volume changes. The primitive cell's volume is a^3/4,
+    which is `paw_murnaghan.x`'s ``-vbl 0.25``.
     """
-    a = 5.431
     return from_atoms(
         Atoms(
             "Si2",
@@ -571,7 +581,7 @@ def silicon() -> Structure:
             ],
             pbc=True,
         ),
-        name="silicon",
+        name=f"silicon a={a:g} A",
     )
 
 
@@ -684,6 +694,47 @@ SWEEPS = (
                 " repeated that far apart would be sampled. The course tries 20, 30 and 50 bohr"
                 " and says 30-50 is the usual range; 10 is added at the bottom to show what too"
                 " coarse looks like."
+            ),
+        ),
+    ),
+    SweepExercise(
+        id="silicon-volume",
+        chapter="6.3.7",
+        title="Silicon's equilibrium volume and bulk modulus",
+        structure=silicon(),
+        spec=SweepSpec(
+            name="Silicon volume",
+            backend_id="cppaw",
+            label="Lattice constant",
+            unit="%",
+            base_values=SILICON_REFERENCE,
+            points=[
+                SweepPointSpec(x=p, structure=silicon(SILICON_A * p / 100.0))
+                for p in SILICON_SCAN
+            ],
+        ),
+        shows="the energy-volume curve, its cubic fit (Fig. 6.6) and Murnaghan's equation of"
+        " state through it (Fig. 6.7), which gives the bulk modulus",
+        notes=(
+            (
+                "The course runs this as `paw_scanlat -p si -l \"94 96 98 100 102 104 106\" -u`,"
+                " which writes `murn.in` and pipes it into `paw_murnaghan.x -vbl 0.25`. The same"
+                " percentages are used here, so the curve is comparable point for point."
+            ),
+            (
+                "The cell is what varies, so each point carries its own structure. The whole cell"
+                " scales, positions included, which keeps the crystal diamond and changes only"
+                " its volume -- an equation of state is a function of the volume alone."
+            ),
+            (
+                "`-vbl 0.25` is the primitive cell's volume over the cube of the lattice"
+                " constant, a^3/4 for fcc. Enter 0.25 in the Sweeps panel to have the"
+                " equilibrium volume reported as a lattice constant."
+            ),
+            (
+                "The tutorial's own answer for these points is E0 = -8.03221 H, V0 = 272.107"
+                " bohr^3, a0 = 5.44337 A and B0 = 91.84 GPa with B' = 5.32 -- PBE overshooting"
+                " the measured 5.431 A by 0.2%, which is what the exercise is showing."
             ),
         ),
     ),

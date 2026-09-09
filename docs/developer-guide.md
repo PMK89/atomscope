@@ -667,7 +667,7 @@ photograph something, or they need a project the default suite does not build
 | Command | Specs | Count |
 | --- | --- | --- |
 | `pnpm exec playwright test` | the other eight | 40, ~57 s |
-| `ATOMSCOPE_COURSE=1 pnpm exec playwright test` | `course-visual`, `database`, `neb`, `vibrations` | 13, ~40 s |
+| `ATOMSCOPE_COURSE=1 pnpm exec playwright test` | `course-visual`, `database`, `neb`, `vibrations` | 14, ~40 s |
 | `ATOMSCOPE_PERF=1 pnpm exec playwright test` | `perf` | see [`performance.md`](performance.md) |
 
 `source env.sh` first, always: without `PLAYWRIGHT_BROWSERS_PATH` the launcher

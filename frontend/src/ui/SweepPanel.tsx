@@ -127,7 +127,7 @@ export function SweepPanel({ onError }: { onError: (m: string) => void }): JSX.E
 
   if (sweeps.length === 0) {
     return (
-      <div className="panel-body">
+      <div className="panel-body sweep-panel">
         <p className="muted">
           No sweeps in this project. A sweep is several calculations that differ in one way — a
           cutoff, a cell size, a volume — plotted against that one number.
@@ -165,7 +165,7 @@ export function SweepPanel({ onError }: { onError: (m: string) => void }): JSX.E
   const pending = curve?.result.points.filter((p) => p.energy_ev === null) ?? [];
 
   return (
-    <div className="panel-body">
+    <div className="panel-body sweep-panel">
       <div className="form-row">
         <label htmlFor="sweep-select">Sweep</label>
         <select
@@ -275,8 +275,12 @@ export function SweepPanel({ onError }: { onError: (m: string) => void }): JSX.E
             </p>
           )}
           {fitNote !== null && <p className="muted">{fitNote}</p>}
+          {/*
+            No `role="status"` on either fit readout: the convergence answer is the panel's one
+            live region, and a second would shadow it for every `getByRole('status')` locator.
+          */}
           {fit?.kind === 'cubic' && fit.cubic && (
-            <p className="muted" role="status">
+            <p className="muted fit-readout">
               {fit.cubic.x_min === null || fit.cubic.x_min === undefined
                 ? 'The cubic has no minimum in this range — the sweep falls away without turning.'
                 : `Minimum at ${axisLabel(curve)} ${fit.cubic.x_min.toFixed(3)}${
@@ -310,7 +314,7 @@ export function SweepPanel({ onError }: { onError: (m: string) => void }): JSX.E
                 markers={[{ x: fit.murnaghan.v0_a3, label: 'V₀' }]}
                 settingsId="sweeps.eos"
               />
-              <p className="muted" role="status">
+              <p className="muted fit-readout">
                 B₀ = {fit.murnaghan.b0_gpa.toFixed(2)} GPa · B′ = {fit.murnaghan.bp.toFixed(3)} · V₀
                 = {fit.murnaghan.v0_a3.toFixed(3)} Å³
                 {fit.murnaghan.lattice_constant_a !== null &&

@@ -92,7 +92,10 @@ class CubicParameters(StrictModel):
         default=None, description="where the cubic has its minimum, when it has one"
     )
     y_min: float | None = Field(default=None, description="eV at `x_min`")
-    extrapolated: bool = Field(description="`x_min` lies outside the x that were computed")
+    extrapolated: bool = Field(
+        description="the sweep did not bracket a minimum: `x_min` is either outside the x that"
+        " were computed, or absent because the cubic has none"
+    )
 
 
 class SweepFit(StrictModel):

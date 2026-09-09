@@ -3,8 +3,12 @@ import { join } from 'node:path';
 import { expect, test } from '@playwright/test';
 
 /**
- * The Database tab against the course project's real 22 rows. Kept with the other course
- * pictures (ATOMSCOPE_COURSE=1): it opens a project of its own.
+ * The Database tab against the course project's real rows. Kept with the other course pictures
+ * (ATOMSCOPE_COURSE=1): it opens a project of its own.
+ *
+ * The total grows every time another exercise is run into that project, so it is read off the
+ * panel rather than pinned; what is asserted is the per-element counts, which is what a chemistry
+ * selection is for.
  */
 const RUNS = join(process.cwd(), '..', '.scratch', 'course-runs');
 const SHOTS = join(process.cwd(), '..', '.scratch', 'course-shots');
@@ -26,23 +30,26 @@ test('the database selects the course calculations by chemistry', async ({ page,
   const panel = page.getByLabel('Database');
   const status = panel.getByRole('status');
   const select = panel.getByRole('button', { name: 'Select' });
-  await expect(status).toHaveText('22 calculations', { timeout: 20_000 });
+  await expect(status).toHaveText(/^\d+ calculations$/, { timeout: 20_000 });
+  const total = Number(/^(\d+)/.exec(await status.innerText())?.[1]);
+  expect(total).toBeGreaterThanOrEqual(22);
 
   // iron: the reference plus the eight cutoff points plus the five dual-cutoff points
   await panel.getByLabel('Selection').fill('Fe');
   await select.click();
-  await expect(status).toHaveText('14 of 22 match Fe');
+  await expect(status).toHaveText(`14 of ${total} match Fe`);
   await expect(panel.getByRole('cell', { name: 'iron-reference' })).toBeVisible();
 
-  // chemistry and a parameter together, which is the point of the thing
+  // chemistry and a parameter together, which is the point of the thing: the five k-point runs
+  // plus the seven of the ch. 6.3.7 volume scan, all at the same cutoff
   await panel.getByLabel('Selection').fill('Si,epwpsi=30');
   await select.click();
   await expect(status).toContainText('match Si,epwpsi=30');
-  await expect(panel.locator('.orbital-table tbody tr')).toHaveCount(5);
+  await expect(panel.locator('.orbital-table tbody tr')).toHaveCount(12);
 
   await panel.getByLabel('Selection').fill('H');
   await select.click();
-  await expect(status).toHaveText('3 of 22 match H');
+  await expect(status).toHaveText(`3 of ${total} match H`);
   await page.screenshot({ path: join(SHOTS, 'database-water.png') });
 
   // an example is a button

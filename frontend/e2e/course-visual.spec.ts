@@ -419,3 +419,87 @@ test('iron: the cutoff convergence over the basis-set size it cost', async ({ pa
   await expect(page.getByRole('status')).toContainText(/Settled from|Not settled/);
   await page.screenshot({ path: join(SHOTS, 'iron-cutoff-basis.png') });
 });
+
+test('silicon: the cubic and the equation of state through the volume scan', async ({
+  page,
+  request,
+}) => {
+  const base = process.env['PLAYWRIGHT_BASE_URL'] ?? 'http://127.0.0.1:5173';
+  const project = join(RUNS, 'course');
+  test.skip(!existsSync(project), 'run scripts/course/sweep.py silicon-volume first');
+
+  await request.post(`${base}/api/project/close`);
+  expect(
+    (await request.post(`${base}/api/project/open`, { data: { path: project } })).ok(),
+  ).toBeTruthy();
+
+  await page.goto('/');
+  await page.getByRole('tab', { name: 'Sweeps' }).click();
+  const picker = page.getByRole('combobox', { name: 'Sweep' });
+  const label = await picker
+    .locator('option')
+    .filter({ hasText: 'Lattice constant' })
+    .first()
+    .textContent();
+  test.skip(label === null, 'run scripts/course/sweep.py silicon-volume first');
+  await picker.selectOption({ label: label! });
+
+  const energy = page.locator('.panel-body svg[aria-label="Convergence"]');
+  await expect(energy).toBeVisible();
+  // seven points from 94% to 106%, with the minimum inside the range -- the curve turns over
+  await expect(energy.locator('polyline')).toHaveCount(1);
+
+  // ---- Fig. 6.6: the cubic, over the points, on the sweep's own axes
+  const sweeps = page.locator('.sweep-panel');
+  await sweeps.getByLabel('Fitted curve').selectOption('cubic');
+  await expect(energy.locator('polyline')).toHaveCount(2);
+  await expect(energy.locator('polyline[stroke-dasharray]')).toHaveCount(1);
+  const cubicNote = sweeps.getByText(/Minimum at Lattice constant/);
+  await expect(cubicNote).toBeVisible();
+  // 100% *is* silicon's measured lattice constant, so the minimum lands within a fraction of a
+  // percent of it: this build gives 99.98%, the tutorial 100.25% (see cppaw-analysis.md 7.8).
+  const cubicText = await cubicNote.innerText();
+  const percent = Number(/\[%\] ([\d.]+)\./.exec(cubicText)?.[1]);
+  expect(percent, cubicText).toBeGreaterThan(99.5);
+  expect(percent, cubicText).toBeLessThan(101);
+  // scroll it into view or the picture is of the panel above it (the friction and IR charts
+  // taught this twice already)
+  await energy.scrollIntoViewIfNeeded();
+  await page.screenshot({ path: join(SHOTS, 'silicon-cubic.png') });
+
+  // ---- Fig. 6.7: Murnaghan's equation of state, against volume, with the bulk modulus
+  await sweeps.getByLabel('Fitted curve').selectOption('murnaghan');
+  // a^3/4 for the primitive fcc cell -- the course's `paw_murnaghan.x -vbl 0.25`
+  await sweeps.getByLabel('Cell volume / a³').fill('0.25');
+
+  const eos = page.locator('.panel-body svg[aria-label="Equation of state"]');
+  await expect(eos).toBeVisible();
+  await expect(eos.locator('polyline')).toHaveCount(2);
+  // drawn against the volume, which is what an equation of state is a function of
+  await expect(eos).toContainText('cell volume [Å³]');
+  await expect(eos).toContainText('V₀');
+
+  // The numbers the exercise asks for. This build gives a0 = 5.4319 Å and B0 = 96.3 GPa; the
+  // tutorial prints 5.44337 Å and 91.84 GPa for the same scan, and silicon measures 5.431 Å and
+  // ~98 GPa. The bands allow both, because our total energies sit 34.3-36.3 mH above the
+  // tutorial's printed ones and that offset drifts 2.07 mH across the range, which stiffens the
+  // well slightly -- a CP-PAW build difference, documented in cppaw-analysis.md 7.8. The input
+  // matches (same setup, NPRO, LRHOX, R=30; TYPE=10 is CP-PAW's own default) and every point
+  // converged. The fit itself is checked exactly against the tutorial's own seven points in
+  // backend/tests/analysis/test_eos.py.
+  const readout = sweeps.getByText(/B₀ = /);
+  await expect(readout).toBeVisible();
+  const text = (await readout.textContent()) ?? '';
+  const b0 = Number(/B₀ = ([\d.]+) GPa/.exec(text)?.[1]);
+  const a0 = Number(/a₀ = ([\d.]+) Å/.exec(text)?.[1]);
+  expect(b0).toBeGreaterThan(80);
+  expect(b0).toBeLessThan(105);
+  expect(a0).toBeGreaterThan(5.42);
+  expect(a0).toBeLessThan(5.47);
+  // the points bracket their own minimum, so nothing is extrapolated
+  await expect(sweeps.getByText(/widen the sweep/)).toHaveCount(0);
+
+  await readout.scrollIntoViewIfNeeded();
+  await expect(eos).toBeInViewport();
+  await page.screenshot({ path: join(SHOTS, 'silicon-eos.png') });
+});

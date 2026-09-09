@@ -1722,6 +1722,48 @@ Bohr. An earlier header line reads `DATA SECTION TO BE CHANGED BY THE USER` and 
 data — the marker must exclude it. The two files' numbers are byte-identical, so reading one of
 each pair suffices.
 
+### 7.8 Absolute total energies differ from the tutorial's printed ones by a constant
+
+Chapter 6.3.7's volume scan, run through Atomscope on this machine, lands **34.3 to 36.3 mH
+above** the energies the tutorial prints for the same seven lattice constants:
+
+| % of a | V / bohr³ | ours / H | tutorial / H | offset / mH |
+|---|---|---|---|---|
+| 94 | 224.4707 | -7.97805 | -8.01232 | 34.271 |
+| 96 | 239.1056 | -7.98907 | -8.02363 | 34.564 |
+| 98 | 254.3632 | -7.99531 | -8.03018 | 34.871 |
+| 100 | 270.2564 | -7.99757 | -8.03279 | 35.218 |
+| 102 | 286.7983 | -7.99519 | -8.03079 | 35.605 |
+| 104 | 304.0017 | -7.99155 | -8.02752 | 35.968 |
+| 106 | 321.8797 | -7.98576 | -8.02210 | 36.342 |
+
+The offset is not quite constant: it drifts 2.07 mH across the range, against a well depth of only
+about 20 mH. So the well is slightly shallower than the tutorial's on the compressive side and
+slightly deeper on the expansive side, which moves the minimum to smaller volume and stiffens it.
+Fitted (`-vbl 0.25`): a₀ = 5.43190 Å and B₀ = 96.33 GPa with B′ = 5.171, against the tutorial's
+5.44337 Å, 91.84 GPa and 5.324 — 0.2% in the lattice constant and 4.9% in the bulk modulus. Both
+straddle silicon's measured 5.431 Å and ~98 GPa, this build landing nearer to it.
+
+Everything that could explain it was checked and matches:
+
+* the same input — `LUNIT[AA]=5.431`, `EMPTY=5`, `R=30`, the fcc `!LATTICE`, one
+  `SI_.75_6.0` species with `NPRO=2 2 1 LRHOX=4`, atoms at 0 and ¼¼¼, `EPWPSI=30 CDUAL=2`. The
+  ch. 6.3 deck that adds `RAD=2.5265` is the *empty-atom* variant (6.3.3), not this exercise.
+* the same functional. Atomscope writes `!DFT TYPE=10` explicitly, and 10 is what CP-PAW itself
+  defaults to when no `!DFT` block is given (`paw_ioroutines.f90:1082`, "PBE FUNCTIONAL,
+  INTRINSIC IMPLEMENTATION") — which is the case in the tutorial's `si.cntl`.
+* convergence. Each point stops on `AUTOCONV` with the wave-function kinetic energy at 1e-6 and
+  total equal to conserved; 214 iterations for the 94% point.
+* `paw_scanlat`'s `-u` is bookkeeping only ("updates result data files (no paw simulations)"), so
+  it is not a physics difference between its runs and ours.
+
+What is left is the build: the setup for `SI_.75_6.0` is constructed at run time, so a different
+CP-PAW than the one the tutorial was written on can shift the absolute total energy, and a
+volume-dependent part of that shift changes the curvature a little as well. **Nothing to fix, but
+worth knowing before comparing a printed total energy to one of ours** — and the reason the fit
+itself is validated against the tutorial's *own* seven points (`backend/tests/analysis/test_eos.py`)
+rather than against a rerun of them.
+
 ## 8. Known traps
 
 Sources: the third-party audit of the earlier web workbench (`~/cp-paw/docs/third_party_audit_report.md`), the workbench code (`~/cp-paw/backend/app/protocol.py`, `restarts.py`, ...), the manual, the Fortran sources and the probes of section 7. Status: **VERIFIED** = reproduced here or read in the source at the cited line; **MANUAL** = stated by the manual; **AUDIT** = reported by the audit, consistent with the source.

@@ -2942,7 +2942,7 @@ export interface components {
       coefficients: number[];
       /**
        * Extrapolated
-       * @description `x_min` lies outside the x that were computed
+       * @description the sweep did not bracket a minimum: `x_min` is either outside the x that were computed, or absent because the cubic has none
        */
       extrapolated: boolean;
       /**

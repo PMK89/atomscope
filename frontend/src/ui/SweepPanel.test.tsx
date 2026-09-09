@@ -211,9 +211,11 @@ test('the equation of state gets its own chart against volume (Fig. 6.7)', async
     screen.getByRole('img', { name: 'Convergence' }).querySelectorAll('polyline'),
   ).toHaveLength(1);
   // the bulk modulus leads, because that is what the exercise asks for
-  const readout = screen.getAllByRole('status').map((n) => n.textContent ?? '');
-  expect(readout.some((t) => t.includes('B₀ = 91.84 GPa'))).toBe(true);
-  expect(readout.some((t) => t.includes('B′ = 5.324'))).toBe(true);
+  const readout = screen.getByText(/B₀ = /);
+  expect(readout).toHaveTextContent('B₀ = 91.84 GPa');
+  expect(readout).toHaveTextContent('B′ = 5.324');
+  // the convergence answer stays the panel's only live region, so bare status locators still work
+  expect(screen.getByRole('status')).toHaveTextContent(/Settled from/);
   expect(errors).toEqual([]);
 });
 
@@ -231,11 +233,7 @@ test('a lattice constant is asked of the server, not computed in the browser', a
   const vbl = await screen.findByLabelText('Cell volume / a³');
   fireEvent.change(vbl, { target: { value: '0.25' } });
   await waitFor(() => expect(fit).toHaveBeenCalledWith('s1', 'murnaghan', 0.25));
-  await waitFor(() =>
-    expect(
-      screen.getAllByRole('status').some((n) => n.textContent?.includes('a₀ = 5.4434 Å')),
-    ).toBe(true),
-  );
+  await waitFor(() => expect(screen.getByText(/B₀ = /)).toHaveTextContent('a₀ = 5.4434 Å'));
 });
 
 test('a nonsense -vbl is refused without asking the server', async () => {

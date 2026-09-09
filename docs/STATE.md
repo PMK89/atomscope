@@ -2,7 +2,7 @@
 
 Branch: main; this file is updated in the commit that checkpoints the work, so `git log -1 -- docs/STATE.md` is the last checkpoint. Phases 0-1 done; Phase 2 (editor tools), 3 (volumetric, trajectories, vectors), 4-5 (CP-PAW setup/execution/forces), 6 (CP-PAW analysis: DOS, bands, orbitals), crystallography, molecular mechanics and wavefunction surfaces are merged and working. Parity matrix at `8c51b48`, derived (see ROADMAP for the command): 229 IMPLEMENTED, 16 PARTIAL, 66 NOT STARTED, 1 BLOCKED of 312 rows.
 
-Tests: `pytest -q -m "not cppaw"` -> **666 passed, 1 skipped** (100 s); `pytest -q -m cppaw` -> **7 passed** (94 s, runs the real binaries -- **CP-PAW is found through `$PAWDIR`, which the user's own shell sets (`~/cp-paw`), not `env.sh`**; `$ATOMSCOPE_CPPAW_DIR` overrides it, and `ATOMSCOPE_CPPAW_IMAGE` runs them in a container instead); `pnpm vitest run` -> **613 passed** in 91 files; `pnpm exec playwright test` -> **40 passed** in ~56 s; `ATOMSCOPE_COURSE=1 pnpm exec playwright test` -> **13 passed** in ~37 s (course pictures, database, NEB, vibrations; reads `.scratch/course-runs` and `.scratch/neb-proj` -- **`neb.spec.ts` skips itself when `.scratch/neb-proj` is missing**, rebuild it with `../.venv/bin/python ../scripts/make_neb_project.py` from `backend/`; writes `.scratch/course-shots/`) (both against private servers, see below; `make test-e2e` points at the user's 5173, which is stale). **`source env.sh` before Playwright**: without `PLAYWRIGHT_BROWSERS_PATH` it looks in `~/.cache/ms-playwright`, finds nothing, and every test fails at `browserType.launch`. `ruff check`, `ruff format --check`, `mypy` (200 files) and `pnpm typecheck` are clean. No known failing tests. **Type-check the frontend with `pnpm typecheck` (`tsc -b --noEmit`), never with `pnpm exec tsc --noEmit`:** the root `tsconfig.json` is a solution file with `files: []`, so a bare `tsc --noEmit` checks nothing and exits 0.
+Tests: `pytest -q -m "not cppaw"` -> **666 passed, 1 skipped** (100 s); `pytest -q -m cppaw` -> **7 passed** (94 s, runs the real binaries -- **CP-PAW is found through `$PAWDIR`, which the user's own shell sets (`~/cp-paw`), not `env.sh`**; `$ATOMSCOPE_CPPAW_DIR` overrides it, and `ATOMSCOPE_CPPAW_IMAGE` runs them in a container instead); `pnpm vitest run` -> **613 passed** in 91 files; `pnpm exec playwright test` -> **40 passed** in ~56 s; `ATOMSCOPE_COURSE=1 pnpm exec playwright test` -> **14 passed** in ~41 s (course pictures, database, NEB, vibrations; reads `.scratch/course-runs` and `.scratch/neb-proj` -- **`neb.spec.ts` skips itself when `.scratch/neb-proj` is missing**, rebuild it with `../.venv/bin/python ../scripts/make_neb_project.py` from `backend/`; writes `.scratch/course-shots/`) (both against private servers, see below; `make test-e2e` points at the user's 5173, which is stale). **`source env.sh` before Playwright**: without `PLAYWRIGHT_BROWSERS_PATH` it looks in `~/.cache/ms-playwright`, finds nothing, and every test fails at `browserType.launch`. `ruff check`, `ruff format --check`, `mypy` (200 files) and `pnpm typecheck` are clean. No known failing tests. **Type-check the frontend with `pnpm typecheck` (`tsc -b --noEmit`), never with `pnpm exec tsc --noEmit`:** the root `tsconfig.json` is a solution file with `files: []`, so a bare `tsc --noEmit` checks nothing and exits 0.
 
 ## Inspecting the course project, and shipping it
 
@@ -276,6 +276,24 @@ agreement.
 `SweepPoint` gained `volume_a3`, read from the calculation's own `input/structure.json` (**not**
 `project.load_structure`: a volume sweep's per-point structure is stored with the calculation, not
 in the project store — that cost one debugging round).
+
+**Chapter 6.3.7 is run**, so Figs 6.6 and 6.7 are photographed and not just claimed
+(`course-visual.spec.ts`, `silicon-cubic.png` / `silicon-eos.png`). `scripts/course/exercises.py`
+gained `silicon-volume`: the course's own 94–106% scan, whose volumes reproduce its `murn.in` to
+six significant figures. Run into the shared course project, which now holds **29** calculations —
+`database.spec.ts` pinned 22, and now reads the total off the panel instead so the next exercise
+does not break three assertions at once (its per-element counts stay pinned, which is the content
+it is actually testing).
+
+**A measured difference from the tutorial, written up as `cppaw-analysis.md` §7.8.** Our total
+energies for that scan sit 34.3–36.3 mH *above* the tutorial's printed ones, and the offset drifts
+2.07 mH across a well only ~20 mH deep. Fitted: a₀ = 5.43190 Å, B₀ = 96.33 GPa, B′ = 5.171 against
+its 5.44337 Å, 91.84 GPa, 5.324 — both straddling silicon's measured 5.431 Å and ~98 GPa. Ruled
+out: input (same setup, `NPRO`, `LRHOX`, `R=30`, `EPWPSI`/`CDUAL`; the ch. 6.3 deck with
+`RAD=2.5265` is the *empty-atom* variant, 6.3.3, not this exercise), functional (`TYPE=10` is
+CP-PAW's own default, `paw_ioroutines.f90:1082`), convergence (every point stops on `AUTOCONV`
+with kinetic energy 1e-6), and `paw_scanlat -u` (bookkeeping only). What is left is the build. This
+is why the fit is validated against the tutorial's *own* seven points and not against a rerun.
 
 **Deferred** (was next, still wanted): a DOS overlay across calculations (8.4), a running average
 on a time series (5.3), distance-against-time from a stored trajectory (5.6). Then the chapters written and not yet run — 4 (malonaldehyde), 6 (silicon,

@@ -1126,7 +1126,7 @@
             "type": "array"
           },
           "extrapolated": {
-            "description": "`x_min` lies outside the x that were computed",
+            "description": "the sweep did not bracket a minimum: `x_min` is either outside the x that were computed, or absent because the cubic has none",
             "title": "Extrapolated",
             "type": "boolean"
           },
