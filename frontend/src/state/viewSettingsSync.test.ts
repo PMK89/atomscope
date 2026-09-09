@@ -79,3 +79,24 @@ test('a request counter is not a setting, and a chosen background is', () => {
   useViewStore.getState().setBackground('black');
   expect(useViewStore.getState().backgroundColor).toBe('');
 });
+
+test('a project stored before the radius basis existed keeps the picture it was saved with', () => {
+  // `atomScale` used to be a fraction of the covalent radius. Reading an old project's 0.35 on
+  // the new van der Waals default would draw every atom about twice the size it was saved at.
+  useViewStore.setState({ radiusBasis: 'vdw' });
+  applyPersisted({ atomScale: 0.35, bondRadius: 0.12 });
+  expect(useViewStore.getState().radiusBasis).toBe('covalent');
+  expect(useViewStore.getState().atomScale).toBe(0.35);
+
+  // a project that stores the basis is taken at its word, in both directions
+  applyPersisted({ atomScale: 0.3, radiusBasis: 'vdw' });
+  expect(useViewStore.getState().radiusBasis).toBe('vdw');
+  applyPersisted({ atomScale: 0.3, radiusBasis: 'covalent' });
+  expect(useViewStore.getState().radiusBasis).toBe('covalent');
+});
+
+test('settings that say nothing about radii do not force the old basis', () => {
+  useViewStore.setState({ radiusBasis: 'vdw' });
+  applyPersisted({ background: 'black' });
+  expect(useViewStore.getState().radiusBasis).toBe('vdw');
+});

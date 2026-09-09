@@ -5,7 +5,12 @@ import {
   type ResiduePalette,
 } from '../renderer/atomColors';
 import { NO_STYLES, type StyleAssignment } from '../renderer/atomStyles';
-import type { Quality, StructureStyle } from '../renderer/layers/StructureLayer';
+import {
+  DEFAULT_STRUCTURE_SETTINGS,
+  type Quality,
+  type RadiusBasis,
+  type StructureStyle,
+} from '../renderer/layers/StructureLayer';
 import type { Projection } from '../renderer/Renderer';
 import type { AtomLabelContent, BondLabelContent } from '../renderer/labels';
 import type { RibbonStyle } from '../model/ribbon';
@@ -93,7 +98,11 @@ export interface ViewState {
   setHBondCutoffs: (patch: { distance?: number; angle?: number }) => void;
   /** Structure engine settings that the Display panel exposes. */
   atomScale: number;
+  /** Which radius `atomScale` is a fraction of; Avogadro's ball-and-stick defaults to vdW. */
+  radiusBasis: RadiusBasis;
   bondRadius: number;
+  /** The `stick` style's own radius, which Avogadro keeps separate from `bondRadius`. */
+  stickRadius: number;
   /** Draw double and triple bonds as two or three sticks. */
   multipleBonds: boolean;
   toggleMultipleBonds: () => void;
@@ -112,7 +121,9 @@ export interface ViewState {
   atomColorOverrides: AtomColorAssignment;
   setAtomColorOverrides: (colors: AtomColorAssignment) => void;
   setAtomScale: (scale: number) => void;
+  setRadiusBasis: (basis: RadiusBasis) => void;
   setBondRadius: (radius: number) => void;
+  setStickRadius: (radius: number) => void;
   setSelectionStyle: (style: StructureStyle | null) => void;
   toggleVectors: () => void;
   setVectorField: (field: string) => void;
@@ -178,8 +189,10 @@ export const useViewStore = create<ViewState>((set) => ({
   toggleRibbon: () => set((s) => ({ showRibbon: !s.showRibbon })),
   setRibbonStyle: (ribbonStyle) => set({ ribbonStyle }),
   setRibbonScale: (ribbonScale) => set({ ribbonScale }),
-  atomScale: 0.35,
-  bondRadius: 0.12,
+  atomScale: DEFAULT_STRUCTURE_SETTINGS.atomScale,
+  radiusBasis: DEFAULT_STRUCTURE_SETTINGS.radiusBasis,
+  bondRadius: DEFAULT_STRUCTURE_SETTINGS.bondRadius,
+  stickRadius: DEFAULT_STRUCTURE_SETTINGS.stickRadius,
   multipleBonds: true,
   toggleMultipleBonds: () => set((s) => ({ multipleBonds: !s.multipleBonds })),
   selectionStyle: null,
@@ -188,7 +201,9 @@ export const useViewStore = create<ViewState>((set) => ({
   atomColorOverrides: NO_ATOM_COLORS,
   setAtomColorOverrides: (atomColorOverrides) => set({ atomColorOverrides }),
   setAtomScale: (atomScale) => set({ atomScale }),
+  setRadiusBasis: (radiusBasis) => set({ radiusBasis }),
   setBondRadius: (bondRadius) => set({ bondRadius }),
+  setStickRadius: (stickRadius) => set({ stickRadius }),
   setSelectionStyle: (selectionStyle) => set({ selectionStyle }),
   toggleLabels: () => set((s) => ({ showLabels: !s.showLabels })),
   setAtomLabels: (atomLabels) => set({ atomLabels, showLabels: true }),

@@ -45,6 +45,14 @@ export function applyPersisted(settings: Record<string, unknown>): void {
     // a stored value of the wrong shape (an older or hand-edited file) would break the renderer
     if (k in current && !TRANSIENT.has(k) && isSetting(v) && sameShape(current[k], v)) patch[k] = v;
   }
+  // `atomScale` used to be a fraction of the *covalent* radius, before the ball-and-stick engine
+  // gained Avogadro's radius basis and defaulted it to van der Waals. A project stored by such a
+  // build carries the number but not the basis, and reading it on the new default would silently
+  // draw every atom about twice the size it was saved at -- so the missing basis means the old
+  // one. New projects store `radiusBasis` and are unaffected.
+  if (('atomScale' in patch || 'bondRadius' in patch) && !('radiusBasis' in settings)) {
+    patch['radiusBasis'] = 'covalent';
+  }
   useViewStore.setState(patch as Partial<ViewState>);
 }
 

@@ -25,7 +25,7 @@ import { useSelectionStore } from '../state/selectionStore';
 import { useBioStore } from '../state/bioStore';
 import { useRendererStore } from '../state/rendererStore';
 import type { RibbonColorScheme } from '../renderer/layers/RibbonLayer';
-import type { StructureStyle } from '../renderer/layers/StructureLayer';
+import type { RadiusBasis, StructureStyle } from '../renderer/layers/StructureLayer';
 import { useStructureStore } from '../state/structureStore';
 import { useViewStore } from '../state/viewStore';
 
@@ -264,29 +264,65 @@ export function DisplayPanel(): JSX.Element {
           />
         </div>
       )}
+      {/*
+        Ranges and steps are Avogadro's own, converted out of its integer sliders: atom radius
+        5-65 over a scale of 50, bond radius 2-12 over 40, stick radius 2-10 over 20.
+      */}
       <div className="form-row">
         <label htmlFor="display-atom-scale">Atom radius</label>
-        <input
-          id="display-atom-scale"
-          type="range"
-          min="0.1"
-          max="1"
-          step="0.05"
-          value={view.atomScale}
-          onChange={(e) => view.setAtomScale(Number(e.target.value))}
-        />
+        <div className="range-with-value">
+          <input
+            id="display-atom-scale"
+            type="range"
+            min="0.1"
+            max="1.3"
+            step="0.02"
+            value={view.atomScale}
+            onChange={(e) => view.setAtomScale(Number(e.target.value))}
+          />
+          <span className="range-value">{view.atomScale.toFixed(2)}</span>
+        </div>
+      </div>
+      <div className="form-row">
+        <label htmlFor="display-radius-basis">Atom radius from</label>
+        <select
+          id="display-radius-basis"
+          value={view.radiusBasis}
+          onChange={(e) => view.setRadiusBasis(e.target.value as RadiusBasis)}
+        >
+          <option value="vdw">Van der Waals radius</option>
+          <option value="covalent">Covalent radius</option>
+        </select>
       </div>
       <div className="form-row">
         <label htmlFor="display-bond-radius">Bond radius</label>
-        <input
-          id="display-bond-radius"
-          type="range"
-          min="0.02"
-          max="0.4"
-          step="0.01"
-          value={view.bondRadius}
-          onChange={(e) => view.setBondRadius(Number(e.target.value))}
-        />
+        <div className="range-with-value">
+          <input
+            id="display-bond-radius"
+            type="range"
+            min="0.05"
+            max="0.3"
+            step="0.025"
+            value={view.bondRadius}
+            onChange={(e) => view.setBondRadius(Number(e.target.value))}
+          />
+          <span className="range-value">{view.bondRadius.toFixed(3)}</span>
+        </div>
+      </div>
+      <div className="form-row">
+        <label htmlFor="display-stick-radius">Stick radius</label>
+        <div className="range-with-value">
+          <input
+            id="display-stick-radius"
+            type="range"
+            min="0.1"
+            max="0.5"
+            step="0.05"
+            value={view.stickRadius}
+            onChange={(e) => view.setStickRadius(Number(e.target.value))}
+          />
+          <span className="range-value">{view.stickRadius.toFixed(2)}</span>
+        </div>
       </div>
       <div className="form-row">
         <label htmlFor="display-selection-style">Selected atoms</label>

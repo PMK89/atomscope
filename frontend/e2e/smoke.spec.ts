@@ -622,6 +622,7 @@ test('atoms can be coloured by partial charge and by one colour', async ({ page 
   };
   // the next frame is what carries the new colour, so poll rather than read once
   await expect.poll(greenness).toBeGreaterThan(40);
+  const allGreen = await greenness();
 
   // a per-atom colour is painted over the scheme: the oxygen alone turns red while the two
   // hydrogens stay the scheme's green
@@ -637,7 +638,11 @@ test('atoms can be coloured by partial charge and by one colour', async ({ page 
   // once the oxygen is no longer selected
   await page.locator('button.menu-title', { hasText: 'Select' }).click();
   await page.getByRole('menuitem', { name: 'Select none' }).click();
-  await expect.poll(greenness).toBeLessThan(0);
+  // A large share of the green goes, but not enough to turn the mean red: at Avogadro's radii
+  // the two hydrogens together cover about as much of the picture as the oxygen does (vdW H is
+  // 1.10 A against O's 1.52, where the covalent radii are 0.31 against 0.66), so painting the
+  // oxygen alone cannot outweigh them. Calibrated against the all-green frame rather than zero.
+  await expect.poll(greenness).toBeLessThan(allGreen / 2);
   await page.screenshot({ path: '../.scratch/dev/atom-colour.png' });
 
   // and clearing gives the oxygen back to the scheme

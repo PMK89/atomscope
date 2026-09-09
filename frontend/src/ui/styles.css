@@ -291,6 +291,22 @@ button {
   align-items: center;
   margin: 4px 0;
 }
+/* A slider with its value beside it. The number is not part of the <label>: a label that
+   changes while the slider is dragged is announced again on every step. */
+.range-with-value {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+.range-with-value input[type='range'] {
+  flex: 1;
+}
+.range-value {
+  min-width: 34px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+}
 .form-row.has-error input,
 .form-row.has-error select {
   border-color: var(--error);

@@ -3,7 +3,7 @@ import { expect, test, vi } from 'vitest';
 import { addBond, setElement, setPositions } from '../../editor/edits';
 import { makeAtom, makeBond, normalizeStructure, type StructureDoc } from '../../model/structure';
 import type { LayerContext } from './Layer';
-import { StructureLayer } from './StructureLayer';
+import { DEFAULT_STRUCTURE_SETTINGS, StructureLayer } from './StructureLayer';
 
 const doc = (): StructureDoc =>
   normalizeStructure({
@@ -252,9 +252,74 @@ test('a bond between two styles is drawn once, at the thinner radius', () => {
   expect(bondMesh.count).toBe(2); // one bond, two half-cylinders
   const m = new Matrix4();
   bondMesh.getMatrixAt(0, m);
-  // the cylinder's cross-section scale is the thin wireframe radius, not the default 0.12
-  expect(new Vector3().setFromMatrixColumn(m, 0).length()).toBeCloseTo(0.12 * 0.35, 3);
+  // the cylinder's cross-section scale is the thin wireframe radius, not the default bond radius
+  expect(new Vector3().setFromMatrixColumn(m, 0).length()).toBeCloseTo(
+    DEFAULT_STRUCTURE_SETTINGS.bondRadius * 0.35,
+    3,
+  );
   layer.dispose();
+});
+
+/**
+ * The ball-and-stick radii, against Avogadro 1's own numbers. Its engine draws a sphere of
+ * `pRadius(atom) * m_atomRadiusPercentage` with `m_atomRadiusPercentage` 0.3 and `pRadius`
+ * defaulting to the van der Waals radius (`bsdyengine.cpp`: `m_atomRadiusType(1)`,
+ * `pRadius(radiusVdW)`), and a cylinder of `m_bondRadius` = 0.1.
+ */
+test('ball and stick takes its atom radius from the van der Waals radius, as Avogadro does', () => {
+  const layer = new StructureLayer();
+  layer.update(ctx(doc()));
+  const m = new Matrix4();
+  const atomMesh = meshes(layer)[0]!;
+
+  // carbon: vdW 1.70 A (Open Babel's table, which is the one Avogadro reads) x 0.3
+  atomMesh.getMatrixAt(0, m);
+  expect(m.elements[0]).toBeCloseTo(1.7 * 0.3, 3);
+  // oxygen is smaller, 1.52 x 0.3 -- the basis has to be per element, not one number
+  atomMesh.getMatrixAt(2, m);
+  expect(m.elements[0]).toBeCloseTo(1.52 * 0.3, 3);
+
+  // the covalent basis is the alternative Avogadro offers, and it is much smaller
+  layer.setSettings({ radiusBasis: 'covalent' });
+  layer.update(ctx(doc()));
+  meshes(layer)[0]!.getMatrixAt(0, m);
+  expect(m.elements[0]).toBeCloseTo(0.76 * 0.3, 3);
+  layer.dispose();
+});
+
+test('an atom may be drawn thinner than its own sticks', () => {
+  // Avogadro clamps nothing, and a clamp here made the bottom of the atom-radius slider do
+  // nothing at all: every atom stayed at least as fat as the bond.
+  const layer = new StructureLayer();
+  layer.setSettings({ atomScale: 0.1, bondRadius: 0.3, radiusBasis: 'covalent' });
+  layer.update(ctx(doc()));
+  const m = new Matrix4();
+  meshes(layer)[0]!.getMatrixAt(0, m);
+  expect(m.elements[0]).toBeCloseTo(0.76 * 0.1, 3);
+  expect(m.elements[0]).toBeLessThan(0.3);
+  layer.dispose();
+});
+
+test('the stick style has its own radius, and uses it for the bonds too', () => {
+  // Avogadro's stick engine carries `m_radius` (0.25), more than twice ball-and-stick's bond
+  // radius; sharing one number drew licorice as thin as wireframe.
+  const layer = new StructureLayer();
+  layer.setSettings({ style: 'stick', stickRadius: 0.25, bondRadius: 0.1 });
+  layer.update(ctx(doc()));
+  const m = new Matrix4();
+  meshes(layer)[0]!.getMatrixAt(0, m);
+  expect(m.elements[0]).toBeCloseTo(0.25, 3);
+  // the cap and the cylinder are the same thickness, which is what makes it one smooth stick
+  meshes(layer)[1]!.getMatrixAt(0, m);
+  expect(new Vector3().setFromMatrixColumn(m, 0).length()).toBeCloseTo(0.25, 3);
+  layer.dispose();
+});
+
+test('Avogadro defaults', () => {
+  expect(DEFAULT_STRUCTURE_SETTINGS.atomScale).toBe(0.3); // m_atomRadiusPercentage
+  expect(DEFAULT_STRUCTURE_SETTINGS.bondRadius).toBe(0.1); // m_bondRadius
+  expect(DEFAULT_STRUCTURE_SETTINGS.stickRadius).toBe(0.25); // StickEngine m_radius
+  expect(DEFAULT_STRUCTURE_SETTINGS.radiusBasis).toBe('vdw'); // m_atomRadiusType(1)
 });
 
 /** Ethene: a C=C with two hydrogens on each carbon, all in the xy plane. */

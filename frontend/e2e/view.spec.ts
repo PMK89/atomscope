@@ -71,6 +71,13 @@ test('a bond can be selected on its own', async ({ page }) => {
   await page.keyboard.press('s');
   await expect(page.getByLabel('Selection mode')).toHaveValue('atoms');
 
+  // Shrink the atoms first, so how much of the bond is exposed does not depend on the default
+  // radii: at Avogadro's defaults the spheres nearly meet on an O-H bond, and a pixel calibrated
+  // against one set of radii silently starts hitting an atom when they change.
+  await page.getByRole('tab', { name: 'Display' }).click();
+  await page.locator('#display-atom-scale').fill('0.1');
+  await page.getByRole('tab', { name: 'Calculation' }).click();
+
   // water is drawn with the oxygen in the middle and a bond running out to each hydrogen, so a
   // point part of the way towards one is on a bond and on neither atom
   const canvas = page.locator('.viewport-canvas canvas');

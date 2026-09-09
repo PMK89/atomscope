@@ -43,6 +43,18 @@ test('the panel drives the display settings the renderer reads', () => {
 
   fireEvent.change(screen.getByLabelText('Atom radius'), { target: { value: '0.6' } });
   expect(useViewStore.getState().atomScale).toBe(0.6);
+  // the value is shown beside the slider, not inside its label -- a label that changes on every
+  // step of a drag is announced again on every step
+  expect(screen.getByLabelText('Atom radius').parentElement).toHaveTextContent('0.60');
+
+  // Avogadro's "Atom Radius Type": which radius the fraction is of
+  fireEvent.change(screen.getByLabelText('Atom radius from'), { target: { value: 'covalent' } });
+  expect(useViewStore.getState().radiusBasis).toBe('covalent');
+
+  // the stick style's radius is its own, as it is in Avogadro
+  fireEvent.change(screen.getByLabelText('Stick radius'), { target: { value: '0.4' } });
+  expect(useViewStore.getState().stickRadius).toBe(0.4);
+  expect(useViewStore.getState().bondRadius).not.toBe(0.4);
 
   fireEvent.click(screen.getByLabelText('Show multiple bonds'));
   expect(useViewStore.getState().multipleBonds).toBe(false);

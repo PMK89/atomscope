@@ -25,13 +25,33 @@ export type StructureStyle = 'ball-and-stick' | 'stick' | 'vdw' | 'wireframe';
 /** Tessellation override for spheres and cylinders; `auto` picks it from the atom count. */
 export type Quality = 'low' | 'auto' | 'high';
 
+/** Which radius the ball-and-stick spheres are a fraction of (Avogadro's "Atom Radius Type"). */
+export type RadiusBasis = 'vdw' | 'covalent';
+
 export interface StructureLayerSettings {
   style: StructureStyle;
-  /** Fraction of the covalent radius used for ball-and-stick spheres. */
+  /**
+   * Fraction of the `radiusBasis` radius used for ball-and-stick spheres -- Avogadro's
+   * `m_atomRadiusPercentage`, default 0.3.
+   */
   atomScale: number;
+  /**
+   * Which radius that fraction is of. Avogadro's ball-and-stick engine defaults to the van der
+   * Waals radius (`bsdyengine.cpp`: `m_atomRadiusType(1)`, `pRadius(radiusVdW)`) and offers the
+   * covalent radius as the alternative. It matters a lot: carbon's vdW radius is 1.70 A against a
+   * covalent 0.76, so the same fraction draws a sphere twice the size.
+   */
+  radiusBasis: RadiusBasis;
   /** Fraction of the vdW radius used for the vdw style. */
   vdwScale: number;
+  /** Cylinder radius for ball-and-stick bonds -- Avogadro's `m_bondRadius`, default 0.1. */
   bondRadius: number;
+  /**
+   * Radius of the uniform sticks of the `stick` style. Avogadro's stick engine carries its own
+   * radius (`stickengine.cpp`, default 0.25) rather than sharing ball-and-stick's bond radius,
+   * and it is more than twice as thick -- sharing one number made licorice look like wireframe.
+   */
+  stickRadius: number;
   showHydrogens: boolean;
   /** Draw double and triple bonds as two or three parallel sticks. */
   multipleBonds: boolean;
@@ -68,9 +88,11 @@ export interface StructureLayerSettings {
 
 export const DEFAULT_STRUCTURE_SETTINGS: StructureLayerSettings = {
   style: 'ball-and-stick',
-  atomScale: 0.35,
+  atomScale: 0.3,
+  radiusBasis: 'vdw',
   vdwScale: 1.0,
-  bondRadius: 0.12,
+  bondRadius: 0.1,
+  stickRadius: 0.25,
   showHydrogens: true,
   multipleBonds: true,
   cellRepeat: [1, 1, 1],
@@ -430,11 +452,7 @@ export class StructureLayer implements DisplayLayer {
       const styleB = this.styleOf(b.b, selected);
       if (styleA === 'vdw' || styleB === 'vdw') return false;
       bondIndices.push(i);
-      radii.push(
-        styleA === 'wireframe' || styleB === 'wireframe'
-          ? this.settings.bondRadius * 0.35
-          : this.settings.bondRadius,
-      );
+      radii.push(this.bondRadius(styleA, styleB));
       return true;
     });
     this.bondMeshBondIndices = bondIndices;
@@ -531,16 +549,32 @@ export class StructureLayer implements DisplayLayer {
   private lastSelectedBonds: ReadonlySet<number> | null = null;
   private lastAtomStyles: ReadonlyArray<AtomStyle | null> | null = null;
 
+  /**
+   * Cylinder radius for a bond between two atoms, which may be drawn in different styles.
+   * Thinnest wins, so a bond into a wireframe atom stays a line; the `stick` style uses its own
+   * radius for the bond as well as the cap, because that uniformity is what licorice is.
+   */
+  private bondRadius(a: StructureStyle, b: StructureStyle): number {
+    if (a === 'wireframe' || b === 'wireframe') return this.settings.bondRadius * 0.35;
+    if (a === 'stick' || b === 'stick') return this.settings.stickRadius;
+    return this.settings.bondRadius;
+  }
+
   private atomRadius(covalent: number, vdw: number, style: StructureStyle): number {
+    const vdwOr = (fallback: number): number => (Number.isNaN(vdw) ? fallback : vdw);
     switch (style) {
       case 'vdw':
-        return (Number.isNaN(vdw) ? covalent * 2 : vdw) * this.settings.vdwScale;
+        return vdwOr(covalent * 2) * this.settings.vdwScale;
       case 'stick':
-        return this.settings.bondRadius;
+        return this.settings.stickRadius;
       case 'wireframe':
         return this.settings.bondRadius * 0.35;
-      default:
-        return Math.max(covalent * this.settings.atomScale, this.settings.bondRadius * 1.05);
+      default: {
+        // No lower clamp against the bond radius: Avogadro has none, and clamping made an atom
+        // smaller than its sticks impossible -- which is half of what the atom radius is for.
+        const basis = this.settings.radiusBasis === 'covalent' ? covalent : vdwOr(covalent * 2);
+        return basis * this.settings.atomScale;
+      }
     }
   }
 

@@ -808,6 +808,20 @@ carry: the labels (sprites), the unit-cell box (line segments), the axes gizmo
 to their mean because POV-Ray would need one texture per vertex otherwise —
 their normals are exported, so surfaces are still smooth-shaded.
 
+**Atom and bond size.** `Atom radius` is the fraction of an atom's radius the
+sphere is drawn at, and `Atom radius from` chooses which radius that is a
+fraction of — the **van der Waals** radius, which is the default and what
+Avogadro uses, or the covalent radius, which is roughly half as large and so
+draws much smaller balls. `Bond radius` is the cylinder thickness for
+ball-and-stick, and `Stick radius` is the thickness of the uniform sticks of
+the `Stick` (licorice) style, which is its own setting because licorice is
+about twice as thick as a ball-and-stick bond.
+
+Nothing is clamped: an atom may be drawn thinner than its own sticks, which is
+the bottom end of the atom-radius slider doing something rather than nothing.
+At the defaults the spheres of two bonded atoms nearly meet — an O–H bond shows
+about 0.17 Å of stick — which is what ball-and-stick looks like in Avogadro.
+
 ### 6.1 Isosurfaces
 
 The `Surfaces` tab lists every volumetric grid of the project — the ones a
