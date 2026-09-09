@@ -15,4 +15,8 @@ export const toApiStructure = (doc: StructureDoc): ApiStructureBody => ({
   multiplicity: doc.multiplicity,
   constraints: doc.constraints,
   residues: doc.residues,
+  // unlike `provenance`, which the backend recomputes: the named adsorption sites of a slab are
+  // the caller's to supply, and `POST /api/crystal/surfaces/adsorbate` cannot place an adsorbate
+  // on 'fcc' without them
+  surface: doc.surface,
 });

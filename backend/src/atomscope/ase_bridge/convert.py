@@ -35,10 +35,13 @@ from atomscope.model import (
     Quantity,
     Residue,
     Structure,
+    SurfaceInfo,
 )
 from atomscope.units import Unit
 
 INFO_KEY = "atomscope"
+#: ASE's own key for the named adsorption sites of a slab (`ase.build.add_adsorbate`).
+ADSORBATE_KEY = "adsorbate_info"
 _CONSTRAINT_ADAPTER: TypeAdapter[Constraint] = TypeAdapter(Constraint)
 _BOND_FIELDS = tuple(Bond.model_fields)
 INITIAL_CHARGES_PROPERTY = "initial_charges"
@@ -89,6 +92,16 @@ def to_atoms(structure: Structure) -> Atoms:
         else None,
     }
     atoms.info[INFO_KEY] = extra
+    if structure.surface is not None:
+        # ASE's own key, not ours: `ase.build.add_adsorbate` reads exactly this, so a structure
+        # that has been through a project file still knows where its sites are
+        info: dict[str, Any] = {
+            "cell": np.array(structure.surface.cell, dtype=float),
+            "sites": {k: tuple(v) for k, v in structure.surface.sites.items()},
+        }
+        if structure.surface.top_layer_atom_index is not None:
+            info["top layer atom index"] = structure.surface.top_layer_atom_index
+        atoms.info[ADSORBATE_KEY] = info
     return atoms
 
 
@@ -115,13 +128,25 @@ def _pdb_residues(atoms: Atoms) -> list[Residue]:
     return residues
 
 
+def _per_atom(value: Any, n: int, fallback: list[Any]) -> list[Any]:  # noqa: ANN401
+    """Per-atom data from ``info``, or ``fallback`` when it does not fit the atoms present.
+
+    ``ase.Atoms.extend`` (which is what ``slab += adsorbate`` and `add_adsorbate` do) copies
+    neither ``info`` nor the other object's per-atom data, so the combined object carries the
+    *first* one's lists against a longer set of atoms. Reading them positionally then walked off
+    the end with an ``IndexError``. Per-atom data that cannot belong to these atoms is dropped,
+    which is what `crystal._common.new_atoms` does deliberately for the same reason.
+    """
+    return list(value) if isinstance(value, (list, tuple)) and len(value) == n else fallback
+
+
 def from_atoms(atoms: Atoms, *, name: str | None = None) -> Structure:
     """Build a Structure from ``atoms``, restoring Atomscope data from ``atoms.info`` if present."""
     extra: dict[str, Any] = dict(atoms.info.get(INFO_KEY) or {})
     n = len(atoms)
-    uids = extra.get("uids") or [None] * n
-    labels = extra.get("labels") or _pdb_labels(atoms, n)
-    formal = extra.get("formal_charges") or [0] * n
+    uids = _per_atom(extra.get("uids"), n, [None] * n)
+    labels = _per_atom(extra.get("labels"), n, _pdb_labels(atoms, n))
+    formal = _per_atom(extra.get("formal_charges"), n, [0] * n)
     symbols = atoms.get_chemical_symbols()
     positions = atoms.get_positions()
 
@@ -148,9 +173,12 @@ def from_atoms(atoms: Atoms, *, name: str | None = None) -> Structure:
             pbc=(bool(atoms.pbc[0]), bool(atoms.pbc[1]), bool(atoms.pbc[2])),
         )
 
+    # the same length rule as the per-atom lists: a property of twelve atoms says nothing about
+    # fourteen, and Structure's own validator would refuse the whole conversion
     atomic_scalars = {
         k: AtomicScalarProperty.model_validate(v)
         for k, v in extra.get("atomic_scalars", {}).items()
+        if len(v.get("values", ())) == n
     }
     if atoms.has("initial_charges") and INITIAL_CHARGES_PROPERTY not in atomic_scalars:
         atomic_scalars[INITIAL_CHARGES_PROPERTY] = AtomicScalarProperty(
@@ -167,12 +195,18 @@ def from_atoms(atoms: Atoms, *, name: str | None = None) -> Structure:
     atomic_vectors = {
         k: AtomicVectorProperty.model_validate(v)
         for k, v in extra.get("atomic_vectors", {}).items()
+        if len(v.get("values", ())) == n
     }
 
     kwargs2: dict[str, Any] = {
         "name": name or extra.get("name") or "untitled",
         "atoms": atom_models,
-        "bonds": [Bond.model_validate(b) for b in extra.get("bonds", [])],
+        # a bond of the atoms that were there, kept only while both ends still are
+        "bonds": [
+            Bond.model_validate(b)
+            for b in extra.get("bonds", [])
+            if b.get("a", n) < n and b.get("b", n) < n
+        ],
         "cell": cell,
         "charge": float(extra.get("charge", 0.0)),
         "multiplicity": extra.get("multiplicity"),
@@ -187,14 +221,44 @@ def from_atoms(atoms: Atoms, *, name: str | None = None) -> Structure:
             _CONSTRAINT_ADAPTER.validate_python(c) for c in extra.get("constraints", [])
         ]
         or _constraints_from_ase(atoms),
-        "residues": [Residue.model_validate(r) for r in extra.get("residues", [])]
+        "residues": [
+            Residue.model_validate(r)
+            for r in extra.get("residues", [])
+            if all(i < n for i in r.get("atom_indices", (n,)))
+        ]
         or _pdb_residues(atoms),
     }
     if extra.get("id"):
         kwargs2["id"] = extra["id"]
     if extra.get("provenance"):
         kwargs2["provenance"] = Provenance.model_validate(extra["provenance"])
+    surface = _surface_from_ase(atoms)
+    if surface is not None:
+        kwargs2["surface"] = surface
     return Structure(**kwargs2)
+
+
+def _surface_from_ase(atoms: Atoms) -> SurfaceInfo | None:
+    """Read ASE's ``adsorbate_info`` back, if the Atoms has one.
+
+    Anything `ase.build`'s named surface builders produced has it; anything else has not, and a
+    dict without a cell is not usable, so it is dropped rather than guessed at.
+    """
+    info = atoms.info.get(ADSORBATE_KEY)
+    if not isinstance(info, dict) or info.get("cell") is None:
+        return None
+    cell = np.asarray(info["cell"], dtype=float)
+    if cell.shape != (2, 2):
+        return None
+    sites = {
+        str(name): (float(pos[0]), float(pos[1])) for name, pos in (info.get("sites") or {}).items()
+    }
+    top = info.get("top layer atom index")
+    return SurfaceInfo(
+        cell=((cell[0][0], cell[0][1]), (cell[1][0], cell[1][1])),
+        sites=sites,
+        top_layer_atom_index=int(top) if top is not None else None,
+    )
 
 
 def _constraints_to_ase(constraints: list[Constraint]) -> list[Any]:

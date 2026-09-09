@@ -138,3 +138,41 @@ def test_from_atoms_positions_are_tuples() -> None:
     s = from_atoms(molecule("H2O"))
     assert all(isinstance(a.position, tuple) and len(a.position) == 3 for a in s.atoms)
     assert s == Structure.model_validate_json(s.model_dump_json())
+
+
+def test_atoms_grown_by_extend_do_not_carry_the_wrong_per_atom_data() -> None:
+    """``slab += adsorbate`` is a conversion that used to raise IndexError.
+
+    ``ase.Atoms.extend`` -- which is what ``+=``, ``append`` and `ase.build.add_adsorbate` do --
+    copies neither ``info`` nor the other object's per-atom arrays, so the combined object carries
+    the *first* one's uid/label/formal-charge lists against a longer set of atoms. Reading them
+    positionally walked off the end. Now data that cannot belong to these atoms is dropped, and
+    the conversion succeeds; a user script doing this in the Scripts panel is the way in.
+    """
+    water = to_atoms(from_atoms(molecule("H2O"), name="water"))
+    water.info["atomscope"]["bonds"] = [{"a": 0, "b": 1, "order": 1, "aromatic": False}]
+    water.info["atomscope"]["atomic_scalars"] = {
+        "q": {"values": [0.1, -0.05, -0.05], "unit": "e", "description": ""}
+    }
+    grown = water + molecule("CO")
+
+    structure = from_atoms(grown, name="grown")
+    assert structure.n_atoms == 5
+    # fresh uids for all five rather than three reused ones
+    assert len({a.uid for a in structure.atoms}) == 5
+    # and the per-atom property of three atoms is not claimed to describe five
+    assert "q" not in structure.atomic_scalars
+    # a bond whose ends are both still present survives
+    assert [b.key() for b in structure.bonds] == [(0, 1)]
+
+
+def test_a_bond_to_a_removed_atom_is_dropped_rather_than_failing() -> None:
+    water = to_atoms(from_atoms(molecule("H2O"), name="water"))
+    water.info["atomscope"]["bonds"] = [
+        {"a": 0, "b": 1, "order": 1, "aromatic": False},
+        {"a": 0, "b": 2, "order": 1, "aromatic": False},
+    ]
+    del water[2]
+    structure = from_atoms(water, name="oh")
+    assert structure.n_atoms == 2
+    assert [b.key() for b in structure.bonds] == [(0, 1)]

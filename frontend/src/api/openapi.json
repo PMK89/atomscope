@@ -57,6 +57,140 @@
         "title": "AddHydrogensRequest",
         "type": "object"
       },
+      "AdsorbateRequest": {
+        "additionalProperties": false,
+        "description": "Put an adsorbate on a slab, on a named site or at an x-y position.",
+        "properties": {
+          "adsorbate": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "$ref": "#/components/schemas/Structure"
+              }
+            ],
+            "description": "an element symbol, one of ASE's molecule names, or a structure",
+            "title": "Adsorbate"
+          },
+          "height": {
+            "description": "\u00c5 above the slab's top layer",
+            "exclusiveMinimum": 0.0,
+            "title": "Height",
+            "type": "number"
+          },
+          "mol_index": {
+            "default": 0,
+            "description": "which atom of a molecular adsorbate sits over the site",
+            "minimum": 0.0,
+            "title": "Mol Index",
+            "type": "integer"
+          },
+          "offset": {
+            "anyOf": [
+              {
+                "maxItems": 2,
+                "minItems": 2,
+                "prefixItems": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ],
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "shift by whole surface cells, for a second adsorbate",
+            "title": "Offset"
+          },
+          "position": {
+            "anyOf": [
+              {
+                "maxItems": 2,
+                "minItems": 2,
+                "prefixItems": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ],
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Cartesian x-y instead of a named site",
+            "title": "Position"
+          },
+          "site": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "named site, e.g. 'fcc'",
+            "title": "Site"
+          },
+          "structure": {
+            "$ref": "#/components/schemas/Structure"
+          }
+        },
+        "required": ["structure", "adsorbate", "height"],
+        "title": "AdsorbateRequest",
+        "type": "object"
+      },
+      "AdsorptionSite": {
+        "additionalProperties": false,
+        "description": "A named site of a slab, in the surface cell and in Cartesian x-y.",
+        "properties": {
+          "cartesian": {
+            "maxItems": 2,
+            "minItems": 2,
+            "prefixItems": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              }
+            ],
+            "title": "Cartesian",
+            "type": "array"
+          },
+          "fractional": {
+            "maxItems": 2,
+            "minItems": 2,
+            "prefixItems": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              }
+            ],
+            "title": "Fractional",
+            "type": "array"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": ["name", "fractional", "cartesian"],
+        "title": "AdsorptionSite",
+        "type": "object"
+      },
       "AnalysisJob": {
         "additionalProperties": false,
         "description": "A post-processing job (DOS, band structure, orbital export) run in the work directory of\na completed calculation; outputs are read back through the backend plugin.",
@@ -3669,6 +3803,93 @@
         "title": "MurnaghanParameters",
         "type": "object"
       },
+      "NamedSurfaceRequest": {
+        "additionalProperties": false,
+        "description": "One of `ase.build`'s named surface builders (`crystal.surfaces`).",
+        "properties": {
+          "a": {
+            "anyOf": [
+              {
+                "exclusiveMinimum": 0.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "lattice constant; ASE's default",
+            "title": "A"
+          },
+          "c": {
+            "anyOf": [
+              {
+                "exclusiveMinimum": 0.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "second constant, hcp only",
+            "title": "C"
+          },
+          "kind": {
+            "description": "fcc111, bcc110, hcp0001, diamond100 ...",
+            "title": "Kind",
+            "type": "string"
+          },
+          "orthogonal": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "square surface cell, where the builder offers the choice",
+            "title": "Orthogonal"
+          },
+          "size": {
+            "description": "repeats along the two surface vectors, then the number of layers",
+            "maxItems": 3,
+            "minItems": 3,
+            "prefixItems": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "integer"
+              },
+              {
+                "type": "integer"
+              }
+            ],
+            "title": "Size",
+            "type": "array"
+          },
+          "symbol": {
+            "title": "Symbol",
+            "type": "string"
+          },
+          "vacuum": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "added on each side; without it the cell has no c vector",
+            "title": "Vacuum"
+          }
+        },
+        "required": ["kind", "symbol", "size"],
+        "title": "NamedSurfaceRequest",
+        "type": "object"
+      },
       "NanotubeRequest": {
         "additionalProperties": false,
         "properties": {
@@ -6306,6 +6527,17 @@
             },
             "title": "Residues",
             "type": "array"
+          },
+          "surface": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SurfaceInfo"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "named adsorption sites, for a slab built by ase.build"
           }
         },
         "title": "Structure",
@@ -6461,6 +6693,120 @@
         },
         "required": ["structure"],
         "title": "SupercellRequest",
+        "type": "object"
+      },
+      "SurfaceInfo": {
+        "additionalProperties": false,
+        "description": "Named adsorption sites of a slab -- ASE's ``atoms.info['adsorbate_info']``.\n\nA slab built by one of `ase.build`'s named builders (fcc111, bcc110, hcp0001...) carries the\ntwo-dimensional surface cell and the sites in it, which is what lets an adsorbate be placed\n\"on the fcc site\" rather than at coordinates. ASE keeps it in a dict on the Atoms object,\nwhere it would be lost the moment the structure was saved, so it is a field here and the\nconverter writes ASE's own key back.\n\n``top_layer_atom_index`` is the atom the height is measured from. ASE computes it as the\nhighest atom the first time `add_adsorbate` is called and then *caches it in the dict*: keep\nit, or a second adsorbate is placed relative to the first one instead of to the surface.",
+        "properties": {
+          "cell": {
+            "description": "the 2x2 surface cell the site coordinates are fractions of",
+            "maxItems": 2,
+            "minItems": 2,
+            "prefixItems": [
+              {
+                "maxItems": 2,
+                "minItems": 2,
+                "prefixItems": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ],
+                "type": "array"
+              },
+              {
+                "maxItems": 2,
+                "minItems": 2,
+                "prefixItems": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ],
+                "type": "array"
+              }
+            ],
+            "title": "Cell",
+            "type": "array"
+          },
+          "sites": {
+            "additionalProperties": {
+              "maxItems": 2,
+              "minItems": 2,
+              "prefixItems": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                }
+              ],
+              "type": "array"
+            },
+            "description": "site name -> position in the surface cell",
+            "title": "Sites",
+            "type": "object"
+          },
+          "top_layer_atom_index": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "atom the adsorbate height is measured from",
+            "title": "Top Layer Atom Index"
+          }
+        },
+        "required": ["cell"],
+        "title": "SurfaceInfo",
+        "type": "object"
+      },
+      "SurfaceKind": {
+        "additionalProperties": false,
+        "description": "One entry of the builder list, for a dialog to offer.",
+        "properties": {
+          "facet": {
+            "description": "Miller indices as the builder names them",
+            "title": "Facet",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "lattice": {
+            "description": "fcc, bcc, hcp or diamond",
+            "title": "Lattice",
+            "type": "string"
+          },
+          "orthogonal_option": {
+            "title": "Orthogonal Option",
+            "type": "boolean"
+          },
+          "sites": {
+            "description": "named adsorption sites this facet has",
+            "items": {
+              "type": "string"
+            },
+            "title": "Sites",
+            "type": "array"
+          },
+          "takes_c": {
+            "title": "Takes C",
+            "type": "boolean"
+          }
+        },
+        "required": ["id", "lattice", "facet", "sites", "orthogonal_option", "takes_c"],
+        "title": "SurfaceKind",
         "type": "object"
       },
       "SurfaceRequest": {
@@ -7618,6 +7964,23 @@
         },
         "required": ["values"],
         "title": "UpdateValuesRequest",
+        "type": "object"
+      },
+      "VacuumRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "structure": {
+            "$ref": "#/components/schemas/Structure"
+          },
+          "vacuum": {
+            "description": "\u00c5 added along the third cell vector",
+            "exclusiveMinimum": 0.0,
+            "title": "Vacuum",
+            "type": "number"
+          }
+        },
+        "required": ["structure", "vacuum"],
+        "title": "VacuumRequest",
         "type": "object"
       },
       "ValidationError": {
@@ -11614,6 +11977,215 @@
           }
         },
         "summary": "Supercell",
+        "tags": ["crystal"]
+      }
+    },
+    "/api/crystal/surfaces": {
+      "get": {
+        "description": "The named surface builders, with the adsorption sites each facet has.",
+        "operationId": "surface_kinds_api_crystal_surfaces_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/SurfaceKind"
+                  },
+                  "title": "Response Surface Kinds Api Crystal Surfaces Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Surface Kinds",
+        "tags": ["crystal"]
+      }
+    },
+    "/api/crystal/surfaces/adsorbate": {
+      "post": {
+        "operationId": "add_adsorbate_api_crystal_surfaces_adsorbate_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdsorbateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Structure"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Add Adsorbate",
+        "tags": ["crystal"]
+      }
+    },
+    "/api/crystal/surfaces/adsorbates": {
+      "get": {
+        "description": "ASE's molecule names, which an adsorbate may be given as (any element symbol also works).",
+        "operationId": "adsorbate_names_api_crystal_surfaces_adsorbates_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "type": "string"
+                  },
+                  "title": "Response Adsorbate Names Api Crystal Surfaces Adsorbates Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Adsorbate Names",
+        "tags": ["crystal"]
+      }
+    },
+    "/api/crystal/surfaces/build": {
+      "post": {
+        "operationId": "build_named_surface_api_crystal_surfaces_build_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NamedSurfaceRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Structure"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Build Named Surface",
+        "tags": ["crystal"]
+      }
+    },
+    "/api/crystal/surfaces/sites": {
+      "post": {
+        "description": "The named sites of a slab; empty for a structure that was not built as a named surface.",
+        "operationId": "adsorption_sites_api_crystal_surfaces_sites_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StructureBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/AdsorptionSite"
+                  },
+                  "title": "Response Adsorption Sites Api Crystal Surfaces Sites Post",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Adsorption Sites",
+        "tags": ["crystal"]
+      }
+    },
+    "/api/crystal/surfaces/vacuum": {
+      "post": {
+        "operationId": "add_surface_vacuum_api_crystal_surfaces_vacuum_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VacuumRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Structure"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Add Surface Vacuum",
         "tags": ["crystal"]
       }
     },

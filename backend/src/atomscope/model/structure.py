@@ -164,6 +164,31 @@ def _check_bonds(bonds: list[Bond], n: int) -> None:
         _raise_bond_error(bonds, n)
 
 
+class SurfaceInfo(StrictModel):
+    """Named adsorption sites of a slab -- ASE's ``atoms.info['adsorbate_info']``.
+
+    A slab built by one of `ase.build`'s named builders (fcc111, bcc110, hcp0001...) carries the
+    two-dimensional surface cell and the sites in it, which is what lets an adsorbate be placed
+    "on the fcc site" rather than at coordinates. ASE keeps it in a dict on the Atoms object,
+    where it would be lost the moment the structure was saved, so it is a field here and the
+    converter writes ASE's own key back.
+
+    ``top_layer_atom_index`` is the atom the height is measured from. ASE computes it as the
+    highest atom the first time `add_adsorbate` is called and then *caches it in the dict*: keep
+    it, or a second adsorbate is placed relative to the first one instead of to the surface.
+    """
+
+    cell: tuple[tuple[float, float], tuple[float, float]] = Field(
+        description="the 2x2 surface cell the site coordinates are fractions of"
+    )
+    sites: dict[str, tuple[float, float]] = Field(
+        default_factory=dict, description="site name -> position in the surface cell"
+    )
+    top_layer_atom_index: int | None = Field(
+        default=None, ge=0, description="atom the adsorbate height is measured from"
+    )
+
+
 class Structure(StrictModel):
     """The central editable object: atoms, bonds, cell and attached properties."""
 
@@ -180,6 +205,9 @@ class Structure(StrictModel):
     constraints: list[Constraint] = Field(default_factory=list)
     residues: list[Residue] = Field(default_factory=list)
     provenance: Provenance | None = None
+    surface: SurfaceInfo | None = Field(
+        default=None, description="named adsorption sites, for a slab built by ase.build"
+    )
 
     @model_validator(mode="after")
     def _consistent(self) -> Structure:

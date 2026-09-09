@@ -412,7 +412,9 @@ export function MenuBar({ onError }: { onError: (msg: string) => void }): JSX.El
             disabled: !store.doc.cell,
             action: () => openCrystalDialog('supercell'),
           },
-          { label: 'Slab…', disabled: !store.doc.cell, action: () => openCrystalDialog('slab') },
+          // not disabled without a cell any more: the dialog's named surfaces (fcc111 and its
+          // family) are built from an element, not cut out of the structure on screen
+          { label: 'Surface slab…', action: () => openCrystalDialog('slab') },
           { label: 'Crystal library…', action: () => openCrystalDialog('library') },
           ...contributed('Build'),
         ]}

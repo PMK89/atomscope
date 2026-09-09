@@ -675,6 +675,38 @@ External Python-package calculators: `psi4` is importable in this env; `gpaw`, `
 
 ---
 
+## 5.8a Surface builders and adsorbates (`ase/build/surface.py`) — implemented
+
+Wrapped in `atomscope.crystal.surfaces`: `fcc100/110/111/211`, `bcc100/110/111`, `hcp0001`,
+`hcp10m10`, `diamond100/111`, plus `add_adsorbate` and `add_vacuum`. `graphene`, `mx2` and
+`nanotube` are in the same module and are **not** wrapped — different parameterisation, and 2D
+materials rather than adsorption surfaces.
+
+Three traps, all found by testing:
+
+* **The sites live in `atoms.info['adsorbate_info']`**, a plain dict, and would be lost the
+  moment a structure was saved. `Structure.surface` (`model.SurfaceInfo`) is the field that keeps
+  them and `ase_bridge.convert` writes **ASE's own key** back, so `ase.build.add_adsorbate` works
+  unchanged on a slab that has been through a project file or a user script.
+* **`add_adsorbate` caches `'top layer atom index'` into that dict** on first use
+  (`positions[:, 2].argmax()`). Carrying only `cell` and `sites` would place a second adsorbate
+  `height` above the *first adsorbate*, because that atom is then the highest. The index is part
+  of `SurfaceInfo` for that reason, and a test adds O on fcc and O on hcp *through JSON* and
+  asserts the two z are equal.
+* **`Atoms.extend` merges no `info`**, so `slab += adsorbate` leaves the slab's per-atom lists
+  (uids, labels, formal charges) against a longer set of atoms. `from_atoms` read them
+  positionally and raised `IndexError` — reachable from the Scripts panel with one `+=`. It now
+  drops per-atom data, atomic properties, bonds and residues that cannot belong to the atoms
+  present, which is what `crystal._common.new_atoms` already did deliberately.
+
+Not every element has a tabulated constant for every lattice (`bcc110('Al')` raises "Can't guess
+lattice constant for bcc-Al!"); ASE's own message is passed through. A builder called without
+`vacuum` leaves the third cell vector at **zero**, so the cell has no volume and the angles
+against it are NaN.
+
+`fcc211` reports no named sites at all, and `hcp10m10`/`diamond100`/`diamond111` report only
+`ontop` — that is ASE's table, not an omission here.
+
 ## 5.9 Thermochemistry (`ase/thermochemistry.py`) — implemented
 
 Four classes, of which three are wrapped in `atomscope.analysis.thermo` and one is not:

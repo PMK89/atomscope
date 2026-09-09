@@ -33,6 +33,7 @@ from atomscope.model.structure import (
     Cell,
     Residue,
     Structure,
+    SurfaceInfo,
     new_uid,
 )
 from atomscope.model.trajectory import Frame, Trajectory, VibrationalMode, VibrationalSpectrum
@@ -70,6 +71,7 @@ __all__ = [
     "SpectrumPeak",
     "StrictModel",
     "Structure",
+    "SurfaceInfo",
     "Trajectory",
     "VibrationalMode",
     "VibrationalSpectrum",

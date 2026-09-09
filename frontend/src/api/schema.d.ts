@@ -1412,6 +1412,117 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/crystal/surfaces': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Surface Kinds
+     * @description The named surface builders, with the adsorption sites each facet has.
+     */
+    get: operations['surface_kinds_api_crystal_surfaces_get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/crystal/surfaces/adsorbate': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Add Adsorbate */
+    post: operations['add_adsorbate_api_crystal_surfaces_adsorbate_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/crystal/surfaces/adsorbates': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Adsorbate Names
+     * @description ASE's molecule names, which an adsorbate may be given as (any element symbol also works).
+     */
+    get: operations['adsorbate_names_api_crystal_surfaces_adsorbates_get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/crystal/surfaces/build': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Build Named Surface */
+    post: operations['build_named_surface_api_crystal_surfaces_build_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/crystal/surfaces/sites': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Adsorption Sites
+     * @description The named sites of a slab; empty for a structure that was not built as a named surface.
+     */
+    post: operations['adsorption_sites_api_crystal_surfaces_sites_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/crystal/surfaces/vacuum': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Add Surface Vacuum */
+    post: operations['add_surface_vacuum_api_crystal_surfaces_vacuum_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/crystal/symmetrize': {
     parameters: {
       query?: never;
@@ -2548,6 +2659,56 @@ export interface components {
       /** Ph */
       ph?: number | null;
       structure: components['schemas']['Structure'];
+    };
+    /**
+     * AdsorbateRequest
+     * @description Put an adsorbate on a slab, on a named site or at an x-y position.
+     */
+    AdsorbateRequest: {
+      /**
+       * Adsorbate
+       * @description an element symbol, one of ASE's molecule names, or a structure
+       */
+      adsorbate: string | components['schemas']['Structure'];
+      /**
+       * Height
+       * @description Å above the slab's top layer
+       */
+      height: number;
+      /**
+       * Mol Index
+       * @description which atom of a molecular adsorbate sits over the site
+       * @default 0
+       */
+      mol_index: number;
+      /**
+       * Offset
+       * @description shift by whole surface cells, for a second adsorbate
+       */
+      offset?: [number, number] | null;
+      /**
+       * Position
+       * @description Cartesian x-y instead of a named site
+       */
+      position?: [number, number] | null;
+      /**
+       * Site
+       * @description named site, e.g. 'fcc'
+       */
+      site?: string | null;
+      structure: components['schemas']['Structure'];
+    };
+    /**
+     * AdsorptionSite
+     * @description A named site of a slab, in the surface cell and in Cartesian x-y.
+     */
+    AdsorptionSite: {
+      /** Cartesian */
+      cartesian: [number, number];
+      /** Fractional */
+      fractional: [number, number];
+      /** Name */
+      name: string;
     };
     /**
      * AnalysisJob
@@ -4333,6 +4494,44 @@ export interface components {
        */
       v0_a3: number;
     };
+    /**
+     * NamedSurfaceRequest
+     * @description One of `ase.build`'s named surface builders (`crystal.surfaces`).
+     */
+    NamedSurfaceRequest: {
+      /**
+       * A
+       * @description lattice constant; ASE's default
+       */
+      a?: number | null;
+      /**
+       * C
+       * @description second constant, hcp only
+       */
+      c?: number | null;
+      /**
+       * Kind
+       * @description fcc111, bcc110, hcp0001, diamond100 ...
+       */
+      kind: string;
+      /**
+       * Orthogonal
+       * @description square surface cell, where the builder offers the choice
+       */
+      orthogonal?: boolean | null;
+      /**
+       * Size
+       * @description repeats along the two surface vectors, then the number of layers
+       */
+      size: [number, number, number];
+      /** Symbol */
+      symbol: string;
+      /**
+       * Vacuum
+       * @description added on each side; without it the cell has no c vector
+       */
+      vacuum?: number | null;
+    };
     /** NanotubeRequest */
     NanotubeRequest: {
       /**
@@ -5729,6 +5928,8 @@ export interface components {
       provenance?: components['schemas']['Provenance'] | null;
       /** Residues */
       residues?: components['schemas']['Residue'][];
+      /** @description named adsorption sites, for a slab built by ase.build */
+      surface?: components['schemas']['SurfaceInfo'] | null;
     };
     /** StructureBody */
     StructureBody: {
@@ -5759,6 +5960,66 @@ export interface components {
       /** Repeat */
       repeat?: [number, number, number] | null;
       structure: components['schemas']['Structure'];
+    };
+    /**
+     * SurfaceInfo
+     * @description Named adsorption sites of a slab -- ASE's ``atoms.info['adsorbate_info']``.
+     *
+     *     A slab built by one of `ase.build`'s named builders (fcc111, bcc110, hcp0001...) carries the
+     *     two-dimensional surface cell and the sites in it, which is what lets an adsorbate be placed
+     *     "on the fcc site" rather than at coordinates. ASE keeps it in a dict on the Atoms object,
+     *     where it would be lost the moment the structure was saved, so it is a field here and the
+     *     converter writes ASE's own key back.
+     *
+     *     ``top_layer_atom_index`` is the atom the height is measured from. ASE computes it as the
+     *     highest atom the first time `add_adsorbate` is called and then *caches it in the dict*: keep
+     *     it, or a second adsorbate is placed relative to the first one instead of to the surface.
+     */
+    SurfaceInfo: {
+      /**
+       * Cell
+       * @description the 2x2 surface cell the site coordinates are fractions of
+       */
+      cell: [[number, number], [number, number]];
+      /**
+       * Sites
+       * @description site name -> position in the surface cell
+       */
+      sites?: {
+        [key: string]: [number, number];
+      };
+      /**
+       * Top Layer Atom Index
+       * @description atom the adsorbate height is measured from
+       */
+      top_layer_atom_index?: number | null;
+    };
+    /**
+     * SurfaceKind
+     * @description One entry of the builder list, for a dialog to offer.
+     */
+    SurfaceKind: {
+      /**
+       * Facet
+       * @description Miller indices as the builder names them
+       */
+      facet: string;
+      /** Id */
+      id: string;
+      /**
+       * Lattice
+       * @description fcc, bcc, hcp or diamond
+       */
+      lattice: string;
+      /** Orthogonal Option */
+      orthogonal_option: boolean;
+      /**
+       * Sites
+       * @description named adsorption sites this facet has
+       */
+      sites: string[];
+      /** Takes C */
+      takes_c: boolean;
     };
     /** SurfaceRequest */
     SurfaceRequest: {
@@ -6294,6 +6555,15 @@ export interface components {
       values: {
         [key: string]: unknown;
       };
+    };
+    /** VacuumRequest */
+    VacuumRequest: {
+      structure: components['schemas']['Structure'];
+      /**
+       * Vacuum
+       * @description Å added along the third cell vector
+       */
+      vacuum: number;
     };
     /** ValidationError */
     ValidationError: {
@@ -9170,6 +9440,178 @@ export interface operations {
     requestBody: {
       content: {
         'application/json': components['schemas']['SupercellRequest'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['Structure'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  surface_kinds_api_crystal_surfaces_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['SurfaceKind'][];
+        };
+      };
+    };
+  };
+  add_adsorbate_api_crystal_surfaces_adsorbate_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['AdsorbateRequest'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['Structure'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  adsorbate_names_api_crystal_surfaces_adsorbates_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': string[];
+        };
+      };
+    };
+  };
+  build_named_surface_api_crystal_surfaces_build_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['NamedSurfaceRequest'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['Structure'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  adsorption_sites_api_crystal_surfaces_sites_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['StructureBody'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['AdsorptionSite'][];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  add_surface_vacuum_api_crystal_surfaces_vacuum_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['VacuumRequest'];
       };
     };
     responses: {

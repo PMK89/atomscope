@@ -17,6 +17,7 @@ import { useCrystalStore } from '../state/crystalStore';
 import { useStructureStore } from '../state/structureStore';
 import { useViewStore } from '../state/viewStore';
 import { commitCrystalOp, toggleCell } from './crystalActions';
+import { AdsorbateSection } from './AdsorbateSection';
 import { MatrixEditor, ParametersEditor, RepeatEditor, TextEditor } from './CrystalEditors';
 
 type Mode = 'cartesian' | 'fractional';
@@ -252,7 +253,7 @@ export function CrystalPanel({ onError }: { onError: (m: string) => void }): JSX
               Standard orientation
             </button>
             <button onClick={() => openDialog('supercell')}>Supercell…</button>
-            <button onClick={() => openDialog('slab')}>Slab…</button>
+            <button onClick={() => openDialog('slab')}>Surface slab…</button>
             <button onClick={() => openDialog('library')}>Crystal library…</button>
             <button onClick={() => void toggleCell(onError)}>Remove unit cell</button>
           </div>
@@ -281,6 +282,8 @@ export function CrystalPanel({ onError }: { onError: (m: string) => void }): JSX
 
           <h3>Display</h3>
           <RepeatEditor value={cellRepeat} onApply={setCellRepeat} />
+
+          <AdsorbateSection doc={doc} onError={onError} />
         </>
       )}
     </div>

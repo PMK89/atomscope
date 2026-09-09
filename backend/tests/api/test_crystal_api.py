@@ -223,3 +223,75 @@ def test_library(client: TestClient) -> None:
     assert client.get("/api/crystal/library/halides/Nope").status_code == 404
     bad = next(e for e in entries if not e["readable"])
     assert client.get(f"/api/crystal/library/{bad['category']}/{bad['name']}").status_code == 400
+
+
+def test_named_surfaces_and_adsorbates_over_the_api() -> None:
+    with TestClient(create_app()) as c:
+        kinds = c.get("/api/crystal/surfaces").json()
+        by_id = {k["id"]: k for k in kinds}
+        assert "fcc111" in by_id and "hcp10m10" in by_id
+        assert by_id["fcc111"]["sites"] == ["bridge", "fcc", "hcp", "ontop"]
+        assert by_id["hcp10m10"]["facet"] == "10-10"
+        assert "CO" in c.get("/api/crystal/surfaces/adsorbates").json()
+
+        slab = c.post(
+            "/api/crystal/surfaces/build",
+            json={"kind": "fcc111", "symbol": "Cu", "size": [2, 2, 3], "vacuum": 6.0},
+        )
+        assert slab.status_code == 200, slab.text
+        structure = slab.json()
+        assert len(structure["atoms"]) == 12
+        assert sorted(structure["surface"]["sites"]) == ["bridge", "fcc", "hcp", "ontop"]
+
+        sites = c.post("/api/crystal/surfaces/sites", json={"structure": structure}).json()
+        assert [s["name"] for s in sites] == ["bridge", "fcc", "hcp", "ontop"]
+
+        top = max(a["position"][2] for a in structure["atoms"])
+        with_co = c.post(
+            "/api/crystal/surfaces/adsorbate",
+            json={"structure": structure, "adsorbate": "CO", "height": 1.9, "site": "ontop"},
+        )
+        assert with_co.status_code == 200, with_co.text
+        grown = with_co.json()
+        assert len(grown["atoms"]) == 14
+        # `mol_index` 0 is the atom put over the site, and ASE's own CO is ['O', 'C'] -- so it
+        # is the oxygen that lands at the height asked for, not the carbon. ASE does not orient
+        # a molecular adsorbate, and this is what that means in practice.
+        first = grown["atoms"][len(structure["atoms"])]
+        assert first["element"] == "O"
+        assert first["position"][2] == pytest.approx(top + 1.9)
+        assert len(grown["bonds"]) >= 1
+
+        # asking for the carbon down instead turns the molecule over
+        flipped = c.post(
+            "/api/crystal/surfaces/adsorbate",
+            json={
+                "structure": structure,
+                "adsorbate": "CO",
+                "height": 1.9,
+                "site": "ontop",
+                "mol_index": 1,
+            },
+        ).json()
+        carbon = next(a for a in flipped["atoms"] if a["element"] == "C")
+        assert carbon["position"][2] == pytest.approx(top + 1.9)
+
+        taller = c.post(
+            "/api/crystal/surfaces/vacuum", json={"structure": structure, "vacuum": 4.0}
+        ).json()
+        assert taller["cell"]["vectors"][2][2] > structure["cell"]["vectors"][2][2]
+
+        # an unknown site is a 400 naming the ones there are, not a 500
+        bad = c.post(
+            "/api/crystal/surfaces/adsorbate",
+            json={"structure": structure, "adsorbate": "O", "height": 1.5, "site": "hollow"},
+        )
+        assert bad.status_code == 400
+        assert "bridge, fcc, hcp, ontop" in bad.json()["detail"]
+
+        bad = c.post(
+            "/api/crystal/surfaces/build",
+            json={"kind": "bcc110", "symbol": "Al", "size": [2, 2, 3]},
+        )
+        assert bad.status_code == 400
+        assert "lattice constant" in bad.json()["detail"]

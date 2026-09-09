@@ -987,3 +987,9 @@ button {
   margin-top: 8px;
   padding-top: 4px;
 }
+
+/* adsorbate section: at the foot of the crystal panel, only for a named surface */
+.adsorbate-section {
+  border-top: 1px solid var(--border);
+  margin-top: 8px;
+}

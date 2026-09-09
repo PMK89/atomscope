@@ -13,6 +13,7 @@ from pydantic import Field
 
 from atomscope import crystal
 from atomscope.crystal import LibraryEntry, SpacegroupSetting, SymmetryInfo
+from atomscope.crystal import surfaces as surface_mod
 from atomscope.crystal.cell import Cellpar, CoordinateMode
 from atomscope.io.registry import FormatError
 from atomscope.model import Structure
@@ -75,6 +76,47 @@ class SlabRequest(StructureBody):
     miller: tuple[int, int, int]
     layers: int = Field(ge=1)
     vacuum: float = Field(default=10.0, ge=0)
+
+
+class NamedSurfaceRequest(StrictModel):
+    """One of `ase.build`'s named surface builders (`crystal.surfaces`)."""
+
+    kind: str = Field(description="fcc111, bcc110, hcp0001, diamond100 ...")
+    symbol: str
+    size: tuple[int, int, int] = Field(
+        description="repeats along the two surface vectors, then the number of layers"
+    )
+    a: float | None = Field(default=None, gt=0, description="lattice constant; ASE's default")
+    c: float | None = Field(default=None, gt=0, description="second constant, hcp only")
+    vacuum: float | None = Field(
+        default=None, ge=0, description="added on each side; without it the cell has no c vector"
+    )
+    orthogonal: bool | None = Field(
+        default=None, description="square surface cell, where the builder offers the choice"
+    )
+
+
+class AdsorbateRequest(StructureBody):
+    """Put an adsorbate on a slab, on a named site or at an x-y position."""
+
+    adsorbate: str | Structure = Field(
+        description="an element symbol, one of ASE's molecule names, or a structure"
+    )
+    height: float = Field(gt=0, description="Å above the slab's top layer")
+    site: str | None = Field(default=None, description="named site, e.g. 'fcc'")
+    position: tuple[float, float] | None = Field(
+        default=None, description="Cartesian x-y instead of a named site"
+    )
+    offset: tuple[float, float] | None = Field(
+        default=None, description="shift by whole surface cells, for a second adsorbate"
+    )
+    mol_index: int = Field(
+        default=0, ge=0, description="which atom of a molecular adsorbate sits over the site"
+    )
+
+
+class VacuumRequest(StructureBody):
+    vacuum: float = Field(gt=0, description="Å added along the third cell vector")
 
 
 class BulkRequest(StrictModel):
@@ -219,6 +261,59 @@ def supercell(body: SupercellRequest) -> Structure:
 @router.post("/slab", response_model=Structure)
 def slab(body: SlabRequest) -> Structure:
     return _run(lambda: crystal.slab(body.structure, body.miller, body.layers, body.vacuum))
+
+
+@router.get("/surfaces", response_model=list[surface_mod.SurfaceKind])
+def surface_kinds() -> list[surface_mod.SurfaceKind]:
+    """The named surface builders, with the adsorption sites each facet has."""
+    return surface_mod.kinds()
+
+
+@router.get("/surfaces/adsorbates", response_model=list[str])
+def adsorbate_names() -> list[str]:
+    """ASE's molecule names, which an adsorbate may be given as (any element symbol also works)."""
+    return list(surface_mod.MOLECULE_NAMES)
+
+
+@router.post("/surfaces/build", response_model=Structure)
+def build_named_surface(body: NamedSurfaceRequest) -> Structure:
+    return _run(
+        lambda: surface_mod.build(
+            body.kind,
+            body.symbol,
+            body.size,
+            a=body.a,
+            c=body.c,
+            vacuum=body.vacuum,
+            orthogonal=body.orthogonal,
+        )
+    )
+
+
+@router.post("/surfaces/sites", response_model=list[surface_mod.AdsorptionSite])
+def adsorption_sites(body: StructureBody) -> list[surface_mod.AdsorptionSite]:
+    """The named sites of a slab; empty for a structure that was not built as a named surface."""
+    return surface_mod.sites(body.structure)
+
+
+@router.post("/surfaces/adsorbate", response_model=Structure)
+def add_adsorbate(body: AdsorbateRequest) -> Structure:
+    return _run(
+        lambda: surface_mod.adsorb(
+            body.structure,
+            body.adsorbate,
+            body.height,
+            site=body.site,
+            position=body.position,
+            offset=body.offset,
+            mol_index=body.mol_index,
+        )
+    )
+
+
+@router.post("/surfaces/vacuum", response_model=Structure)
+def add_surface_vacuum(body: VacuumRequest) -> Structure:
+    return _run(lambda: surface_mod.with_vacuum(body.structure, body.vacuum))
 
 
 @router.post("/bulk", response_model=Structure)

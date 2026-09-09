@@ -464,12 +464,71 @@ for a selection rather than enumerating a protein on every edit.
 
 `Build ▸ Add unit cell` wraps a molecule in a bounding box with 5 Å padding.
 `Build ▸ Supercell…` repeats the cell (real atoms are created).
-`Build ▸ Slab…` cuts a slab perpendicular to a (h k l) plane with a chosen
-number of layers and vacuum on both sides along **c**. `Build ▸ Crystal
+`Build ▸ Surface slab…` makes a surface, in one of two ways — see
+[§4.4a](#44a-surfaces-and-adsorbates). `Build ▸ Crystal
 library…` offers 507 CIF entries in 22 categories (elements, oxides, silicates,
 zeolites, …), searchable by name or formula. The Crystal tab adds cell editing,
 symmetry perception and a set of cell operations — see
 [§8.5](#85-crystallography).
+
+### 4.4a Surfaces and adsorbates
+
+`Build ▸ Surface slab…` offers two ways to make a surface, and the difference
+between them matters for what you can do next.
+
+**Miller indices of the crystal on screen** cuts a slab perpendicular to the
+(h k l) plane out of whatever bulk crystal is loaded, with a chosen number of
+layers and vacuum on both sides along **c**. Any plane of any crystal — and no
+named adsorption sites, because a cut plane has no way of knowing what to call
+them.
+
+**A named surface** (`fcc (111)`, `bcc (110)`, `hcp (0001)`, `diamond (100)` and
+seven more) is built from an element and a facet rather than cut out of the
+document, which is why it needs no unit cell to start from. It is
+`ase.build.fcc111` and its family, and it brings the thing the cut cannot: the
+**named adsorption sites** of that facet. fcc(111) has ontop, bridge, fcc and
+hcp; fcc(100) has ontop, bridge and hollow; fcc(110) has ontop, hollow and both
+a long and a short bridge. The dialog lists them for the facet you pick.
+
+`Surface repeats` are how many times the surface cell is repeated along its two
+in-plane vectors; `Layers` is the thickness. `a` (and `c`, for hcp) default to
+ASE's tabulated constants for the element, which not every element has — ASE says
+so plainly if it has none for the lattice you asked for. `Orthogonal surface
+cell` squares off the cell where the builder offers the choice, which makes a
+supercell easier to read at the cost of more atoms.
+
+**Adsorbates.** When the structure on screen has named sites, the Crystal tab
+grows an `Adsorbate` section at the foot (it is not there for anything else,
+because there would be nothing to offer). Pick the site, name the adsorbate and
+give a height:
+
+* The adsorbate is an **element symbol** (`O`), one of **ASE's molecule names**
+  (`CO`, `H2O`, `NH3`, `CH4` — the box completes them), or **another structure
+  of the project**, which is how a fragment you built yourself gets onto a
+  surface.
+* `Height` is measured from the slab's **top layer**, and stays measured from it
+  however many adsorbates you add — the reference atom travels with the
+  structure, so the second adsorbate is not stacked on the first.
+* `Cell offset` shifts by whole surface cells, which is how a second adsorbate
+  goes on the neighbouring site rather than on the same one.
+* `Atom facing down` is which atom of a molecular adsorbate sits over the site.
+  ASE does not orient a molecule, so this is the only control over which end
+  points at the surface — and note that ASE's own `CO` is stored as
+  (O, C), so index 0 puts the **oxygen** down and index 1 the carbon.
+
+The bonds of the result are re-perceived from distances, as they are for every
+other builder, so a molecular adsorbate keeps its own bonds.
+
+An **adsorption energy** is E(slab+adsorbate) − E(slab) − E(adsorbate),
+each from its own calculation. Nothing in the UI does that subtraction; the
+tutorial in `docs/tutorials/` does it in a few lines of Python in the Scripts
+tab, which is also how a whole series of sites or coverages is compared.
+
+**Not exposed:** ASE's `graphene`, `mx2` and `nanotube` builders. They live in
+the same ASE module but are 2D materials and tubes rather than adsorption
+surfaces, and each takes a different parameterisation that the dialog's
+element-and-facet shape cannot carry. A script can call them and `save()` the
+result.
 
 ### 4.5 Fragment, peptide, nucleic-acid and nanotube builders
 
@@ -1631,7 +1690,7 @@ operation is a single undo step.
   one drops it. The cost is that an asymmetric unit saved before filling does
   not remember which group it was waiting for.
 * **Operations** — `Wrap atoms`, `Standard orientation`, `Supercell…`,
-  `Slab…`, `Crystal library…`, `Remove unit cell`, and `Scale to volume`.
+  `Surface slab…`, `Crystal library…`, `Remove unit cell`, and `Scale to volume`.
 * **Display** — the cell repeat counts described in [§6](#6-visualization).
 
 ### 8.6 Force fields

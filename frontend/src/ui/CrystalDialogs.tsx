@@ -4,7 +4,7 @@
  */
 import { useEffect, useRef, useState } from 'react';
 import { dialogKeyHandler } from './dialogKeys';
-import { api, type LibraryEntry, type SpacegroupSetting } from '../api/client';
+import { api, type LibraryEntry, type SpacegroupSetting, type SurfaceKind } from '../api/client';
 import { parseMiller, parseRepeat } from '../model/crystal';
 import { normalizeStructure } from '../model/structure';
 import { useCrystalStore } from '../state/crystalStore';
@@ -100,42 +100,194 @@ function SupercellDialog({ onClose, onError }: DialogProps): JSX.Element {
   );
 }
 
+/**
+ * Two ways to make a surface, in one dialog.
+ *
+ * `Miller indices` cuts any plane out of the bulk crystal on screen, which is the general answer
+ * and needs no table of facets. The named builders (`ase.build.fcc111` and its family) instead
+ * build the slab from an element and a facet -- and carry the **named adsorption sites** with it,
+ * which is what lets an adsorbate be placed "on the hcp site" afterwards. A cut plane cannot know
+ * what to call its sites, so it has none.
+ */
 function SlabDialog({ onClose, onError }: DialogProps): JSX.Element {
   const [miller, setMiller] = useState('1 1 1');
   const [layers, setLayers] = useState('3');
   const [vacuum, setVacuum] = useState('10');
   const [error, setError] = useState<string | null>(null);
-  const build = async (): Promise<void> => {
+  const [kinds, setKinds] = useState<SurfaceKind[]>([]);
+  const [kind, setKind] = useState('');
+  const [symbol, setSymbol] = useState('Cu');
+  const [repeat, setRepeat] = useState<[string, string]>(['2', '2']);
+  const [a, setA] = useState('');
+  const [c, setC] = useState('');
+  const [orthogonal, setOrthogonal] = useState(false);
+  const doc = useStructureStore((s) => s.doc);
+
+  useEffect(() => {
+    api.crystal
+      .surfaceKinds()
+      .then(setKinds)
+      .catch((e: Error) => onError(e.message));
+  }, [onError]);
+
+  const entry = kinds.find((k) => k.id === kind) ?? null;
+  const named = kind !== '';
+
+  const buildMiller = async (): Promise<boolean> => {
+    if (!doc.cell) {
+      setError('cutting a plane needs a unit cell; pick a named surface above, or add a cell');
+      return false;
+    }
     let hkl: [number, number, number];
     try {
       hkl = parseMiller(miller);
     } catch (e) {
       setError((e as Error).message);
-      return;
+      return false;
     }
     const n = Number(layers);
     const v = Number(vacuum);
     if (!Number.isInteger(n) || n < 1 || !(v >= 0)) {
       setError('layers must be a positive integer and vacuum >= 0');
-      return;
+      return false;
     }
-    const ok = await commitCrystalOp(
+    return commitCrystalOp(
       `Slab (${hkl.join(' ')})`,
       (structure) => api.crystal.slab({ structure, miller: hkl, layers: n, vacuum: v }),
       onError,
     );
-    if (ok) onClose();
   };
+
+  const buildNamed = async (): Promise<boolean> => {
+    const size: [number, number, number] = [Number(repeat[0]), Number(repeat[1]), Number(layers)];
+    if (size.some((n) => !Number.isInteger(n) || n < 1)) {
+      setError('the two repeats and the layer count must be positive integers');
+      return false;
+    }
+    const v = Number(vacuum);
+    if (!(v >= 0)) {
+      setError('vacuum must be zero or more');
+      return false;
+    }
+    try {
+      // a named surface is built from an element, not from the document, so it replaces it
+      // rather than transforming it -- the same commit the crystal library does
+      const built = await api.crystal.buildSurface({
+        kind,
+        symbol: symbol.trim(),
+        size,
+        a: a.trim() === '' ? null : Number(a),
+        c: c.trim() === '' ? null : Number(c),
+        vacuum: v,
+        orthogonal: entry?.orthogonal_option ? orthogonal : null,
+      });
+      useStructureStore.getState().commit(`Build ${symbol}(${entry?.facet ?? kind})`, {
+        ...normalizeStructure(built),
+        // keep the document's identity, as every other crystal operation does
+        id: doc.id,
+      });
+      return true;
+    } catch (e) {
+      setError((e as Error).message);
+      return false;
+    }
+  };
+
+  const build = async (): Promise<void> => {
+    setError(null);
+    if (await (named ? buildNamed() : buildMiller())) onClose();
+  };
+
   return (
     <Dialog title="Surface slab" onClose={onClose}>
-      <p className="muted">
-        Cut a slab of the current bulk crystal perpendicular to the (h k l) plane; vacuum is added
-        on both sides along c.
-      </p>
       <div className="form-row">
-        <label htmlFor="slab-miller">Miller indices h k l</label>
-        <input id="slab-miller" value={miller} onChange={(e) => setMiller(e.target.value)} />
+        <label htmlFor="slab-kind">Surface</label>
+        <select id="slab-kind" value={kind} onChange={(e) => setKind(e.target.value)}>
+          <option value="">Miller indices of the crystal on screen</option>
+          {kinds.map((k) => (
+            <option key={k.id} value={k.id}>
+              {k.lattice} ({k.facet})
+            </option>
+          ))}
+        </select>
       </div>
+      {named ? (
+        <>
+          <p className="muted">
+            {entry && entry.sites.length > 0
+              ? `Built from the element, with named adsorption sites: ${entry.sites.join(', ')}.`
+              : 'Built from the element. This facet has no named adsorption sites.'}
+          </p>
+          <div className="form-row">
+            <label htmlFor="slab-symbol">Element</label>
+            <input
+              id="slab-symbol"
+              value={symbol}
+              onChange={(e) => setSymbol(e.target.value)}
+              size={4}
+            />
+          </div>
+          <div className="form-row">
+            <label htmlFor="slab-repeat-a">Surface repeats</label>
+            <input
+              id="slab-repeat-a"
+              aria-label="Repeats along the first surface vector"
+              value={repeat[0]}
+              onChange={(e) => setRepeat([e.target.value, repeat[1]])}
+              size={3}
+            />
+            <input
+              aria-label="Repeats along the second surface vector"
+              value={repeat[1]}
+              onChange={(e) => setRepeat([repeat[0], e.target.value])}
+              size={3}
+            />
+          </div>
+          <div className="form-row">
+            <label htmlFor="slab-a">a (Å)</label>
+            <input
+              id="slab-a"
+              value={a}
+              onChange={(e) => setA(e.target.value)}
+              placeholder="ASE default"
+            />
+          </div>
+          {entry?.takes_c && (
+            <div className="form-row">
+              <label htmlFor="slab-c">c (Å)</label>
+              <input
+                id="slab-c"
+                value={c}
+                onChange={(e) => setC(e.target.value)}
+                placeholder="ASE default"
+              />
+            </div>
+          )}
+          {entry?.orthogonal_option && (
+            <label className="check">
+              <input
+                type="checkbox"
+                checked={orthogonal}
+                onChange={(e) => setOrthogonal(e.target.checked)}
+              />
+              Orthogonal surface cell
+            </label>
+          )}
+        </>
+      ) : (
+        <>
+          <p className="muted">
+            Cut a slab of the current bulk crystal perpendicular to the (h k l) plane; vacuum is
+            added on both sides along c. A cut plane carries no named adsorption sites — pick a
+            named surface above for those.
+            {!doc.cell && ' The structure on screen has no unit cell, so there is nothing to cut.'}
+          </p>
+          <div className="form-row">
+            <label htmlFor="slab-miller">Miller indices h k l</label>
+            <input id="slab-miller" value={miller} onChange={(e) => setMiller(e.target.value)} />
+          </div>
+        </>
+      )}
       <div className="form-row">
         <label htmlFor="slab-layers">Layers</label>
         <input id="slab-layers" value={layers} onChange={(e) => setLayers(e.target.value)} />

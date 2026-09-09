@@ -86,6 +86,8 @@ export type OptimizeStepResponse = components['schemas']['OptimizeStepResponse']
 export type ForceFieldInfo = components['schemas']['ForceFieldInfo'];
 export type PointGroupResult = components['schemas']['PointGroupResult'];
 export type SecondaryStructureResult = components['schemas']['SecondaryStructureResult'];
+export type SurfaceKind = components['schemas']['SurfaceKind'];
+export type AdsorptionSite = components['schemas']['AdsorptionSite'];
 export type ThermoTable = components['schemas']['ThermoTable'];
 export type ThermoPoint = components['schemas']['ThermoPoint'];
 export type ThermoModel = ThermoTable['model'];
@@ -287,6 +289,18 @@ export const api = {
       request<Structure>('/api/crystal/asymmetric-unit', json(body)),
     supercell: (body: Body<'/api/crystal/supercell', 'post'>) =>
       request<Structure>('/api/crystal/supercell', json(body)),
+    /** The named surface builders (fcc111, bcc110 ...), with the sites each facet has. */
+    surfaceKinds: () => request<SurfaceKind[]>('/api/crystal/surfaces'),
+    /** ASE's molecule names; any element symbol also works as an adsorbate. */
+    adsorbateNames: () => request<string[]>('/api/crystal/surfaces/adsorbates'),
+    buildSurface: (body: Body<'/api/crystal/surfaces/build', 'post'>) =>
+      request<Structure>('/api/crystal/surfaces/build', json(body)),
+    adsorptionSites: (body: Body<'/api/crystal/surfaces/sites', 'post'>) =>
+      request<AdsorptionSite[]>('/api/crystal/surfaces/sites', json(body)),
+    adsorbate: (body: Body<'/api/crystal/surfaces/adsorbate', 'post'>) =>
+      request<Structure>('/api/crystal/surfaces/adsorbate', json(body)),
+    addVacuum: (body: Body<'/api/crystal/surfaces/vacuum', 'post'>) =>
+      request<Structure>('/api/crystal/surfaces/vacuum', json(body)),
     slab: (body: Body<'/api/crystal/slab', 'post'>) =>
       request<Structure>('/api/crystal/slab', json(body)),
     bulk: (body: Body<'/api/crystal/bulk', 'post'>) =>

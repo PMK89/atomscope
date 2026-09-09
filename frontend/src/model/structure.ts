@@ -25,6 +25,13 @@ export interface StructureDoc {
   constraints: NonNullable<ApiStructure['constraints']>;
   residues: NonNullable<ApiStructure['residues']>;
   provenance: NonNullable<ApiStructure['provenance']> | null;
+  /**
+   * Named adsorption sites, for a slab built by one of ASE's named surface builders. Carried
+   * through opaquely -- and, unlike `provenance`, sent back with the structure
+   * (`api/structureBody.ts`), because the adsorbate route needs it to place an adsorbate on a
+   * site by name.
+   */
+  surface: NonNullable<ApiStructure['surface']> | null;
 }
 
 export function newUid(): string {
@@ -71,6 +78,7 @@ export function normalizeStructure(s: PartialStructure): StructureDoc {
     constraints: s.constraints ?? [],
     residues: s.residues ?? [],
     provenance: s.provenance ?? null,
+    surface: s.surface ?? null,
   };
 }
 
