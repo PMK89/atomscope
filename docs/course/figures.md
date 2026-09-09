@@ -34,10 +34,10 @@ figure's own presentation is not yet drawn · `MISSING` needs capability we do n
 | 4.9 | 4.7 | first frame of a video of the vibrating molecule | POV-Ray, frame by frame | trajectory player animates it in the app | PARTIAL |
 | 5.1 | 5.5 | the friction the atom thermostat applies, against time | `!>` rows → xmgrace | Analysis ▸ Convergence, `atom friction` series | SHOWS |
 | 5.2 | 5.5 | the friction the wave thermostat applies to the wave functions | `!>` rows → xmgrace | Analysis ▸ Convergence, `wave-function friction` series | SHOWS |
-| 5.3 | 5.6 | temperature against time, with a running average over it | `!>` rows → xmgrace | Analysis ▸ Convergence, `temperature` series | PARTIAL |
-| 5.4 | 5.7 | temperature of the carbon atoms alone vs the hydrogens, averaged over 0.1 ps | `paw_tra.x` per atom group | — | MISSING |
-| 5.5 | 5.7 | the same, averaged over 1 ps, so the equipartition is visible | `paw_tra.x` per atom group | — | MISSING |
-| 5.6 | 5.8 | three bond distances against time, showing the proton transfer | `paw_tra.x` → xmgrace | trajectory is stored and playable; no distance-vs-time chart | MISSING |
+| 5.3 | 5.6 | temperature against time, with a running average over it | `!>` rows → xmgrace | Analysis ▸ Dynamics, all atoms, running average τ | SHOWS |
+| 5.4 | 5.7 | temperature of the carbon atoms alone vs the hydrogens, averaged over 0.1 ps | `paw_tra.x` per atom group | Analysis ▸ Dynamics, one curve per element, τ 100 fs | SHOWS |
+| 5.5 | 5.7 | the same, averaged over 1 ps, so the equipartition is visible | `paw_tra.x` per atom group | the same with τ 1000 fs; the chart title names the window | SHOWS |
+| 5.6 | 5.8 | three bond distances against time, showing the proton transfer | `paw_tra.x` → xmgrace | Analysis ▸ Dynamics, one mode per bond (or one difference mode) | SHOWS |
 | 5.7 | 5.10 | first frame of a video of the trajectory, with text overlaid | POV-Ray, frame by frame | trajectory player animates it in the app | PARTIAL |
 | 6.1 | 6.2 | DOS of silicon: total as an outline, the projections as filled regions | `paw_dos.x` → xmgrace | Analysis ▸ DOS, stacked under the total's outline | SHOWS |
 | 6.2 | 6.3.3 | the same DOS computed with "empty atoms" filling the interstitial volume | extra sites in the `.strc` | — | MISSING |
@@ -59,7 +59,7 @@ figure's own presentation is not yet drawn · `MISSING` needs capability we do n
 
 Totals, derived with
 `awk -F'|' 'NR>2 && NF>=7 {gsub(/ /,"",$7); print $7}' docs/course/figures.md | sort | uniq -c`:
-**21 SHOWS · 4 PARTIAL · 5 MISSING · 5 n/a.**
+**25 SHOWS · 3 PARTIAL · 2 MISSING · 5 n/a.**
 
 ## What the gaps actually are
 
@@ -67,10 +67,7 @@ Grouped by the work they need rather than by chapter, because one change closes 
 
 | Gap | Figures | Size |
 |-----|---------|------|
-| running average over a time series | 5.3 | a chart option |
-| a distance (or angle) against time, from a stored trajectory | 5.6 | pure function of the trajectory plus two atom indices |
 | DOS overlay across several calculations | 8.4 | a second calculation selector on the Analysis panel |
-| per-atom-group temperature | 5.4, 5.5 | needs `paw_tra.x` mode extraction, which we do not drive yet |
 | empty atoms | 6.2 | a `.strc` feature: sites with no nucleus |
 | a frame sequence rendered out as a video | 4.9, 5.7 | the POV-Ray export renders one scene; a video needs the frame loop and an encoder |
 | an analytic reference curve on a chart (free-electron √E) | 6.8 | `asecppaw`'s `makeFunction` does this; a chart option for us |

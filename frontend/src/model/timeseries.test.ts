@@ -24,6 +24,7 @@ import {
   KIN_TO_KELVIN,
   derivative,
   elementGroups,
+  frameStride,
   groupTemperature,
   micChain,
   minimumImage,
@@ -339,5 +340,28 @@ describe('groups and indices', () => {
     const t = md();
     t.time[3] = NaN;
     expect(timeAxis(t)).toBeNull();
+  });
+});
+
+describe('frame stride', () => {
+  it('is one for a trajectory that stored every step', () => {
+    expect(frameStride(md())).toBe(1);
+  });
+
+  it('is the median gap, so a ragged step column does not fool it', () => {
+    const t = md();
+    t.step = Float64Array.from(t.step, (v) => v * 10);
+    expect(frameStride(t)).toBe(10);
+    t.step[5] = t.step[4]! + 3; // one short gap from a restart
+    expect(frameStride(t)).toBe(10);
+  });
+
+  it('is null when the frames do not carry a step, or there is one frame', () => {
+    const t = md();
+    t.step[2] = NaN;
+    expect(frameStride(t)).toBeNull();
+    const one = md();
+    one.nFrames = 1;
+    expect(frameStride(one)).toBeNull();
   });
 });

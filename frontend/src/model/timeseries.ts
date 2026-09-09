@@ -173,6 +173,30 @@ export function derivative(x: readonly number[], y: readonly number[]): number[]
   return v;
 }
 
+/**
+ * How many propagation steps lie between stored frames, or null when the frames do not say.
+ *
+ * A trajectory written every Nth step still gives a velocity by central differences, but it is
+ * the average over 2N steps rather than the instantaneous one, so the kinetic energy -- and the
+ * temperature with it -- comes out low by however much the velocity decorrelates in that window.
+ * Atomscope's own runs store every step (ASE's `attach` defaults to an interval of one, and
+ * CP-PAW's `NWRITE` governs protocol reports, not `_r.tra`), so this is about imported
+ * trajectories; the median is taken rather than the first difference because an import may have
+ * a ragged step column.
+ */
+export function frameStride(t: TrajectoryData): number | null {
+  if (t.nFrames < 2) return null;
+  const gaps: number[] = [];
+  for (let f = 1; f < t.nFrames; f++) {
+    const gap = t.step[f]! - t.step[f - 1]!;
+    if (!Number.isFinite(gap)) return null;
+    gaps.push(gap);
+  }
+  gaps.sort((a, b) => a - b);
+  const middle = gaps[Math.floor(gaps.length / 2)]!;
+  return middle > 0 ? middle : null;
+}
+
 /** The time axis in fs, or null when any frame lacks a time -- nothing here is meaningful then. */
 export function timeAxis(t: TrajectoryData): number[] | null {
   if (t.nFrames === 0) return null;

@@ -19,6 +19,7 @@ import {
   TERM_ATOMS,
   derivative,
   elementGroups,
+  frameStride,
   groupTemperature,
   modeSeries,
   modeUnit,
@@ -57,6 +58,7 @@ export function DynamicsView({ calcId }: { calcId: string }): React.ReactElement
   const [error, setError] = useState<string | null>(null);
 
   const time = useMemo(() => (trajectory ? timeAxis(trajectory) : null), [trajectory]);
+  const stride = useMemo(() => (trajectory ? frameStride(trajectory) : null), [trajectory]);
 
   const groups = useMemo(() => {
     if (!trajectory) return [];
@@ -192,6 +194,13 @@ export function DynamicsView({ calcId }: { calcId: string }): React.ReactElement
               />
             </div>
           )}
+          {stride !== null && stride > 1 && (
+            <p className="muted">
+              These frames are every {stride} steps. A central difference over them is the average
+              velocity across {2 * stride} steps rather than the instantaneous one, so the
+              temperature below is a lower bound.
+            </p>
+          )}
           {time === null && (
             <p className="form-error">
               This trajectory carries no time for its frames, so a velocity -- and with it a
@@ -296,7 +305,9 @@ export function DynamicsView({ calcId }: { calcId: string }): React.ReactElement
       )}
 
       <div className="form-row">
-        <label htmlFor="dynamics-tau">Running average τ (fs)</label>
+        <label htmlFor="dynamics-tau">
+          Running average τ ({kind === 'mode' && time === null ? 'frames' : 'fs'})
+        </label>
         <input
           id="dynamics-tau"
           type="number"
@@ -317,7 +328,7 @@ export function DynamicsView({ calcId }: { calcId: string }): React.ReactElement
           xLabel={time === null ? 'frame' : 'fs'}
           yLabel={kind === 'temperature' ? 'K' : modeChart.unit}
           title={`${kind === 'temperature' ? 'Group temperature' : 'Mode'}${
-            tau > 0 ? ` · τ ${tau} fs` : ''
+            tau > 0 ? ` · τ ${tau} ${kind === 'mode' && time === null ? 'frames' : 'fs'}` : ''
           }`}
           settingsId={`analysis.dynamics.${kind}`}
           onPick={(x) => {

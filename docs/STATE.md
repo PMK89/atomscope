@@ -2,7 +2,7 @@
 
 Branch: main; this file is updated in the commit that checkpoints the work, so `git log -1 -- docs/STATE.md` is the last checkpoint. Phases 0-1 done; Phase 2 (editor tools), 3 (volumetric, trajectories, vectors), 4-5 (CP-PAW setup/execution/forces), 6 (CP-PAW analysis: DOS, bands, orbitals), crystallography, molecular mechanics and wavefunction surfaces are merged and working. Parity matrix at `8104e7e`, derived (see ROADMAP for the command): 238 IMPLEMENTED, 17 PARTIAL, 53 NOT STARTED, 3 DECLINED, 1 BLOCKED of 312 rows.
 
-Tests: `pytest -q -m "not cppaw"` -> **717 passed, 1 skipped** (109 s); `pytest -q -m cppaw` -> **7 passed** (94 s, runs the real binaries -- **CP-PAW is found through `$PAWDIR`, which the user's own shell sets (`~/cp-paw`), not `env.sh`**; `$ATOMSCOPE_CPPAW_DIR` overrides it, and `ATOMSCOPE_CPPAW_IMAGE` runs them in a container instead); `pnpm vitest run` -> **715 passed** in 102 files; `pnpm exec playwright test` -> **44 passed** in ~1.2 min; `ATOMSCOPE_COURSE=1 pnpm exec playwright test` -> **14 passed** in ~41 s (course pictures, database, NEB, vibrations; reads `.scratch/course-runs` and `.scratch/neb-proj` -- **`neb.spec.ts` skips itself when `.scratch/neb-proj` is missing**, rebuild it with `../.venv/bin/python ../scripts/make_neb_project.py` from `backend/`; writes `.scratch/course-shots/`) (both against private servers, see below; `make test-e2e` points at the user's 5173, which is stale). **`source env.sh` before Playwright**: without `PLAYWRIGHT_BROWSERS_PATH` it looks in `~/.cache/ms-playwright`, finds nothing, and every test fails at `browserType.launch`. `ruff check`, `ruff format --check`, `mypy` (200 files) and `pnpm typecheck` are clean. One flake, and it is the *same click* as the two races already written up below: `smoke.spec.ts` "Export writes a file..." failed once in a full run (2.2 min) on the second Save, and then passed 10/10 alone with `-g "Export writes a file" --repeat-each 10`. The failure artifact was overwritten by those reruns, so which of the two signatures it was is **not** established -- next time it appears, read `frontend/test-results/*Export*/error-context.md` **before** rerunning anything. Do not read a passing rerun as evidence: the write-up below explains why the e2e is only a detector. **Type-check the frontend with `pnpm typecheck` (`tsc -b --noEmit`), never with `pnpm exec tsc --noEmit`:** the root `tsconfig.json` is a solution file with `files: []`, so a bare `tsc --noEmit` checks nothing and exits 0.
+Tests: `pytest -q -m "not cppaw"` -> **717 passed, 1 skipped** (109 s); `pytest -q -m cppaw` -> **7 passed** (94 s, runs the real binaries -- **CP-PAW is found through `$PAWDIR`, which the user's own shell sets (`~/cp-paw`), not `env.sh`**; `$ATOMSCOPE_CPPAW_DIR` overrides it, and `ATOMSCOPE_CPPAW_IMAGE` runs them in a container instead); `pnpm vitest run` -> **751 passed** in 104 files; `pnpm exec playwright test` -> **45 passed** in ~1.3 min; `ATOMSCOPE_COURSE=1 pnpm exec playwright test` -> **14 passed** in ~41 s (course pictures, database, NEB, vibrations; reads `.scratch/course-runs` and `.scratch/neb-proj` -- **`neb.spec.ts` skips itself when `.scratch/neb-proj` is missing**, rebuild it with `../.venv/bin/python ../scripts/make_neb_project.py` from `backend/`; writes `.scratch/course-shots/`) (both against private servers, see below; `make test-e2e` points at the user's 5173, which is stale). **`source env.sh` before Playwright**: without `PLAYWRIGHT_BROWSERS_PATH` it looks in `~/.cache/ms-playwright`, finds nothing, and every test fails at `browserType.launch`. `ruff check`, `ruff format --check`, `mypy` (200 files) and `pnpm typecheck` are clean. One flake, and it is the *same click* as the two races already written up below: `smoke.spec.ts` "Export writes a file..." failed once in a full run (2.2 min) on the second Save, and then passed 10/10 alone with `-g "Export writes a file" --repeat-each 10`. The failure artifact was overwritten by those reruns, so which of the two signatures it was is **not** established -- next time it appears, read `frontend/test-results/*Export*/error-context.md` **before** rerunning anything. Do not read a passing rerun as evidence: the write-up below explains why the e2e is only a detector. **Type-check the frontend with `pnpm typecheck` (`tsc -b --noEmit`), never with `pnpm exec tsc --noEmit`:** the root `tsconfig.json` is a solution file with `files: []`, so a bare `tsc --noEmit` checks nothing and exits 0.
 
 ## Inspecting the course project, and shipping it
 
@@ -341,11 +341,12 @@ a/b/c cross-section numbers (the strip here is a splined ribbon, not a swept cro
 the axes engine's norm-preservation checkbox (it exists to keep separate length boxes in step,
 and there are none here).
 
-**Deferred** (was next, still wanted): a DOS overlay across calculations (8.4), a running average
-on a time series (5.3), distance-against-time from a stored trajectory (5.6). Then the chapters written and not yet run — 4 (malonaldehyde), 6 (silicon,
-aluminium), 7 (iron, NiO) — and chapter 5 (MD), which needs no new features and runs longest.
-Still needing real new capability: cell dynamics (6.3.5), empty atoms (6.3.3), `paw_tra` mode
-extraction (5.4, 5.5, 5.10), video export (4.9, 5.7).
+**Deferred** (was next, still wanted): a DOS overlay across calculations (8.4). The running
+average on a time series (5.3), distance-against-time from a stored trajectory (5.6) and the
+per-atom-group temperature (5.4, 5.5, 5.10) are **done** -- `Analysis ▸ Dynamics`. Then the
+chapters written and not yet run — 4 (malonaldehyde), 6 (silicon, aluminium), 7 (iron, NiO) — and
+chapter 5 (MD), which needs no new features and runs longest. Still needing real new capability:
+cell dynamics (6.3.5), empty atoms (6.3.3), video export (4.9, 5.7).
 
 A known cosmetic gap, not a regression: loading a trajectory does not refit the camera, so the
 first frame of a geometry series can sit off-centre until View ▸ Centre. The existing `_r.tra`
@@ -407,10 +408,10 @@ tests could not, twice: the schema's numeric type names are `number`/`integer`, 
 effect depended on the run record, so every tick re-armed it and clobbered the next run.
 
 **Declared not done, in the tutorial's §11 and in `docs/course/inventory.md`:** empty atoms
-(6.3.3) and cell dynamics (6.3.5), neither in the CP-PAW schema; `paw_tra` mode extraction
-(5.7/5.8, Figs 5.4-5.6), for which the tutorial gives a script that does it today; a DOS overlay
-across calculations (Fig. 8.4) and the free-electron curve beside aluminium's DOS (Fig. 6.8); and
-video export (Figs 4.9, 5.7). Two inventory rows were **stale and are corrected**: 3.4 (contour
+(6.3.3) and cell dynamics (6.3.5), neither in the CP-PAW schema; a DOS overlay across
+calculations (Fig. 8.4) and the free-electron curve beside aluminium's DOS (Fig. 6.8); and video
+export (Figs 4.9, 5.7). (`paw_tra` mode extraction, 5.7/5.8, was on this list and is now
+`Analysis ▸ Dynamics` -- see the section below.) Two inventory rows were **stale and are corrected**: 3.4 (contour
 plots) is DONE -- `Analysis ▸ Planes` has drawn them since the planes work -- and chapter 5's MD
 plus 5.11's playback are READY.
 
@@ -418,6 +419,76 @@ Every code example in tutorial 4 was **run**, not written from memory: the proje
 script through the real runner against the course project (29 calculations with an energy), and
 the trajectory reader against `.scratch/course-runs/eggbox-0/work/case_r.tra`. Five UI labels in
 the first draft were wrong and were corrected against the components.
+
+## Trajectory time series -- `paw_tra` in a panel (self-directed, 2026-09-09)
+
+The first of the gaps tutorial 4 declares, and the one the tutorial itself pointed a script at.
+`Analysis ▸ Dynamics` now plots the group temperature or an internal coordinate against time.
+
+**The formulas are `paw_tra.f90`'s**, read out of `~/cp-paw/bin/Build_fast/paw_tra.f90` (reference
+material, read-only) rather than invented: `MODES` (a mode is a scaled sum of bond/angle/torsion
+terms, which is how a proton transfer is written as two bonds at +1 and -1), `VELOCITY` (the
+non-uniform central difference, one-sided at the ends), `TEMPERATURE` (central differences,
+`g = 3N` -- the source says so itself and warns it underestimates) and its retardation (an
+*exponential* running average with a time constant, not a boxcar; alpha = 1 - exp(-dt/tau) with
+dt the central-difference window, so tau is compared against 2h and not h).
+
+Worth keeping:
+
+- **`paw_tra`'s per-atom time-resolved branch (CHOICE 1) omits the `/1.5`** that its own summary
+  table applies, so that output is 1.5x the temperature. The group branch (CHOICE 2) is right and
+  is the one implemented.
+- **`_r.tra` carries no velocities** (`int32 ISTEP, float64 TIME, int32 NSIZE, float64 ARRAY`,
+  `NSIZE = 9 + 8*NAT`: lattice, positions, point charges, then (q, mx, my, mz) per atom), which is
+  why `paw_tra` differentiates positions and why this does too.
+- **Central differences are *exact* for Verlet**: r(n+1) - r(n-1) = 2 v(n) dt identically, so the
+  all-atom temperature must reproduce ASE's own `get_temperature()` frame by frame. It does, on a
+  fixture with **wrapped** positions -- which is the test that proves the minimum-image treatment.
+  Ratio 1.0000 to 5 dp before the Float32 floor bites.
+- **The Float32 floor.** `TrajectoryData.positions` is Float32 (shared with the renderer), ~3e-7 A
+  on a position; a central difference over 2 fs turns that into ~1e-5 relative on a velocity, so
+  0.002 K on 230 K. Every golden's last digit is spent on that, not on the formulas.
+- **`geometry.ts`'s dihedral sign is not ASE's.** Same magnitude, opposite sign. The panel uses
+  `dihedralDeg` so a plotted dihedral matches the measurement table; the rule that makes all three
+  coordinates agree with ASE is *unwrap the chain by minimum-imaging successive bonds, then call
+  the existing geometry helper*, which reproduces `get_distance/get_angle/get_dihedral(mic=True)`
+  exactly.
+- **A single-series `LineChart` draws no legend** (`settings.legend && named.length > 1`), so the
+  averaging window went into the chart *title*. Figs 5.3-5.5 differ by that window alone.
+- **Regex `getByText` matches ancestors too** (it tests `textContent`), so `/no time axis/` matched
+  both the header paragraph and the containing div. Scope with `{ selector: 'p.muted' }`.
+
+**Two real bugs the e2e found**, both in the ASE MD runner and both invisible until a time series
+was taken over it. ASE calls an observer **once at the initial configuration** and then after each
+step, so `record_md`'s `step += 1`-first counter labelled the unpropagated geometry as step 1 at
+t = dt: the whole time axis was one step late. And the frame appended before the task branch had
+`time=None`, which for an MD is the t = 0 frame -- so it duplicated the observer's first frame at a
+different time, and `timeAxis` (all-or-nothing by design) refused the trajectory outright with "no
+time axis". Fixed in `backends/ase_builtin/runner.py` by clearing that frame in the md branch and
+counting from -1; pinned by `test_plugin.py` asserting times start at 0, are all present, and are
+strictly increasing.
+
+**A pre-existing flake fixed, not reran-until-green:** `surface.spec.ts` read the Cartesian
+editor's textarea immediately after opening the dialog, and the editor fills its text in an
+effect. It passed before and failed once the new spec shifted the timing by ~4 s. The artifact
+showed the *structure* was right (both oxygens at z = 13.868), so it was the read, not the physics;
+now `expect.poll`s for the two oxygen lines. 4/4 with `--repeat-each 4`.
+
+**Not done here, deliberately:** no backend route. The trajectory is already in `trajectoryStore`
+as typed arrays and the arithmetic is a few multiplications; a POST of thousands of frames to
+compute a mean would be the wrong shape. It also means the chart and the animation are always the
+same frames.
+
+**Stride caveat, in the panel:** a trajectory stored every Nth step still yields a velocity, but
+the average over 2N steps, so the temperature is a lower bound. Atomscope's own runs are stride 1
+(ASE's `attach` defaults to interval 1; CP-PAW's `NWRITE` governs protocol reports and restart
+files, **not** `_r.tra` -- checked against `.scratch/course-runs`, where the stored spacing is
+0.12094 fs = the 5 a.u. time step exactly). `frameStride` takes the median gap so a ragged step
+column from a restart does not fool it, and the note only appears when the frames say.
+
+Closed: figures 5.3-5.6 (**25 SHOWS / 3 PARTIAL / 2 MISSING / 5 n/a**, was 21/4/5/5) and inventory
+5.10 (**10 DONE / 11 READY / 2 RUNS / 8 TODO / 2 BLOCKED / 1 n/a**). No parity row -- Avogadro 1
+has no equivalent, so this is not parity.
 
 ## Resume commands
 
@@ -686,12 +757,12 @@ run against current code -- Playwright above all -- use the private-server recip
   this checkpoint; nothing of ours is listening.
 
 ## Next actions
-0. The gaps this session's tutorial declares (§11 of `docs/tutorials/04-hands-on-course.md`), in
-   the order they would close: `paw_tra` mode extraction as a panel (per-atom-group temperature,
-   an internal coordinate against time -- the tutorial shows the script that does it today), a
-   DOS overlay across calculations (Fig. 8.4), empty atoms and cell dynamics in the CP-PAW schema
-   (6.3.3, 6.3.5). Also a sweep over *structures* rather than a parameter, which is the one shape
-   `New sweep…` cannot build (chapter 8.5 needs the `sweep water-cell-size` runner).
+0. The gaps tutorial 4 declares (§11 of `docs/tutorials/04-hands-on-course.md`), in the order
+   they would close: a DOS overlay across calculations (Fig. 8.4) with the free-electron √E curve
+   beside aluminium's DOS (Fig. 6.8), empty atoms and cell dynamics in the CP-PAW schema (6.3.3,
+   6.3.5), video export (Figs 4.9, 5.7). Also a sweep over *structures* rather than a parameter,
+   which is the one shape `New sweep…` cannot build (chapter 8.5 needs the `sweep
+   water-cell-size` runner). `paw_tra` mode extraction, which was item 0, is done.
 1. Renderer parity gaps left: QTAIM (AV-VIS-027). The ring and polygon engines (AV-VIS-021/022)
    are done.
    Everything else the renderer owes is done -- cut/copy/paste, the label engine, the Display tab

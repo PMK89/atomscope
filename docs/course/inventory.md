@@ -53,7 +53,7 @@ we do not have · `TODO` not started.
 | 4.7.5 | Malonaldehyde | COOPs (optional) | C₃H₄O₂ | `paw_dos` | bonding/antibonding character per bond | COOP plot | READY |
 | 4.7.6 | Malonaldehyde | wave functions and density | C₃H₄O₂ | cube export | isosurfaces | isosurface engine | TODO |
 | 5 | Malonaldehyde MD | Nosé-Hoover thermostats, equilibration | C₃H₄O₂ | Car-Parrinello MD at 300 K | temperature history, energy conservation, equipartition | MD run (`Task ▸ Molecular dynamics`, both Nosé thermostats), trajectory playback, temperature and energy against time | READY |
-| 5.10 | Malonaldehyde MD | extract proton-transfer modes | C₃H₄O₂ | `paw_tra` | a chosen internal coordinate against time | **`paw_tra` mode extraction not wrapped** | BLOCKED |
+| 5.10 | Malonaldehyde MD | extract proton-transfer modes | C₃H₄O₂ | `paw_tra` | a chosen internal coordinate against time | Analysis ▸ Dynamics: a mode as a scaled sum of bond/angle/torsion terms, plus its time derivative | DONE |
 | 5.11 | Malonaldehyde MD | visualize the dynamics | C₃H₄O₂ | — | the trajectory as a movie | trajectory player (in the application; no video file — see figures.md) | READY |
 | 6.3.1 | Solids: silicon | wave functions at equilibrium | Si, 2-atom fcc cell | wave-function optimization, k-points | total energy, convergence | periodic setup, k-point controls | READY |
 | 6.3.2 | Solids: silicon | density of states | Si | `paw_dos` | the band gap in the DOS | DOS plot | TODO |

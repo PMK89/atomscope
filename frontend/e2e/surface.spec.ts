@@ -51,11 +51,13 @@ test('a named surface offers its sites and takes an adsorbate', async ({ page })
   await page.getByRole('menuitem', { name: 'Cartesian editor…' }).click();
   // scoped to the dialog: 'Coordinates' also names a control in one of the mounted panels
   const editor = page.getByRole('dialog', { name: 'Cartesian editor' });
-  const text = await editor.getByLabel('Coordinates').inputValue();
-  const zs = text
-    .split('\n')
-    .filter((line) => /^\s*O\s/.test(line))
-    .map((line) => Number(line.trim().split(/\s+/)[3]));
+  const coordinates = editor.getByLabel('Coordinates');
+  const oxygenLines = async (): Promise<string[]> =>
+    (await coordinates.inputValue()).split('\n').filter((line) => /^\s*O\s/.test(line));
+  // the editor fills its text from the structure in an effect, so poll for the two oxygens
+  // rather than reading a textarea that may still be empty
+  await expect.poll(async () => (await oxygenLines()).length).toBe(2);
+  const zs = (await oxygenLines()).map((line) => Number(line.trim().split(/\s+/)[3]));
   expect(zs).toHaveLength(2);
   expect(Math.abs(zs[0]! - zs[1]!)).toBeLessThan(1e-4);
 });

@@ -89,7 +89,7 @@ test('names the running average time constant on the chart', () => {
   loadCopper();
   const { container } = render(<DynamicsView calcId="calc-1" />);
   expect(chartTitle(container)).toBe('Group temperature');
-  fireEvent.change(screen.getByLabelText('Running average τ (fs)'), { target: { value: '4' } });
+  fireEvent.change(screen.getByLabelText(/Running average/), { target: { value: '4' } });
   // Figs 5.3-5.5 differ by the averaging window alone, so the chart has to say which it is
   expect(chartTitle(container)).toBe('Group temperature · τ 4 fs');
 });
@@ -98,7 +98,7 @@ test('smooths the curve it labels', () => {
   loadCopper();
   const { container } = render(<DynamicsView calcId="calc-1" />);
   const raw = container.querySelector('polyline')?.getAttribute('points');
-  fireEvent.change(screen.getByLabelText('Running average τ (fs)'), { target: { value: '40' } });
+  fireEvent.change(screen.getByLabelText(/Running average/), { target: { value: '40' } });
   expect(container.querySelector('polyline')?.getAttribute('points')).not.toBe(raw);
 });
 
@@ -172,9 +172,35 @@ test('removes a term', () => {
 
 test('plots the time derivative of the mode with its own unit', () => {
   loadCopper();
-  const { container } = render(<DynamicsView calcId="calc-1" />);
-  expect(container).toBeTruthy();
+  render(<DynamicsView calcId="calc-1" />);
   fireEvent.change(screen.getByLabelText('Series'), { target: { value: 'mode' } });
   fireEvent.click(screen.getByLabelText('Plot the time derivative'));
   expect(screen.getByText('Å/fs')).toBeInTheDocument();
+});
+
+test('warns that a subsampled trajectory understates the temperature', () => {
+  loadCopper();
+  const { container } = render(<DynamicsView calcId="calc-1" />);
+  expect(screen.queryByText(/lower bound/)).not.toBeInTheDocument();
+
+  // the same frames, relabelled as every tenth step of the propagation
+  const t = useTrajectoryStore.getState().trajectory!;
+  act(() => {
+    useTrajectoryStore.getState().load({
+      ...t,
+      step: Float64Array.from(t.step, (v) => v * 10),
+    });
+  });
+  expect(screen.getByText(/every 10 steps/, { selector: 'p.muted' })).toBeInTheDocument();
+  expect(screen.getByText(/across 20 steps/, { selector: 'p.muted' })).toBeInTheDocument();
+  // it is a note, not a refusal: the curve is still drawn
+  expect(polylines(container)).toBeGreaterThan(0);
+});
+
+test('calls the mode running average window frames when there is no time axis', () => {
+  loadWater(false);
+  render(<DynamicsView calcId="calc-1" />);
+  fireEvent.change(screen.getByLabelText('Series'), { target: { value: 'mode' } });
+  expect(screen.getByLabelText('Running average τ (frames)')).toBeInTheDocument();
+  expect(screen.getByText('frame')).toBeInTheDocument();
 });

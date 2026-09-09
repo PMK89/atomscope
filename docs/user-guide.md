@@ -1340,6 +1340,58 @@ friction says whether the wave functions are still following the atoms; the
 atom thermostat's says how hard it is pulling the atoms towards the target
 temperature, and is left out entirely when there is no atom dynamics.
 
+### 8.1a Dynamics: time series from a trajectory
+
+`Analysis ▸ Dynamics` reduces the loaded trajectory to a curve. It is what
+CP-PAW's `paw_tra` is run for, and the formulas are that tool's, so the plots
+are the ones the course's chapters 5.7 and 5.8 are built on.
+
+The trajectory is whichever one is loaded — the same frames the player under the
+viewport steps through — so `Load trajectory` here is the same button the
+`Calculation ▸ Results` panel offers. Clicking anywhere on the chart shows that
+frame in the viewport, which is how a feature in the curve is turned into a
+geometry.
+
+**Group temperature.** `Series ▸ Temperature of a group`, then `Atoms`:
+
+* `All atoms` — the run's temperature, formed from the trajectory rather than
+  read from the log, so it works on an imported trajectory too.
+* `One curve per element` — the figure the course draws to show equipartition
+  arriving: the hydrogens run hot and the heavy atoms lag, and after long enough
+  averaging the curves meet.
+* `Chosen indices` — a text field taking `0 2 4-6`.
+
+The velocities come from central differences of the positions, which is exact
+for a Verlet propagator, and displacements are taken across the shortest
+periodic image so a trajectory whose positions have been wrapped into the cell
+does not read a boundary crossing as a velocity of one cell per step. The group
+gets g = 3N degrees of freedom, as `paw_tra` does — it says so itself, and warns
+that ignoring the three of the centre of mass underestimates the temperature
+slightly. A trajectory whose frames carry no time says so instead of plotting a
+meaningless curve (a geometry optimisation is that case), and one stored every
+Nth step says that its temperature is a lower bound, because a central
+difference over such frames is an average over 2N steps.
+
+**Internal coordinates and modes.** `Series ▸ Internal coordinate / mode` builds
+what `paw_tra` calls a mode: a scaled sum of `Bond`, `Angle` and `Torsion`
+terms. One bond term is a distance against time. Two bond terms scaled +1 and
+−1 are a difference coordinate — a proton transfer, plotted directly. An
+angle's vertex is its middle atom; bonds come out in Å and angles and torsions
+in degrees, with the same sign convention as the measurement table, and a mode
+mixing the two is left without a unit rather than given a wrong one.
+
+`Add from selection` takes a term's atoms from whatever is picked in the
+viewport: two atoms make a bond, three an angle, four a torsion. A term whose
+atoms are out of range is marked and left out of the sum rather than throwing,
+so a half-typed row is harmless. `Plot the time derivative` differentiates
+whatever is plotted, by the same non-uniform central difference `paw_tra` uses.
+
+**Running average.** `Running average τ` is `paw_tra`'s retardation: an
+exponential average with a time constant, not a boxcar. τ = 0 leaves the series
+raw. The value is written into the chart title, because two of the course's
+figures differ by that window alone and an unlabelled curve cannot say which of
+them it is.
+
 ### 8.2 Forces
 
 Forces are attached to the final structure as a per-atom vector property and

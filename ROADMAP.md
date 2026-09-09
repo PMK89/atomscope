@@ -71,8 +71,8 @@ their structure, so a molecule at the cell origin is drawn around its atoms rath
 corners of the box. A DOS already computed is read back when a project is reopened.
 Remaining: `mode: diagonalize` bands fail on the binaries installed here (2025-05-07) and need a
 CP-PAW rebuild — the API reports that rather than serving the previous run's file; band results
-are still not reloaded on reopening (the DOS now is); `paw_tra` mode extraction (ch. 5.10);
-contour/slice plots (ch. 3.4).
+are still not reloaded on reopening (the DOS now is). `paw_tra` mode extraction (ch. 5.10) and
+contour/slice plots (ch. 3.4) are done -- `Analysis ▸ Dynamics` and `Analysis ▸ Planes`.
 
 ## Phase 7 — ASE workflows — DONE (core)
 ASE built-in calculators, BFGS/L-BFGS/FIRE, Langevin MD, CP-PAW forces through `CppawCalculator`

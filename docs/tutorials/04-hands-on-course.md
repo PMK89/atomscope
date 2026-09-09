@@ -218,9 +218,24 @@ while the temperature wanders.
 viewport steps through it, plays it and loops it. That is chapter 5.11's movie,
 in the application rather than as a file.
 
-What is missing from this chapter is listed in §11: the per-atom-group
-temperatures and the bond-distance-against-time plots the course makes with
-`paw_tra` (Figs 5.4–5.6).
+**Take the chapter's plots off it.** `Analysis ▸ Dynamics` is what the course
+runs `paw_tra` for, and it works on whichever trajectory is loaded:
+
+* `Series ▸ Temperature of a group`, `Atoms ▸ One curve per element`, and a
+  `Running average τ` of 100 fs gives Fig. 5.4 — the hydrogens running hot
+  while the heavy atoms lag. Raise τ to 1000 fs for Fig. 5.5, where the two
+  curves have met and equipartition is visible. The chart title names the
+  window, because those two figures differ by nothing else.
+* `Series ▸ Internal coordinate / mode` with one `Bond` term per O–H distance
+  gives Fig. 5.6, the proton transfer itself. A single mode of two bond terms
+  scaled +1 and −1 plots the transfer coordinate directly, which is how
+  `paw_tra` writes it; `Add from selection` takes the atom indices from
+  whatever you have picked in the viewport, and `Plot the time derivative` turns
+  any of these into a velocity.
+
+The temperature uses g = 3N degrees of freedom for the group, exactly as
+`paw_tra` does — it says so itself, and warns that ignoring the three of the
+centre of mass underestimates the result slightly.
 
 ## 7. Chapter 6: solids, silicon and aluminium
 
@@ -334,7 +349,7 @@ needs nothing installed:
 
 ## 11. What Atomscope cannot do yet
 
-Three of the course's exercises have no route here, and one figure family does
+Two of the course's exercises have no route here, and two figure families do
 not. This is the honest list; each is a real gap, not a decision.
 
 * **6.3.3 — empty atoms.** The exercise puts extra, electron-less sites in the
@@ -347,13 +362,6 @@ not. This is the honest list; each is a real gap, not a decision.
   in the schema. The equation-of-state sweep of §7 answers the same question by
   a different route — and gives B₀ and B′ as well — so the physics of the
   chapter is reachable; the method is not.
-* **5.7 / 5.8 — `paw_tra` mode extraction.** The course post-processes the
-  trajectory into the temperature of the carbon atoms against the hydrogens
-  (Figs 5.4, 5.5: equipartition, once averaged over long enough) and into three
-  bond distances against time (Fig. 5.6: the proton transfer itself). Atomscope
-  reads the trajectory and plays it, but has no per-atom-group or
-  internal-coordinate time series. **A script can do it today** — §12 — but
-  there is no panel for it.
 * **Fig. 8.4 — several DOS curves overlaid.** One DOS at a time; there is no
   overlay across calculations. **Fig. 6.8** wants the free-electron √E curve
   drawn beside aluminium's DOS, which is also not there.
@@ -417,9 +425,11 @@ value(
 with the names being whatever you called the three runs (the `Name` field of
 the `Calculation` tab).
 
-The distance-against-time plot of Fig. 5.6, which §11 lists as missing, is a
-few lines against the stored trajectory. CP-PAW writes its own binary format,
-`<root>_r.tra`, and the reader for it is part of Atomscope:
+`Analysis ▸ Dynamics` draws the distance-against-time plot of Fig. 5.6 without
+any of this (§6). What a script adds is the arithmetic the panel does not offer
+— a fit to the curve, a histogram of the transfer times, anything you would
+otherwise take to a second program. CP-PAW writes its trajectory in its own
+binary format, `<root>_r.tra`, and the reader for it is part of Atomscope:
 
 ```python
 import numpy as np
