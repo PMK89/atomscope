@@ -20,6 +20,8 @@ import {
 } from 'three';
 import { arrowMatrices } from '../arrow';
 import { disposeSprite, makeTextSprite } from '../textSprite';
+import { DEFAULT_AXES_VECTORS, resolveAxes, type AxesType } from '../../model/axes';
+import type { Vec3 } from '../../model/structure';
 import type { DisplayLayer } from './Layer';
 
 export type AxesMode = 'corner' | 'origin';
@@ -28,11 +30,28 @@ export interface AxesLayerSettings {
   mode: AxesMode;
   /** corner gizmo size in CSS pixels */
   size: number;
-  /** axis length in Å for the origin mode */
+  /** axis length in Å for the origin mode, and for the Cartesian axes type */
   length: number;
+  /**
+   * Avogadro's `axesType`: Cartesian (the unit axes at `length`), Orthogonal (the first vector
+   * with the other two derived from it) or Custom (all three as entered). Only the origin mode
+   * uses it -- the corner gizmo is an orientation indicator, so it is always Cartesian.
+   */
+  axesType: AxesType;
+  /** where the axes are drawn from, Avogadro's `m_origin` */
+  origin: Vec3;
+  /** the three vectors, used by the Orthogonal and Custom types */
+  vectors: [Vec3, Vec3, Vec3];
 }
 
-export const DEFAULT_AXES_SETTINGS: AxesLayerSettings = { mode: 'corner', size: 84, length: 2 };
+export const DEFAULT_AXES_SETTINGS: AxesLayerSettings = {
+  mode: 'corner',
+  size: 84,
+  length: 2,
+  axesType: DEFAULT_AXES_VECTORS.type,
+  origin: [0, 0, 0],
+  vectors: DEFAULT_AXES_VECTORS.vectors,
+};
 
 const AXES: readonly { name: string; color: number; dir: [number, number, number] }[] = [
   { name: 'x', color: 0xe53935, dir: [1, 0, 0] },
@@ -52,7 +71,8 @@ export class AxesLayer implements DisplayLayer {
   private readonly gizmoScene = new Scene();
   private readonly gizmoCamera = new OrthographicCamera(-1.4, 1.4, 1.4, -1.4, 0.1, 20);
   private readonly gizmo: Group;
-  private readonly origin: Group;
+  /** The axes at the world origin; rebuilt when the vectors change, so not readonly. */
+  private origin: Group;
   private readonly geometries = [new CylinderGeometry(1, 1, 1, 10, 1), new ConeGeometry(1, 1, 12)];
   private readonly materials: MeshBasicMaterial[] = [];
   private readonly size = new Vector2();
@@ -61,18 +81,40 @@ export class AxesLayer implements DisplayLayer {
     this.settings = { ...DEFAULT_AXES_SETTINGS, ...settings };
     this.gizmo = this.buildAxes(1, 0.04);
     this.gizmoScene.add(this.gizmo);
-    this.origin = this.buildAxes(this.settings.length, 0.03);
+    this.origin = this.buildAxes(this.axisVectors(), 0.03);
     this.object.add(this.origin);
     this.applyMode();
   }
 
+  /** The three vectors the origin axes are drawn along, from the type and the entered ones. */
+  private axisVectors(): [Vec3, Vec3, Vec3] {
+    return resolveAxes({
+      type: this.settings.axesType,
+      length: this.settings.length,
+      vectors: this.settings.vectors,
+    });
+  }
+
   setSettings(patch: Partial<AxesLayerSettings>): void {
-    const lengthChanged = patch.length !== undefined && patch.length !== this.settings.length;
+    const before = JSON.stringify([
+      this.settings.length,
+      this.settings.axesType,
+      this.settings.vectors,
+    ]);
     this.settings = { ...this.settings, ...patch };
-    if (lengthChanged) {
-      const s = this.settings.length;
-      this.origin.scale.set(s, s, s);
+    const after = JSON.stringify([
+      this.settings.length,
+      this.settings.axesType,
+      this.settings.vectors,
+    ]);
+    if (before !== after) {
+      // arbitrary vectors cannot be a uniform scale of the unit axes, so rebuild rather than scale
+      this.object.remove(this.origin);
+      this.disposeGroup(this.origin);
+      this.origin = this.buildAxes(this.axisVectors(), 0.03);
+      this.object.add(this.origin);
     }
+    this.origin.position.set(...this.settings.origin);
     this.applyMode();
   }
 
@@ -84,17 +126,27 @@ export class AxesLayer implements DisplayLayer {
     this.origin.visible = this.settings.mode === 'origin';
   }
 
-  private buildAxes(length: number, radius: number): Group {
+  private buildAxes(vectors: [Vec3, Vec3, Vec3] | number, radius: number): Group {
+    // a number is the Cartesian case, which is what the corner gizmo always wants
+    const along: [Vec3, Vec3, Vec3] =
+      typeof vectors === 'number'
+        ? [
+            [vectors, 0, 0],
+            [0, vectors, 0],
+            [0, 0, vectors],
+          ]
+        : vectors;
     const group = new Group();
     const origin = new Vector3();
     const v = new Vector3();
     const ms = new Matrix4();
     const mh = new Matrix4();
     const [cylinder, cone] = this.geometries as [CylinderGeometry, ConeGeometry];
-    for (const axis of AXES) {
+    AXES.forEach((axis, index) => {
       const material = new MeshBasicMaterial({ color: axis.color });
       this.materials.push(material);
-      v.set(...axis.dir).multiplyScalar(length);
+      v.set(...along[index]!);
+      const length = v.length() || 1;
       arrowMatrices(
         origin,
         v,
@@ -113,8 +165,18 @@ export class AxesLayer implements DisplayLayer {
         label.position.copy(v).multiplyScalar(1.25);
         group.add(label);
       }
-    }
+    });
     return group;
+  }
+
+  /** Free the meshes and sprites of a rebuilt group; the geometries are shared and stay. */
+  private disposeGroup(group: Group): void {
+    for (const child of group.children) {
+      const sprite = child as { material?: { map?: { dispose(): void }; dispose?: () => void } };
+      if (sprite.material?.map) sprite.material.map.dispose();
+      if (sprite.material?.dispose) sprite.material.dispose();
+    }
+    group.clear();
   }
 
   renderOverlay(gl: WebGLRenderer, camera: Camera): void {

@@ -7,6 +7,9 @@ import {
 import { NO_STYLES, type StyleAssignment } from '../renderer/atomStyles';
 import { DEFAULT_POLYGON_SETTINGS } from '../renderer/layers/PolygonLayer';
 import { DEFAULT_RING_SETTINGS } from '../renderer/layers/RingLayer';
+import { DEFAULT_AXES_SETTINGS, type AxesMode } from '../renderer/layers/AxesLayer';
+import type { AxesType } from '../model/axes';
+import type { Vec3 } from '../model/structure';
 import {
   DEFAULT_STRUCTURE_SETTINGS,
   type Quality,
@@ -68,6 +71,20 @@ export interface ViewState {
   showUnitCell: boolean;
   cellRepeat: [number, number, number];
   showAxes: boolean;
+  /** Where the axes are drawn: the corner gizmo, or at a point in the scene. */
+  axesMode: AxesMode;
+  /** Avogadro's `axesType`: Cartesian, Orthogonal or Custom (origin mode only). */
+  axesType: AxesType;
+  axesOrigin: Vec3;
+  axesVectors: [Vec3, Vec3, Vec3];
+  axesLength: number;
+  setAxes: (patch: {
+    mode?: AxesMode;
+    type?: AxesType;
+    origin?: Vec3;
+    vectors?: [Vec3, Vec3, Vec3];
+    length?: number;
+  }) => void;
   /** Label engine: what atoms and bonds are labelled with. */
   showLabels: boolean;
   atomLabels: AtomLabelContent;
@@ -224,6 +241,11 @@ export const DISPLAY_TYPE_DEFAULTS = {
   showUnitCell: true,
   cellRepeat: [1, 1, 1],
   showAxes: true,
+  axesMode: DEFAULT_AXES_SETTINGS.mode,
+  axesType: DEFAULT_AXES_SETTINGS.axesType,
+  axesOrigin: DEFAULT_AXES_SETTINGS.origin,
+  axesVectors: DEFAULT_AXES_SETTINGS.vectors,
+  axesLength: DEFAULT_AXES_SETTINGS.length,
 } as const satisfies Partial<ViewState>;
 
 export const useViewStore = create<ViewState>((set) => ({
@@ -330,6 +352,19 @@ export const useViewStore = create<ViewState>((set) => ({
   showUnitCell: true,
   cellRepeat: [1, 1, 1],
   showAxes: true,
+  axesMode: DEFAULT_AXES_SETTINGS.mode,
+  axesType: DEFAULT_AXES_SETTINGS.axesType,
+  axesOrigin: DEFAULT_AXES_SETTINGS.origin,
+  axesVectors: DEFAULT_AXES_SETTINGS.vectors,
+  axesLength: DEFAULT_AXES_SETTINGS.length,
+  setAxes: ({ mode, type, origin, vectors, length }) =>
+    set((s) => ({
+      axesMode: mode ?? s.axesMode,
+      axesType: type ?? s.axesType,
+      axesOrigin: origin ?? s.axesOrigin,
+      axesVectors: vectors ?? s.axesVectors,
+      axesLength: length ?? s.axesLength,
+    })),
   toggleVectors: () => set((s) => ({ showVectors: !s.showVectors })),
   setVectorField: (vectorField) => set({ vectorField }),
   setVectorScale: (vectorScale) => set({ vectorScale }),

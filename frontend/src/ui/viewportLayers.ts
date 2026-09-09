@@ -4,6 +4,7 @@ import { LabelLayer } from '../renderer/layers/LabelLayer';
 import { HBondLayer } from '../renderer/layers/HBondLayer';
 import { PolygonLayer } from '../renderer/layers/PolygonLayer';
 import { RingLayer } from '../renderer/layers/RingLayer';
+import { AxesLayer } from '../renderer/layers/AxesLayer';
 import { RibbonLayer, type SecondaryStructureData } from '../renderer/layers/RibbonLayer';
 import { UnitCellLayer } from '../renderer/layers/UnitCellLayer';
 import { VectorLayer } from '../renderer/layers/VectorLayer';
@@ -97,7 +98,18 @@ export function syncExtraLayers(
     cell.setSettings({ repeat: view.cellRepeat });
   }
   const axes = renderer.getLayer('axes');
-  if (axes) axes.visible = view.showAxes;
+  if (axes instanceof AxesLayer) {
+    axes.visible = view.showAxes;
+    axes.setSettings({
+      mode: view.axesMode,
+      axesType: view.axesType,
+      origin: view.axesOrigin,
+      vectors: view.axesVectors,
+      length: view.axesLength,
+    });
+  } else if (axes) {
+    axes.visible = view.showAxes;
+  }
   const labels = renderer.getLayer('labels');
   if (labels instanceof LabelLayer) {
     labels.visible = view.showLabels;

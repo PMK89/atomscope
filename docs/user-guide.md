@@ -832,6 +832,15 @@ ball-and-stick, which Avogadro does with two engines at once, is not possible.
 `Show atoms (wireframe)` draws the atoms of the `Wireframe` style as dots, or
 leaves the bare lines, which is what the style is for on a large structure.
 
+**Axes.** `Show axes` draws them, and `Axes at` chooses where: the corner
+gizmo, which is an orientation indicator and always the Cartesian directions,
+or a point in the scene, which is Avogadro's axes engine. In that mode `Axes`
+offers its three types — `Cartesian axes` (the unit directions at a settable
+length), `Orthogonal axes` (you give the first vector and the second; the
+second is straightened against the first, keeping its own length, and the third
+is their cross product) and `Custom axes` (all three as you enter them) — with
+an origin to put the frame anywhere.
+
 **Ring planes** fill in each perceived ring, coloured by its size — red for
 three, green for four, blue for five, magenta for six, yellow above that — which
 is how an aromatic system reads at a glance in a large structure. The rings are

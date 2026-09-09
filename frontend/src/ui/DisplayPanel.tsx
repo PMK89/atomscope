@@ -26,6 +26,9 @@ import { useBioStore } from '../state/bioStore';
 import { useRendererStore } from '../state/rendererStore';
 import type { RibbonColorScheme } from '../renderer/layers/RibbonLayer';
 import type { RadiusBasis, StructureStyle } from '../renderer/layers/StructureLayer';
+import type { AxesMode } from '../renderer/layers/AxesLayer';
+import type { AxesType } from '../model/axes';
+import type { Vec3 } from '../model/structure';
 import { useStructureStore } from '../state/structureStore';
 import { useViewStore } from '../state/viewStore';
 
@@ -764,6 +767,106 @@ export function DisplayPanel(): JSX.Element {
         checked={view.showAxes}
         onChange={view.toggleAxes}
       />
+      {view.showAxes && (
+        <>
+          <div className="form-row">
+            <label htmlFor="display-axes-mode">Axes at</label>
+            <select
+              id="display-axes-mode"
+              value={view.axesMode}
+              onChange={(e) => view.setAxes({ mode: e.target.value as AxesMode })}
+            >
+              <option value="corner">The corner (orientation gizmo)</option>
+              <option value="origin">A point in the scene</option>
+            </select>
+          </div>
+          {view.axesMode === 'origin' && (
+            <>
+              <div className="form-row">
+                <label htmlFor="display-axes-type">Axes</label>
+                <select
+                  id="display-axes-type"
+                  value={view.axesType}
+                  onChange={(e) => view.setAxes({ type: e.target.value as AxesType })}
+                >
+                  {/* Avogadro's axesType combo */}
+                  <option value="cartesian">Cartesian axes</option>
+                  <option value="orthogonal">Orthogonal axes</option>
+                  <option value="custom">Custom axes</option>
+                </select>
+              </div>
+              {view.axesType === 'cartesian' && (
+                <div className="form-row">
+                  <label htmlFor="display-axes-length">Length (Å)</label>
+                  <div className="range-with-value">
+                    <input
+                      id="display-axes-length"
+                      type="range"
+                      min="0.5"
+                      max="20"
+                      step="0.5"
+                      value={view.axesLength}
+                      onChange={(e) => view.setAxes({ length: Number(e.target.value) })}
+                    />
+                    <span className="range-value">{view.axesLength.toFixed(1)}</span>
+                  </div>
+                </div>
+              )}
+              {view.axesType !== 'cartesian' &&
+                ([0, 1, 2] as const)
+                  // in Orthogonal mode the third axis is the cross product of the first two, so
+                  // only its length is taken from what is entered -- as Avogadro disables its row
+                  .filter((row) => view.axesType === 'custom' || row < 2)
+                  .map((row) => (
+                    <div className="form-row" key={row}>
+                      <label htmlFor={`display-axis-${row}-x`}>Axis {row + 1} x/y/z</label>
+                      <div className="form-vector">
+                        {(['x', 'y', 'z'] as const).map((component, i) => (
+                          <input
+                            key={component}
+                            id={i === 0 ? `display-axis-${row}-x` : undefined}
+                            aria-label={`Axis ${row + 1} ${component}`}
+                            type="number"
+                            step="0.1"
+                            value={view.axesVectors[row]![i]}
+                            onChange={(e) => {
+                              const vectors = view.axesVectors.map((v) => [...v]) as [
+                                Vec3,
+                                Vec3,
+                                Vec3,
+                              ];
+                              vectors[row]![i] = Number(e.target.value);
+                              view.setAxes({ vectors });
+                            }}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+              <div className="form-row">
+                <label htmlFor="display-axes-origin-x">Origin x/y/z (Å)</label>
+                <div className="form-vector">
+                  {(['x', 'y', 'z'] as const).map((component, i) => (
+                    <input
+                      key={component}
+                      id={i === 0 ? 'display-axes-origin-x' : undefined}
+                      aria-label={`Axes origin ${component}`}
+                      type="number"
+                      step="0.1"
+                      value={view.axesOrigin[i]}
+                      onChange={(e) => {
+                        const origin = [...view.axesOrigin] as Vec3;
+                        origin[i] = Number(e.target.value);
+                        view.setAxes({ origin });
+                      }}
+                    />
+                  ))}
+                </div>
+              </div>
+            </>
+          )}
+        </>
+      )}
     </div>
   );
 }
