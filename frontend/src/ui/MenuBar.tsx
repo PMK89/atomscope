@@ -51,6 +51,7 @@ import {
 import { promptSaveAs, saveStructure } from './fileActions';
 import { isEditableTarget } from '../editor/ToolHost';
 import { ExportImageDialog } from './ExportImageDialog';
+import { ExportAseImageDialog } from './ExportAseImageDialog';
 import { HelpDialog, type HelpTopic } from './HelpDialog';
 import { ExportDialog } from './ExportDialog';
 import { ImportDialog } from './ImportDialog';
@@ -81,6 +82,7 @@ export function MenuBar({ onError }: { onError: (msg: string) => void }): JSX.El
   const clearRecent = useRecentStore((s) => s.clear);
   useEffect(() => void refreshRecent(), [refreshRecent]);
   const [exportImage, setExportImage] = useState(false);
+  const [renderAse, setRenderAse] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
   const [exportOpen, setExportOpen] = useState(false);
   const store = useStructureStore();
@@ -273,6 +275,7 @@ export function MenuBar({ onError }: { onError: (msg: string) => void }): JSX.El
           { label: 'Export…', action: () => setExportOpen(true) },
           { label: 'Export image…', action: () => setExportImage(true) },
           { label: 'Export POV-Ray scene', action: exportPov },
+          { label: 'Render with ASE…', action: () => setRenderAse(true) },
           ...contributed('File'),
         ]}
       />
@@ -510,6 +513,11 @@ export function MenuBar({ onError }: { onError: (msg: string) => void }): JSX.El
         ))}
       <ImportDialog open={importOpen} onClose={() => setImportOpen(false)} onError={onError} />
       <ExportDialog open={exportOpen} onClose={() => setExportOpen(false)} onError={onError} />
+      <ExportAseImageDialog
+        open={renderAse}
+        onClose={() => setRenderAse(false)}
+        onError={onError}
+      />
       <ExportImageDialog
         open={exportImage}
         onClose={() => setExportImage(false)}

@@ -2,9 +2,11 @@ import json
 from pathlib import Path
 
 import pytest
+from ase.build import molecule
 from fastapi.testclient import TestClient
 
 from atomscope.api.app import create_app
+from atomscope.ase_bridge import from_atoms
 from atomscope.io import fetch as fetch_module
 from atomscope.io import recent as recent_module
 from atomscope.io.rdkit_io import from_smiles
@@ -221,3 +223,45 @@ def test_view_settings_persist(tmp_path: Path) -> None:
     c.post("/api/project/close")
     c.post("/api/project/open", json={"path": str(tmp_path / "p")})
     assert c.get("/api/project/view-settings").json()["background"] == "black"
+
+
+def test_image_export_over_the_api(tmp_path: Path) -> None:
+    """ASE's writers through the route, including the pov pair and the "not rendered" answer."""
+    with TestClient(create_app(data_dir=tmp_path / "data")) as c:
+        assert c.get("/api/io/image-formats").json() == ["png", "eps", "pov", "x3d", "html"]
+        s = from_atoms(molecule("H2O"), name="water")
+        body = {"structure": s.model_dump(mode="json"), "format": "png"}
+
+        r = c.post("/api/io/export/image", json=body)
+        assert r.status_code == 200, r.text
+        out = r.json()
+        assert out["rendered"] is True
+        assert out["note"] is None
+        # no path given, so it lands in the app's own scratch directory, not the project
+        (png,) = [Path(f) for f in out["files"]]
+        assert png.is_file() and png.read_bytes()[:4] == b"\x89PNG"
+        assert "data" in png.parts
+
+        # pov writes the scene and its ini, and says why it did not render
+        r = c.post(
+            "/api/io/export/image",
+            json={**body, "format": "pov", "options": {"rotation": "auto"}},
+        )
+        assert r.status_code == 200, r.text
+        pov = r.json()
+        assert pov["rendered"] is False
+        assert "POV-Ray is not installed" in pov["note"]
+        assert [Path(f).suffix for f in pov["files"]] == [".pov", ".ini"]
+
+        # an explicit path is honoured, and is not overwritten without being asked
+        target = tmp_path / "out" / "w.png"
+        r = c.post("/api/io/export/image", json={**body, "path": str(target)})
+        assert r.status_code == 200, r.text
+        assert target.is_file()
+        assert c.post("/api/io/export/image", json={**body, "path": str(target)}).status_code == 409
+        r = c.post("/api/io/export/image", json={**body, "path": str(target), "overwrite": True})
+        assert r.status_code == 200
+
+        # a directory is a bad request rather than a confusing write failure
+        r = c.post("/api/io/export/image", json={**body, "path": str(tmp_path)})
+        assert r.status_code == 400

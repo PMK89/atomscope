@@ -49,6 +49,8 @@ export type DosSeries = components['schemas']['DosSeries'];
 export type DosOptions = components['schemas']['DosOptions'];
 export type BandStructure = components['schemas']['BandStructure'];
 export type ProtocolText = components['schemas']['ProtocolText'];
+export type ImageOptions = components['schemas']['ImageOptions'];
+export type ImageExportResponse = components['schemas']['ImageExportResponse'];
 export type PlaneField = components['schemas']['PlaneField'];
 export type PlaneList = components['schemas']['PlaneList'];
 export type BandOptions = components['schemas']['BandOptions'];
@@ -164,6 +166,14 @@ export const api = {
       request<undefined>(`/api/structures/${encodeURIComponent(id)}`, { method: 'DELETE' }),
   },
   io: {
+    imageFormats: () => request<string[]>('/api/io/image-formats'),
+    exportImage: (body: {
+      structure: unknown;
+      format: string;
+      path?: string;
+      overwrite?: boolean;
+      options?: Partial<ImageOptions>;
+    }) => request<ImageExportResponse>('/api/io/export/image', json(body)),
     formats: () => request<FormatDescription[]>('/api/io/formats'),
     importPath: (body: Body<'/api/io/import/path', 'post'>) =>
       request<Structure>('/api/io/import/path', json(body)),

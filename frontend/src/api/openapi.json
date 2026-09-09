@@ -2758,6 +2758,259 @@
         "title": "IgnoreAtoms",
         "type": "object"
       },
+      "ImageExportRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "format": {
+            "default": "png",
+            "enum": ["png", "eps", "pov", "x3d", "html"],
+            "title": "Format",
+            "type": "string"
+          },
+          "options": {
+            "$ref": "#/components/schemas/ImageOptions"
+          },
+          "overwrite": {
+            "default": false,
+            "description": "an existing path is otherwise a 409",
+            "title": "Overwrite",
+            "type": "boolean"
+          },
+          "path": {
+            "anyOf": [
+              {
+                "format": "path",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "write here if given, else into the app's scratch directory",
+            "title": "Path"
+          },
+          "structure": {
+            "$ref": "#/components/schemas/Structure"
+          }
+        },
+        "required": ["structure"],
+        "title": "ImageExportRequest",
+        "type": "object"
+      },
+      "ImageExportResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "files": {
+            "description": "everything written; pov produces an .ini as well",
+            "items": {
+              "format": "path",
+              "type": "string"
+            },
+            "title": "Files",
+            "type": "array"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "why it was not rendered, when it was not",
+            "title": "Note"
+          },
+          "rendered": {
+            "description": "whether a raster image was produced",
+            "title": "Rendered",
+            "type": "boolean"
+          }
+        },
+        "required": ["files", "rendered"],
+        "title": "ImageExportResponse",
+        "type": "object"
+      },
+      "ImageOptions": {
+        "additionalProperties": false,
+        "description": "ASE's own image parameters, at ASE's own defaults.\n\nThe names, defaults and units are `ase.io.utils.PlottingVariables` and `ase.io.pov.POVRAY`;\nwhere a value is ``None`` here it is ``None`` there too and ASE derives it.",
+        "properties": {
+          "background": {
+            "default": "White",
+            "title": "Background",
+            "type": "string"
+          },
+          "bbox": {
+            "anyOf": [
+              {
+                "maxItems": 4,
+                "minItems": 4,
+                "prefixItems": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ],
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "x0, y0, x1, y1 in \u00c5; ASE fits the structure otherwise",
+            "title": "Bbox"
+          },
+          "bondatoms": {
+            "description": "atom index pairs to draw a bond between",
+            "items": {
+              "maxItems": 2,
+              "minItems": 2,
+              "prefixItems": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "integer"
+                }
+              ],
+              "type": "array"
+            },
+            "title": "Bondatoms",
+            "type": "array"
+          },
+          "bondlinewidth": {
+            "default": 0.1,
+            "description": "\u00c5",
+            "title": "Bondlinewidth",
+            "type": "number"
+          },
+          "camera_dist": {
+            "default": 50.0,
+            "title": "Camera Dist",
+            "type": "number"
+          },
+          "camera_type": {
+            "default": "orthographic",
+            "description": "orthographic | perspective | ...",
+            "title": "Camera Type",
+            "type": "string"
+          },
+          "canvas_width": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "px; overrides `scale` for pov",
+            "title": "Canvas Width"
+          },
+          "celllinewidth": {
+            "default": 0.05,
+            "description": "\u00c5; 0 hides the cell edges",
+            "title": "Celllinewidth",
+            "type": "number"
+          },
+          "colors": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "one CSS/POV colour per atom; ASE's JMOL colours otherwise",
+            "title": "Colors"
+          },
+          "cue_density": {
+            "default": 0.005,
+            "title": "Cue Density",
+            "type": "number"
+          },
+          "depth_cueing": {
+            "default": false,
+            "title": "Depth Cueing",
+            "type": "boolean"
+          },
+          "maxwidth": {
+            "default": 500,
+            "description": "px",
+            "maximum": 8000.0,
+            "minimum": 16.0,
+            "title": "Maxwidth",
+            "type": "integer"
+          },
+          "radii": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "\u00c5; one radius for every atom",
+            "title": "Radii"
+          },
+          "rotation": {
+            "default": "",
+            "description": "ASE rotation string, e.g. '90x,20y'; empty looks down z as ASE does. 'auto' uses asecppaw's simplePOV rule, which turns a molecule to face the camera",
+            "title": "Rotation",
+            "type": "string"
+          },
+          "scale": {
+            "default": 20.0,
+            "description": "pixels per \u00c5",
+            "title": "Scale",
+            "type": "number"
+          },
+          "show_unit_cell": {
+            "default": 2,
+            "description": "0 none, 1 behind, 2 in front",
+            "maximum": 2.0,
+            "minimum": 0.0,
+            "title": "Show Unit Cell",
+            "type": "integer"
+          },
+          "textures": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "one POV texture name per atom",
+            "title": "Textures"
+          },
+          "transparent": {
+            "default": true,
+            "description": "transparent background",
+            "title": "Transparent",
+            "type": "boolean"
+          }
+        },
+        "title": "ImageOptions",
+        "type": "object"
+      },
       "ImportCubeRequest": {
         "additionalProperties": false,
         "properties": {
@@ -11032,6 +11285,46 @@
         "tags": ["io"]
       }
     },
+    "/api/io/export/image": {
+      "post": {
+        "description": "Render a structure through ASE's own image writers.\n\n``options`` are ASE's parameters at ASE's defaults, passed through unreinterpreted -- so the\nknob someone knows from ``ase.io.write`` is the knob they find here.\n\n``pov`` is written but never rendered: POV-Ray is not installed on this machine, and ASE\nraises from inside the writer if asked to run it. The ``.pov`` and its ``.ini`` come back\ntogether, which is what rendering it elsewhere needs, and ``note`` says so.",
+        "operationId": "export_image_api_io_export_image_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ImageExportRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImageExportResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Export Image",
+        "tags": ["io"]
+      }
+    },
     "/api/io/export/trajectory": {
       "post": {
         "description": "Write a trajectory as extended XYZ (energy, forces, cell, time per frame).",
@@ -11132,6 +11425,30 @@
           }
         },
         "summary": "List Formats",
+        "tags": ["io"]
+      }
+    },
+    "/api/io/image-formats": {
+      "get": {
+        "description": "Formats ``/api/io/export/image`` can write.",
+        "operationId": "image_formats_api_io_image_formats_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "type": "string"
+                  },
+                  "title": "Response Image Formats Api Io Image Formats Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Image Formats",
         "tags": ["io"]
       }
     },

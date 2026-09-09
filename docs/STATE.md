@@ -171,13 +171,27 @@ Progress:
    two cannot contradict each other. Titles and labels stay fixed: the chart is named by the panel
    it sits in.
 
-6. **ASE image export with parameter parity.** `POST /api/export/image` → `ase.io.write`, with the
-   kwargs mirrored in a pydantic model at ASE's own defaults (`rotation`, `radii`, `colors`,
-   `scale`, `show_unit_cell`, `bbox`; for pov also `canvas_width`, `camera_dist`, `camera_type`,
-   `celllinewidth`, `bondatoms`, `bondlinewidth`, `textures`, `transparent`). Check `MPLBACKEND=Agg`
-   and `which povray` first — if povray is absent, return the `.pov` and say so (`run_povray=False`).
-   The frontend already has an Avogadro-style POV writer for the *live view*
-   (`frontend/src/renderer/pov.ts`); keep both.
+6. **ASE image export with parameter parity** — DONE. `POST /api/io/export/image` runs
+   `ase.io.write` for `png`, `eps`, `pov`, `x3d`, `html` (`GET /api/io/image-formats` lists them);
+   `backend/src/atomscope/io/images.py`. The options are ASE's, mirrored at ASE's own defaults
+   with ASE's names, and a test asserts the defaults still equal
+   `PlottingVariables.__init__`/`POVRAY.__init__` by introspection, so a drift that would make one
+   parameter mean two things fails. File ▸ Render with ASE… exposes them; it sits beside the
+   existing Export image… (a viewport screenshot) and Export POV-Ray scene (the live scene), which
+   are different things and all three stay.
+   Three measured facts:
+   * **POV-Ray is not installed here.** `.pov` is written with its `.ini` and never rendered;
+     `rendered: false` and a `note` say so, rather than ASE raising from inside the writer.
+   * **`write_pov` rejects `scale`** — it passes its own `scale=1.0` to `PlottingVariables`
+     (`ase/io/pov.py:861`), so forwarding ours raises "got multiple values for keyword argument".
+     It is dropped for that format only; POV-Ray sizes with `canvas_width`/`camera_dist`.
+   * `rotation: "auto"` reproduces `asecppaw`'s `simplePOV` rule (compare the mean |coordinate|
+     per axis, turn 90° about y and/or x), so a molecule lying in a plane containing z is brought
+     into the picture instead of being seen edge-on.
+   matplotlib is forced to `Agg` at import: a server has no display and an interactive backend
+   would hang it. Not done: deriving the rotation string from the live camera — ASE's rotation is
+   structure-relative and the renderer exposes no camera getter, so it would be guesswork.
+
 7. **NEB and vibrations/IR on the `ase_builtin` backend.** Read the installed ASE first, not
    memory — in particular which calculator the IR example uses for dipoles, since `Infrared` needs
    `get_dipole_moment` and EMT provides none. Two job types: `neb` (interpolate, run, emit a

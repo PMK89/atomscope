@@ -1622,6 +1622,33 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/io/export/image': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Export Image
+     * @description Render a structure through ASE's own image writers.
+     *
+     *     ``options`` are ASE's parameters at ASE's defaults, passed through unreinterpreted -- so the
+     *     knob someone knows from ``ase.io.write`` is the knob they find here.
+     *
+     *     ``pov`` is written but never rendered: POV-Ray is not installed on this machine, and ASE
+     *     raises from inside the writer if asked to run it. The ``.pov`` and its ``.ini`` come back
+     *     together, which is what rendering it elsewhere needs, and ``note`` says so.
+     */
+    post: operations['export_image_api_io_export_image_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/io/export/trajectory': {
     parameters: {
       query?: never;
@@ -1674,6 +1701,26 @@ export interface paths {
     };
     /** List Formats */
     get: operations['list_formats_api_io_formats_get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/io/image-formats': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Image Formats
+     * @description Formats ``/api/io/export/image`` can write.
+     */
+    get: operations['image_formats_api_io_image_formats_get'];
     put?: never;
     post?: never;
     delete?: never;
@@ -3590,6 +3637,153 @@ export interface components {
        * @enum {string}
        */
       kind: 'ignore_atoms';
+    };
+    /** ImageExportRequest */
+    ImageExportRequest: {
+      /**
+       * Format
+       * @default png
+       * @enum {string}
+       */
+      format: 'png' | 'eps' | 'pov' | 'x3d' | 'html';
+      options?: components['schemas']['ImageOptions'];
+      /**
+       * Overwrite
+       * @description an existing path is otherwise a 409
+       * @default false
+       */
+      overwrite: boolean;
+      /**
+       * Path
+       * @description write here if given, else into the app's scratch directory
+       */
+      path?: string | null;
+      structure: components['schemas']['Structure'];
+    };
+    /** ImageExportResponse */
+    ImageExportResponse: {
+      /**
+       * Files
+       * @description everything written; pov produces an .ini as well
+       */
+      files: string[];
+      /**
+       * Note
+       * @description why it was not rendered, when it was not
+       */
+      note?: string | null;
+      /**
+       * Rendered
+       * @description whether a raster image was produced
+       */
+      rendered: boolean;
+    };
+    /**
+     * ImageOptions
+     * @description ASE's own image parameters, at ASE's own defaults.
+     *
+     *     The names, defaults and units are `ase.io.utils.PlottingVariables` and `ase.io.pov.POVRAY`;
+     *     where a value is ``None`` here it is ``None`` there too and ASE derives it.
+     */
+    ImageOptions: {
+      /**
+       * Background
+       * @default White
+       */
+      background: string;
+      /**
+       * Bbox
+       * @description x0, y0, x1, y1 in Å; ASE fits the structure otherwise
+       */
+      bbox?: [number, number, number, number] | null;
+      /**
+       * Bondatoms
+       * @description atom index pairs to draw a bond between
+       */
+      bondatoms?: [number, number][];
+      /**
+       * Bondlinewidth
+       * @description Å
+       * @default 0.1
+       */
+      bondlinewidth: number;
+      /**
+       * Camera Dist
+       * @default 50
+       */
+      camera_dist: number;
+      /**
+       * Camera Type
+       * @description orthographic | perspective | ...
+       * @default orthographic
+       */
+      camera_type: string;
+      /**
+       * Canvas Width
+       * @description px; overrides `scale` for pov
+       */
+      canvas_width?: number | null;
+      /**
+       * Celllinewidth
+       * @description Å; 0 hides the cell edges
+       * @default 0.05
+       */
+      celllinewidth: number;
+      /**
+       * Colors
+       * @description one CSS/POV colour per atom; ASE's JMOL colours otherwise
+       */
+      colors?: string[] | null;
+      /**
+       * Cue Density
+       * @default 0.005
+       */
+      cue_density: number;
+      /**
+       * Depth Cueing
+       * @default false
+       */
+      depth_cueing: boolean;
+      /**
+       * Maxwidth
+       * @description px
+       * @default 500
+       */
+      maxwidth: number;
+      /**
+       * Radii
+       * @description Å; one radius for every atom
+       */
+      radii?: number | null;
+      /**
+       * Rotation
+       * @description ASE rotation string, e.g. '90x,20y'; empty looks down z as ASE does. 'auto' uses asecppaw's simplePOV rule, which turns a molecule to face the camera
+       * @default
+       */
+      rotation: string;
+      /**
+       * Scale
+       * @description pixels per Å
+       * @default 20
+       */
+      scale: number;
+      /**
+       * Show Unit Cell
+       * @description 0 none, 1 behind, 2 in front
+       * @default 2
+       */
+      show_unit_cell: number;
+      /**
+       * Textures
+       * @description one POV texture name per atom
+       */
+      textures?: string[] | null;
+      /**
+       * Transparent
+       * @description transparent background
+       * @default true
+       */
+      transparent: boolean;
     };
     /** ImportCubeRequest */
     ImportCubeRequest: {
@@ -8683,6 +8877,39 @@ export interface operations {
       };
     };
   };
+  export_image_api_io_export_image_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['ImageExportRequest'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ImageExportResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
   export_trajectory_api_io_export_trajectory_post: {
     parameters: {
       query?: never;
@@ -8765,6 +8992,26 @@ export interface operations {
         };
         content: {
           'application/json': components['schemas']['FormatDescription'][];
+        };
+      };
+    };
+  };
+  image_formats_api_io_image_formats_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': string[];
         };
       };
     };

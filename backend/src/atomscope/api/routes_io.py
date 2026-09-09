@@ -19,6 +19,7 @@ from atomscope.io.fetch import (
     compound_name,
     fetch_structure,
 )
+from atomscope.io.images import FORMATS, ImageFormat, ImageOptions, write_image
 from atomscope.io.poscar import MissingSpeciesError
 from atomscope.io.qc_outputs import OutputImport, read_output
 from atomscope.io.rdkit_io import from_smiles
@@ -262,6 +263,61 @@ def build_from_smiles(body: SmilesRequest) -> Structure:
         return from_smiles(body.smiles, add_hydrogens=body.add_hydrogens)
     except ValueError as exc:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, str(exc)) from exc
+
+
+class ImageExportRequest(StrictModel):
+    structure: Structure
+    format: ImageFormat = Field(default="png")
+    path: Path | None = Field(
+        default=None, description="write here if given, else into the app's scratch directory"
+    )
+    overwrite: bool = Field(default=False, description="an existing path is otherwise a 409")
+    options: ImageOptions = Field(default_factory=ImageOptions)
+
+
+class ImageExportResponse(StrictModel):
+    files: list[Path] = Field(description="everything written; pov produces an .ini as well")
+    rendered: bool = Field(description="whether a raster image was produced")
+    note: str | None = Field(default=None, description="why it was not rendered, when it was not")
+
+
+@router.get("/image-formats", response_model=list[str])
+def image_formats() -> list[str]:
+    """Formats ``/api/io/export/image`` can write."""
+    return list(FORMATS)
+
+
+@router.post("/export/image", response_model=ImageExportResponse)
+def export_image(body: ImageExportRequest, request: Request) -> ImageExportResponse:
+    """Render a structure through ASE's own image writers.
+
+    ``options`` are ASE's parameters at ASE's defaults, passed through unreinterpreted -- so the
+    knob someone knows from ``ase.io.write`` is the knob they find here.
+
+    ``pov`` is written but never rendered: POV-Ray is not installed on this machine, and ASE
+    raises from inside the writer if asked to run it. The ``.pov`` and its ``.ini`` come back
+    together, which is what rendering it elsewhere needs, and ``note`` says so.
+    """
+    target = body.path
+    if target is None:
+        target = (
+            _state(request).scratch_dir() / f"{body.structure.name or 'structure'}.{body.format}"
+        )
+    elif target.is_dir():
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, f"{target} is a directory")
+    elif target.exists() and not body.overwrite:
+        raise HTTPException(status.HTTP_409_CONFLICT, f"{target} exists")
+    try:
+        files = write_image(body.structure, target, body.format, body.options)
+    except (OSError, ValueError, TypeError) as exc:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, str(exc)) from exc
+    note = (
+        "POV-Ray is not installed here, so the scene was written but not rendered; "
+        "render it with `povray <name>.ini`"
+        if body.format == "pov"
+        else None
+    )
+    return ImageExportResponse(files=files, rendered=body.format in ("png", "eps"), note=note)
 
 
 @router.post("/export", response_model=ExportResponse)
