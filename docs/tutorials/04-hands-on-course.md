@@ -402,9 +402,10 @@ for name in sorted(energies)[:3]:
     value(name, energies[name])
 ```
 
-Run against the course project that is 29 calculations and their totals — the
-whole course as one table, which is what the convergence chapters keep asking
-you to build by hand. The same three lines give an adsorption energy:
+Run against the course project of §2 that prints 29 calculations and their
+totals — the whole course as one table, which is what the convergence chapters
+keep asking you to build by hand. An adsorption energy is then one subtraction
+in the same dictionary:
 
 ```python
 value(
@@ -413,7 +414,8 @@ value(
 )
 ```
 
-with the names being whatever you called the three runs.
+with the names being whatever you called the three runs (the `Name` field of
+the `Calculation` tab).
 
 The distance-against-time plot of Fig. 5.6, which §11 lists as missing, is a
 few lines against the stored trajectory. CP-PAW writes its own binary format,
