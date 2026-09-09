@@ -946,3 +946,37 @@ button {
   width: 100%;
   min-width: 3.5rem;
 }
+
+/* scripts panel: the editor is a plain textarea, so it needs the monospace and the tab width */
+.script-editor {
+  width: 100%;
+  box-sizing: border-box;
+  font-family: ui-monospace, monospace;
+  font-size: 11px;
+  line-height: 1.4;
+  tab-size: 4;
+  white-space: pre;
+  overflow-wrap: normal;
+  overflow-x: auto;
+  resize: vertical;
+}
+.script-output {
+  max-height: 30vh;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+}
+.script-values {
+  font-size: 12px;
+  border-collapse: collapse;
+  width: 100%;
+}
+.script-values th {
+  text-align: left;
+  font-weight: 400;
+  opacity: 0.7;
+  padding-right: 8px;
+}
+.script-values td {
+  font-family: ui-monospace, monospace;
+  word-break: break-all;
+}

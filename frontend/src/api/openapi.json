@@ -5192,6 +5192,24 @@
         "title": "ResultBundle",
         "type": "object"
       },
+      "RunScriptRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "structure_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Structure Id"
+          }
+        },
+        "title": "RunScriptRequest",
+        "type": "object"
+      },
       "RunSpec": {
         "additionalProperties": false,
         "description": "Everything needed to start a process. Built by backend plugins, executed by JobManager.",
@@ -5295,6 +5313,122 @@
         },
         "required": ["name", "x_label", "y_label", "x", "y"],
         "title": "ScalarSeries",
+        "type": "object"
+      },
+      "Script": {
+        "additionalProperties": false,
+        "description": "A Python file in the project's ``scripts/`` directory.",
+        "properties": {
+          "id": {
+            "description": "file stem, which is also the id",
+            "title": "Id",
+            "type": "string"
+          },
+          "source": {
+            "title": "Source",
+            "type": "string"
+          }
+        },
+        "required": ["id", "source"],
+        "title": "Script",
+        "type": "object"
+      },
+      "ScriptError": {
+        "additionalProperties": false,
+        "description": "What the script raised, as the runner saw it.",
+        "properties": {
+          "message": {
+            "title": "Message",
+            "type": "string"
+          },
+          "traceback": {
+            "title": "Traceback",
+            "type": "string"
+          },
+          "type": {
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": ["type", "message", "traceback"],
+        "title": "ScriptError",
+        "type": "object"
+      },
+      "ScriptRun": {
+        "additionalProperties": false,
+        "description": "One execution of a script, persisted as ``run.json`` in the run's own directory.\n\n``structure_ids`` are filled in once the run has finished and its outputs have been imported\ninto the project; ``imported`` is what stops that happening twice.",
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ScriptError"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "imported": {
+            "default": false,
+            "title": "Imported",
+            "type": "boolean"
+          },
+          "job_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Job Id"
+          },
+          "script_id": {
+            "title": "Script Id",
+            "type": "string"
+          },
+          "status": {
+            "default": "queued",
+            "enum": ["queued", "running", "completed", "failed", "cancelled"],
+            "title": "Status",
+            "type": "string"
+          },
+          "structure_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Structure Id"
+          },
+          "structure_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Structure Ids",
+            "type": "array"
+          },
+          "values": {
+            "additionalProperties": true,
+            "title": "Values",
+            "type": "object"
+          }
+        },
+        "required": ["script_id"],
+        "title": "ScriptRun",
         "type": "object"
       },
       "SecondaryStructureRequest": {
@@ -7919,6 +8053,18 @@
         },
         "required": ["index", "occupation", "spin", "label"],
         "title": "WavefunctionOrbital",
+        "type": "object"
+      },
+      "WriteScriptRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "source": {
+            "title": "Source",
+            "type": "string"
+          }
+        },
+        "required": ["source"],
+        "title": "WriteScriptRequest",
         "type": "object"
       },
       "atomscope__api__routes_chem__SymmetryRequest": {
@@ -12555,6 +12701,386 @@
         },
         "summary": "Put View Settings",
         "tags": ["project"]
+      }
+    },
+    "/api/scripts": {
+      "get": {
+        "operationId": "list_scripts_api_scripts_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/Script"
+                  },
+                  "title": "Response List Scripts Api Scripts Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List Scripts",
+        "tags": ["scripts"]
+      }
+    },
+    "/api/scripts/examples": {
+      "get": {
+        "description": "The scripts Atomscope ships, as a starting point; they are not part of the project.",
+        "operationId": "list_examples_api_scripts_examples_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/Script"
+                  },
+                  "title": "Response List Examples Api Scripts Examples Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List Examples",
+        "tags": ["scripts"]
+      }
+    },
+    "/api/scripts/runs": {
+      "get": {
+        "operationId": "list_runs_api_scripts_runs_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ScriptRun"
+                  },
+                  "title": "Response List Runs Api Scripts Runs Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List Runs",
+        "tags": ["scripts"]
+      }
+    },
+    "/api/scripts/runs/{run_id}": {
+      "get": {
+        "operationId": "get_run_api_scripts_runs__run_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "title": "Run Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScriptRun"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Run",
+        "tags": ["scripts"]
+      }
+    },
+    "/api/scripts/runs/{run_id}/cancel": {
+      "post": {
+        "operationId": "cancel_run_api_scripts_runs__run_id__cancel_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "title": "Run Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScriptRun"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Cancel Run",
+        "tags": ["scripts"]
+      }
+    },
+    "/api/scripts/runs/{run_id}/log": {
+      "get": {
+        "operationId": "run_log_api_scripts_runs__run_id__log_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "title": "Run Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "stream",
+            "required": false,
+            "schema": {
+              "default": "stdout",
+              "title": "Stream",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "tail",
+            "required": false,
+            "schema": {
+              "default": 500,
+              "title": "Tail",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LogResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Run Log",
+        "tags": ["scripts"]
+      }
+    },
+    "/api/scripts/{script_id}": {
+      "delete": {
+        "operationId": "delete_script_api_scripts__script_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "script_id",
+            "required": true,
+            "schema": {
+              "title": "Script Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Delete Script",
+        "tags": ["scripts"]
+      },
+      "get": {
+        "operationId": "get_script_api_scripts__script_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "script_id",
+            "required": true,
+            "schema": {
+              "title": "Script Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Script"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Script",
+        "tags": ["scripts"]
+      },
+      "put": {
+        "operationId": "write_script_api_scripts__script_id__put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "script_id",
+            "required": true,
+            "schema": {
+              "title": "Script Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WriteScriptRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Script"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Write Script",
+        "tags": ["scripts"]
+      }
+    },
+    "/api/scripts/{script_id}/run": {
+      "post": {
+        "description": "Async so that the job manager submits inside the server's own event loop.",
+        "operationId": "run_script_api_scripts__script_id__run_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "script_id",
+            "required": true,
+            "schema": {
+              "title": "Script Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RunScriptRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScriptRun"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Run Script",
+        "tags": ["scripts"]
       }
     },
     "/api/structures": {

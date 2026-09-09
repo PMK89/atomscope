@@ -2150,6 +2150,150 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/scripts': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** List Scripts */
+    get: operations['list_scripts_api_scripts_get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/scripts/examples': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * List Examples
+     * @description The scripts Atomscope ships, as a starting point; they are not part of the project.
+     */
+    get: operations['list_examples_api_scripts_examples_get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/scripts/runs': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** List Runs */
+    get: operations['list_runs_api_scripts_runs_get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/scripts/runs/{run_id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Get Run */
+    get: operations['get_run_api_scripts_runs__run_id__get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/scripts/runs/{run_id}/cancel': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Cancel Run */
+    post: operations['cancel_run_api_scripts_runs__run_id__cancel_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/scripts/runs/{run_id}/log': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Run Log */
+    get: operations['run_log_api_scripts_runs__run_id__log_get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/scripts/{script_id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Get Script */
+    get: operations['get_script_api_scripts__script_id__get'];
+    /** Write Script */
+    put: operations['write_script_api_scripts__script_id__put'];
+    post?: never;
+    /** Delete Script */
+    delete: operations['delete_script_api_scripts__script_id__delete'];
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/scripts/{script_id}/run': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Run Script
+     * @description Async so that the job manager submits inside the server's own event loop.
+     */
+    post: operations['run_script_api_scripts__script_id__run_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/structures': {
     parameters: {
       query?: never;
@@ -5038,6 +5182,11 @@ export interface components {
       /** Warnings */
       warnings?: string[];
     };
+    /** RunScriptRequest */
+    RunScriptRequest: {
+      /** Structure Id */
+      structure_id?: string | null;
+    };
     /**
      * RunSpec
      * @description Everything needed to start a process. Built by backend plugins, executed by JobManager.
@@ -5112,6 +5261,71 @@ export interface components {
        * @default
        */
       y_unit: string;
+    };
+    /**
+     * Script
+     * @description A Python file in the project's ``scripts/`` directory.
+     */
+    Script: {
+      /**
+       * Id
+       * @description file stem, which is also the id
+       */
+      id: string;
+      /** Source */
+      source: string;
+    };
+    /**
+     * ScriptError
+     * @description What the script raised, as the runner saw it.
+     */
+    ScriptError: {
+      /** Message */
+      message: string;
+      /** Traceback */
+      traceback: string;
+      /** Type */
+      type: string;
+    };
+    /**
+     * ScriptRun
+     * @description One execution of a script, persisted as ``run.json`` in the run's own directory.
+     *
+     *     ``structure_ids`` are filled in once the run has finished and its outputs have been imported
+     *     into the project; ``imported`` is what stops that happening twice.
+     */
+    ScriptRun: {
+      /**
+       * Created At
+       * Format: date-time
+       */
+      created_at?: string;
+      error?: components['schemas']['ScriptError'] | null;
+      /** Id */
+      id?: string;
+      /**
+       * Imported
+       * @default false
+       */
+      imported: boolean;
+      /** Job Id */
+      job_id?: string | null;
+      /** Script Id */
+      script_id: string;
+      /**
+       * Status
+       * @default queued
+       * @enum {string}
+       */
+      status: 'queued' | 'running' | 'completed' | 'failed' | 'cancelled';
+      /** Structure Id */
+      structure_id?: string | null;
+      /** Structure Ids */
+      structure_ids?: string[];
+      /** Values */
+      values?: {
+        [key: string]: unknown;
+      };
     };
     /** SecondaryStructureRequest */
     SecondaryStructureRequest: {
@@ -6191,6 +6405,11 @@ export interface components {
       occupation: number;
       /** Spin */
       spin: string;
+    };
+    /** WriteScriptRequest */
+    WriteScriptRequest: {
+      /** Source */
+      source: string;
     };
     /** SymmetryRequest */
     atomscope__api__routes_chem__SymmetryRequest: {
@@ -9926,6 +10145,292 @@ export interface operations {
           'application/json': {
             [key: string]: unknown;
           };
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  list_scripts_api_scripts_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['Script'][];
+        };
+      };
+    };
+  };
+  list_examples_api_scripts_examples_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['Script'][];
+        };
+      };
+    };
+  };
+  list_runs_api_scripts_runs_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ScriptRun'][];
+        };
+      };
+    };
+  };
+  get_run_api_scripts_runs__run_id__get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        run_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ScriptRun'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  cancel_run_api_scripts_runs__run_id__cancel_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        run_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ScriptRun'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  run_log_api_scripts_runs__run_id__log_get: {
+    parameters: {
+      query?: {
+        stream?: string;
+        tail?: number;
+      };
+      header?: never;
+      path: {
+        run_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['LogResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  get_script_api_scripts__script_id__get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        script_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['Script'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  write_script_api_scripts__script_id__put: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        script_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['WriteScriptRequest'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['Script'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  delete_script_api_scripts__script_id__delete: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        script_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  run_script_api_scripts__script_id__run_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        script_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['RunScriptRequest'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ScriptRun'];
         };
       };
       /** @description Validation Error */

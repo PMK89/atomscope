@@ -29,6 +29,7 @@ import { DisplayPanel } from '../ui/DisplayPanel';
 import { PropertiesPanel } from '../ui/PropertiesPanel';
 import { NebPanel } from '../ui/NebPanel';
 import { SpectrumPanel } from '../ui/SpectrumPanel';
+import { ScriptsPanel } from '../ui/ScriptsPanel';
 import { SurfacesPanel } from '../ui/SurfacesPanel';
 import { AxesLayer } from '../renderer/layers/AxesLayer';
 import { DipoleLayer } from '../renderer/layers/DipoleLayer';
@@ -190,6 +191,14 @@ export function defaultRegistry(): PluginRegistry {
     label: 'Crystal',
     description: 'The unit cell, its symmetry and the supercell to show.',
     component: CrystalPanel,
+  });
+  registry.registerPanel({
+    id: 'scripts',
+    label: 'Scripts',
+    description:
+      'Python that runs inside Atomscope: the structure on screen as an ase.Atoms, everything in' +
+      ' the environment importable, and what it saves back becoming structures of the project.',
+    component: ScriptsPanel,
   });
   registry.registerPanel({
     id: 'properties',

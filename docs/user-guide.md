@@ -20,8 +20,9 @@ Contents:
 6. [Visualization](#6-visualization)
 7. [Calculations](#7-calculations)
 8. [Analysis](#8-analysis)
-9. [Keyboard shortcuts](#9-keyboard-shortcuts)
-10. [Limits and known problems](#10-limits-and-known-problems)
+9. [Scripting with Python](#9-scripting-with-python)
+10. [Keyboard shortcuts](#10-keyboard-shortcuts)
+11. [Limits and known problems](#11-limits-and-known-problems)
 
 ---
 
@@ -176,7 +177,7 @@ browser, like the tool settings.
 holds the selection commands (all, none, invert, by element, by residue, solvent,
 by SMARTS); `Help`
 names the guides, the tutorials and the shortcuts. See the
-[shortcut table](#9-keyboard-shortcuts) for the accelerators.
+[shortcut table](#10-keyboard-shortcuts) for the accelerators.
 
 **Project panel** (left) — open/create a project, and the lists
 `Structures (n)` and `Calculations (n)`. Clicking a structure loads it into
@@ -1368,7 +1369,7 @@ Fermi level and where the top of the filled states is the reference instead.
 Both come from the self-consistent mesh rather than from the path, because
 `paw_bands.x` reports eigenvalues only; for an insulator the two agree, and for
 a metal the label tells you which you are looking at
-(see [§10](#10-limits-and-known-problems)). A band structure already computed
+(see [§11](#11-limits-and-known-problems)). A band structure already computed
 > **is** re-loaded when you reopen the project, as a DOS is; neither has to be
 > recomputed, and recomputing a DOS would overwrite the control file and lose
 > any COOP it had been asked for.
@@ -1757,7 +1758,122 @@ reaction itself in the viewport.
 
 ---
 
-## 9. Keyboard shortcuts
+## 9. Scripting with Python
+
+Everything Atomscope does to a structure, you can do to it in Python, from
+inside the application: the **Scripts** tab is an editor, a Run button and an
+output pane. It is Avogadro's Python extension mechanism and its Python
+Terminal, with the environment Atomscope already runs on — ASE, numpy, scipy
+and Atomscope's own modules are all importable, because the script is run by
+the same Python that runs the backend.
+
+### 9.1 The first script
+
+Open a project first: a script is a file in it, under `scripts/`, so it is
+saved, exported and version-controlled with everything else. Then
+
+1. **New…** and give it a name. `my-script` becomes `scripts/my-script.py`.
+2. Type. `Tab` indents by four spaces instead of leaving the box.
+3. **Run**, or `Ctrl`+`Enter`.
+
+```python
+from atomscope.scripting import save, value
+
+print(atoms.get_chemical_formula(), len(atoms), 'atoms')
+value('mass / u', atoms.get_masses().sum())
+
+centred = atoms.copy()
+centred.translate(-atoms.get_center_of_mass())
+save(centred, name='centred')
+```
+
+`atoms` is already there when the script starts: the structure that was on
+screen, as an `ase.Atoms`. Whatever is printed appears in the output pane,
+`value(...)` becomes a row in the table under it, and `save(...)` puts a new
+structure into the project with an **Open** button beside it.
+
+Start from an example instead of an empty file with **start from ▸ an
+example…**, which copies one of the scripts Atomscope ships into the project.
+
+### 9.2 What a script is given
+
+| | |
+|---|---|
+| `atoms` | the structure on screen as an `ase.Atoms`, ready to use |
+| `input_atoms()` | the same thing, asked for explicitly — useful for a second, unmodified copy |
+| `load(id)` | another structure of the project, by id |
+| `list_structures()` | `[{'id': ..., 'name': ...}]` for everything in the project |
+| `save(atoms, name=...)` | hand a structure back; returns the id it will have |
+| `value(key, x)` | record a named result for the panel; numpy scalars and arrays are fine |
+
+The conversion both ways is lossless, so bonds, labels, residues, formal
+charges, constraints and per-atom properties survive a round trip through
+`ase.Atoms` — not just the symbols and positions that ASE itself knows about.
+The per-atom uids survive too, so an output can be matched to its input atom
+for atom.
+
+`save` always makes a **new** structure: a script cannot overwrite the
+structure it was run on by accident.
+
+The **input** control chooses what `atoms` is. The default is the structure on
+screen, which is saved into the project on the way (that is how the script
+receives it). Pick another structure from the list to run against that instead,
+or *no structure* for a script that builds its own — in which case `atoms` is
+`None`.
+
+### 9.3 Running, failing and stopping
+
+Each run is a **separate process**, started the same way a calculation is. That
+buys three things:
+
+* A script that loops forever is stopped with **Cancel**.
+* A script that raises shows its traceback in the output pane, with the type
+  and message repeated in red beneath it. `error.json` in the run's directory
+  keeps it.
+* A script cannot take the application down with it.
+
+The trade is that nothing survives between runs: no variable, no import, no
+half-finished state. This is not a REPL. Avogadro's Python Terminal kept one
+interpreter alive and fed it lines; Atomscope starts a fresh one every time,
+which is what makes cancelling and reporting a traceback simple.
+
+A run that saved two structures and then raised keeps both — the result is
+written whether or not the script finished.
+
+Everything a run touched is in `script-runs/<id>/` inside the project: the copy
+of the script that ran, the input structure, `stdout.log`, `stderr.log`,
+`result.json`, and `job.json` with the exit code. Nothing is hidden, and a run
+can be read back after a restart.
+
+### 9.4 It is not a sandbox
+
+**A script runs with your own permissions.** It can read and write your files
+and open network connections, exactly as `python script.py` in a terminal can.
+Nothing tries to contain it: a sandbox that could be escaped would be worse
+than saying this plainly. Avogadro's Python extensions worked the same way.
+
+So treat a script from somewhere else the way you would treat any other program
+from somewhere else — read it before you run it.
+[docs/architecture/security-model.md](architecture/security-model.md) has the
+details of how the process is started.
+
+### 9.5 Where a script fits
+
+A script is for the things a panel cannot anticipate: a series of structures
+built by a rule, a property computed with a formula of your own, a batch of
+edits across the project, a quick check of an ASE feature Atomscope has no
+button for yet. Two things it deliberately cannot do:
+
+* **Draw.** A script produces structures, values and text; it does not paint
+  into the viewport, because it runs in another process with no access to the
+  renderer. Avogadro allowed Python *engines* for that; the equivalent here is
+  to save a structure or a property and let the existing display settings show
+  it.
+* **Handle the mouse.** For the same reason there are no Python *tools*.
+
+---
+
+## 10. Keyboard shortcuts
 
 All of these were checked in a running browser. There is no "viewport focus":
 the handlers are global, but the tool letters and the selection commands are
@@ -1796,7 +1912,7 @@ area, so undo can fire from inside the Cartesian editor.
 
 ---
 
-## 10. Limits and known problems
+## 11. Limits and known problems
 
 Things you will notice, with their current status. None of them has a
 workaround hidden from you.

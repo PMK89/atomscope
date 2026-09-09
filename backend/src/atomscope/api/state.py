@@ -12,6 +12,7 @@ from atomscope.backends.registry import BackendRegistry, default_registry
 from atomscope.calculations import CalculationService
 from atomscope.jobs import JobManager
 from atomscope.project import ProjectStore
+from atomscope.scripting.service import ScriptService
 from atomscope.wavefunction.tasks import SurfaceTasks
 
 
@@ -23,6 +24,10 @@ class AppState:
         self.calculations: CalculationService | None = None
         self.registry = registry or default_registry()
         self.jobs = JobManager(max_parallel=1)
+        # Scripts get their own manager: the calculation manager runs one job at a time, and a
+        # script the user just pressed Run on must not sit in a queue behind an hour of CP-PAW.
+        self.script_jobs = JobManager(max_parallel=2)
+        self.scripts: ScriptService | None = None
         # long field evaluations, which report progress and can be cancelled (AV-UI-022)
         self.surface_tasks = SurfaceTasks()
         env_dir = os.environ.get("ATOMSCOPE_DATA_DIR")
@@ -51,11 +56,17 @@ class AppState:
         self.calculations = (
             CalculationService(project, self.registry, self.jobs) if project is not None else None
         )
+        self.scripts = ScriptService(project, self.script_jobs) if project is not None else None
 
     def require_calculations(self) -> CalculationService:
         if self.calculations is None:
             raise HTTPException(status.HTTP_409_CONFLICT, "no project is open")
         return self.calculations
+
+    def require_scripts(self) -> ScriptService:
+        if self.scripts is None:
+            raise HTTPException(status.HTTP_409_CONFLICT, "no project is open")
+        return self.scripts
 
     def require_project(self) -> ProjectStore:
         if self.project is None:

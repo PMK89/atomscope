@@ -5,8 +5,8 @@ Status legend: DONE / IN PROGRESS / PLANNED. Feature-level parity tracking is in
 Session state, resume commands and known problems are in `docs/STATE.md`.
 
 **Counts are derived, never typed from memory.** At `12a03ac`:
-**235 IMPLEMENTED / 16 PARTIAL / 60 NOT STARTED / 1 BLOCKED of 312**, and the only row still open
-at HIGH or CRITICAL is AV-SURF-006. Re-derive both before trusting either:
+**238 IMPLEMENTED / 17 PARTIAL / 53 NOT STARTED / 3 DECLINED / 1 BLOCKED of 312**, and the only
+row still open at HIGH or CRITICAL is AV-SURF-006. Re-derive both before trusting either:
 
 ```bash
 awk -F'|' 'NR>2 && NF>=13 {print $11}' docs/avogadro1-feature-parity.md | sort | uniq -c
@@ -88,8 +88,16 @@ and the plugin registry (tools, display types, panels, menu items and colour sch
 contributions now, with a Plugin manager) are merged.
 **Nothing is open at CRITICAL, and one row is open at HIGH:** AV-SURF-006, the OpenQube
 wavefunction readers, which stays PARTIAL until a MOPAC `.aux` fixture exists. Everything else
-still NOT STARTED is MEDIUM or below — the largest coherent pieces left are Python scripting,
-multi-document/multi-view, and QTAIM.
+still NOT STARTED is MEDIUM or below — the largest coherent pieces left are
+multi-document/multi-view and QTAIM.
+
+**Python scripting is done** (AV-PLUG-004/007/008/009, `atomscope.scripting` + the Scripts tab):
+a script is a `.py` file in the project, run by the backend's own interpreter in a child process
+through the job manager, receiving the structure on screen as an `ase.Atoms` and handing
+structures and named values back. Three rows are **DECLINED** with the reason recorded in the
+matrix — Python tools (AV-PLUG-005) and Python engines (AV-PLUG-006/AV-VIS-028) need the mouse or
+the canvas, which live in the browser, and a subprocess has neither; the browser-side registry is
+the extension point for those.
 
 ## Phase 9 — Additional backends — DONE (input generation), PLANNED (execution and parsing)
 **Every quantum-chemistry input generator Avogadro 1 has is written from its own dialog's

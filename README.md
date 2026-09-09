@@ -23,7 +23,7 @@ patching the application.
 
 This is an honest list. Everything below was exercised against a running
 instance; the [user guide](docs/user-guide.md) says how, and
-[§10 of it](docs/user-guide.md#10-limits-and-known-problems) lists the rough
+[§11 of it](docs/user-guide.md#11-limits-and-known-problems) lists the rough
 edges.
 
 ### Building and editing

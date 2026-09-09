@@ -86,6 +86,14 @@ export type OptimizeStepResponse = components['schemas']['OptimizeStepResponse']
 export type ForceFieldInfo = components['schemas']['ForceFieldInfo'];
 export type PointGroupResult = components['schemas']['PointGroupResult'];
 export type SecondaryStructureResult = components['schemas']['SecondaryStructureResult'];
+export type Script = components['schemas']['Script'];
+/** `id` and the two collected fields have pydantic defaults, so OpenAPI calls them optional. */
+export type ScriptRun = components['schemas']['ScriptRun'] & {
+  id: string;
+  status: NonNullable<components['schemas']['ScriptRun']['status']>;
+  structure_ids: string[];
+};
+export type ScriptError = components['schemas']['ScriptError'];
 export type ParameterValues = Record<string, unknown>;
 
 export class ApiError extends Error {
@@ -425,6 +433,40 @@ export const api = {
         `/api/sweeps/${encodeURIComponent(id)}/fit?kind=${kind}` +
           (volumePerA3 === undefined ? '' : `&volume_per_a3=${volumePerA3}`),
       ),
+  },
+  /**
+   * User Python scripts: stored in the project, run in a child interpreter by the job manager.
+   * A script runs with the user's own privileges -- see docs/architecture/security-model.md.
+   */
+  scripts: {
+    list: () => request<Script[]>('/api/scripts'),
+    /** The scripts Atomscope ships, offered as a starting point; not part of the project. */
+    examples: () => request<Script[]>('/api/scripts/examples'),
+    get: (id: string) => request<Script>(`/api/scripts/${encodeURIComponent(id)}`),
+    put: (id: string, source: string) =>
+      request<Script>(`/api/scripts/${encodeURIComponent(id)}`, {
+        method: 'PUT',
+        body: JSON.stringify({ source }),
+      }),
+    delete: (id: string) =>
+      request<undefined>(`/api/scripts/${encodeURIComponent(id)}`, { method: 'DELETE' }),
+    /** Start the script on `structureId`, which becomes its `atoms`. */
+    run: (id: string, structureId?: string | null) =>
+      request<ScriptRun>(
+        `/api/scripts/${encodeURIComponent(id)}/run`,
+        json({ structure_id: structureId ?? null }),
+      ),
+    runs: () => request<ScriptRun[]>('/api/scripts/runs'),
+    getRun: (runId: string) => request<ScriptRun>(`/api/scripts/runs/${encodeURIComponent(runId)}`),
+    runLog: (runId: string, stream: 'stdout' | 'stderr', tail?: number) =>
+      request<LogResponse>(
+        `/api/scripts/runs/${encodeURIComponent(runId)}/log?stream=${stream}` +
+          (tail === undefined ? '' : `&tail=${tail}`),
+      ),
+    cancelRun: (runId: string) =>
+      request<ScriptRun>(`/api/scripts/runs/${encodeURIComponent(runId)}/cancel`, {
+        method: 'POST',
+      }),
   },
   /** The project's ASE database: finished calculations, selected by chemistry and parameter. */
   database: {

@@ -175,7 +175,11 @@ def read_log(
 
 @router.websocket("/ws")
 async def job_events(ws: WebSocket) -> None:
-    """Stream LogEvent/StatusEvent JSON for all jobs of the open project."""
+    """Stream LogEvent/StatusEvent JSON for every job of the open project.
+
+    Both managers are listened to: calculations run one at a time on ``state.jobs``, user scripts
+    on ``state.script_jobs`` (api/state.py), and the console shows the two together.
+    """
     await ws.accept()
     state: AppState = ws.app.state.atomscope
     queue: asyncio.Queue[LogEvent | StatusEvent] = asyncio.Queue(maxsize=10000)
@@ -185,6 +189,7 @@ async def job_events(ws: WebSocket) -> None:
             queue.put_nowait(event)
 
     state.jobs.add_listener(listener)
+    state.script_jobs.add_listener(listener)
     try:
         while True:
             event = await queue.get()
@@ -194,3 +199,4 @@ async def job_events(ws: WebSocket) -> None:
         pass
     finally:
         state.jobs.remove_listener(listener)
+        state.script_jobs.remove_listener(listener)

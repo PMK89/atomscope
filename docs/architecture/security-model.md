@@ -16,11 +16,42 @@
 
 ## Subprocesses
 
-- Only `atomscope.jobs.runner` spawns processes: `subprocess.Popen(argv, shell=False, cwd=..., env=...)`.
+- Processes are spawned in `atomscope.jobs.manager` (`asyncio.create_subprocess_exec(*argv,
+  cwd=..., env=...)`, i.e. no shell) and, for CP-PAW's own driver, in
+  `backends/cppaw/runner.py` (`subprocess.Popen(argv, shell=False, ...)`).
 - Executables are discovered from an allowlist (configured paths, `PAWDIR`, `PATH` lookup for
   known names) and validated to be regular executable files before use.
 - The environment passed to jobs is explicit (a copy of a minimal base plus documented variables).
 - Cancellation sends SIGTERM to the process group, then SIGKILL after a grace period.
+
+## Scripts
+
+The Scripts panel runs user Python (`atomscope.scripting`). It is the one feature that executes
+code the user wrote, so the rules it obeys are worth stating on their own:
+
+- **Not a sandbox, and said so in the panel.** A script runs with the privileges of whoever
+  started Atomscope, exactly as `python script.py` in a terminal does: it can read and write that
+  user's files and open sockets. Nothing here tries to contain it — a sandbox that could be
+  escaped would be worse than an honest warning, and Avogadro's Python extensions were the same.
+  What follows from that is the advice in the panel: treat a script from somewhere else the way
+  you would treat any program from somewhere else.
+- **Through the job manager, like every other process.** `ScriptService.run` builds a `RunSpec`
+  with an argv array (`sys.executable -m atomscope.scripting.runner script.py`), so there is no
+  shell to quote into; `JobManager.submit` validates argv[0] as an absolute executable file; the
+  working directory is the run's own directory under `script-runs/`; the environment is the
+  minimal base plus `MPLBACKEND=Agg`, so a script that imports pyplot cannot block on a window.
+- **Cancellable.** A script that loops forever is stopped the way a calculation is: SIGTERM to the
+  child, then to its process group, then SIGKILL after the grace period.
+- **Results come back as data, never as code.** The child writes `result.json`; the server
+  validates it with pydantic before anything is saved. The server never `exec`s or `eval`s a
+  script, and `atomscope.scripting.api` reads no file at import time, so importing the service
+  cannot be made to touch a run directory.
+- **A script's own reach into the project is checked.** `load(id)` accepts an id matching
+  `[A-Za-z0-9_-]{1,64}` and resolves it under `structures/`, so it cannot be pointed at
+  `../../etc`. This is a guard against a mistake, not a security boundary — the script could open
+  the file itself, which is exactly the point of the first item.
+- **Nothing is exposed.** The panel talks to the same loopback-only API with the same fixed CORS
+  origins; a script is stored in the project directory and runs on this machine only.
 
 ## Network
 
