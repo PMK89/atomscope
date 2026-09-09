@@ -319,6 +319,9 @@ select it in the project panel, then set up the next calculation.
 
 ## Where to go next
 
+* [Tutorial 4 — The CP-PAW hands-on course](04-hands-on-course.md) — the whole
+  course, chapter by chapter, and what Atomscope cannot do yet.
+
 * [Tutorial 1 — Water with CP-PAW](01-water-cppaw.md)
 * [Tutorial 2 — Silicon](02-silicon-crystal.md)
 * [User guide §8.6](../user-guide.md#86-force-fields)

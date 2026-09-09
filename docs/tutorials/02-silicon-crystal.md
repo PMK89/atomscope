@@ -333,6 +333,9 @@ For section 5 onwards:
 
 ## Where to go next
 
+* [Tutorial 4 — The CP-PAW hands-on course](04-hands-on-course.md) — the whole
+  course, chapter by chapter, and what Atomscope cannot do yet.
+
 * [Tutorial 3 — Force fields and conformers](03-force-field-and-conformers.md),
   which needs no external program at all.
 * [User guide §8.5](../user-guide.md#85-crystallography) for the full list of

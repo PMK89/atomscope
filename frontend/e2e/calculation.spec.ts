@@ -47,6 +47,24 @@ test('create project, configure, run and inspect an ASE calculation', async ({ p
   await expect(page.getByRole('button', { name: 'Run', exact: true })).toBeDisabled();
   await expect(page.getByRole('button', { name: 'Fork' })).toBeVisible();
   await expect(page.getByText('Calculations (1)')).toBeVisible();
+
+  // and a sweep is built from it: one parameter varied over a list of values, which is what the
+  // course's convergence chapters consist of
+  await page.getByRole('tab', { name: 'Sweeps' }).click();
+  const sweeps = page.locator('.sweep-panel');
+  await sweeps.getByRole('button', { name: 'New sweep…' }).click();
+  await expect(sweeps.getByLabel('Vary a parameter of')).toContainText('water emt');
+  await sweeps.getByLabel('Parameter', { exact: true }).selectOption('max_steps');
+  await sweeps.getByLabel('Values').fill('2:6:2');
+  await expect(sweeps.getByText('3 points: 2, 4, 6')).toBeVisible();
+  await sweeps.getByRole('button', { name: 'Create sweep' }).click();
+
+  // three calculations of its own, and the curve appears once they have run
+  await expect(sweeps.getByLabel('Sweep')).toContainText('(0/3)', { timeout: 20_000 });
+  await sweeps.getByRole('button', { name: 'Run remaining points' }).click();
+  await expect(sweeps.getByLabel('Sweep')).toContainText('(3/3)', { timeout: 120_000 });
+  await sweeps.locator('svg').first().scrollIntoViewIfNeeded();
+  await expect(sweeps.locator('svg polyline').first()).toBeVisible();
 });
 
 /**

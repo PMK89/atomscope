@@ -42,7 +42,7 @@ we do not have · `TODO` not started.
 | 2.8.4 | Water structure | analyse with `paw_strc` | H₂O | — | bond lengths and angles from the tool | properties panel (bond/angle/torsion tables) | TODO |
 | 2.8.5 | Water structure | analyse in Avogadro | H₂O | — | the point of the whole application | our own viewer | TODO |
 | 3.3 | Water wave functions | extract and plot orbitals | H₂O | one-shot with orbital export | isosurfaces of the occupied and empty orbitals | orbital browser, isosurface engine | DONE |
-| 3.4 | Water wave functions | contour plots (optional) | H₂O | — | a plane cut through an orbital | **no contour/slice view** | BLOCKED |
+| 3.4 | Water wave functions | contour plots (optional) | H₂O | — | a plane cut through an orbital | Analysis ▸ Planes: contour map and rubbersheet of each cut CP-PAW wrote | DONE |
 | 3.5 | Water wave functions | DOS and COOP | H₂O | `paw_dos` | density of states; crystal-orbital overlap population | DOS plot + COOP plot | DONE |
 | 4.4 | Malonaldehyde | build from the Lewis formula | C₃H₄O₂ | — | building a molecule by hand | draw tool, builder | TODO |
 | 4.5 | Malonaldehyde | optimize the electronic structure | C₃H₄O₂ | wave-function optimization | convergence | as 2.7 | READY |
@@ -52,9 +52,9 @@ we do not have · `TODO` not started.
 | 4.7.4 | Malonaldehyde | special orbitals, local coordinates | C₃H₄O₂ | `paw_dos` weights | projections onto a local frame | `!ORB` with `NNZ` | READY |
 | 4.7.5 | Malonaldehyde | COOPs (optional) | C₃H₄O₂ | `paw_dos` | bonding/antibonding character per bond | COOP plot | READY |
 | 4.7.6 | Malonaldehyde | wave functions and density | C₃H₄O₂ | cube export | isosurfaces | isosurface engine | TODO |
-| 5 | Malonaldehyde MD | Nosé-Hoover thermostats, equilibration | C₃H₄O₂ | Car-Parrinello MD at 300 K | temperature history, energy conservation, equipartition | MD run, trajectory playback, energy plots | TODO |
+| 5 | Malonaldehyde MD | Nosé-Hoover thermostats, equilibration | C₃H₄O₂ | Car-Parrinello MD at 300 K | temperature history, energy conservation, equipartition | MD run (`Task ▸ Molecular dynamics`, both Nosé thermostats), trajectory playback, temperature and energy against time | READY |
 | 5.10 | Malonaldehyde MD | extract proton-transfer modes | C₃H₄O₂ | `paw_tra` | a chosen internal coordinate against time | **`paw_tra` mode extraction not wrapped** | BLOCKED |
-| 5.11 | Malonaldehyde MD | visualize the dynamics | C₃H₄O₂ | — | the trajectory as a movie | trajectory playback | TODO |
+| 5.11 | Malonaldehyde MD | visualize the dynamics | C₃H₄O₂ | — | the trajectory as a movie | trajectory player (in the application; no video file — see figures.md) | READY |
 | 6.3.1 | Solids: silicon | wave functions at equilibrium | Si, 2-atom fcc cell | wave-function optimization, k-points | total energy, convergence | periodic setup, k-point controls | READY |
 | 6.3.2 | Solids: silicon | density of states | Si | `paw_dos` | the band gap in the DOS | DOS plot | TODO |
 | 6.3.3 | Solids: silicon | empty atoms | Si | setup with empty spheres | DOS projected on the interstitial | **empty atoms not in the schema** | BLOCKED |
@@ -69,6 +69,12 @@ we do not have · `TODO` not started.
 | 8.3 | Convergence | plane-wave cutoff, density | Fe | a sweep over `CDUAL`, independent runs | energy against the density cutoff | Sweeps panel | DONE |
 | 8.4 | Convergence | number of k-points | Si | a sweep over the k-point density R | energy against the density | Sweeps panel | DONE |
 | 8.5 | Convergence | cell size for a molecule | H₂O | a sweep over the cell | energy against isolation distance | Sweeps panel | DONE |
+
+## The tutorial
+
+[`docs/tutorials/04-hands-on-course.md`](../tutorials/04-hands-on-course.md) walks this whole
+table in order, chapter by chapter, saying what to do in Atomscope for each — including a section
+on what is still missing (the three BLOCKED rows) and how a script covers two of them today.
 
 ## Findings
 

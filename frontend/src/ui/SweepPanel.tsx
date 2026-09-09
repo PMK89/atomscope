@@ -19,7 +19,9 @@ import {
   type SweepFit,
   type SweepSummary,
 } from '../api/client';
+import { useCalculationStore } from '../state/calculationStore';
 import { LineChart, type ChartSeries } from './charts/LineChart';
+import { NewSweep } from './NewSweep';
 
 /** One millihartree in eV: what a total energy is quoted to, and the default tolerance. */
 const MILLIHARTREE = 0.0272113838;
@@ -43,6 +45,7 @@ function axisLabel(curve: SweepCurve): string {
 }
 
 export function SweepPanel({ onError }: { onError: (m: string) => void }): JSX.Element {
+  const calculations = useCalculationStore((s) => s.calculations);
   const [sweeps, setSweeps] = useState<SweepSummary[]>([]);
   const [selected, setSelected] = useState<string | null>(null);
   const [curve, setCurve] = useState<SweepCurve | null>(null);
@@ -132,6 +135,7 @@ export function SweepPanel({ onError }: { onError: (m: string) => void }): JSX.E
           No sweeps in this project. A sweep is several calculations that differ in one way — a
           cutoff, a cell size, a volume — plotted against that one number.
         </p>
+        <NewSweep calculations={calculations} onCreated={() => void refresh()} onError={onError} />
       </div>
     );
   }
@@ -166,6 +170,7 @@ export function SweepPanel({ onError }: { onError: (m: string) => void }): JSX.E
 
   return (
     <div className="panel-body sweep-panel">
+      <NewSweep calculations={calculations} onCreated={() => void refresh()} onError={onError} />
       <div className="form-row">
         <label htmlFor="sweep-select">Sweep</label>
         <select

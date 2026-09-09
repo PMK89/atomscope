@@ -140,7 +140,9 @@ Five minutes from there to a converged DFT calculation:
 **[Tutorial 1 — Water with CP-PAW](docs/tutorials/01-water-cppaw.md)**.
 No CP-PAW? Start with
 **[Tutorial 3 — Force fields and conformers](docs/tutorials/03-force-field-and-conformers.md)**,
-which needs nothing beyond the install above.
+which needs nothing beyond the install above. Working through the CP-PAW
+hands-on course? **[Tutorial 4](docs/tutorials/04-hands-on-course.md)** walks all
+of it, chapter by chapter.
 
 ---
 
@@ -152,6 +154,7 @@ which needs nothing beyond the install above.
 | [Tutorial 1 — Water with CP-PAW](docs/tutorials/01-water-cppaw.md) | the CP-PAW course's water example, end to end: CNTL/STRC, protocol, energy, density, orbitals |
 | [Tutorial 2 — Silicon](docs/tutorials/02-silicon-crystal.md) | a periodic workflow: symmetry, supercell, (111) slab, k-points, DOS, band structure |
 | [Tutorial 3 — Force fields and conformers](docs/tutorials/03-force-field-and-conformers.md) | SMILES → hydrogens → MMFF94 → conformer search → export, on any machine |
+| [Tutorial 4 — The CP-PAW hands-on course](docs/tutorials/04-hands-on-course.md) | the whole course, chapter by chapter, inside Atomscope — and what it cannot do yet |
 | [Developer guide](docs/developer-guide.md) | layout, toolchain, typed contracts, adding a backend/format/layer/tool, testing, review workflow |
 | [Architecture](docs/architecture/README.md) | one page per subsystem, with the reasoning |
 | [Decisions](docs/decisions/README.md) | ADRs |
