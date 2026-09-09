@@ -192,12 +192,28 @@ Progress:
    would hang it. Not done: deriving the rotation string from the live camera — ASE's rotation is
    structure-relative and the renderer exposes no camera getter, so it would be guesswork.
 
-7. **NEB and vibrations/IR on the `ase_builtin` backend.** Read the installed ASE first, not
-   memory — in particular which calculator the IR example uses for dipoles, since `Infrared` needs
-   `get_dipole_moment` and EMT provides none. Two job types: `neb` (interpolate, run, emit a
-   trajectory `kind="neb"` plus energy-vs-image so the Convergence chart draws the barrier) and
-   `vibrations` (`Vibrations.run()` → the existing mode animation; frequencies through
-   `analysis/vibrations.py` and `spectra.py`, which already broaden them).
+7. **NEB and vibrations/IR** — DONE, and it split in two once the installed ASE was read.
+   * **Vibrations and IR already existed** and work: `POST /api/analysis/vibrations` computes
+     modes by finite differences and the Spectra panel draws the table, the broadened spectrum
+     (clickable peaks) and the mode animation. Water reads 1580.8 / 3722.5 / 3782.5 cm⁻¹ against
+     experiment's 1595 / 3657 / 3756, with IR intensities 59.3 / 32.4 / 59.5 km/mol. Verified with
+     a picture (`e2e/vibrations.spec.ts`, `.scratch/course-shots/water-ir.png`), including a
+     scroll so the spectrum is actually *in* the screenshot — the friction chart taught that.
+     Why the Open Babel path is the one that produces intensities: **none of ASE's built-in
+     calculators implements `get_dipole_moment`**, which `Infrared` needs — EMT, Lennard-Jones and
+     Morse all raise `PropertyNotImplementedError` (measured). `ChargeDipoleEngine` supplies a
+     point-charge dipole instead, which is approximate and says so in the method string.
+   * **NEB was the real gap** and is now `backend/src/atomscope/analysis/neb.py` +
+     `POST /api/analysis/neb` + a "Path" panel. Verified against ASE's own tutorial system — Au
+     hopping between hollow sites on Al(100) with EMT — where it gives **0.401 eV**, the ~0.40 eV
+     ASE documents, converged in 8 steps, with a symmetric path (images 1 and 3 equal) and the
+     saddle at the middle image. The response carries the band as a `Trajectory(kind="neb")` for
+     the player and energy against *distance along the band* (not image number, so unevenly
+     spaced images are not drawn as if they were even). Mismatched endpoints are refused rather
+     than interpolated into a barrier that is arithmetic and not chemistry; an unconverged band
+     reports its maximum as a lower bound.
+   A calculator is built *per image*: ASE evaluates band images independently, and sharing one
+   silently returns the previous image's forces.
 
 `/remote-control` is not in the skills list, so it was not invoked — nothing was guessed at.
 

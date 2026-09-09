@@ -24,6 +24,29 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/analysis/neb': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Neb
+     * @description Relax a nudged elastic band between two geometries and report the path.
+     *
+     *     Synchronous behind the same atom limit as the other analyses: a band is ``images`` force
+     *     evaluations per optimizer step, so it is only cheap for the cheap calculators.
+     */
+    post: operations['neb_api_analysis_neb_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/analysis/nmr': {
     parameters: {
       query?: never;
@@ -4025,6 +4048,91 @@ export interface components {
        */
       symbol: string;
     };
+    /** NebRequest */
+    NebRequest: {
+      /**
+       * Calculator
+       * @description emt | lj | morse | openbabel
+       * @default emt
+       */
+      calculator: string;
+      /**
+       * Climb
+       * @description climbing image: pulls the top image onto the saddle
+       * @default false
+       */
+      climb: boolean;
+      /** @description the same atoms in the same order, at the other end */
+      final: components['schemas']['Structure'];
+      /**
+       * Fmax
+       * @description eV/Å
+       * @default 0.05
+       */
+      fmax: number;
+      /**
+       * Force Field
+       * @description Open Babel field, when used
+       * @default mmff94
+       */
+      force_field: string;
+      /**
+       * Images
+       * @description including both ends
+       * @default 7
+       */
+      images: number;
+      initial: components['schemas']['Structure'];
+      /**
+       * Interpolation
+       * @description idpp | linear
+       * @default idpp
+       */
+      interpolation: string;
+      /**
+       * K
+       * @description spring constant, eV/Å²
+       * @default 0.1
+       */
+      k: number;
+      /**
+       * Max Steps
+       * @default 100
+       */
+      max_steps: number;
+      /**
+       * Optimizer
+       * @description bfgs | lbfgs | fire
+       * @default bfgs
+       */
+      optimizer: string;
+    };
+    /** NebResponse */
+    NebResponse: {
+      /**
+       * Barrier
+       * @description eV, from the first image to the highest
+       */
+      barrier: number;
+      /** Converged */
+      converged: boolean;
+      /** @description energy against distance along the band */
+      energy: components['schemas']['ScalarSeries'];
+      /**
+       * Note
+       * @description set when the barrier is a bound rather than an answer
+       */
+      note?: string | null;
+      /** Steps */
+      steps: number;
+      /** @description one frame per image, in path order */
+      trajectory: components['schemas']['Trajectory'];
+      /**
+       * Transition Index
+       * @description the highest image; the saddle if it converged
+       */
+      transition_index: number;
+    };
     /**
      * NmrShielding
      * @description One nucleus' magnetic shielding tensor summary, as printed by NMR codes (ppm).
@@ -6001,6 +6109,39 @@ export interface operations {
         };
         content: {
           'application/json': components['schemas']['Spectrum'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  neb_api_analysis_neb_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['NebRequest'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['NebResponse'];
         };
       };
       /** @description Validation Error */

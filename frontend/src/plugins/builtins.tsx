@@ -27,6 +27,7 @@ import { CalculationPanel } from '../ui/CalculationPanel';
 import { CrystalPanel } from '../ui/CrystalPanel';
 import { DisplayPanel } from '../ui/DisplayPanel';
 import { PropertiesPanel } from '../ui/PropertiesPanel';
+import { NebPanel } from '../ui/NebPanel';
 import { SpectrumPanel } from '../ui/SpectrumPanel';
 import { SurfacesPanel } from '../ui/SurfacesPanel';
 import { AxesLayer } from '../renderer/layers/AxesLayer';
@@ -143,6 +144,12 @@ export function defaultRegistry(): PluginRegistry {
     description:
       "The project's ASE database: finished calculations selected by the elements in them, by charge and spin, or by any parameter they were run with.",
     component: DatabasePanel,
+  });
+  registry.registerPanel({
+    id: 'neb',
+    label: 'Path',
+    description: 'A nudged elastic band between this structure and another, and its barrier.',
+    component: NebPanel,
   });
   registry.registerPanel({
     id: 'spectra',

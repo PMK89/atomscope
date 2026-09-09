@@ -6,9 +6,14 @@ from pathlib import Path
 from typing import Any
 
 import pytest
+from ase.build import add_adsorbate, fcc100
+from ase.calculators.emt import EMT
+from ase.constraints import FixAtoms
+from ase.optimize import BFGS
 from fastapi.testclient import TestClient
 
 from atomscope.api.app import create_app
+from atomscope.ase_bridge import from_atoms
 from atomscope.io.rdkit_io import from_smiles
 
 FIXTURES = Path(__file__).resolve().parents[1] / "fixtures" / "spectra"
@@ -244,3 +249,56 @@ def test_emt_without_parameters_for_an_element_is_a_400(client: TestClient) -> N
     }
     r = client.post("/api/analysis/vibrations", json={"structure": uranium, "calculator": "emt"})
     assert r.status_code == 400
+
+
+def test_neb_over_the_api() -> None:
+    """The Au/Al(100) hop from ASE's own NEB tutorial, whose barrier is documented as ~0.40 eV."""
+    slab = fcc100("Al", size=(2, 2, 3))
+    add_adsorbate(slab, "Au", 1.7, "hollow")
+    slab.center(axis=2, vacuum=4.0)
+    slab.set_constraint(FixAtoms(mask=[a.symbol != "Au" for a in slab]))
+    slab.calc = EMT()
+    BFGS(slab, logfile=None).run(fmax=0.01)
+    initial = slab.copy()
+    final = slab.copy()
+    final[-1].x += final.get_cell()[0, 0] / 2
+    final.calc = EMT()
+    BFGS(final, logfile=None).run(fmax=0.01)
+
+    with TestClient(create_app()) as c:
+        r = c.post(
+            "/api/analysis/neb",
+            json={
+                "initial": from_atoms(initial, name="start").model_dump(mode="json"),
+                "final": from_atoms(final, name="end").model_dump(mode="json"),
+                "calculator": "emt",
+                "images": 5,
+                "fmax": 0.05,
+                "max_steps": 100,
+            },
+        )
+        assert r.status_code == 200, r.text
+        d = r.json()
+        assert d["converged"] is True
+        assert d["note"] is None
+        assert d["barrier"] == pytest.approx(0.40, abs=0.02)
+        assert d["transition_index"] == 2
+        assert d["trajectory"]["kind"] == "neb"
+        assert len(d["trajectory"]["frames"]) == 5
+        # the chart's y is relative to the first image, which is what a barrier plot shows
+        e = d["energy"]
+        assert e["y"][0] == pytest.approx(0.0, abs=1e-9)
+        assert e["y"][2] == pytest.approx(d["barrier"], abs=1e-9)
+        assert e["x_unit"] == "A" and e["y_unit"] == "eV"
+
+        # mismatched ends are a bad request, not a barrier between unrelated structures
+        bad = c.post(
+            "/api/analysis/neb",
+            json={
+                "initial": from_atoms(initial, name="start").model_dump(mode="json"),
+                "final": from_atoms(initial[:-1], name="short").model_dump(mode="json"),
+                "calculator": "emt",
+            },
+        )
+        assert bad.status_code == 400
+        assert "atoms" in bad.json()["detail"]

@@ -15,6 +15,7 @@ Expensive calculators such as CP-PAW must go through a real calculation instead.
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from pathlib import Path
 
 import numpy as np
@@ -23,7 +24,9 @@ from pydantic import Field
 
 from atomscope.analysis import spectra as spectra_mod
 from atomscope.analysis.broadening import auto_grid, broaden, to_transmittance
+from atomscope.analysis.neb import NebError, run_neb
 from atomscope.analysis.vibrations import VibrationError, compute_modes, make_engine
+from atomscope.backends.base import ScalarSeries
 from atomscope.chem import forcefield
 from atomscope.model import (
     ElectronicTransition,
@@ -34,6 +37,7 @@ from atomscope.model import (
     SpectrumKind,
     SpectrumPeak,
     Structure,
+    Trajectory,
     VibrationalSpectrum,
     new_uid,
 )
@@ -130,6 +134,26 @@ def _bad(exc: Exception) -> HTTPException:
     return HTTPException(status.HTTP_400_BAD_REQUEST, str(exc))
 
 
+def _calculator_factory(body: NebRequest) -> Callable[[], object]:
+    """A *new* calculator per call: ASE evaluates each band image independently, and sharing one
+    calculator between images silently returns the previous image's forces."""
+    from atomscope.backends.ase_builtin.runner import make_calculator  # noqa: PLC0415
+
+    if body.calculator == "openbabel":
+        from atomscope.ase_bridge.openbabel_calculator import (  # noqa: PLC0415
+            OpenBabelCalculator,
+        )
+
+        field = body.force_field
+        return lambda: OpenBabelCalculator(force_field=field)
+    if body.calculator in ("emt", "lj", "morse"):
+        defaults = {"lj_epsilon": 0.01, "lj_sigma": 3.0, "lj_rc": 10.0}
+        name = body.calculator
+        return lambda: make_calculator({"calculator": name, **defaults}, Path("."))
+    msg = f"unknown calculator {body.calculator!r}"
+    raise ValueError(msg)
+
+
 def _make_calculator(body: VibrationsRequest) -> object:
     from atomscope.backends.ase_builtin.runner import make_calculator  # noqa: PLC0415
 
@@ -144,6 +168,90 @@ def _make_calculator(body: VibrationsRequest) -> object:
         return make_calculator({"calculator": body.calculator, **defaults}, Path("."))
     msg = f"unknown calculator {body.calculator!r}"
     raise ValueError(msg)
+
+
+class NebRequest(StrictModel):
+    initial: Structure
+    final: Structure = Field(description="the same atoms in the same order, at the other end")
+    calculator: str = Field(default="emt", description="emt | lj | morse | openbabel")
+    force_field: str = Field(default="mmff94", description="Open Babel field, when used")
+    images: int = Field(default=7, ge=3, le=31, description="including both ends")
+    k: float = Field(default=0.1, gt=0, description="spring constant, eV/Å²")
+    climb: bool = Field(
+        default=False, description="climbing image: pulls the top image onto the saddle"
+    )
+    interpolation: str = Field(default="idpp", description="idpp | linear")
+    optimizer: str = Field(default="bfgs", description="bfgs | lbfgs | fire")
+    fmax: float = Field(default=0.05, gt=0, description="eV/Å")
+    max_steps: int = Field(default=100, ge=1, le=2000)
+
+
+class NebResponse(StrictModel):
+    trajectory: Trajectory = Field(description="one frame per image, in path order")
+    energy: ScalarSeries = Field(description="energy against distance along the band")
+    barrier: float = Field(description="eV, from the first image to the highest")
+    transition_index: int = Field(description="the highest image; the saddle if it converged")
+    converged: bool
+    steps: int
+    note: str | None = Field(
+        default=None, description="set when the barrier is a bound rather than an answer"
+    )
+
+
+@router.post("/neb", response_model=NebResponse)
+def neb(body: NebRequest) -> NebResponse:
+    """Relax a nudged elastic band between two geometries and report the path.
+
+    Synchronous behind the same atom limit as the other analyses: a band is ``images`` force
+    evaluations per optimizer step, so it is only cheap for the cheap calculators.
+    """
+    n = body.initial.n_atoms
+    if n > MAX_ATOMS:
+        raise HTTPException(
+            status.HTTP_413_CONTENT_TOO_LARGE,
+            f"{n} atoms exceeds the synchronous limit of {MAX_ATOMS}",
+        )
+    factory = _calculator_factory(body)
+    try:
+        result = run_neb(
+            body.initial,
+            body.final,
+            factory,
+            images=body.images,
+            k=body.k,
+            climb=body.climb,
+            interpolation=body.interpolation,
+            optimizer=body.optimizer,
+            fmax=body.fmax,
+            max_steps=body.max_steps,
+        )
+    except (NebError, ValueError) as exc:
+        raise _bad(exc) from exc
+    except NotImplementedError as exc:  # e.g. EMT has no parameters for this element
+        raise _bad(exc) from exc
+    return NebResponse(
+        trajectory=result.trajectory,
+        energy=ScalarSeries(
+            name="band",
+            x_label="distance along the band",
+            x_unit="A",
+            y_label="energy",
+            y_unit="eV",
+            x=result.coordinate,
+            # relative to the starting image, which is what a barrier plot shows
+            y=[e - result.energies_ev[0] for e in result.energies_ev],
+        ),
+        barrier=result.barrier_ev,
+        transition_index=result.transition_index,
+        converged=result.converged,
+        steps=result.steps,
+        note=(
+            None
+            if result.converged
+            else "the band did not converge, so this is a lower bound on the barrier, "
+            "not the barrier"
+        ),
+    )
 
 
 @router.post("/vibrations", response_model=VibrationsResponse)

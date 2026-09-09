@@ -3525,6 +3525,126 @@
         "title": "NanotubeRequest",
         "type": "object"
       },
+      "NebRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "calculator": {
+            "default": "emt",
+            "description": "emt | lj | morse | openbabel",
+            "title": "Calculator",
+            "type": "string"
+          },
+          "climb": {
+            "default": false,
+            "description": "climbing image: pulls the top image onto the saddle",
+            "title": "Climb",
+            "type": "boolean"
+          },
+          "final": {
+            "$ref": "#/components/schemas/Structure",
+            "description": "the same atoms in the same order, at the other end"
+          },
+          "fmax": {
+            "default": 0.05,
+            "description": "eV/\u00c5",
+            "exclusiveMinimum": 0.0,
+            "title": "Fmax",
+            "type": "number"
+          },
+          "force_field": {
+            "default": "mmff94",
+            "description": "Open Babel field, when used",
+            "title": "Force Field",
+            "type": "string"
+          },
+          "images": {
+            "default": 7,
+            "description": "including both ends",
+            "maximum": 31.0,
+            "minimum": 3.0,
+            "title": "Images",
+            "type": "integer"
+          },
+          "initial": {
+            "$ref": "#/components/schemas/Structure"
+          },
+          "interpolation": {
+            "default": "idpp",
+            "description": "idpp | linear",
+            "title": "Interpolation",
+            "type": "string"
+          },
+          "k": {
+            "default": 0.1,
+            "description": "spring constant, eV/\u00c5\u00b2",
+            "exclusiveMinimum": 0.0,
+            "title": "K",
+            "type": "number"
+          },
+          "max_steps": {
+            "default": 100,
+            "maximum": 2000.0,
+            "minimum": 1.0,
+            "title": "Max Steps",
+            "type": "integer"
+          },
+          "optimizer": {
+            "default": "bfgs",
+            "description": "bfgs | lbfgs | fire",
+            "title": "Optimizer",
+            "type": "string"
+          }
+        },
+        "required": ["initial", "final"],
+        "title": "NebRequest",
+        "type": "object"
+      },
+      "NebResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "barrier": {
+            "description": "eV, from the first image to the highest",
+            "title": "Barrier",
+            "type": "number"
+          },
+          "converged": {
+            "title": "Converged",
+            "type": "boolean"
+          },
+          "energy": {
+            "$ref": "#/components/schemas/ScalarSeries",
+            "description": "energy against distance along the band"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "set when the barrier is a bound rather than an answer",
+            "title": "Note"
+          },
+          "steps": {
+            "title": "Steps",
+            "type": "integer"
+          },
+          "trajectory": {
+            "$ref": "#/components/schemas/Trajectory",
+            "description": "one frame per image, in path order"
+          },
+          "transition_index": {
+            "description": "the highest image; the saddle if it converged",
+            "title": "Transition Index",
+            "type": "integer"
+          }
+        },
+        "required": ["trajectory", "energy", "barrier", "transition_index", "converged", "steps"],
+        "title": "NebResponse",
+        "type": "object"
+      },
       "NmrShielding": {
         "additionalProperties": false,
         "description": "One nucleus' magnetic shielding tensor summary, as printed by NMR codes (ppm).",
@@ -7703,6 +7823,46 @@
           }
         },
         "summary": "Electronic",
+        "tags": ["analysis"]
+      }
+    },
+    "/api/analysis/neb": {
+      "post": {
+        "description": "Relax a nudged elastic band between two geometries and report the path.\n\nSynchronous behind the same atom limit as the other analyses: a band is ``images`` force\nevaluations per optimizer step, so it is only cheap for the cheap calculators.",
+        "operationId": "neb_api_analysis_neb_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NebRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NebResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Neb",
         "tags": ["analysis"]
       }
     },

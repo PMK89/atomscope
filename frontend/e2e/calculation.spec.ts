@@ -27,7 +27,9 @@ test('create project, configure, run and inspect an ASE calculation', async ({ p
   await page.locator('#calc-name').fill('water emt');
   await page.getByLabel('Backend').selectOption('ase_builtin');
   await page.getByLabel('Task').selectOption('relax');
-  await page.getByLabel('Maximum steps').fill('20');
+  // scoped to this panel: every panel is mounted at once, so a bare label can be shadowed by
+  // another one's field -- the reaction-path panel also has a maximum-steps input
+  await page.locator('.calc-panel').getByLabel('Maximum steps').fill('20');
   await page.getByRole('button', { name: 'Generate input' }).click();
   await expect(page.locator('.generated pre')).toContainText('"task": "relax"');
   await page.getByRole('button', { name: 'Setup' }).click();

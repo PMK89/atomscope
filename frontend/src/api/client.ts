@@ -49,6 +49,7 @@ export type DosSeries = components['schemas']['DosSeries'];
 export type DosOptions = components['schemas']['DosOptions'];
 export type BandStructure = components['schemas']['BandStructure'];
 export type ProtocolText = components['schemas']['ProtocolText'];
+export type NebResponse = components['schemas']['NebResponse'];
 export type ImageOptions = components['schemas']['ImageOptions'];
 export type ImageExportResponse = components['schemas']['ImageExportResponse'];
 export type PlaneField = components['schemas']['PlaneField'];
@@ -233,6 +234,8 @@ export const api = {
       request<Spectrum>('/api/analysis/nmr', json(body)),
     electronic: (body: Body<'/api/analysis/electronic', 'post'>) =>
       request<Spectrum>('/api/analysis/electronic', json(body)),
+    neb: (body: Body<'/api/analysis/neb', 'post'>) =>
+      request<NebResponse>('/api/analysis/neb', json(body)),
   },
   crystal: {
     symmetry: (body: Body<'/api/crystal/symmetry', 'post'>) =>

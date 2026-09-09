@@ -3,16 +3,26 @@
  * has no use for them.
  */
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi, type Mock } from 'vitest';
 
 import { ExportAseImageDialog } from './ExportAseImageDialog';
 
-const exportImage = vi.fn(() =>
+interface ExportResult {
+  files: string[];
+  rendered: boolean;
+  note: string | null;
+}
+
+type ExportBody = { format: string; options: Record<string, unknown> };
+
+// typed through vi.fn's generic rather than a parameter, so the call arguments are readable
+// without leaving an unused binding behind
+const exportImage: Mock<(body: ExportBody) => Promise<ExportResult>> = vi.fn(() =>
   Promise.resolve({ files: ['/tmp/water.png'], rendered: true, note: null }),
 );
 
 vi.mock('../api/client', () => ({
-  api: { io: { exportImage: (...a: unknown[]) => exportImage(...(a as [])) } },
+  api: { io: { exportImage: (body: ExportBody) => exportImage(body) } },
 }));
 
 vi.mock('../state/structureStore', () => ({
@@ -44,10 +54,7 @@ describe('ExportAseImageDialog', () => {
     render(<ExportAseImageDialog open onClose={() => {}} onError={() => {}} />);
     fireEvent.click(screen.getByRole('button', { name: 'Render' }));
     await waitFor(() => expect(exportImage).toHaveBeenCalledTimes(1));
-    const body = exportImage.mock.calls[0]![0] as unknown as {
-      format: string;
-      options: Record<string, unknown>;
-    };
+    const body = exportImage.mock.calls[0]![0];
     expect(body.format).toBe('png');
     // 'auto' is asecppaw's simplePOV rule, resolved on the server where the positions are
     expect(body.options['rotation']).toBe('auto');
@@ -62,7 +69,7 @@ describe('ExportAseImageDialog', () => {
     fireEvent.click(screen.getByLabelText(/Draw the bonds/));
     fireEvent.click(screen.getByRole('button', { name: 'Render' }));
     await waitFor(() => expect(exportImage).toHaveBeenCalled());
-    const body = exportImage.mock.calls[0]![0] as unknown as { options: Record<string, unknown> };
+    const body = exportImage.mock.calls[0]![0];
     expect(body.options['bondatoms']).toEqual([]);
   });
 

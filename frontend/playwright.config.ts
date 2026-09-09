@@ -10,17 +10,18 @@ import { defineConfig } from '@playwright/test';
 // are out of the normal suite for two reasons: they need real runs under .scratch/course-runs,
 // and they open a project of their own, which the rest of the suite cannot take -- those specs
 // share one document and one project and depend on the order they run in. ATOMSCOPE_COURSE=1
-// runs them.
+// runs them, and neb.spec.ts among them -- it needs a project holding both ends of the band and
+// spends a few seconds relaxing it for real.
 const PERF = process.env['ATOMSCOPE_PERF'] === '1';
 const COURSE = process.env['ATOMSCOPE_COURSE'] === '1';
-const OUT_OF_SUITE = /(perf|course-visual|database)\.spec\.ts/;
+const OUT_OF_SUITE = /(perf|course-visual|database|neb|vibrations)\.spec\.ts/;
 
 export default defineConfig({
   testDir: './e2e',
   ...(PERF
     ? { testMatch: /perf\.spec\.ts/ }
     : COURSE
-      ? { testMatch: /(course-visual|database)\.spec\.ts/ }
+      ? { testMatch: /(course-visual|database|neb|vibrations)\.spec\.ts/ }
       : { testIgnore: OUT_OF_SUITE }),
   timeout: PERF ? 900_000 : 60_000,
   // All tests share one backend process (one open project at a time): run serially.
